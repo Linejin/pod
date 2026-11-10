@@ -237,3 +237,46 @@ fn same_name_tabs_show_the_distinguishing_parent() {
     h.with(|e, w, cx| e.close_path(&root.join("crates/pod-app/src/mod.rs"), false, w, cx));
     assert_eq!(h.read(|e| e.tab_titles()), ["mod.rs", "lib.rs"]);
 }
+
+/// The 8.3 short spelling of an existing path (`cmd`'s `%~s`), `None` when
+/// the volume has no short names.
+fn short_spelling(p: &Path) -> Option<PathBuf> {
+    use std::os::windows::process::CommandExt;
+    let out = std::process::Command::new("cmd")
+        .raw_arg(format!(
+            "/d /c for %I in (\"{}\") do @echo %~sI",
+            p.display()
+        ))
+        .output()
+        .ok()?;
+    let s = String::from_utf8_lossy(&out.stdout).trim().to_string();
+    (out.status.success() && s.contains('~')).then(|| PathBuf::from(s))
+}
+
+/// A host (task removal, a server's file edit) names an open file through
+/// an 8.3 short name of the root (GitHub runners' `RUNNER~1`): it is the
+/// same tab, so it closes, and the remaining tab titles see one spelling.
+#[core::prelude::v1::test]
+fn host_close_accepts_a_short_spelling_of_the_root() {
+    let dir = tempfile::tempdir().expect("temp");
+    let root = dir.path().join("LongWorktreeName");
+    std::fs::create_dir_all(root.join("src")).unwrap();
+    for f in ["src/a.rs", "src/b.rs"] {
+        std::fs::write(root.join(f), "\n").unwrap();
+    }
+    let Some(short) = short_spelling(&root) else {
+        eprintln!("skipped: no 8.3 short names on this volume");
+        return;
+    };
+    let mut h = Harness::new(&root);
+    for f in ["src/a.rs", "src/b.rs"] {
+        h.with(|e, w, cx| e.open_file(&root.join(f), w, cx))
+            .unwrap();
+    }
+    h.with(|e, w, cx| e.close_path(&short.join("src").join("a.rs"), false, w, cx));
+    assert_eq!(h.read(|e| e.tab_titles()), ["b.rs"]);
+    // A file deleted meanwhile still maps through its existing folder.
+    std::fs::remove_file(root.join("src/b.rs")).unwrap();
+    h.with(|e, w, cx| e.close_path(&short.join("src").join("b.rs"), true, w, cx));
+    assert!(h.read(|e| e.tab_titles()).is_empty());
+}

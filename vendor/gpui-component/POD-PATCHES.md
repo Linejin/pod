@@ -7,6 +7,12 @@ Legacy SlideDown and deferred focus return use the theme motion duration, so
 the host reduced-motion preference also suppresses the legacy animation/delay.
 Single-panel headers expose their tab name and selection. Dock menu, close,
 zoom and collapse controls have names and keyboard tab stops.
+Dock panel content bypasses GPUI's view cache while accessibility is active:
+GPUI 0.3.11 replays cached paint/hitboxes without accessibility nodes, so partial
+frames (including foreground activation) dropped the panel from UIA. The
+absolute full-size slot and the cache without an accessibility client remain.
+Regression: Pod's `qa/ui-wave0/dock-activation.ps1` and
+`tools/visual/uia-required.ps1` check settings content after three activations.
 Code-editor fold chevrons (gutter) have names (`Input.Fold` / `Input.Unfold`,
 new English locale keys; Pod supplies Korean) for the P3 editor integration.
 Dialogs without an `on_ok` handler (custom footers, as every Pod dialog

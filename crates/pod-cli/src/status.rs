@@ -11,6 +11,8 @@ use pod_status::install::{self, InstallScope};
 use podd::client::Client;
 use podd::protocol::*;
 
+use crate::hooks_install::long_path;
+
 /// Values of `pod wait --status`.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, ValueEnum)]
 pub enum WaitStatus {
@@ -245,7 +247,9 @@ fn request(
                 bail!("--claude-config-dir/--codex-home apply to --scope profile");
             }
             match t.home.or_else(install::user_home) {
-                Some(home) => InstallScope::Global { home },
+                Some(home) => InstallScope::Global {
+                    home: long_path(&home),
+                },
                 None => bail!("no home directory; pass --home"),
             }
         }
@@ -254,10 +258,13 @@ fn request(
                 bail!("--home applies to --scope global");
             }
             InstallScope::Profile {
-                claude_config_dir: t
-                    .claude_config_dir
-                    .unwrap_or_else(|| default_profile_dir("claude")),
-                codex_home: t.codex_home.unwrap_or_else(|| default_profile_dir("codex")),
+                claude_config_dir: long_path(
+                    &t.claude_config_dir
+                        .unwrap_or_else(|| default_profile_dir("claude")),
+                ),
+                codex_home: long_path(
+                    &t.codex_home.unwrap_or_else(|| default_profile_dir("codex")),
+                ),
             }
         }
     };
@@ -266,12 +273,16 @@ fn request(
             .unwrap_or_default()
             .with_file_name("pod-hook.exe")
     });
+    // Agent configs get the long spelling of every path (8.3 short names
+    // expanded): it is what Codex keys its trust entries by, and it keeps
+    // working where short names are off or stripped.
     Ok(crate::hooks_install::Request {
         scope,
         agents,
-        bin_dir: t
-            .bin_dir
-            .unwrap_or_else(crate::hooks_install::default_bin_dir),
+        bin_dir: long_path(
+            &t.bin_dir
+                .unwrap_or_else(crate::hooks_install::default_bin_dir),
+        ),
         source,
         dry_run,
         codex_trust,

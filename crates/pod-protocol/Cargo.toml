@@ -1,0 +1,29 @@
+[package]
+name = "pod-protocol"
+version = "0.1.0"
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+publish = false
+description = "Pod wire protocol: JSON-RPC 2.0 envelope, error codes, methods, params/result/event types, schema, version negotiation and downgrade"
+
+# Wire types only (docs/20-refactor/daemon.md §2): no podd, file, lock or
+# tokio dependency. The domain crates come in for their wire types; none of
+# their runtime features is turned on here.
+[dependencies]
+# MIT OR Apache-2.0, already in the lockfile.
+base64 = "0.22"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+schemars = "1"
+# Forge (GitHub) PR types.
+pod-forge = { path = "../pod-forge" }
+# Orchestration records and message text (docs/19).
+pod-orch = { path = "../pod-orch" }
+# Extension types (docs/16), without the QuickJS `runtime`.
+pod-mods = { path = "../pod-mods", default-features = false }
+# Discovered agent sessions (docs/18).
+pod-discover = { path = "../pod-discover" }
+
+[lints]
+workspace = true

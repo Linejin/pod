@@ -1085,15 +1085,18 @@ fn remove_worktree(
     delete_branch: bool,
     branch: &str,
 ) -> Result<(bool, bool), RpcError> {
+    // git's own spelling of the worktree: the recorded one may differ (an 8.3
+    // short name, letter case) and `git worktree remove` matches literally.
     let registered = git::worktree_list(repo)
         .map_err(git_err)?
-        .iter()
-        .any(|w| git::same_path(&w.path, wt));
+        .into_iter()
+        .find(|w| git::same_path(&w.path, wt))
+        .map(|w| w.path);
     let mut worktree_removed = false;
-    if registered {
+    if let Some(git_wt) = registered {
         let deadline = Instant::now() + Duration::from_secs(10);
         loop {
-            match git::worktree_remove(repo, wt, force) {
+            match git::worktree_remove(repo, &git_wt, force) {
                 Ok(()) => {
                     worktree_removed = true;
                     break;

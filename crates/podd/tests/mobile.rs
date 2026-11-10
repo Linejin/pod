@@ -8,8 +8,8 @@ mod common;
 
 use std::path::{Path, PathBuf};
 use std::process::{Command, Stdio};
-use std::sync::Mutex;
-use std::time::{Duration, Instant};
+
+use std::time::Duration;
 
 use common::*;
 use podd::client::{Client, ClientError};
@@ -21,52 +21,12 @@ use serde_json::{Value, json};
 const HOOKS: &[(&str, &str)] = &[("POD_MOBILE_TEST_HOOKS", "1")];
 const HEADER: &str = "Message from the user, sent from their phone through Pod";
 
-fn profile_dir() -> PathBuf {
-    let exe = std::env::current_exe().unwrap();
-    exe.parent().unwrap().parent().unwrap().to_path_buf()
-}
-
-/// The same single cargo invocation as the other integration tests.
-fn workspace_bin(rel: &str) -> PathBuf {
-    static BUILT: Mutex<bool> = Mutex::new(false);
-    let mut built = BUILT.lock().unwrap();
-    let dir = profile_dir();
-    if !*built {
-        let mut cmd = Command::new(std::env::var("CARGO").unwrap_or_else(|_| "cargo".into()));
-        cmd.args([
-            "build",
-            "-p",
-            "podd",
-            "--example",
-            "fake-agent",
-            "-p",
-            "pod-hook",
-            "-p",
-            "pod-cli",
-            "--bin",
-            "pod",
-            "--bin",
-            "pod-hook",
-        ]);
-        if dir.file_name().and_then(|n| n.to_str()) == Some("release") {
-            cmd.arg("--release");
-        }
-        assert!(cmd.status().expect("cargo build").success());
-        *built = true;
-    }
-    let p = dir.join(rel);
-    assert!(p.exists(), "{} missing", p.display());
-    p
-}
-
 fn fake_agent() -> String {
-    workspace_bin("examples/fake-agent.exe")
-        .display()
-        .to_string()
+    fixture_bin("examples/fake-agent.exe").display().to_string()
 }
 
 fn pod(pipe: &str, args: &[&str]) -> std::process::Output {
-    Command::new(workspace_bin("pod.exe"))
+    Command::new(fixture_bin("pod.exe"))
         .arg("--pipe")
         .arg(pipe)
         .args(args)
@@ -155,17 +115,6 @@ fn wait_state(c: &mut Client, id: &str, state: &str) {
         })
         .expect("status.wait");
     assert_eq!(r.outcome, WaitOutcome::Matched, "{id} never became {state}");
-}
-
-fn until<T>(what: &str, secs: u64, mut f: impl FnMut() -> Option<T>) -> T {
-    let deadline = Instant::now() + Duration::from_secs(secs);
-    loop {
-        if let Some(v) = f() {
-            return v;
-        }
-        assert!(Instant::now() < deadline, "timed out waiting for {what}");
-        std::thread::sleep(Duration::from_millis(100));
-    }
 }
 
 fn pair(c: &mut Client, name: &str) -> String {

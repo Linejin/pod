@@ -22,18 +22,7 @@ pub use pod_orch::model::{
 pub use pod_orch::text as msg_text;
 pub use pod_orch::text::MsgText;
 
-use crate::protocol::{AgentSpec, Empty, GateInfo, Method, StatusInfo};
-
-macro_rules! method {
-    ($ty:ident, $name:literal, $params:ty, $result:ty) => {
-        pub struct $ty;
-        impl Method for $ty {
-            const NAME: &'static str = $name;
-            type Params = $params;
-            type Result = $result;
-        }
-    };
-}
+use crate::protocol::{AgentSpec, Empty, GateInfo, StatusInfo};
 
 method!(
     OrchRunCreate,

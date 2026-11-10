@@ -97,7 +97,7 @@ fn main() {
         config.reply_window_ms = ms;
     }
     if let Some(w) = worktrees_root {
-        config.worktrees_root = std::path::absolute(&w).unwrap_or(w);
+        config.worktrees_root = podd::git::normalize(&w);
     }
 
     let rt = tokio::runtime::Builder::new_multi_thread()

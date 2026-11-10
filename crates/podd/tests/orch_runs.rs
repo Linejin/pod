@@ -8,7 +8,7 @@ mod common;
 
 use std::path::{Path, PathBuf};
 use std::process::Command;
-use std::sync::Mutex;
+
 use std::time::{Duration, Instant};
 
 use common::*;
@@ -18,52 +18,8 @@ use serde_json::Value;
 
 // ───────────────────────────── helpers ─────────────────────────────
 
-fn profile_dir() -> PathBuf {
-    let exe = std::env::current_exe().unwrap();
-    exe.parent().unwrap().parent().unwrap().to_path_buf()
-}
-
-/// Same single cargo invocation as tests/orchestration.rs.
-fn workspace_bin(rel: &str) -> PathBuf {
-    static BUILT: Mutex<bool> = Mutex::new(false);
-    let mut built = BUILT.lock().unwrap();
-    let dir = profile_dir();
-    if !*built {
-        let mut cmd = Command::new(std::env::var("CARGO").unwrap_or_else(|_| "cargo".into()));
-        cmd.args([
-            "build",
-            "-p",
-            "podd",
-            "--example",
-            "fake-agent",
-            "-p",
-            "pod-hook",
-            "-p",
-            "pod-cli",
-            "--bin",
-            "pod",
-            "--bin",
-            "pod-hook",
-        ]);
-        if dir.file_name().and_then(|n| n.to_str()) == Some("release") {
-            cmd.arg("--release");
-        }
-        assert!(cmd.status().expect("cargo build").success());
-        *built = true;
-    }
-    let p = dir.join(rel);
-    assert!(p.exists(), "{} missing", p.display());
-    p
-}
-
 fn fake_agent() -> String {
-    workspace_bin("examples/fake-agent.exe")
-        .display()
-        .to_string()
-}
-
-fn pod_exe() -> PathBuf {
-    workspace_bin("pod.exe")
+    fixture_bin("examples/fake-agent.exe").display().to_string()
 }
 
 fn git(dir: &Path, args: &[&str]) {
@@ -285,14 +241,6 @@ fn wait_status(c: &mut Client, t: &str, state: &str) {
     );
 }
 
-fn until(what: &str, secs: u64, mut f: impl FnMut() -> bool) {
-    let deadline = Instant::now() + Duration::from_secs(secs);
-    while !f() {
-        assert!(Instant::now() < deadline, "timed out: {what}");
-        std::thread::sleep(Duration::from_millis(100));
-    }
-}
-
 fn type_human(c: &mut Client, t: &str, text: &str) {
     c.call::<TerminalInput>(&InputParams {
         target: TerminalRef::id(t),
@@ -379,7 +327,7 @@ fn orch_core_roundtrip_fences_breaker_depth_and_restart() {
         Some(e.coord.as_str())
     );
     // S1 path: the safe first line is typed into the (argv) worker agent.
-    until("brief first line typed", 30, || {
+    until_true("brief first line typed", 30, || {
         e.submits("a1")
             .contains("Read the task brief in the file named by POD_BRIEF")
     });
@@ -411,7 +359,7 @@ fn orch_core_roundtrip_fences_breaker_depth_and_restart() {
         ],
     );
     // The coordinator is woken with one line, then reads and answers.
-    until("coordinator woken", 30, || e.wakes("coord") >= 1);
+    until_true("coordinator woken", 30, || e.wakes("coord") >= 1);
     assert!(
         e.submits("coord")
             .contains("pod mail: 1 new message(s) - run: pod orch check"),
@@ -601,7 +549,7 @@ fn orch_core_roundtrip_fences_breaker_depth_and_restart() {
         &a4.attempt.id,
         &[&["orch", "ask", "--question", "Still there?", "--json"]],
     );
-    until("question recorded", 30, || {
+    until_true("question recorded", 30, || {
         e.peek("r1").iter().any(|m| m.body == "Still there?")
     });
     std::thread::sleep(Duration::from_millis(300));
@@ -704,7 +652,7 @@ fn wakeups_and_supervision() {
         ]],
     );
     assert_eq!(e.out(&a1, n[0])["code"], 0);
-    until("turn-end escalation", 20, || {
+    until_true("turn-end escalation", 20, || {
         stop_reasons(&e.peek("r1")).contains(&"turn_ended_without_done".to_string())
     });
     passes(&mut e.c());
@@ -716,7 +664,7 @@ fn wakeups_and_supervision() {
     );
     // The person sends it; the agent works and goes idle: one wake-up.
     type_human(&mut e.c(), &e.coord, "\r");
-    until("woken after the draft", 20, || e.wakes("coord") == 1);
+    until_true("woken after the draft", 20, || e.wakes("coord") == 1);
     assert!(
         e.submits("coord").contains("hel\n<<<END"),
         "the draft itself went through"
@@ -751,7 +699,7 @@ fn wakeups_and_supervision() {
     passes(&mut e.c());
     assert_eq!(e.wakes("coord"), 1, "typed while blocked");
     e.osc("coord", "state=idle");
-    until("woken once idle", 20, || e.wakes("coord") == 2);
+    until_true("woken once idle", 20, || e.wakes("coord") == 2);
     passes(&mut e.c());
     assert_eq!(e.wakes("coord"), 2, "no duplicates");
     let cn = e.run("coord", &[&["orch", "check", "--json"]]);
@@ -759,7 +707,7 @@ fn wakeups_and_supervision() {
 
     // Stalled: working without output.
     e.osc(&a1, "state=working");
-    until("stalled escalation", 20, || {
+    until_true("stalled escalation", 20, || {
         stop_reasons(&e.peek("r1")).contains(&"stalled".to_string())
     });
 
@@ -785,13 +733,13 @@ fn wakeups_and_supervision() {
     );
     assert_eq!(e.out(&a1, n[0])["code"], 0);
     assert_eq!(e.worker(&a1).attempt.worker, WorkerState::Finished);
-    until("auto release", 20, || {
+    until_true("auto release", 20, || {
         e.worker(&a1).attempt.worker == WorkerState::Released
     });
     let w = e.worker(&a1);
     let log = std::fs::read_to_string(w.attempt.log_path.as_deref().unwrap()).unwrap();
     assert!(log.contains(&format!("orch agent {a1} ready")), "{log}");
-    until("process tree gone", 10, || !process_alive(pid));
+    until_true("process tree gone", 10, || !process_alive(pid));
     assert!(
         e.c()
             .call::<TerminalList>(&Empty {})
@@ -834,7 +782,7 @@ fn wakeups_and_supervision() {
     assert_eq!(e.out(&a2, n[0])["code"], 0);
     let finished = Instant::now();
     type_human(&mut e.c(), w2.terminal.as_deref().unwrap(), "x");
-    until("kept", 10, || {
+    until_true("kept", 10, || {
         e.worker(&a2).attempt.worker == WorkerState::Kept
     });
     // Past its release time (3 s after `done`), then the passes that would
@@ -883,7 +831,7 @@ fn wakeups_and_supervision() {
     assert!(process_alive(pid4));
     let rel = e.c().call::<OrchWorkerRelease>(&r).unwrap();
     assert_eq!(rel.attempt.worker, WorkerState::Released);
-    until("released tree gone", 10, || !process_alive(pid4));
+    until_true("released tree gone", 10, || !process_alive(pid4));
 
     // `pod orch workers --json` outside a terminal lists them all.
     let out = Command::new(pod_exe())
@@ -1033,7 +981,7 @@ impl Env {
     }
 
     fn wait_started(&self, a: &str) -> WorkerInfo {
-        until(&format!("{a} started"), 60, || {
+        until_true(&format!("{a} started"), 60, || {
             self.worker(a).attempt.terminal.is_some()
         });
         self.wait_file(&self.dir(a), 20);
@@ -1157,7 +1105,7 @@ fn resource_queue_fifo_meter_and_restart() {
     // is not touched.
     set_meter(&meter, 95.0, 64, 500);
     e.done(&a2);
-    until("cpu wait", 20, || {
+    until_true("cpu wait", 20, || {
         wait_kind(&e.worker(&a3)) == Some(WaitKind::Cpu)
     });
     let q = e.queue();
@@ -1166,14 +1114,14 @@ fn resource_queue_fifo_meter_and_restart() {
     assert_eq!(q.active, 0);
     // Memory, then disk (which also tells the coordinator).
     set_meter(&meter, 10.0, 1, 500);
-    until("memory wait", 20, || {
+    until_true("memory wait", 20, || {
         wait_kind(&e.worker(&a3)) == Some(WaitKind::Memory)
     });
     set_meter(&meter, 10.0, 64, 5);
-    until("disk wait", 20, || {
+    until_true("disk wait", 20, || {
         wait_kind(&e.worker(&a3)) == Some(WaitKind::Disk)
     });
-    until("low disk mail", 20, || {
+    until_true("low disk mail", 20, || {
         stop_reasons(&e.peek("r1")).contains(&"low_disk".to_string())
     });
     assert!(
@@ -1260,7 +1208,7 @@ fn gate_options_block_items_and_one_decision_path() {
     };
     assert_eq!(it().state, ItemState::Blocked);
     assert_eq!(it().gates, std::slice::from_ref(&gid));
-    until("gate mail to the coordinator", 20, || {
+    until_true("gate mail to the coordinator", 20, || {
         e.peek("r1")
             .iter()
             .any(|m| m.kind == MailType::Gate && m.subject.contains(&gid))
@@ -1385,7 +1333,7 @@ fn gate_options_block_items_and_one_decision_path() {
         (Some("8080"), Some("local"))
     );
     assert_eq!(it().state, ItemState::Assigned);
-    until("coordinator told about the person's decision", 20, || {
+    until_true("coordinator told about the person's decision", 20, || {
         e.peek("r1")
             .iter()
             .any(|m| m.kind == MailType::Gate && m.subject == format!("gate {g2} decided: 8080"))
@@ -1423,7 +1371,7 @@ fn gate_options_block_items_and_one_decision_path() {
             ..Default::default()
         })
         .unwrap();
-    until("coordinator hears the person", 20, || {
+    until_true("coordinator hears the person", 20, || {
         e.peek("r1")
             .iter()
             .any(|m| m.kind == MailType::Gate && m.subject == format!("gate {g3id} rejected"))
@@ -1445,7 +1393,7 @@ fn gate_options_block_items_and_one_decision_path() {
     );
     assert_eq!(e.out(&a1, n[0])["code"], 0);
     assert_eq!(it().state, ItemState::Blocked);
-    until("expired gate unblocks", 20, || {
+    until_true("expired gate unblocks", 20, || {
         it().state == ItemState::Assigned
     });
     assert!(it().gates.is_empty());
@@ -1685,7 +1633,7 @@ pod.on("orch.changed", (ev) => pod.log(`CHANGED ${ev.run} ${ev.attempt ?? "-"} $
         ]],
     );
     assert_eq!(e.out(&a1, n[0])["code"], 0);
-    until("turn-end escalation", 30, || {
+    until_true("turn-end escalation", 30, || {
         stop_reasons(&e.peek("r1")).contains(&"turn_ended_without_done".to_string())
     });
     let esc = e
@@ -1740,7 +1688,7 @@ pod.on("orch.changed", (ev) => pod.log(`CHANGED ${ev.run} ${ev.attempt ?? "-"} $
             ..Default::default()
         })
         .unwrap();
-    until("review link mail", 30, || {
+    until_true("review link mail", 30, || {
         e.peek("r1").iter().any(|m| {
             m.text
                 .as_ref()
@@ -1792,7 +1740,7 @@ pod.on("orch.changed", (ev) => pod.log(`CHANGED ${ev.run} ${ev.attempt ?? "-"} $
         })
         .unwrap();
     assert!(r.all_passed, "{r:?}");
-    until("group link mail", 30, || {
+    until_true("group link mail", 30, || {
         e.peek("r1").iter().any(|m| {
             m.text
                 .as_ref()
@@ -1829,7 +1777,7 @@ pod.on("orch.changed", (ev) => pod.log(`CHANGED ${ev.run} ${ev.attempt ?? "-"} $
         ]],
     );
     assert_eq!(e.out(&a1, n[0])["code"], 0);
-    until("done mail", 20, || {
+    until_true("done mail", 20, || {
         e.peek("r1").iter().any(|m| m.kind == MailType::Done)
     });
     let done = e
@@ -1841,7 +1789,7 @@ pod.on("orch.changed", (ev) => pod.log(`CHANGED ${ev.run} ${ev.attempt ?? "-"} $
         done.text.as_ref().map(|t| t.kind.as_str()),
         Some(msg_text::DONE)
     );
-    until("mod events", 20, || {
+    until_true("mod events", 20, || {
         let l = mod_log(&mut c);
         l.contains(&format!("MAIL done attempt:{a1} {a1} {task} done.report"))
             && l.contains(&format!("CHANGED r1 {a1} succeeded {task}"))
@@ -1895,7 +1843,7 @@ pod.on("orch.changed", (ev) => pod.log(`CHANGED ${ev.run} ${ev.attempt ?? "-"} $
 #[test]
 fn session_start_hook_is_not_a_finished_turn() {
     let e = Env::new("orch-sstart", &[]);
-    let _ = workspace_bin("pod-hook.exe");
+    let _ = fixture_bin("pod-hook.exe");
     let r = e
         .c()
         .call::<OrchWorkerStart>(&OrchWorkerStartParams {
@@ -1917,7 +1865,7 @@ fn session_start_hook_is_not_a_finished_turn() {
     assert_eq!(r.stage, "started", "{r:?}");
     let t = r.terminal.clone().unwrap();
     // The hook went through (`pod-hook` found on PATH) and reported idle.
-    until("idle from the hook", 30, || {
+    until_true("idle from the hook", 30, || {
         let w = e.c().call::<StatusWait>(&StatusWaitParams {
             target: TerminalRef::id(&t),
             status: Some("idle".into()),
@@ -2121,7 +2069,7 @@ fn a_waiting_worker_is_not_a_missed_done_and_is_woken() {
         ]],
     );
     assert_eq!(e.out(&a1, n[0])["code"], 0);
-    until("a1's turn-end escalation", 20, || {
+    until_true("a1's turn-end escalation", 20, || {
         turn_end_escalations(&e.peek("r1"), &a1) == 1
     });
     passes(&mut e.c());
@@ -2169,7 +2117,7 @@ fn a_waiting_worker_is_not_a_missed_done_and_is_woken() {
         ]],
     );
     assert_eq!(e.out(&a1, n[0])["code"], 0);
-    until("a2 woken", 20, || e.wakes(&a2) > wakes);
+    until_true("a2 woken", 20, || e.wakes(&a2) > wakes);
     let n = e.run(&a2, &[&["orch", "check", "--json"]]);
     let got = json_of(&e.out(&a2, n[0]));
     let mail: Vec<&Value> = got["messages"]
@@ -2463,7 +2411,7 @@ fn worker_git_runs_no_repository_filter_or_hook() {
         .unwrap();
     assert_eq!(r.stage, "started", "{r:?}");
     e.wait_file(&done, 60);
-    let wrote = until_some("the worker's report", 20, || {
+    let wrote = until("the worker's report", 20, || {
         std::fs::read_to_string(&done)
             .ok()
             .filter(|s| s.lines().count() >= 3)
@@ -2481,17 +2429,6 @@ fn worker_git_runs_no_repository_filter_or_hook() {
     std::fs::write(wt.join("a.dat"), "again\n").unwrap();
     git(&wt, &["add", "a.dat"]);
     assert!(marker.exists(), "control: the repository's filter is live");
-}
-
-fn until_some<T>(what: &str, secs: u64, mut f: impl FnMut() -> Option<T>) -> T {
-    let deadline = Instant::now() + Duration::from_secs(secs);
-    loop {
-        if let Some(v) = f() {
-            return v;
-        }
-        assert!(Instant::now() < deadline, "timed out: {what}");
-        std::thread::sleep(Duration::from_millis(100));
-    }
 }
 
 // ───────────────────────────── unreachable holders (orch-quality-02) ─────────────────────────────
@@ -2673,7 +2610,7 @@ fn unreachable_worker_waits_for_its_holder() {
     drop(occupant2);
     rt.block_on(async { server2.disconnect().unwrap() });
     rt.spawn(serve_as_holder(server2, "t2".into()));
-    until("t2 re-attached", 30, || {
+    until_true("t2 re-attached", 30, || {
         c.call::<TerminalList>(&Empty {})
             .unwrap()
             .terminals
@@ -2687,7 +2624,7 @@ fn unreachable_worker_waits_for_its_holder() {
 
     // The person gives up on the other holder: its worker is lost.
     c.call::<TerminalKill>(&TerminalRef::parse("t3")).unwrap();
-    until("lost after pod kill", 20, || {
+    until_true("lost after pod kill", 20, || {
         attempt_state(&mut c, &a_kill) == AttemptState::Lost
     });
     assert_eq!(run_stop_reasons(&mut c), ["holder_unreachable"]);
@@ -2715,7 +2652,7 @@ fn unreachable_worker_is_lost_once_retries_are_used_up() {
         &[("POD_HOLDER_RETRY_MS", "200"), ("POD_HOLDER_RETRIES", "0")],
     );
     let mut c = d.client();
-    until("lost", 20, || {
+    until_true("lost", 20, || {
         attempt_state(&mut c, &ids[0]) == AttemptState::Lost
     });
     let why = run_stop_reasons(&mut c);

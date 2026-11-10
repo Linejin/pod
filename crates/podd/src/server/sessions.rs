@@ -160,12 +160,16 @@ fn random_index() -> usize {
     t.wrapping_mul(2_654_435_761) % WORDS.len()
 }
 
-/// Worktree root of a repository (its own setting, else the daemon's).
+/// Worktree root of a repository (its own setting, else the daemon's),
+/// normalized so task worktrees are recorded in git's spelling (a setting or
+/// `--worktrees-root` may name it with an 8.3 short name).
 pub(super) fn worktrees_root(daemon: &Daemon, repo: &RepoRecord) -> PathBuf {
-    repo.worktrees_root
+    let root = repo
+        .worktrees_root
         .as_ref()
         .map(PathBuf::from)
-        .unwrap_or_else(|| daemon.config.worktrees_root.clone())
+        .unwrap_or_else(|| daemon.config.worktrees_root.clone());
+    crate::git::normalize(&root)
 }
 
 impl Daemon {

@@ -11,17 +11,6 @@ use serde::{Deserialize, Serialize};
 
 use crate::protocol::{AgentSpec, DiffFile, Method, TaskInfo, TaskRemoveResult, WaitOutcome};
 
-macro_rules! method {
-    ($ty:ident, $name:literal, $params:ty, $result:ty) => {
-        pub struct $ty;
-        impl Method for $ty {
-            const NAME: &'static str = $name;
-            type Params = $params;
-            type Result = $result;
-        }
-    };
-}
-
 // ───────────────────────────── review ─────────────────────────────
 
 method!(

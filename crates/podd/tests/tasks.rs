@@ -145,9 +145,13 @@ fn task_lifecycle_with_restart_and_removal_rules() {
     assert_eq!(t.id, "demo/feat-1");
     assert_eq!(t.branch, "pod/feat-1");
     assert_eq!(t.base, "main");
+    // Recorded in the long spelling git prints; TEMP (so the test's root)
+    // may be an 8.3 short name such as RUNNER~1.
     assert_eq!(
-        Path::new(&t.worktree),
-        daemon.worktrees_root().join("demo").join("feat-1")
+        std::fs::canonicalize(&t.worktree).unwrap(),
+        std::fs::canonicalize(daemon.worktrees_root().join("demo").join("feat-1")).unwrap(),
+        "{}",
+        t.worktree
     );
     assert!(t.worktree_exists);
     let tid = t.terminals[0].id.clone();

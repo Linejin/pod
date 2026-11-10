@@ -1,5 +1,6 @@
 // Pod patch: modified from gpui-component 0.9.0 by the Pod project (dock control
-// names and tab stops). Change notice per Apache-2.0 4(b); see POD-PATCHES.md.
+// names, tab stops and accessible panel rendering). Change notice per Apache-2.0
+// 4(b); see POD-PATCHES.md.
 //! The gpui-component appearance for a tab group.
 //!
 //! `gpui_base::dock::TabGroup` owns the behavior — membership, the displayed
@@ -269,7 +270,11 @@ impl TabGroupSkin {
                 .xsmall()
                 .ghost()
                 .tab_stop(true)
-                .accessibility_label(if is_open { t!("Dock.Collapse") } else { t!("Dock.Expand") })
+                .accessibility_label(if is_open {
+                    t!("Dock.Collapse")
+                } else {
+                    t!("Dock.Expand")
+                })
                 .tooltip(match is_open {
                     true => t!("Dock.Collapse"),
                     false => t!("Dock.Expand"),
@@ -413,16 +418,22 @@ impl TabGroupSkin {
                 div()
                     .id("tab")
                     .role(gpui::Role::Tab)
-                    .aria_label(handle.and_then(|h| h.tab_name(cx)).unwrap_or_else(|| t!("Dock.Unnamed").into_owned().into()))
+                    .aria_label(
+                        handle
+                            .and_then(|h| h.tab_name(cx))
+                            .unwrap_or_else(|| t!("Dock.Unnamed").into_owned().into()),
+                    )
                     .aria_selected(true)
                     .tab_index(0)
-                    .focus_visible(|style| style.shadow(vec![gpui::BoxShadow {
-                        inset: true,
-                        color: cx.theme().ring,
-                        offset: gpui::point(px(0.), px(0.)),
-                        blur_radius: px(0.),
-                        spread_radius: px(2.),
-                    }]))
+                    .focus_visible(|style| {
+                        style.shadow(vec![gpui::BoxShadow {
+                            inset: true,
+                            color: cx.theme().ring,
+                            offset: gpui::point(px(0.), px(0.)),
+                            blur_radius: px(0.),
+                            spread_radius: px(2.),
+                        }])
+                    })
                     .on_click({
                         let group = group.clone();
                         move |_, window, cx| group.select_tab(group.active_ix(), window, cx)
@@ -820,19 +831,31 @@ impl TabGroupRenderer for TabGroupSkin {
         &self,
         panel: AnyView,
         group: &TabGroupContext,
-        _: &mut Window,
+        window: &mut Window,
         _: &mut App,
     ) -> AnyElement {
         if group.is_collapsed() {
             return Empty.into_any_element();
         }
 
+        // GPUI 0.3.11 replays cached paint/hitboxes, but not accessibility nodes.
+        // A partial frame (e.g. window activation) would drop the entire panel
+        // from UIA. Keep the absolute, definite-size slot, but render its view
+        // each frame while an accessibility client is connected.
+        let content = if window.is_a11y_active() {
+            div().absolute().size_full().child(panel).into_any_element()
+        } else {
+            panel
+                .cached(StyleRefinement::default().absolute().size_full())
+                .into_any_element()
+        };
+
         div()
             .id("tab-content")
             .overflow_y_scroll()
             .overflow_x_hidden()
             .flex_1()
-            .child(panel.cached(StyleRefinement::default().absolute().size_full()))
+            .child(content)
             .into_any_element()
     }
 

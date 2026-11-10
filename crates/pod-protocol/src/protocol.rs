@@ -185,17 +185,6 @@ pub trait Method {
     type Result: Serialize + DeserializeOwned + JsonSchema;
 }
 
-macro_rules! method {
-    ($ty:ident, $name:literal, $params:ty, $result:ty) => {
-        pub struct $ty;
-        impl Method for $ty {
-            const NAME: &'static str = $name;
-            type Params = $params;
-            type Result = $result;
-        }
-    };
-}
-
 method!(ServerStatus, "server.status", Empty, ServerStatusResult);
 method!(ServerStop, "server.stop", StopParams, ServerStopResult);
 method!(TerminalRun, "terminal.run", RunParams, TerminalInfo);

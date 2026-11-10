@@ -2,50 +2,17 @@
 //! `pod ls | ...` with no daemon running starts podd, and the reader of
 //! pod's stdout must still see EOF as soon as `pod` exits.
 
+mod common;
+
 use std::io::Read;
 use std::path::PathBuf;
 use std::process::{Command, Stdio};
 use std::sync::mpsc;
 use std::time::{Duration, Instant};
 
+use common::pod_exe;
 use podd::client::Client;
 use podd::protocol::*;
-
-fn profile_dir() -> PathBuf {
-    let exe = std::env::current_exe().unwrap();
-    exe.parent().unwrap().parent().unwrap().to_path_buf()
-}
-
-/// `pod.exe`, built with the same single cargo invocation as the other
-/// integration tests (same feature resolution, nothing is re-linked).
-fn pod_exe() -> PathBuf {
-    let dir = profile_dir();
-    let mut cmd = Command::new(std::env::var("CARGO").unwrap_or_else(|_| "cargo".into()));
-    cmd.args([
-        "build",
-        "-p",
-        "podd",
-        "--example",
-        "fake-agent",
-        "-p",
-        "pod-hook",
-        "-p",
-        "pod-cli",
-        // Target flags apply to every -p: name the binaries too, or
-        // only the example is built (stale/missing pod.exe, pod-hook.exe).
-        "--bin",
-        "pod",
-        "--bin",
-        "pod-hook",
-    ]);
-    if dir.file_name().and_then(|n| n.to_str()) == Some("release") {
-        cmd.arg("--release");
-    }
-    assert!(cmd.status().expect("cargo build").success());
-    let p = dir.join("pod.exe");
-    assert!(p.exists(), "{} missing", p.display());
-    p
-}
 
 /// Put this test process (and so `pod` and the daemon it starts) in a Job
 /// Object that does not allow breakaway, like the job of a terminal or agent

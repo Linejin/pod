@@ -9,7 +9,7 @@
 $script:PodUiaRequired = @{
  'workspace'     = @('저장소와 작업 탐색')
  'palette'       = @('작업, 터미널 검색 · > 명령만')
- 'settings'      = @('설정 분류')
+ 'settings'      = @('설정 분류', '스타일')
  'agents'        = @('Claude 에이전트, Codex 에이전트')
  'inspect'       = @('패널 메뉴')
  'open-repo'     = @('로컬 Git 저장소 경로')
@@ -39,6 +39,18 @@ function Test-PodUiaTree([string]$Scene, [string]$Text) {
   if ($needle -and -not $Text.Contains($needle)) { $missing += "missing '$needle'" }
  }
  return ,$missing
+}
+
+# The native activation probe (qa/ui-wave0/dock-activation.ps1) supplies .NET
+# UIA ControlType/Name rows. Check each partial frame, without retrying away a
+# missing cached dock subtree. The status-bar Button is expected; its TabItem
+# is not: window activation must never open the inspector.
+function Test-PodDockActivationTree([string]$Text) {
+ $problems = Test-PodUiaTree 'settings' $Text
+ if ($Text -match '(?m)^ControlType\.TabItem 상태\r?$') {
+  $problems += 'activation opened 상태 inspector'
+ }
+ return ,$problems
 }
 
 # Calls $Dump (returns tree text) up to $Attempts times, $DelayMs apart, until

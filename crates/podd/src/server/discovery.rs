@@ -32,8 +32,48 @@ use super::status::{lifecycle_subscribers, publish_sessions};
 use super::{Daemon, log, params, to_value};
 use crate::protocol::*;
 
-/// `(name, path)` of repositories and `(id, repo, worktree)` of tasks.
+/// `(name, path)` of repositories and `(id, repo, worktree)` of tasks, paths
+/// [`crate::git::normalize`]d.
 type MatchInputs = (Vec<(String, String)>, Vec<(String, String, String)>);
+
+/// Session cwds normalized once per view: a cwd recorded in another
+/// spelling (8.3 short name, letter case) still matches the registered paths.
+type CwdCache = BTreeMap<String, String>;
+
+fn normalized(p: &str) -> String {
+    crate::git::normalize(Path::new(p.trim()))
+        .display()
+        .to_string()
+}
+
+/// The repository / task worktree a session's `cwd` belongs to, compared in
+/// normalized spelling (`repos`/`tasks` from [`Daemon::match_inputs`]).
+fn match_session_cwd(
+    cwd: &str,
+    repos: &[(String, String)],
+    tasks: &[(String, String, String)],
+    cwds: &mut CwdCache,
+) -> CwdMatch {
+    if cwd.trim().is_empty() {
+        return CwdMatch::default();
+    }
+    let rp: Vec<RepoPath> = repos
+        .iter()
+        .map(|(n, p)| RepoPath { name: n, path: p })
+        .collect();
+    let tp: Vec<TaskPath> = tasks
+        .iter()
+        .map(|(i, r, w)| TaskPath {
+            id: i,
+            repo: r,
+            worktree: w,
+        })
+        .collect();
+    let cwd = cwds
+        .entry(cwd.to_string())
+        .or_insert_with(|| normalized(cwd));
+    match_cwd(cwd, &rp, &tp)
+}
 
 /// Sessions idle longer than this are "오래됨".
 pub const STALE_AFTER_MS: u64 = 30 * 24 * 3600 * 1000;
@@ -358,15 +398,27 @@ fn resume_exe(agent: Agent) -> Option<String> {
 impl Daemon {
     /// Repositories and task worktrees for cwd matching.
     fn match_inputs(&self) -> MatchInputs {
-        let reg = self.registry.lock().unwrap();
+        let (repos, tasks): MatchInputs = {
+            let reg = self.registry.lock().unwrap();
+            (
+                reg.repos
+                    .iter()
+                    .map(|r| (r.name.clone(), r.path.clone()))
+                    .collect(),
+                reg.tasks
+                    .iter()
+                    .map(|t| (t.id.clone(), t.repo.clone(), t.worktree.clone()))
+                    .collect(),
+            )
+        };
         (
-            reg.repos
-                .iter()
-                .map(|r| (r.name.clone(), r.path.clone()))
+            repos
+                .into_iter()
+                .map(|(n, p)| (n, normalized(&p)))
                 .collect(),
-            reg.tasks
-                .iter()
-                .map(|t| (t.id.clone(), t.repo.clone(), t.worktree.clone()))
+            tasks
+                .into_iter()
+                .map(|(i, r, w)| (i, r, normalized(&w)))
                 .collect(),
         )
     }
@@ -377,21 +429,10 @@ impl Daemon {
         f: &Found,
         repos: &[(String, String)],
         tasks: &[(String, String, String)],
+        cwds: &mut CwdCache,
     ) -> DiscoveredSession {
         let key = session_key(f.agent, &f.meta.id);
-        let rp: Vec<RepoPath> = repos
-            .iter()
-            .map(|(n, p)| RepoPath { name: n, path: p })
-            .collect();
-        let tp: Vec<TaskPath> = tasks
-            .iter()
-            .map(|(i, r, w)| TaskPath {
-                id: i,
-                repo: r,
-                worktree: w,
-            })
-            .collect();
-        let matched = match_cwd(&f.meta.cwd, &rp, &tp);
+        let matched = match_session_cwd(&f.meta.cwd, repos, tasks, cwds);
         let running = st.running.iter().find(|r| {
             r.agent == Some(f.agent) && r.session_id.as_deref() == Some(f.meta.id.as_str())
         });
@@ -452,10 +493,11 @@ impl Daemon {
                 ..Default::default()
             };
         }
+        let mut cwds = CwdCache::new();
         let all: Vec<DiscoveredSession> = st
             .found
             .iter()
-            .map(|f| Self::session_view(&st, f, &repos, &tasks))
+            .map(|f| Self::session_view(&st, f, &repos, &tasks, &mut cwds))
             .collect();
         let hidden = all.iter().filter(|s| s.hidden).count();
         let sessions = all
@@ -497,7 +539,13 @@ impl Daemon {
             .iter()
             .find(|f| f.agent == agent && f.meta.id == id)
             .ok_or_else(|| not_found(id))?;
-        Ok(Self::session_view(&st, f, &repos, &tasks))
+        Ok(Self::session_view(
+            &st,
+            f,
+            &repos,
+            &tasks,
+            &mut CwdCache::new(),
+        ))
     }
 
     /// Publish `sessions.changed` when the list or settings changed.
@@ -740,10 +788,7 @@ impl Daemon {
             // task's own agent session, so resume it the way `task.resume`
             // does (agent terminal, recorded `agent_session`, Codex trust for
             // the Pod worktree).
-            Some(rec)
-                if pod_discover::matching::norm_path(&rec.worktree)
-                    == pod_discover::matching::norm_path(&view.cwd) =>
-            {
+            Some(rec) if crate::git::same_path(Path::new(&rec.worktree), Path::new(&view.cwd)) => {
                 let r = self
                     .task_resume(TaskResumeParams {
                         task: rec.id.clone(),
@@ -990,6 +1035,46 @@ mod tests {
         );
         assert_eq!(repo_name_for(Path::new(r"C:\src\한글"), &[]), "repo");
         assert_eq!(repo_name_for(Path::new(r"C:\src\.x."), &[]), "x");
+    }
+
+    /// A session cwd recorded through an 8.3 short name (GitHub runners'
+    /// `RUNNER~1`) matches the repository and task registered in the long
+    /// spelling, and a registry written in the short spelling (older state)
+    /// still matches a long cwd.
+    #[test]
+    fn session_cwds_match_in_any_spelling() {
+        let t = std::env::temp_dir().join(format!("podd-disc-short-{}", std::process::id()));
+        let _ = std::fs::remove_dir_all(&t);
+        std::fs::create_dir_all(t.join("LongRepoFolder").join("sub")).unwrap();
+        std::fs::create_dir_all(t.join("LongTaskFolder")).unwrap();
+        let repo = crate::git::normalize(&t.join("LongRepoFolder"));
+        let wt = crate::git::normalize(&t.join("LongTaskFolder"));
+        let (Some(short_repo), Some(short_wt)) = (
+            crate::git::short_spelling(&repo),
+            crate::git::short_spelling(&wt),
+        ) else {
+            eprintln!("skipped: no 8.3 short names on this volume");
+            let _ = std::fs::remove_dir_all(&t);
+            return;
+        };
+        let s = |p: &Path| p.display().to_string();
+        let mut cwds = CwdCache::new();
+        // Registered long (as Pod records them now), cwd short.
+        let repos = vec![("demo".to_string(), normalized(&s(&repo)))];
+        let tasks = vec![(
+            "demo/t".to_string(),
+            "demo".to_string(),
+            normalized(&s(&wt)),
+        )];
+        let m = match_session_cwd(&s(&short_repo.join("sub")), &repos, &tasks, &mut cwds);
+        assert_eq!((m.repo.as_deref(), m.task), (Some("demo"), None));
+        let m = match_session_cwd(&s(&short_wt), &repos, &tasks, &mut cwds);
+        assert_eq!(m.task.as_deref(), Some("demo/t"));
+        // Registered short (older state), cwd long.
+        let repos = vec![("demo".to_string(), normalized(&s(&short_repo)))];
+        let m = match_session_cwd(&s(&repo.join("sub")), &repos, &[], &mut cwds);
+        assert_eq!(m.repo.as_deref(), Some("demo"));
+        let _ = std::fs::remove_dir_all(&t);
     }
 
     #[test]

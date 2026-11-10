@@ -246,25 +246,6 @@ fn an_auto_starting_client_resends_to_the_next_daemon() {
 // `pod server stop` (CLI)
 // ---------------------------------------------------------------------------
 
-fn profile_dir() -> PathBuf {
-    let exe = std::env::current_exe().unwrap();
-    exe.parent().unwrap().parent().unwrap().to_path_buf()
-}
-
-/// `pod.exe`, built with the same cargo profile (see tests/detach.rs).
-fn pod_exe() -> PathBuf {
-    let dir = profile_dir();
-    let mut cmd = Command::new(std::env::var("CARGO").unwrap_or_else(|_| "cargo".into()));
-    cmd.args(["build", "-p", "pod-cli", "--bin", "pod"]);
-    if dir.file_name().and_then(|n| n.to_str()) == Some("release") {
-        cmd.arg("--release");
-    }
-    assert!(cmd.status().expect("cargo build").success());
-    let p = dir.join("pod.exe");
-    assert!(p.exists(), "{} missing", p.display());
-    p
-}
-
 fn pod(exe: &Path, pipe: &str, args: &[&str]) -> Output {
     Command::new(exe)
         .arg("--pipe")

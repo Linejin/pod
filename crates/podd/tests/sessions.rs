@@ -17,7 +17,7 @@ mod common;
 use std::collections::BTreeMap;
 use std::path::{Path, PathBuf};
 use std::process::Command;
-use std::sync::Mutex;
+
 use std::time::{Duration, Instant};
 
 use common::*;
@@ -611,39 +611,6 @@ fn s2_config_approval_setup_and_wait_mode() {
 
 // ───────────────────────────── S3 ─────────────────────────────
 
-fn workspace_bin(rel: &str) -> PathBuf {
-    static BUILT: Mutex<bool> = Mutex::new(false);
-    let mut built = BUILT.lock().unwrap();
-    let dir = PathBuf::from(env!("CARGO_BIN_EXE_podd"))
-        .parent()
-        .unwrap()
-        .to_path_buf();
-    if !*built {
-        let mut cmd = Command::new(std::env::var("CARGO").unwrap_or_else(|_| "cargo".into()));
-        cmd.args([
-            "build",
-            "-p",
-            "podd",
-            "--example",
-            "fake-agent",
-            "-p",
-            "pod-hook",
-            "-p",
-            "pod-cli",
-            "--bin",
-            "pod",
-            "--bin",
-            "pod-hook",
-        ]);
-        if dir.file_name().and_then(|n| n.to_str()) == Some("release") {
-            cmd.arg("--release");
-        }
-        assert!(cmd.status().expect("cargo build").success());
-        *built = true;
-    }
-    dir.join(rel)
-}
-
 /// Kill a terminal and wait until its process exit is recorded.
 /// `terminal.kill` itself waits at most 5 s; under load the holder can report
 /// the exit later, and `task.resume` refuses a terminal that still runs.
@@ -849,14 +816,14 @@ fn s3_archive_remove_guards_and_resume() {
     let mut env = fake_env(&fake);
     env.insert(
         "POD_HOOK_EXE".into(),
-        workspace_bin("pod-hook.exe").display().to_string(),
+        fixture_bin("pod-hook.exe").display().to_string(),
     );
     // The fake agent waits for a line before its SessionStart hook: a hook
     // that fires before `task.create` registered the agent terminal is not
     // matched to the task (seen under load), so start it only afterwards.
     let agent = AgentSpec::Argv {
         argv: vec![
-            workspace_bin("examples/fake-agent.exe").display().to_string(),
+            fixture_bin("examples/fake-agent.exe").display().to_string(),
             "read".into(),
             r#"hook:claude:SessionStart:{"session_id":"sess-4b1d","hook_event_name":"SessionStart","source":"startup"}"#.into(),
             "hold".into(),
@@ -932,11 +899,11 @@ fn hook_before_task_registration_is_kept() {
     let mut env = BTreeMap::new();
     env.insert(
         "POD_HOOK_EXE".into(),
-        workspace_bin("pod-hook.exe").display().to_string(),
+        fixture_bin("pod-hook.exe").display().to_string(),
     );
     let agent = AgentSpec::Argv {
         argv: vec![
-            workspace_bin("examples/fake-agent.exe").display().to_string(),
+            fixture_bin("examples/fake-agent.exe").display().to_string(),
             r#"hook:claude:SessionStart:{"session_id":"sess-early","hook_event_name":"SessionStart","source":"startup"}"#.into(),
             "hold".into(),
         ],

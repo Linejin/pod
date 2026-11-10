@@ -6,58 +6,15 @@
 mod common;
 
 use std::path::PathBuf;
-use std::process::Command;
-use std::sync::Mutex;
+
 use std::time::{Duration, Instant};
 
 use common::*;
 use podd::client::Client;
 use podd::protocol::*;
 
-fn profile_dir() -> PathBuf {
-    let exe = std::env::current_exe().unwrap();
-    exe.parent().unwrap().parent().unwrap().to_path_buf()
-}
-
-/// Same single cargo invocation as the other integration tests.
-fn workspace_bin(rel: &str) -> PathBuf {
-    static BUILT: Mutex<bool> = Mutex::new(false);
-    let mut built = BUILT.lock().unwrap();
-    let dir = profile_dir();
-    if !*built {
-        let mut cmd = Command::new(std::env::var("CARGO").unwrap_or_else(|_| "cargo".into()));
-        cmd.args([
-            "build",
-            "-p",
-            "podd",
-            "--example",
-            "fake-agent",
-            "-p",
-            "pod-hook",
-            "-p",
-            "pod-cli",
-            "--bin",
-            "pod",
-            "--bin",
-            "pod-hook",
-        ]);
-        if dir.file_name().and_then(|n| n.to_str()) == Some("release") {
-            cmd.arg("--release");
-        }
-        assert!(cmd.status().expect("cargo build").success());
-        *built = true;
-    }
-    let p = dir.join(rel);
-    assert!(p.exists(), "{} missing", p.display());
-    p
-}
-
 fn burst_agent(c: &mut Client, log: &std::path::Path, cost_us: u64, pre: &[&str]) -> String {
-    let mut argv = vec![
-        workspace_bin("examples/fake-agent.exe")
-            .display()
-            .to_string(),
-    ];
+    let mut argv = vec![fixture_bin("examples/fake-agent.exe").display().to_string()];
     argv.extend(pre.iter().map(|s| s.to_string()));
     argv.push(format!("burst-loop:{}:{cost_us}", log.display()));
     let t = c

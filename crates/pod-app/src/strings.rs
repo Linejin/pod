@@ -8,6 +8,7 @@ pub const OPEN_REPOSITORY: &str = "저장소 열기";
 pub const REGISTER_A_LOCAL_GIT_REPOSITORY: &str = "로컬 Git 저장소 추가";
 pub const NEW_TERMINAL: &str = "새 터미널";
 pub const SETTINGS: &str = "설정";
+pub const CURRENT_BRANCH: &str = "현재 브랜치";
 pub const FIND_NEXT_BLOCKED_REQUEST: &str = "응답할 요청 찾기";
 pub const RETURN_TO_THE_TERMINAL_THAT_NEEDS_YOU: &str = "응답이 필요한 터미널 열기";
 pub const INSPECT_CURRENT_TERMINAL_STATUS: &str = "현재 터미널 상태";

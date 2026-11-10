@@ -5265,6 +5265,20 @@ dependencies = [
 ]
 
 [[package]]
+name = "pod-protocol"
+version = "0.1.0"
+dependencies = [
+ "base64 0.22.1",
+ "pod-discover",
+ "pod-forge",
+ "pod-mods",
+ "pod-orch",
+ "schemars",
+ "serde",
+ "serde_json",
+]
+
+[[package]]
 name = "pod-remote"
 version = "0.1.0"
 dependencies = [
@@ -5344,6 +5358,7 @@ dependencies = [
  "pod-mods",
  "pod-orch",
  "pod-process",
+ "pod-protocol",
  "pod-status",
  "pod-storage",
  "pod-test-support",

@@ -1,7 +1,12 @@
 //! Shared harness: the real `podd` and `pod-holder` binaries on a test-only
-//! pipe, state directory and worktrees root.
+//! pipe, state directory and worktrees root. Prebuilt fixture binaries and
+//! bounded waits are in [`fixtures`].
 
 #![allow(dead_code)]
+
+pub mod fixtures;
+#[allow(unused_imports)]
+pub use fixtures::*;
 
 use std::path::PathBuf;
 use std::process::{Child, Command, Stdio};

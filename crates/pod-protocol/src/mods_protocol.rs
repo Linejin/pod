@@ -10,18 +10,7 @@ pub use pod_mods::{
     StopReason,
 };
 
-use crate::protocol::{Empty, Method};
-
-macro_rules! method {
-    ($ty:ident, $name:literal, $params:ty, $result:ty) => {
-        pub struct $ty;
-        impl Method for $ty {
-            const NAME: &'static str = $name;
-            type Params = $params;
-            type Result = $result;
-        }
-    };
-}
+use crate::protocol::Empty;
 
 method!(ModListMethod, "mod.list", Empty, ModListResult);
 method!(ModSetEnabled, "mod.set_enabled", ModEnableParams, ModInfo);

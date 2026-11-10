@@ -13,17 +13,6 @@ pub use pod_forge::{
 
 use crate::protocol::Method;
 
-macro_rules! method {
-    ($ty:ident, $name:literal, $params:ty, $result:ty) => {
-        pub struct $ty;
-        impl Method for $ty {
-            const NAME: &'static str = $name;
-            type Params = $params;
-            type Result = $result;
-        }
-    };
-}
-
 method!(
     TaskPrStatusMethod,
     "task.pr.status",

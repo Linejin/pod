@@ -82,16 +82,18 @@ pub struct ServerConfig {
     pub reply_window_ms: u64,
 }
 
-/// `POD_WORKTREES_ROOT`, else `%USERPROFILE%\pod\worktrees`.
+/// `POD_WORKTREES_ROOT`, else `%USERPROFILE%\pod\worktrees`, normalized
+/// ([`crate::git::normalize`]: long names, on-disk case).
 pub fn default_worktrees_root() -> PathBuf {
-    if let Some(p) = std::env::var_os("POD_WORKTREES_ROOT").filter(|p| !p.is_empty()) {
-        return PathBuf::from(p);
-    }
-    std::env::var_os("USERPROFILE")
-        .map(PathBuf::from)
-        .unwrap_or_else(std::env::temp_dir)
-        .join("pod")
-        .join("worktrees")
+    let root = match std::env::var_os("POD_WORKTREES_ROOT").filter(|p| !p.is_empty()) {
+        Some(p) => PathBuf::from(p),
+        None => std::env::var_os("USERPROFILE")
+            .map(PathBuf::from)
+            .unwrap_or_else(std::env::temp_dir)
+            .join("pod")
+            .join("worktrees"),
+    };
+    crate::git::normalize(&root)
 }
 
 /// This daemon's folder when the `pod` CLI sits next to it (installed,

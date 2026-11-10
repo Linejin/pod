@@ -32,6 +32,37 @@ use pod_status::install::{
 use serde::Serialize;
 use serde_json::{Value, json};
 
+/// `p` in its long, on-disk spelling: absolute, the deepest existing
+/// ancestor resolved with `canonicalize` (8.3 short names such as
+/// `RUNNER~1` expanded, letter case as on disk) without the `\\?\` prefix,
+/// the rest appended as given. Agent configs get paths in this spelling (it
+/// keeps working where 8.3 names are off or stripped, and it is the one
+/// Codex records in `[hooks.state]` keys).
+pub fn long_path(p: &Path) -> PathBuf {
+    let abs = std::path::absolute(p).unwrap_or_else(|_| p.to_path_buf());
+    let mut base = abs.as_path();
+    let mut tail = Vec::new();
+    loop {
+        if let Ok(c) = std::fs::canonicalize(base) {
+            let s = c.to_string_lossy();
+            let mut out = if let Some(rest) = s.strip_prefix(r"\\?\UNC\") {
+                PathBuf::from(format!(r"\\{rest}"))
+            } else {
+                PathBuf::from(s.strip_prefix(r"\\?\").unwrap_or(&s))
+            };
+            out.extend(tail.iter().rev());
+            return out;
+        }
+        match (base.parent(), base.file_name()) {
+            (Some(parent), Some(name)) => {
+                tail.push(name);
+                base = parent;
+            }
+            _ => return abs,
+        }
+    }
+}
+
 /// Where `pod-hook.exe` lives for installed hooks.
 pub fn default_bin_dir() -> PathBuf {
     std::env::var_os("LOCALAPPDATA")
@@ -349,13 +380,18 @@ pub fn snake_case(event: &str) -> String {
     s
 }
 
+/// The same file however it is spelled: letter case, separators, `\\?\`,
+/// and (resolved through [`long_path`]) 8.3 short names.
 fn same_file(a: &str, b: &Path) -> bool {
     let norm = |s: &str| {
         s.trim_start_matches(r"\\?\")
             .replace('/', "\\")
-            .to_ascii_lowercase()
+            .to_lowercase()
     };
-    norm(a) == norm(&b.display().to_string())
+    let b_str = b.display().to_string();
+    norm(a) == norm(&b_str)
+        || norm(&long_path(Path::new(a)).display().to_string())
+            == norm(&long_path(b).display().to_string())
 }
 
 #[derive(Debug, Default, Serialize, PartialEq)]
@@ -830,6 +866,59 @@ mod tests {
             command_exe("C:/x/pod-hook.exe codex Stop"),
             "C:/x/pod-hook.exe"
         );
+    }
+
+    /// The 8.3 short spelling of an existing path, `None` when the volume
+    /// has no short names.
+    fn short_spelling(p: &Path) -> Option<PathBuf> {
+        use std::os::windows::ffi::{OsStrExt, OsStringExt};
+        use windows_sys::Win32::Storage::FileSystem::GetShortPathNameW;
+        let wide: Vec<u16> = p.as_os_str().encode_wide().chain([0]).collect();
+        let mut buf = vec![0u16; 1024];
+        // SAFETY: `wide` is NUL-terminated; `buf` is as long as the size passed.
+        let n = unsafe { GetShortPathNameW(wide.as_ptr(), buf.as_mut_ptr(), buf.len() as u32) };
+        let n = n as usize;
+        if n == 0 || n >= buf.len() {
+            return None;
+        }
+        let s = PathBuf::from(std::ffi::OsString::from_wide(&buf[..n]));
+        s.to_string_lossy().contains('~').then_some(s)
+    }
+
+    /// Codex keys `[hooks.state]` by the long path of hooks.json; Pod may
+    /// name the same file through an 8.3 short name (`RUNNER~1`): its
+    /// entries are still found and removed, and [`long_path`] gives the
+    /// spelling agent configs get.
+    #[test]
+    fn trust_entries_match_short_spelled_hooks_json() {
+        let t = std::env::temp_dir().join(format!("pod-cli-short-{}", std::process::id()));
+        let _ = std::fs::remove_dir_all(&t);
+        let codex = t.join("CodexHomeFolder");
+        std::fs::create_dir_all(&codex).unwrap();
+        std::fs::write(codex.join("hooks.json"), "{}").unwrap();
+        let long = long_path(&codex.join("hooks.json"));
+        let Some(short) = short_spelling(&long) else {
+            eprintln!("skipped: no 8.3 short names on this volume");
+            let _ = std::fs::remove_dir_all(&t);
+            return;
+        };
+        assert_eq!(long_path(&short), long);
+        assert_eq!(
+            long_path(&short.with_file_name("bin").join("pod-hook.exe")),
+            long.with_file_name("bin").join("pod-hook.exe"),
+            "a missing tail keeps its name under the long parent"
+        );
+        assert!(same_file(&long.display().to_string(), &short));
+        let config = format!(
+            "[hooks.state.'{}:stop:0:0']\ntrusted_hash = \"sha256:pod\"\n",
+            long.display()
+        );
+        let moves = std::collections::HashMap::from([(("stop".to_string(), 0), None)]);
+        let (_, removed, moved) = prune_codex_trust(&config, &short, &moves)
+            .unwrap()
+            .expect("the short spelling names the same hooks.json");
+        assert_eq!((removed, moved), (1, 0));
+        let _ = std::fs::remove_dir_all(&t);
     }
 
     #[test]

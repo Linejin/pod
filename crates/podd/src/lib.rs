@@ -1,7 +1,8 @@
 //! Pod core daemon.
 //!
 //! Client side (always built):
-//! - [`protocol`]: JSON-RPC 2.0 types shared by the daemon, the CLI and future UI.
+//! - [`protocol`]: JSON-RPC 2.0 types shared by the daemon, the CLI and future UI,
+//!   re-exported from `pod-protocol` with the nine `*_protocol` domain modules.
 //! - [`client`]: blocking pipe client with daemon auto-start and attach streams.
 //! - [`env`], [`keys`]: terminal environment hygiene, named keys -> bytes.
 //!
@@ -16,20 +17,18 @@
 pub mod client;
 #[cfg(windows)]
 pub mod detach;
-pub mod discovery_protocol;
 pub mod endpoint;
 pub mod env;
 pub mod keys;
-pub mod mobile_protocol;
-pub mod mods_protocol;
-pub mod orch_protocol;
-pub mod orch_run_protocol;
-pub mod pr_protocol;
-pub mod protocol;
-pub mod remote_protocol;
-pub mod session_protocol;
-pub mod status_protocol;
 pub mod transport;
+
+// The wire modules live in `pod-protocol` (docs/20-refactor/daemon.md §2,
+// card D-F2). They stay reachable under their old paths, as the same modules:
+// `podd::protocol::TaskInfo` is `pod_protocol::protocol::TaskInfo`.
+pub use pod_protocol::{
+    discovery_protocol, mobile_protocol, mods_protocol, orch_protocol, orch_run_protocol,
+    pr_protocol, protocol, remote_protocol, session_protocol, status_protocol,
+};
 
 #[cfg(feature = "server")]
 pub mod git;

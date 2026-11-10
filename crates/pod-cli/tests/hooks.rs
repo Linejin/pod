@@ -64,6 +64,29 @@ fn pod(args: &[&str], home: &Path, bin: &Path) -> Value {
     serde_json::from_slice(&out.stdout).unwrap()
 }
 
+/// `canonicalize` without the verbatim prefix: the long, on-disk spelling.
+fn long_spelling(p: &Path) -> PathBuf {
+    let c = std::fs::canonicalize(p).unwrap();
+    PathBuf::from(c.to_string_lossy().trim_start_matches(r"\\?\"))
+}
+
+/// The 8.3 short spelling of an existing path, `None` when the volume has
+/// no short names.
+fn short_spelling(p: &Path) -> Option<PathBuf> {
+    use std::os::windows::ffi::{OsStrExt, OsStringExt};
+    use windows_sys::Win32::Storage::FileSystem::GetShortPathNameW;
+    let wide: Vec<u16> = p.as_os_str().encode_wide().chain([0]).collect();
+    let mut buf = vec![0u16; 1024];
+    // SAFETY: `wide` is NUL-terminated; `buf` is as long as the size passed.
+    let n = unsafe { GetShortPathNameW(wide.as_ptr(), buf.as_mut_ptr(), buf.len() as u32) };
+    let n = n as usize;
+    if n == 0 || n >= buf.len() {
+        return None;
+    }
+    let s = PathBuf::from(std::ffi::OsString::from_wide(&buf[..n]));
+    s.to_string_lossy().contains('~').then_some(s)
+}
+
 fn read_json(p: &Path) -> Value {
     serde_json::from_str(&std::fs::read_to_string(p).unwrap()).unwrap()
 }
@@ -132,7 +155,12 @@ fn install_reinstall_status_uninstall_keep_foreign_entries() {
     let ss = commands(&s["hooks"]["SessionStart"]);
     assert_eq!(ss.len(), 2);
     assert!(ss[0].contains("foreign-hook"));
-    let hook_cmd = exe.display().to_string().replace('\\', "/");
+    // Configs name the long spelling (TEMP may be an 8.3 short name).
+    let hook_cmd = long_spelling(&bin)
+        .join("pod-hook.exe")
+        .display()
+        .to_string()
+        .replace('\\', "/");
     assert!(
         ss[1].contains(&hook_cmd) && ss[1].ends_with("claude SessionStart"),
         "{ss:?}"
@@ -280,7 +308,9 @@ fn status_reports_binary_paths_and_versions() {
         serde_json::from_slice(&out.stdout).unwrap()
     };
     let st = run(&["hooks", "status"]);
-    assert_eq!(st["bin"], json!(bin.join("pod-hook.exe")));
+    // Pod reports (and writes into agent configs) the long spelling of the
+    // bin dir; TEMP may be an 8.3 short name (`RUNNER~1`).
+    assert_eq!(st["bin"], json!(long_spelling(&bin).join("pod-hook.exe")));
     assert_eq!(st["bin_exists"], json!(false));
     assert!(st.get("bin_version").is_none());
     assert_eq!(st["source"], json!(source));
@@ -293,6 +323,45 @@ fn status_reports_binary_paths_and_versions() {
         assert_eq!(st["source_version"], json!(v));
     } else {
         require_tools::missing("pod-hook.exe next to pod.exe (cargo build -p pod-hook)");
+    }
+    let _ = std::fs::remove_dir_all(&home);
+    let _ = std::fs::remove_dir_all(&bin);
+}
+
+/// Home and bin dir named through 8.3 short names (GitHub runners'
+/// `RUNNER~1`): agent configs get the long spelling, which keeps working
+/// where short names are off or stripped, and uninstall finds Pod's hooks.
+#[test]
+fn short_spelled_dirs_reach_agent_configs_in_long_spelling() {
+    let home = tmp("short-home");
+    let bin = tmp("short-bin");
+    seed(&home);
+    let (Some(short_home), Some(short_bin)) = (short_spelling(&home), short_spelling(&bin)) else {
+        eprintln!("skipped: no 8.3 short names on this volume");
+        let _ = std::fs::remove_dir_all(&home);
+        let _ = std::fs::remove_dir_all(&bin);
+        return;
+    };
+    let r = pod(
+        &["hooks", "install", "--no-codex-trust"],
+        &short_home,
+        &short_bin,
+    );
+    let exe = long_spelling(&bin).join("pod-hook.exe");
+    assert_eq!(r["hook_exe"], json!(exe), "{r:#}");
+    let exe_cmd = exe.display().to_string().replace('\\', "/");
+    for cfg in [".claude/settings.json", ".codex/hooks.json"] {
+        let text = std::fs::read_to_string(home.join(cfg)).unwrap();
+        assert!(text.contains(&exe_cmd), "{cfg}: {text}");
+        assert!(!text.contains('~'), "{cfg}: {text}");
+    }
+    let u = pod(&["hooks", "uninstall"], &short_home, &short_bin);
+    for f in u["files"].as_array().unwrap() {
+        assert_eq!(f["action"], json!("updated"), "{u:#}");
+    }
+    for cfg in [".claude/settings.json", ".codex/hooks.json"] {
+        let text = std::fs::read_to_string(home.join(cfg)).unwrap();
+        assert!(!text.contains("pod-hook"), "{cfg}: {text}");
     }
     let _ = std::fs::remove_dir_all(&home);
     let _ = std::fs::remove_dir_all(&bin);

@@ -1994,6 +1994,17 @@ impl Workspace {
     /// focus, else the focused terminal's task, else the last editor used,
     /// else the first task with a worktree.
     pub(crate) fn current_task(&self, window: &Window, cx: &App) -> Option<String> {
+        self.focused_task(window, cx).or_else(|| {
+            self.tasks
+                .iter()
+                .find(|t| t.worktree.is_some())
+                .map(|t| t.id.clone())
+        })
+    }
+
+    /// Current panel context, retained while chrome has focus. Unlike command
+    /// defaults, the status bar must not invent a context from the first task.
+    fn focused_task(&self, window: &Window, cx: &App) -> Option<String> {
         for e in self.live_editors() {
             let e = e.read(cx);
             if e.editor
@@ -2016,19 +2027,11 @@ impl Workspace {
                     || self.terminal(t).and_then(|v| v.task_id.as_deref()) == Some(x.id.as_str())
             })
         });
-        by_terminal
-            .map(|t| t.id.clone())
-            .or_else(|| {
-                self.last_editor
-                    .clone()
-                    .filter(|id| self.task(id).is_some())
-            })
-            .or_else(|| {
-                self.tasks
-                    .iter()
-                    .find(|t| t.worktree.is_some())
-                    .map(|t| t.id.clone())
-            })
+        by_terminal.map(|t| t.id.clone()).or_else(|| {
+            self.last_editor
+                .clone()
+                .filter(|id| self.task(id).is_some())
+        })
     }
 
     /// Show the files/editor panel of `task_id` (open it if needed), then
@@ -2810,6 +2813,13 @@ impl Workspace {
             })
     }
 
+    pub(crate) fn status_branch(&self, window: &Window, cx: &App) -> Option<&str> {
+        self.focused_task(window, cx)
+            .and_then(|id| self.task(&id))
+            .and_then(|task| task.branch.as_deref())
+            .filter(|name| !name.is_empty())
+    }
+
     fn render_status_bar(&self, window: &Window, cx: &mut Context<Self>) -> impl IntoElement {
         let c = vm::counts(&self.terminals);
         let tk = crate::theme::tokens();
@@ -2841,6 +2851,7 @@ impl Workspace {
             crate::layout_mode::status_counts(cx),
             self.caps.status,
         );
+        let branch = self.status_branch(window, cx);
         let terminals = crate::tr!(TERMINALS_RUNNING_PANELS; ; c.total, c.running, panels);
         // The whole summary as one status (screen readers do not see the painted text).
         let mut summary = vec![
@@ -2942,6 +2953,33 @@ impl Workspace {
                     tk.text_secondary,
                     crate::tr!(TASKS; ; self.tasks.len()),
                 ))
+            })
+            .when_some(branch.filter(|_| plan.branch), |d, branch| {
+                let name = format!("{}: {branch}", crate::strings::CURRENT_BRANCH);
+                let tip: SharedString = name.clone().into();
+                d.child(sep()).child(
+                    div()
+                        .id("status-branch")
+                        .qa_id(|| "status-branch".into())
+                        .role(Role::Status)
+                        .aria_label(name)
+                        .h(px(24.))
+                        .max_w(px(180.))
+                        .flex_shrink_0()
+                        .flex()
+                        .items_center()
+                        .gap_1()
+                        .child(pod_ui::icon_sized(
+                            pod_ui::Icon::GitBranch,
+                            14.,
+                            tk.text_secondary,
+                        ))
+                        .child(div().min_w_0().truncate().child(branch.to_string()))
+                        .tooltip(move |window, cx| {
+                            gpui_kit::component::tooltip::Tooltip::new(tip.clone())
+                                .build(window, cx)
+                        }),
+                )
             })
             .when_some(self.lsp_status(cx), |d, (label, color)| {
                 let ws = cx.entity().downgrade();
@@ -4119,6 +4157,7 @@ pub(crate) fn task_accessible_name(t: &TaskVm, terminals: &[TerminalVm]) -> Stri
 /// totals go first, then 완료, then 작업 중. 연결, 응답 and 알림 always stay.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub(crate) struct StatusPlan {
+    pub branch: bool,
     pub terminals: bool,
     pub counts: bool,
     pub working: bool,
@@ -4132,6 +4171,7 @@ impl StatusPlan {
     pub(crate) fn for_width(width: f32, counts: bool, status: bool) -> Self {
         let counts = counts && status;
         Self {
+            branch: width >= 1400.,
             terminals: width >= 1180.,
             counts,
             working: width >= 900.,

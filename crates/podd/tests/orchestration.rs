@@ -7,7 +7,7 @@ mod common;
 
 use std::path::{Path, PathBuf};
 use std::process::{Command, Stdio};
-use std::sync::{Mutex, mpsc};
+use std::sync::mpsc;
 use std::time::{Duration, Instant};
 
 use common::*;
@@ -16,55 +16,8 @@ use podd::protocol::*;
 
 // ───────────────────────────── helpers ─────────────────────────────
 
-fn profile_dir() -> PathBuf {
-    let exe = std::env::current_exe().unwrap();
-    exe.parent().unwrap().parent().unwrap().to_path_buf()
-}
-
-/// The same single cargo invocation as tests/status.rs (same feature
-/// resolution, so nothing is re-linked under running tests).
-fn workspace_bin(rel: &str) -> PathBuf {
-    static BUILT: Mutex<bool> = Mutex::new(false);
-    let mut built = BUILT.lock().unwrap();
-    let dir = profile_dir();
-    if !*built {
-        let mut cmd = Command::new(std::env::var("CARGO").unwrap_or_else(|_| "cargo".into()));
-        cmd.args([
-            "build",
-            "-p",
-            "podd",
-            "--example",
-            "fake-agent",
-            "-p",
-            "pod-hook",
-            "-p",
-            "pod-cli",
-            // Target flags apply to every -p: name the binaries too, or
-            // only the example is built (stale/missing pod.exe, pod-hook.exe).
-            "--bin",
-            "pod",
-            "--bin",
-            "pod-hook",
-        ]);
-        if dir.file_name().and_then(|n| n.to_str()) == Some("release") {
-            cmd.arg("--release");
-        }
-        assert!(cmd.status().expect("cargo build").success());
-        *built = true;
-    }
-    let p = dir.join(rel);
-    assert!(p.exists(), "{} missing", p.display());
-    p
-}
-
 fn fake_agent() -> String {
-    workspace_bin("examples/fake-agent.exe")
-        .display()
-        .to_string()
-}
-
-fn pod_exe() -> PathBuf {
-    workspace_bin("pod.exe")
+    fixture_bin("examples/fake-agent.exe").display().to_string()
 }
 
 struct TempRepo {
@@ -153,17 +106,6 @@ fn wait_state(c: &mut Client, id: &str, state: &str) -> StatusInfo {
         r.status
     );
     r.status
-}
-
-fn until<T>(what: &str, secs: u64, mut f: impl FnMut() -> Option<T>) -> T {
-    let deadline = Instant::now() + Duration::from_secs(secs);
-    loop {
-        if let Some(v) = f() {
-            return v;
-        }
-        assert!(Instant::now() < deadline, "timed out waiting for {what}");
-        std::thread::sleep(Duration::from_millis(100));
-    }
 }
 
 fn comments(c: &mut Client, task: &str) -> Vec<ReviewComment> {
@@ -1352,7 +1294,7 @@ fn approved_permission_is_working_and_reviews_queue() {
     let mut c = d.client();
     add_repo(&mut c, &repo);
     create_task(&mut c, "perm", vec![fake_agent(), "hold".into()]);
-    let hook = workspace_bin("pod-hook.exe").display().to_string();
+    let hook = fixture_bin("pod-hook.exe").display().to_string();
     let t = c
         .call::<TerminalRun>(&RunParams {
             argv: vec![

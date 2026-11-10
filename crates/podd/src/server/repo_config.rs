@@ -469,7 +469,8 @@ impl Daemon {
                 ));
             };
             if let Some(root) = &p.worktrees_root {
-                r.worktrees_root = (!root.is_empty()).then(|| root.clone());
+                r.worktrees_root = (!root.is_empty())
+                    .then(|| crate::git::normalize(Path::new(root)).display().to_string());
             }
             if p.clear_personal {
                 r.personal = None;

@@ -6,43 +6,10 @@ mod common;
 
 use std::path::PathBuf;
 use std::process::{Command, Stdio};
-use std::time::{Duration, Instant};
+use std::time::Duration;
 
 use common::*;
 use podd::protocol::*;
-
-fn profile_dir() -> PathBuf {
-    let exe = std::env::current_exe().unwrap();
-    exe.parent().unwrap().parent().unwrap().to_path_buf()
-}
-
-/// `pod.exe`, built with the same cargo invocation as the other tests.
-fn pod_exe() -> PathBuf {
-    let dir = profile_dir();
-    let mut cmd = Command::new(std::env::var("CARGO").unwrap_or_else(|_| "cargo".into()));
-    cmd.args([
-        "build",
-        "-p",
-        "podd",
-        "--example",
-        "fake-agent",
-        "-p",
-        "pod-hook",
-        "-p",
-        "pod-cli",
-        // Target flags apply to every -p: name the binaries too, or
-        // only the example is built (stale/missing pod.exe, pod-hook.exe).
-        "--bin",
-        "pod",
-        "--bin",
-        "pod-hook",
-    ]);
-    if dir.file_name().and_then(|n| n.to_str()) == Some("release") {
-        cmd.arg("--release");
-    }
-    assert!(cmd.status().expect("cargo build").success());
-    dir.join("pod.exe")
-}
 
 fn pod(pipe: &str, args: &[&str]) -> String {
     static EXE: std::sync::OnceLock<PathBuf> = std::sync::OnceLock::new();
@@ -55,17 +22,6 @@ fn pod(pipe: &str, args: &[&str]) -> String {
         .expect("run pod");
     assert!(out.status.success(), "pod {args:?}: {out:?}");
     String::from_utf8_lossy(&out.stdout).into_owned()
-}
-
-fn until<T>(what: &str, secs: u64, mut f: impl FnMut() -> Option<T>) -> T {
-    let deadline = Instant::now() + Duration::from_secs(secs);
-    loop {
-        if let Some(v) = f() {
-            return v;
-        }
-        assert!(Instant::now() < deadline, "timed out waiting for {what}");
-        std::thread::sleep(Duration::from_millis(100));
-    }
 }
 
 fn run_cmd(c: &mut podd::client::Client, text: &str) -> TerminalInfo {

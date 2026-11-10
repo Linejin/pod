@@ -9,7 +9,7 @@ mod common;
 mod require_tools;
 
 use std::io::Write as _;
-use std::path::PathBuf;
+
 use std::process::{Command, Stdio};
 use std::sync::{Arc, Mutex, mpsc};
 use std::time::{Duration, Instant};
@@ -21,46 +21,9 @@ use podd::protocol::*;
 
 // ───────────────────────────── helpers ─────────────────────────────
 
-fn profile_dir() -> PathBuf {
-    let exe = std::env::current_exe().unwrap();
-    exe.parent().unwrap().parent().unwrap().to_path_buf()
-}
-
-/// The fake agent and the `pod` CLI. Two cargo invocations: with
-/// `--example`, cargo builds only example targets, so the binaries need
-/// their own build.
-fn workspace_bin(rel: &str) -> PathBuf {
-    static BUILT: Mutex<bool> = Mutex::new(false);
-    let mut built = BUILT.lock().unwrap();
-    let dir = profile_dir();
-    if !*built {
-        for args in [
-            &["build", "-p", "podd", "--example", "fake-agent"][..],
-            &["build", "-p", "pod-hook", "-p", "pod-cli"][..],
-        ] {
-            let mut cmd = Command::new(std::env::var("CARGO").unwrap_or_else(|_| "cargo".into()));
-            cmd.args(args);
-            if dir.file_name().and_then(|n| n.to_str()) == Some("release") {
-                cmd.arg("--release");
-            }
-            assert!(cmd.status().expect("cargo build").success());
-        }
-        *built = true;
-    }
-    let p = dir.join(rel);
-    assert!(p.exists(), "{} missing", p.display());
-    p
-}
-
-fn until<T>(what: &str, secs: u64, mut f: impl FnMut() -> Option<T>) -> T {
-    let deadline = Instant::now() + Duration::from_secs(secs);
-    loop {
-        if let Some(v) = f() {
-            return v;
-        }
-        assert!(Instant::now() < deadline, "timed out waiting for {what}");
-        std::thread::sleep(Duration::from_millis(50));
-    }
+/// [`common::until`] at this file's 50 ms poll interval.
+fn until<T>(what: &str, secs: u64, f: impl FnMut() -> Option<T>) -> T {
+    until_every(what, secs, Duration::from_millis(50), f)
 }
 
 fn list(c: &mut Client) -> Vec<TerminalInfo> {
@@ -88,7 +51,7 @@ fn run(c: &mut Client, argv: &[&str], parent: Option<&str>) -> TerminalInfo {
 /// are ignored. The real holder (protocol 2) gets the daemon's version.
 #[test]
 fn pod_run_inside_a_terminal_records_its_parent() {
-    let pod = workspace_bin("pod.exe");
+    let pod = fixture_bin("pod.exe");
     let d = Daemon::start("parent");
     let mut c = d.client();
     let sh = powershell(&mut c, "sh");
@@ -347,7 +310,7 @@ fn holder_versions_are_negotiated() {
 fn slow_attach_client_is_dropped_and_can_reattach() {
     const LIMIT: usize = 16 * 1024;
     const LINES: usize = 6_000; // ~300 KB, far above limit + pipe buffers
-    let fake = workspace_bin("examples/fake-agent.exe");
+    let fake = fixture_bin("examples/fake-agent.exe");
     let name = unique("lag");
     let d = Daemon::start_with(
         format!(r"\\.\pipe\{name}"),
@@ -451,7 +414,7 @@ fn slow_attach_client_is_dropped_and_can_reattach() {
 /// identical reply, keys and text pass through.
 #[test]
 fn attach_query_replies_are_not_duplicated() {
-    let fake = workspace_bin("examples/fake-agent.exe");
+    let fake = fixture_bin("examples/fake-agent.exe");
     // A wide reply window: this test checks de-duplication and stray replies
     // without racing the 500 ms default (the window itself is unit-tested in
     // `query_dedup`).

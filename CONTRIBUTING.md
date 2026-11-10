@@ -14,6 +14,8 @@
 
 1. `cargo fmt --all` 과 `cargo clippy --all-targets -- -D warnings`
 2. `cargo build` 뒤 `cargo test` (pod-cli 테스트는 옆에 빌드된 podd·pod-hook을 씀)
+   - podd 통합 테스트 하나만 돌릴 때는 시험용 바이너리를 먼저 빌드한다: `cargo build -p podd --example fake-agent -p pod-hook -p pod-cli --bin pod --bin pod-hook` 뒤 `cargo test -p podd --test <이름>`, 또는 `tools/test-daemon-refactor.ps1`. 테스트는 cargo를 부르지 않으므로 pod-cli·pod-hook을 고쳤으면 다시 빌드할 것(오래된 바이너리는 감지하지 않음).
+   - 경로를 다뤘다면 CI처럼 TEMP가 8.3 짧은 이름(`C:\Users\RUNNER~1`)일 때도 돌려 본다: `tools/test-shortpath.ps1 [명령]`(기본 `cargo test --workspace --no-fail-fast`, 긴 이름 폴더를 만들어 그 짧은 이름을 TEMP/TMP로 씀).
 3. 의존성을 추가했다면 `cargo deny check` — Apache-2.0/MIT 호환 라이선스만 허용합니다(GPL/AGPL 불가).
 4. UI를 바꿨다면 바뀐 화면의 스크린샷을 PR에 붙여 주세요(가능하면 다크·라이트, 100%·150% 배율).
 5. 동작이나 프로토콜을 바꿨다면 관련 `docs/` 문서도 고쳐 주세요.

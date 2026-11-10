@@ -1,0 +1,4 @@
+2026-11-10T23:36:14 input_desktop=denied err=5 idle_s=1658 logonui=True
+Before dock patch: release fixture initial UIA contained 100 nodes, settings content present, no status inspector tab.
+Foreground activation refused: native check NOT RUN.
+Coordinator deferred all unlocked-desktop checks. No post-fix foreground or screenshot pass is claimed.

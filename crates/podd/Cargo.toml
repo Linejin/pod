@@ -42,6 +42,9 @@ pod-status = { path = "../pod-status", optional = true }
 sha2 = { version = "0.10", optional = true }
 # `.pod/config.toml` (docs/19 §3.2); MIT OR Apache-2.0, already in the lockfile.
 toml = { version = "0.8", optional = true }
+# The wire types (docs/20-refactor/daemon.md §2). `podd::*protocol` re-exports
+# them under the old paths (crates/podd/tests/protocol_compat.rs).
+pod-protocol = { path = "../pod-protocol" }
 # Forge (GitHub) types for the protocol; the gh-backed provider runs in the daemon.
 pod-forge = { path = "../pod-forge" }
 # Orchestration records (docs/19): wire types always, the engine in the daemon.

@@ -185,9 +185,11 @@ fn non_utf8_file_is_read_only_until_reopened_in_its_encoding() {
     h.with(|e, w, cx| e.reopen_with_encoding(0, euc_kr, w, cx));
     let tab = &h.read(|e| e.tab_states())[0];
     assert!(!tab.read_only && tab.encoding == "EUC-KR", "{tab:?}");
+    // Buffers are named in the root's canonical spelling (TEMP may be an
+    // 8.3 short name such as RUNNER~1).
     assert_eq!(
         h.read(|e| e.active_path().map(Path::to_path_buf)),
-        Some(file.clone())
+        Some(pod_editor::uri::simplify(&file.canonicalize().unwrap()))
     );
     h.type_text("한글 설명 고침\n");
     h.with(|e, w, cx| e.save_active(w, cx));

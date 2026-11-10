@@ -243,11 +243,14 @@ fn tabs_open_and_close_server_documents_exactly_once() {
         .sum();
     assert_eq!(open_on_server, h.tabs().len());
     let ed = h.ed.clone();
+    // Documents are keyed by the buffers' spelling: the canonical root (TEMP
+    // may be an 8.3 short name such as RUNNER~1).
+    let canon_src = pod_editor::uri::simplify(&src.canonicalize().unwrap());
     let store_docs = h.cx.update(|_, cx| {
         let store = ed.read(cx).lsp().read(cx);
         ["a.rs", "b.rs", "c.rs"]
             .iter()
-            .filter(|n| store.doc(&src.join(n)).is_some())
+            .filter(|n| store.doc(&canon_src.join(n)).is_some())
             .count()
     });
     assert_eq!(store_docs, 2);

@@ -40,25 +40,12 @@ pub fn remove_blocker(entries: &[git::WorktreeEntry], wt: &Path) -> Option<Strin
     }
     let inner = entries
         .iter()
-        .find(|e| !git::same_path(&e.path, wt) && is_inside(&e.path, wt))?;
+        .find(|e| !git::same_path(&e.path, wt) && git::is_inside(&e.path, wt))?;
     Some(format!(
         "another worktree ({}) is inside {}; remove it first",
         inner.path.display(),
         wt.display()
     ))
-}
-
-fn is_inside(child: &Path, parent: &Path) -> bool {
-    let norm = |p: &Path| {
-        let s = p
-            .display()
-            .to_string()
-            .replace('/', "\\")
-            .to_ascii_lowercase();
-        s.trim_end_matches('\\').to_string()
-    };
-    let (c, p) = (norm(child), norm(parent));
-    c.len() > p.len() && c.starts_with(&p) && c.as_bytes()[p.len()] == b'\\'
 }
 
 /// Whether `delete_branch` may delete `branch`: never a branch that existed

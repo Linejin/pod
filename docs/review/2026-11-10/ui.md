@@ -154,3 +154,14 @@ master `abdbc4c`(라운드 2 병합 뒤), 같은 환경(보조 모니터 144 DPI
 
 - **LF/CRLF 체크아웃**: `core.autocrlf=false`/`true`로 각각 `crates/pod-editor/fixtures`를 체크아웃해 바이트가 같음을 확인(`.gitattributes` eol=lf). editor 장면의 입력이 같으므로 결과도 같다. 두 번째 빌드·캡처는 하지 않았다.
 - **UIA 재시도**: `capture.ps1`이 장면별 필수 노드(`uia-required.ps1`)가 나올 때까지 1초 간격 최대 6번 다시 덤프하고, 끝내 없으면 빠진 노드 이름과 함께 실패한다. 실제 실행에서 36장 중 11장·14장이 두 번째 덤프에서 완전해졌고 3번 이상 걸린 장면은 없었다. 자체 시험: `tools/visual/uia-selftest.ps1`.
+
+### 7.2 UI wave 0 (Linejin/astra-ui)
+
+기준 `8b835ff`. [QA 기록](../../../crates/pod-app/qa/ui-wave0/README.md). 기준 이미지는 변경하지 않음. 시각 변경 예상: 1400 logical px 이상에서 현재 작업 branch가 상태 표시줄에 추가됨(기존 1440×960 physical·150% 장면에서는 숨김). 실기·재캡처는 coordinator에게 넘긴다.
+
+| id | 상태 | 커밋 | 메모 |
+|---|---|---|---|
+| dock-uia 코드 | 해결 | `76a6b39` | GPUI 캐시가 접근성 노드를 재사용하지 않아 dock 내용이 빠지는 경로를 확인. UIA 활성 시 패널 캐시를 우회하고 배치는 유지. Apache-2.0 고지·UIA 회귀 판정 추가, headless 활성화에서 인스펙터 자동 생성 없음. |
+| dock-uia 실제 전경 활성화 | 보류 | — | **NOT RUN: 잠금 해제된 Windows 세션 필요.** `OpenInputDesktop` error 5, `LogonUI=True`. Coordinator 지시로 대기하지 않음. 실제 UIA 재현·수정 확인과 스크린샷은 미검증. |
+| status-branch | 해결 | `00c0a70` | 기존 task.branch로 git-branch 아이콘·전체 이름 tooltip/UIA 표시. 1400px 미만에서 먼저 숨김. 작업 전환·편집기 우선·branch 없음·좁은 창 headless 검사. |
+| select-blur | 해결 | `9cde4d9` | focus-out·창 비활성화에서 선택 없이 닫음. 프로그램 포커스·blur·부모 Escape·Alt+Tab·mouse-down-out headless 검사. |

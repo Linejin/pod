@@ -274,6 +274,66 @@ pub fn option_a11y(label: &str, selected: bool) -> A11y {
     }
 }
 
+type SelectCallback = Rc<dyn Fn(SelectEvent, &mut Window, &mut App)>;
+
+// Keep the focus subscription with the element, not the caller. Refresh the callback
+// each render so blur cannot close a different select through an old host snapshot.
+struct SelectFocus {
+    focus: FocusHandle,
+    open: bool,
+    on_event: SelectCallback,
+    _subscriptions: Vec<Subscription>,
+}
+
+impl SelectFocus {
+    fn close(&mut self, window: &mut Window, cx: &mut Context<Self>) {
+        if std::mem::take(&mut self.open) {
+            (self.on_event)(SelectEvent::Close, window, cx);
+        }
+    }
+}
+
+#[derive(IntoElement)]
+struct SelectControl {
+    id: ElementId,
+    control: Stateful<Div>,
+    open: bool,
+    enabled: bool,
+    on_event: SelectCallback,
+}
+
+impl RenderOnce for SelectControl {
+    fn render(self, window: &mut Window, cx: &mut App) -> impl IntoElement {
+        let state = window.use_keyed_state(self.id, cx, |window, cx| {
+            let focus = cx.focus_handle();
+            let subscriptions = vec![
+                cx.on_focus_out(&focus, window, |s: &mut SelectFocus, _, w, cx| {
+                    s.close(w, cx)
+                }),
+                // Windows retains the focused handle on Alt+Tab. Close on deactivation
+                // as well as focus-path changes, without stealing focus on return.
+                cx.observe_window_activation(window, |s: &mut SelectFocus, w, cx| {
+                    if !w.is_window_active() {
+                        s.close(w, cx);
+                    }
+                }),
+            ];
+            SelectFocus {
+                focus,
+                open: self.open,
+                on_event: self.on_event.clone(),
+                _subscriptions: subscriptions,
+            }
+        });
+        let focus = state.update(cx, |s, _| {
+            s.open = self.open;
+            s.on_event = self.on_event;
+            s.focus.clone().tab_stop(self.enabled)
+        });
+        self.control.track_focus(&focus)
+    }
+}
+
 /// Dropdown (docs/10 §D4.6 font select): 32px, border.control, chevron, 200 wide. The open list
 /// floats below (deferred) with a check on the current option, so the choice is not colour only.
 /// `open` is the highlighted index while open; every interaction is reported through `on_event`.
@@ -290,8 +350,9 @@ pub fn select(
     enabled: bool,
     mode: Mode,
     on_event: impl Fn(SelectEvent, &mut Window, &mut App) + 'static,
-) -> Stateful<Div> {
+) -> impl IntoElement {
     let t = Tokens::for_mode(mode);
+    let id = id.into();
     let on_event = Rc::new(on_event);
     let value: SharedString = selected
         .and_then(|i| options.get(i).cloned())
@@ -365,12 +426,11 @@ pub fn select(
         deferred(list).with_priority(1)
     });
     let click = on_event.clone();
-    let key = on_event;
+    let key = on_event.clone();
     let (click_scroll, key_scroll) = (scroll.clone(), scroll.clone());
     let labels: Rc<[SharedString]> = options.into();
-    select_a11y(name, &value, open.is_some())
-        .apply(div().id(id))
-        .tab_index(if enabled { 0 } else { -1 })
+    let control = select_a11y(name, &value, open.is_some())
+        .apply(div().id(id.clone()))
         .relative()
         .w(px(CONTROL_WIDTH))
         .h(px(HEIGHTS[1]))
@@ -450,7 +510,14 @@ pub fn select(
                     cx.stop_propagation();
                 }
             }
-        })
+        });
+    SelectControl {
+        id,
+        control,
+        open: open.is_some(),
+        enabled,
+        on_event,
+    }
 }
 
 // ── Switch ─────────────────────────────────────────────────────────────────

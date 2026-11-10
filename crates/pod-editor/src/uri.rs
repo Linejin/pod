@@ -181,22 +181,32 @@ pub fn rel_path(root: &Path, path: &Path) -> String {
 
 /// `path` spelled like `root` (a canonical, [`simplify`]d root): a file under
 /// the root opened through another spelling (8.3 short name, letter case)
-/// maps to the same buffer, tab key and relative path. Other paths stay as
-/// given.
+/// maps to the same buffer, tab key and relative path. A file that no
+/// longer exists maps through its deepest existing folder. Other paths stay
+/// as given.
 pub fn under_root_spelling(root: &Path, path: &Path) -> PathBuf {
     if path.starts_with(root) {
         return path.to_path_buf();
     }
-    match std::fs::canonicalize(path) {
-        Ok(c) => {
-            let c = simplify(&c);
-            if c.starts_with(root) {
+    let mut base = path;
+    let mut tail = Vec::new();
+    loop {
+        if let Ok(c) = std::fs::canonicalize(base) {
+            let mut c = simplify(&c);
+            c.extend(tail.iter().rev());
+            return if c.starts_with(root) {
                 c
             } else {
                 path.to_path_buf()
-            }
+            };
         }
-        Err(_) => path.to_path_buf(),
+        match (base.parent(), base.file_name()) {
+            (Some(parent), Some(name)) => {
+                tail.push(name);
+                base = parent;
+            }
+            _ => return path.to_path_buf(),
+        }
     }
 }
 
@@ -232,6 +242,12 @@ mod tests {
         // Other letter case (and, on CI, 8.3 short names) for the same file.
         let other = dir.path().join("WT").join("a.txt");
         assert_eq!(under_root_spelling(&root, &other), root.join("a.txt"));
+        // A file that is gone maps through its deepest existing folder.
+        let gone = dir.path().join("WT").join("gone").join("b.txt");
+        assert_eq!(
+            under_root_spelling(&root, &gone),
+            root.join("gone").join("b.txt")
+        );
         let outside = dir.path().join("x.txt");
         assert_eq!(under_root_spelling(&root, &outside), outside);
     }

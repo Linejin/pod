@@ -1,0 +1,51 @@
+UI wave 0 verification — 2026-11-11
+Branch: Linejin/astra-ui; base: 8b835ff
+Fix commits: 9cde4d9 (select), 00c0a70 (branch), 76a6b39 (dock).
+Fixture data only; isolated target/ui-wave0 configuration; no baseline edits.
+
+PASS cargo test --workspace -- --test-threads=2
+Exit 0; 71 test-result summaries: 947 passed, 0 failed, 3 ignored.
+Includes pod-app 247 passed and the dock activation/branch regressions.
+The final parent-capture Escape test adjustment was verified separately below.
+
+PASS cargo test -p pod-ui --test select_scroll
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out
+Covers deactivation/reactivation, programmatic focus, blur, parent Escape,
+mouse-down-out, scrolling/typeahead, and Shift+Tab.
+
+PASS cargo test -p pod-app native_qa::status_branch -- --nocapture
+test result: ok. 1 passed; 0 failed
+
+PASS cargo clippy -p pod-app -p pod-ui --all-targets -- -D warnings
+Exit 0; no warnings. Finished dev profile in 2m 05s.
+
+PASS cargo clippy -p gpui-component --lib -- -D warnings
+Exit 0; no warnings. Finished dev profile in 51.96s.
+
+PASS cargo deny check
+Exit 0. Existing unused ISC allowance emits license-not-encountered warning.
+Final line:
+advisories ok, bans ok, licenses ok, sources ok
+
+PASS cargo build --release -p pod-app (final patched sources)
+Exit 0; Finished release profile in 1m 53s. No post-fix app launch attempted.
+
+PASS tools/check-vendor-notices.ps1
+vendor notices ok (5 files)
+
+PASS crates/pod-app/qa/ui-wave0/uia-check-selftest.ps1
+PASS: activation tree accepts settings/status button, rejects missing dock and unexpected inspector
+
+PASS tools/visual/uia-selftest.ps1
+PASS: 36 baseline trees complete, title-bar-only rejected, retry accepts attempt 3, gives up after N with the missing node
+
+NOT RUN: real foreground activation, dark/light screenshots, visual comparison.
+Needs an unlocked Windows desktop; coordinator explicitly deferred these checks.
+The native script is provided for the next unlocked session. See README.md and
+native-activation-not-run.txt. Headless TestPlatform has no UIA adapter, so its
+activation test proves only that activation does not create the inspector.
+
+Formatting: cargo fmt -p pod-app -p pod-ui; vendor dock file uses rustfmt
+--edition 2024 because the vendored package is not a workspace member and
+cargo fmt with either -p or its manifest path refuses this workspace layout.
+PASS git diff --check. Formatting was repeated before each commit.

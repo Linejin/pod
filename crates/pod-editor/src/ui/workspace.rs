@@ -1386,9 +1386,22 @@ impl EditorWorkspace {
 
     // ---- files ---------------------------------------------------------------
 
+    /// The buffer of `path` in any spelling: buffers under the root are
+    /// keyed in the root's canonical spelling, and a host or server may name
+    /// the same file through an 8.3 short name or another letter case.
     fn find_buffer(&self, path: &Path) -> Option<usize> {
         let k = path_key(path);
-        self.buffers.iter().position(|b| path_key(&b.path) == k)
+        if let Some(i) = self.buffers.iter().position(|b| path_key(&b.path) == k) {
+            return Some(i);
+        }
+        if !path.is_absolute() {
+            return None;
+        }
+        let k2 = path_key(&under_root_spelling(&self.root, &simplify(path)));
+        if k2 == k {
+            return None;
+        }
+        self.buffers.iter().position(|b| path_key(&b.path) == k2)
     }
 
     /// Opens (or activates) a file in a pinned tab.
@@ -1598,6 +1611,8 @@ impl EditorWorkspace {
         let Some(i) = self.find_buffer(path) else {
             return;
         };
+        // The buffer's own spelling: tab keys and server documents use it.
+        let path = &self.buffers[i].path.clone();
         let text = self.buffers[i].state.read(cx).value().to_string();
         let dirty = text != self.buffers[i].saved;
         if dirty != self.buffers[i].dirty {
