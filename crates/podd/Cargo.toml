@@ -26,7 +26,7 @@ required-features = ["server"]
 # the protocol types and the blocking client, so they build with
 # `default-features = false`.
 default = ["server"]
-server = ["dep:tokio", "dep:alacritty_terminal", "dep:pod-status", "dep:sha2", "dep:toml", "pod-mods/runtime"]
+server = ["dep:tokio", "dep:alacritty_terminal", "dep:pod-status", "dep:sha2", "dep:toml", "dep:pod-process", "dep:pod-storage", "pod-mods/runtime"]
 
 [dependencies]
 anyhow = "1"
@@ -50,6 +50,10 @@ pod-orch = { path = "../pod-orch" }
 pod-mods = { path = "../pod-mods", default-features = false }
 # Session discovery (docs/18): wire types always, scanning in the daemon.
 pod-discover = { path = "../pod-discover" }
+# Leaf crates, daemon side only (`server`): the bounded runner (git, groups,
+# repo config) and the temporary-file + rename JSON write (discovery cache).
+pod-process = { path = "../pod-process", optional = true }
+pod-storage = { path = "../pod-storage", optional = true }
 # Also used by the client side (`detach.rs`: spawning podd / pod-holder with no
 # inherited handles), so not optional.
 windows-sys = { version = "0.61", features = [
@@ -68,6 +72,10 @@ windows-sys = { version = "0.61", features = [
     "Win32_System_SystemInformation",
     "Win32_System_Threading",
 ] }
+
+[dev-dependencies]
+# Shared test helpers (git, condition waits, missing tools); tests only.
+pod-test-support = { path = "../pod-test-support" }
 
 [lints]
 workspace = true

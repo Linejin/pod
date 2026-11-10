@@ -5160,6 +5160,7 @@ dependencies = [
  "embed-resource",
  "pod-remote",
  "pod-status",
+ "pod-test-support",
  "podd",
  "serde",
  "serde_json",
@@ -5199,6 +5200,8 @@ dependencies = [
  "lsp-types",
  "notify",
  "pod-forge",
+ "pod-process",
+ "pod-test-support",
  "pod-ui",
  "serde",
  "serde_json",
@@ -5212,6 +5215,8 @@ dependencies = [
 name = "pod-forge"
 version = "0.1.0"
 dependencies = [
+ "pod-process",
+ "pod-storage",
  "schemars",
  "serde",
  "serde_json",
@@ -5232,6 +5237,8 @@ dependencies = [
 name = "pod-mods"
 version = "0.1.0"
 dependencies = [
+ "pod-storage",
+ "pod-test-support",
  "rquickjs",
  "schemars",
  "serde",
@@ -5243,6 +5250,7 @@ dependencies = [
 name = "pod-orch"
 version = "0.1.0"
 dependencies = [
+ "pod-storage",
  "schemars",
  "serde",
  "serde_json",
@@ -5250,9 +5258,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "pod-process"
+version = "0.1.0"
+dependencies = [
+ "windows-sys 0.61.2",
+]
+
+[[package]]
 name = "pod-remote"
 version = "0.1.0"
 dependencies = [
+ "pod-test-support",
  "podd",
  "serde",
  "serde_json",
@@ -5280,12 +5296,28 @@ dependencies = [
 ]
 
 [[package]]
+name = "pod-storage"
+version = "0.1.0"
+dependencies = [
+ "serde",
+ "serde_json",
+ "tempfile",
+]
+
+[[package]]
 name = "pod-terminal-view"
 version = "0.1.0"
 dependencies = [
  "alacritty_terminal",
  "gpui-kit",
  "unicode-width",
+]
+
+[[package]]
+name = "pod-test-support"
+version = "0.1.0"
+dependencies = [
+ "tempfile",
 ]
 
 [[package]]
@@ -5311,7 +5343,10 @@ dependencies = [
  "pod-forge",
  "pod-mods",
  "pod-orch",
+ "pod-process",
  "pod-status",
+ "pod-storage",
+ "pod-test-support",
  "schemars",
  "serde",
  "serde_json",

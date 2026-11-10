@@ -2462,7 +2462,9 @@ fn h_editor_tab_menu_and_move_keyboard() {
                 .map(|e| e.read(cx).editor.clone())
         })
         .expect("editor");
-    let root = std::path::PathBuf::from(&wt);
+    // The editor holds the canonical root; on CI the temp dir is spelled with
+    // 8.3 short names (RUNNER~1), so compare against the same spelling.
+    let root = pod_editor::uri::simplify(&std::fs::canonicalize(&wt).expect("root"));
     for n in ["beta", "gamma"] {
         let p = root.join(format!("{n}.txt"));
         h.cx.update(|window, cx| ed.update(cx, |e, cx| e.open_file(&p, window, cx)))
@@ -2566,7 +2568,13 @@ fn h_editor_tab_menu_and_move_keyboard() {
     let copied =
         h.cx.update(|_, cx| cx.read_from_clipboard().and_then(|c| c.text()))
             .unwrap_or_default();
-    assert_eq!(std::path::Path::new(&copied), root.join("delta.txt"));
+    // The editor may hold the canonical spelling of the root (8.3 short names
+    // such as RUNNER~1 resolve to the long name), so compare resolved paths.
+    assert_eq!(
+        std::fs::canonicalize(&copied).ok(),
+        std::fs::canonicalize(root.join("delta.txt")).ok(),
+        "copied {copied}"
+    );
 
     // Reveal in the file tree: the tree gets focus with the file selected.
     h.keys("shift-f10");

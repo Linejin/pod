@@ -13,6 +13,8 @@ serde_json = "1"
 schemars = "1"
 # MIT OR Apache-2.0: attempt tokens are stored only as SHA-256 hashes.
 sha2 = "0.10"
+# Leaf crate: the temporary-file + rename JSON write.
+pod-storage = { path = "../pod-storage" }
 
 [lints]
 workspace = true

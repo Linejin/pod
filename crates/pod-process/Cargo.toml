@@ -1,0 +1,18 @@
+[package]
+name = "pod-process"
+version = "0.1.0"
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+publish = false
+description = "Pod leaf crate: bounded child processes (one deadline including output drain, whole process tree, bounded output)"
+
+# std and the Windows API only: no Pod domain crate, no GPUI (docs/20-refactor/libs.md §2).
+
+# MIT OR Apache-2.0, already in the lockfile: the Job Object behind
+# `bounded` (kill the whole process tree on timeout).
+[target.'cfg(windows)'.dependencies]
+windows-sys = { version = "0.61", features = ["Win32_Foundation", "Win32_Security", "Win32_System_Diagnostics_ToolHelp", "Win32_System_IO", "Win32_System_JobObjects", "Win32_System_Threading"] }
+
+[lints]
+workspace = true

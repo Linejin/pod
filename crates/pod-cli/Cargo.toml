@@ -29,6 +29,10 @@ serde_json = "1"
 toml_edit = "0.22"
 windows-sys = { version = "0.61", features = ["Win32_Foundation", "Win32_Storage_FileSystem", "Win32_System_Console", "Win32_System_IO"] }
 
+[dev-dependencies]
+# Shared test helpers (git, condition waits, missing tools); tests only.
+pod-test-support = { path = "../pod-test-support" }
+
 [lints]
 workspace = true
 

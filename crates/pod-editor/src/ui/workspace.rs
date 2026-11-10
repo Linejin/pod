@@ -525,6 +525,8 @@ fn rel_of(root: &Path, path: &Path) -> String {
     crate::uri::rel_path(root, path)
 }
 
+use crate::uri::under_root_spelling;
+
 impl EditorWorkspace {
     pub fn new(root: PathBuf, mode: Mode, window: &mut Window, cx: &mut Context<Self>) -> Self {
         let root = simplify(&root.canonicalize().unwrap_or(root));
@@ -1410,7 +1412,7 @@ impl EditorWorkspace {
         cx: &mut Context<Self>,
     ) -> Result<(), String> {
         let path = if path.is_absolute() {
-            simplify(path)
+            under_root_spelling(&self.root, &simplify(path))
         } else {
             self.root.join(path)
         };

@@ -1,0 +1,21 @@
+[package]
+name = "pod-storage"
+version = "0.1.0"
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+publish = false
+description = "Pod leaf crate: pretty JSON bytes and the write-temporary-then-rename file replacement shared by the JSON stores"
+
+# std, serde and serde_json only: no Pod domain crate (docs/20-refactor/libs.md §2).
+[dependencies]
+# MIT OR Apache-2.0, already in the lockfile.
+serde = "1"
+serde_json = "1"
+
+[dev-dependencies]
+serde = { version = "1", features = ["derive"] }
+tempfile = "3"
+
+[lints]
+workspace = true

@@ -1,0 +1,17 @@
+[package]
+name = "pod-test-support"
+version = "0.1.0"
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+publish = false
+description = "Pod test helpers (dev-dependency only): git in fixture repositories, condition waits, skipping on missing tools"
+
+# std only. Consumers list it under [dev-dependencies] only; it never depends
+# on podd, GPUI or the network (docs/20-refactor/libs.md §2).
+
+[dev-dependencies]
+tempfile = "3"
+
+[lints]
+workspace = true

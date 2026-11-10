@@ -179,6 +179,27 @@ pub fn rel_path(root: &Path, path: &Path) -> String {
     }
 }
 
+/// `path` spelled like `root` (a canonical, [`simplify`]d root): a file under
+/// the root opened through another spelling (8.3 short name, letter case)
+/// maps to the same buffer, tab key and relative path. Other paths stay as
+/// given.
+pub fn under_root_spelling(root: &Path, path: &Path) -> PathBuf {
+    if path.starts_with(root) {
+        return path.to_path_buf();
+    }
+    match std::fs::canonicalize(path) {
+        Ok(c) => {
+            let c = simplify(&c);
+            if c.starts_with(root) {
+                c
+            } else {
+                path.to_path_buf()
+            }
+        }
+        Err(_) => path.to_path_buf(),
+    }
+}
+
 /// Comparison key: on Windows paths are case-insensitive and may use either
 /// separator, so lowercase and normalise separators.
 pub fn path_key(path: &Path) -> String {
@@ -201,6 +222,19 @@ pub fn uri_key(uri: &lsp_types::Uri) -> String {
 #[cfg(all(test, windows))]
 mod tests {
     use super::*;
+
+    #[test]
+    fn files_opened_through_another_spelling_map_under_the_root() {
+        let dir = tempfile::tempdir().unwrap();
+        std::fs::create_dir_all(dir.path().join("Wt")).unwrap();
+        std::fs::write(dir.path().join("Wt").join("a.txt"), "a").unwrap();
+        let root = simplify(&std::fs::canonicalize(dir.path().join("Wt")).unwrap());
+        // Other letter case (and, on CI, 8.3 short names) for the same file.
+        let other = dir.path().join("WT").join("a.txt");
+        assert_eq!(under_root_spelling(&root, &other), root.join("a.txt"));
+        let outside = dir.path().join("x.txt");
+        assert_eq!(under_root_spelling(&root, &outside), outside);
+    }
 
     #[test]
     fn rel_path_survives_a_different_spelling_of_the_root() {
