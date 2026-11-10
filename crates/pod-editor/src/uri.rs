@@ -155,6 +155,30 @@ pub fn uri_to_path(uri: &lsp_types::Uri) -> Option<PathBuf> {
     uri_str_to_path(uri.as_str())
 }
 
+/// `path` relative to `root` with `/` separators, for display and saved
+/// sessions. A plain prefix match comes first; when it fails (Windows 8.3
+/// short names such as `RUNNER~1`, a different letter case, `\\?\` forms)
+/// both sides are resolved with `canonicalize` and compared again. A path
+/// outside `root` is returned whole.
+pub fn rel_path(root: &Path, path: &Path) -> String {
+    let rel = match path.strip_prefix(root) {
+        Ok(r) => r.to_path_buf(),
+        Err(_) => match (std::fs::canonicalize(root), std::fs::canonicalize(path)) {
+            (Ok(r), Ok(p)) => p
+                .strip_prefix(&r)
+                .map(Path::to_path_buf)
+                .unwrap_or_else(|_| path.to_path_buf()),
+            _ => path.to_path_buf(),
+        },
+    };
+    let s = rel.to_string_lossy();
+    if cfg!(windows) {
+        s.replace('\\', "/")
+    } else {
+        s.into_owned()
+    }
+}
+
 /// Comparison key: on Windows paths are case-insensitive and may use either
 /// separator, so lowercase and normalise separators.
 pub fn path_key(path: &Path) -> String {
@@ -177,6 +201,23 @@ pub fn uri_key(uri: &lsp_types::Uri) -> String {
 #[cfg(all(test, windows))]
 mod tests {
     use super::*;
+
+    #[test]
+    fn rel_path_survives_a_different_spelling_of_the_root() {
+        let dir = tempfile::tempdir().unwrap();
+        let root = dir.path().join("Wt");
+        std::fs::create_dir_all(root.join("sub")).unwrap();
+        std::fs::write(root.join("sub").join("beta.txt"), "b").unwrap();
+        // Same folder, other letter case: a plain prefix match fails.
+        let other = dir.path().join("WT").join("sub").join("beta.txt");
+        assert_eq!(rel_path(&root, &other), "sub/beta.txt");
+        assert_eq!(rel_path(&root, &root.join("a.txt")), "a.txt");
+        let outside = dir.path().join("x.txt");
+        assert_eq!(
+            rel_path(&root, &outside),
+            outside.to_string_lossy().replace('\\', "/")
+        );
+    }
 
     #[test]
     fn drive_paths_round_trip() {

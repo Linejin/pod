@@ -148,10 +148,7 @@ impl EditorPanel {
 }
 
 pub fn rel(root: &Path, p: &Path) -> String {
-    p.strip_prefix(root)
-        .unwrap_or(p)
-        .to_string_lossy()
-        .replace('\\', "/")
+    pod_editor::uri::rel_path(root, p)
 }
 
 impl EventEmitter<PanelEvent> for EditorPanel {}

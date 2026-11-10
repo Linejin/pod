@@ -522,16 +522,7 @@ fn edit_buffer(
 }
 
 fn rel_of(root: &Path, path: &Path) -> String {
-    let r = path
-        .strip_prefix(root)
-        .unwrap_or(path)
-        .to_string_lossy()
-        .into_owned();
-    if cfg!(windows) {
-        r.replace('\\', "/")
-    } else {
-        r
-    }
+    crate::uri::rel_path(root, path)
 }
 
 impl EditorWorkspace {

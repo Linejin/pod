@@ -1,6 +1,6 @@
 # Pod app identity
 
-Copyright (c) 2026 SJin-Choi. Apache-2.0, like the repository.
+Copyright (c) 2026 Linejin. Apache-2.0, like the repository.
 All artwork here is original geometry; no third-party product artwork (including Zed or Lucide) is used.
 Lucide remains limited to the separately licensed in-app UI glyphs.
 

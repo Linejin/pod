@@ -144,7 +144,7 @@ Check "hooks dir untouched (prefix)" (-not (Test-Path "$Prefix\localappdata\Pod\
 $releaseVersion = [regex]::Match((Get-Content (Join-Path $Root "Cargo.toml") -Raw), '(?ms)^\[workspace\.package\][^\[]*?^version\s*=\s*"([^"]+)"').Groups[1].Value
 foreach ($binary in "pod-app", "podd", "pod-holder", "pod", "pod-hook") {
   $vi = (Get-Item (Join-Path $Dir "$binary.exe")).VersionInfo
-  Check "$binary version resource" ($vi.ProductName -eq "Pod" -and $vi.CompanyName -eq "SJin-Choi" -and $vi.FileVersion -eq $releaseVersion -and $vi.OriginalFilename -eq "$binary.exe" -and $vi.FileDescription -match 'Apache-2.0') "$($vi.FileVersion), $($vi.FileDescription)"
+  Check "$binary version resource" ($vi.ProductName -eq "Pod" -and $vi.CompanyName -eq "Linejin" -and $vi.FileVersion -eq $releaseVersion -and $vi.OriginalFilename -eq "$binary.exe" -and $vi.FileDescription -match 'Apache-2.0') "$($vi.FileVersion), $($vi.FileDescription)"
 }
 Check "uninstall icon" ($k.DisplayIcon -like '*pod-app.exe*') $k.DisplayIcon
 

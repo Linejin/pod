@@ -56,11 +56,11 @@ BEGIN
  BEGIN
   BLOCK "040904b0"
   BEGIN
-   VALUE "CompanyName", "SJin-Choi\0"
+   VALUE "CompanyName", "Linejin\0"
    VALUE "FileDescription", "{description}\0"
    VALUE "FileVersion", "{version}\0"
    VALUE "InternalName", "{binary}\0"
-   VALUE "LegalCopyright", "Copyright (c) 2026 SJin-Choi. Apache-2.0.\0"
+   VALUE "LegalCopyright", "Copyright (c) 2026 Linejin. Apache-2.0.\0"
    VALUE "OriginalFilename", "{binary}.exe\0"
    VALUE "ProductName", "Pod\0"
    VALUE "ProductVersion", "{version}\0"
