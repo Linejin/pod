@@ -1,0 +1,9 @@
+{
+  "pod": 1,
+  "name": "group-done-notify",
+  "version": "0.1.0",
+  "title": "그룹 완료 알림",
+  "description": "비교 그룹의 모든 에이전트가 턴을 마치면 한 번 알린다. 팔레트에서 그룹 상태 요약도 볼 수 있다.",
+  "entry": "main.js",
+  "permissions": ["notify", "commands"]
+}

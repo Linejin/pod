@@ -1,0 +1,34 @@
+﻿{
+  "deliveries": [
+    {
+      "id": "d1",
+      "task": "sample/cli-fix",
+      "terminal": "t1",
+      "comment_ids": [
+        "c1"
+      ],
+      "state": "delivered",
+      "prompt": "Code review feedback on your changes in this worktree (task sample/cli-fix). Please address each of the 1 comment(s) below. File paths are relative to the worktree root; line numbers refer to the current file unless marked as the base version. When you are done, reply with a short summary per comment.\n\nInstructions from the reviewer:\nFirst run Start-Sleep -Seconds 40, then address the comment. Do not delegate.\n\n1. calc.py:2\n```\n   2 |     return a + b\n```\nReviewer: Add a short docstring to add explaining that it returns the sum. Run the test; do not commit or delegate.\n",
+      "created_ms": 1794177478388,
+      "delivered_ms": 1794177478388,
+      "agent_state": "idle",
+      "delivered_state": "idle",
+      "app_bracketed_paste": true
+    },
+    {
+      "id": "d2",
+      "task": "sample/cli-fix",
+      "terminal": "t1",
+      "comment_ids": [
+        "c2"
+      ],
+      "state": "delivered",
+      "prompt": "Code review feedback on your changes in this worktree (task sample/cli-fix). Please address each of the 1 comment(s) below. File paths are relative to the worktree root; line numbers refer to the current file unless marked as the base version. When you are done, reply with a short summary per comment.\n\n1. calc.py:1\n```\n   1 | ﻿def add(a, b):\n```\nReviewer: Add a negative-number test in test_calc.py verifying add(-2, -3) == -5. Run tests. Do not commit or delegate.\n",
+      "created_ms": 1794177505572,
+      "delivered_ms": 1794177560692,
+      "agent_state": "working",
+      "delivered_state": "done",
+      "app_bracketed_paste": true
+    }
+  ]
+}

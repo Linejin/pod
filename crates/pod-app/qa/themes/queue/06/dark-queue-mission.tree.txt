@@ -1,0 +1,156 @@
+﻿App=pod-app (pid 42120)
+Window: "", App: pod-app.
+
+0 영역
+	1 title bar TitleBar
+		2 menu bar 시스템 메뉴 모음
+			3 menu item 시스템
+		4 button 최소화
+		5 button 최대화
+		6 button 닫기
+	7 그룹 작업 상태 요약
+		8 단추 응답 필요 50개
+		9 단추 실패 49개
+		10 단추 작업 중 49개
+		11 단추 완료 51개
+	12 단추 명령·터미널 검색
+	13 단추 설정
+	14 도구 모음 활동 막대
+		15 단추 응답 대기열 보이기/숨기기
+		16 단추 에이전트 트리
+		17 단추 파일
+		18 단추 변경 검토
+		19 단추 승인 요청
+		20 단추 설정
+	21 단추 새 작업
+	22 단추 검색 열기/닫기
+	23 LIST 응답 대기열
+		24 목록 항목 Task 000 - 한글 작업과 레이아웃 🔎, 승인 필요, Worker 1 · 명령 실행 승인, Secondary Actions: Select
+			25 단추 이번만 허용: Task 000 - 한글 작업과 레이아웃 🔎
+			26 단추 거부: Task 000 - 한글 작업과 레이아웃 🔎
+			27 단추 열기: Task 000 - 한글 작업과 레이아웃 🔎
+		28 목록 항목 Task 001 - 한글 작업과 레이아웃 🔎, 질문, Worker 3 · 질문, Secondary Actions: Select
+		29 목록 항목 Task 005 - 한글 작업과 레이아웃 🔎, 승인 필요, Worker 17 · 승인 필요, Secondary Actions: Select
+		30 목록 항목 Task 006 - 한글 작업과 레이아웃 🔎, 승인 필요, Worker 19 · 승인 필요, Secondary Actions: Select
+		31 목록 항목 Task 007 - 한글 작업과 레이아웃 🔎, 승인 필요, Worker 21 · 승인 필요, Secondary Actions: Select
+		32 목록 항목 Task 011 - 한글 작업과 레이아웃 🔎, 승인 필요, Worker 35 · 승인 필요, Secondary Actions: Select
+		33 목록 항목 Task 012 - 한글 작업과 레이아웃 🔎, 승인 필요, Worker 37 · 승인 필요, Secondary Actions: Select
+		34 목록 항목 Task 013 - 한글 작업과 레이아웃 🔎, 승인 필요, Worker 39 · 승인 필요, Secondary Actions: Select
+		35 목록 항목 Task 017 - 한글 작업과 레이아웃 🔎, 승인 필요, Worker 53 · 승인 필요, Secondary Actions: Select
+		36 목록 항목 Task 018 - 한글 작업과 레이아웃 🔎, 승인 필요, Worker 55 · 승인 필요, Secondary Actions: Select
+		37 목록 항목 Task 019 - 한글 작업과 레이아웃 🔎, 승인 필요, Worker 57 · 승인 필요, Secondary Actions: Select
+		38 목록 항목 Task 023 - 한글 작업과 레이아웃 🔎, 승인 필요, Worker 71 · 승인 필요, Secondary Actions: Select
+		39 목록 항목 Task 024 - 한글 작업과 레이아웃 🔎, 승인 필요, Worker 73 · 승인 필요, Secondary Actions: Select
+		40 목록 항목 Task 025 - 한글 작업과 레이아웃 🔎, 승인 필요, Worker 75 · 승인 필요, Secondary Actions: Select
+		41 목록 항목 Task 029 - 한글 작업과 레이아웃 🔎, 승인 필요, Worker 89 · 승인 필요, Secondary Actions: Select
+		42 목록 항목 Task 030 - 한글 작업과 레이아웃 🔎, 승인 필요, Worker 91 · 승인 필요, Secondary Actions: Select
+		43 목록 항목 Task 031 - 한글 작업과 레이아웃 🔎, 승인 필요, Worker 93 · 승인 필요, Secondary Actions: Select
+		44 목록 항목 Task 035 - 한글 작업과 레이아웃 🔎, 승인 필요, Worker 107 · 승인 필요, Secondary Actions: Select
+		45 목록 항목 Task 036 - 한글 작업과 레이아웃 🔎, 승인 필요, Worker 109 · 승인 필요, Secondary Actions: Select
+		46 목록 항목 Task 037 - 한글 작업과 레이아웃 🔎, 승인 필요, Worker 111 · 승인 필요, Secondary Actions: Select
+		47 목록 항목 Task 041 - 한글 작업과 레이아웃 🔎, 승인 필요, Worker 125 · 승인 필요, Secondary Actions: Select
+		48 목록 항목 Task 042 - 한글 작업과 레이아웃 🔎, 승인 필요, Worker 127 · 승인 필요, Secondary Actions: Select
+		49 목록 항목 Task 043 - 한글 작업과 레이아웃 🔎, 승인 필요, Worker 129 · 승인 필요, Secondary Actions: Select
+		50 목록 항목 Task 047 - 한글 작업과 레이아웃 🔎, 승인 필요, Worker 143 · 승인 필요, Secondary Actions: Select
+		51 목록 항목 Task 048 - 한글 작업과 레이아웃 🔎, 승인 필요, Worker 145 · 승인 필요, Secondary Actions: Select
+		52 목록 항목 Task 049 - 한글 작업과 레이아웃 🔎, 승인 필요, Worker 147 · 승인 필요, Secondary Actions: Select
+		53 목록 항목 Task 053 - 한글 작업과 레이아웃 🔎, 승인 필요, Worker 161 · 승인 필요, Secondary Actions: Select
+		54 목록 항목 Task 054 - 한글 작업과 레이아웃 🔎, 승인 필요, Worker 163 · 승인 필요, Secondary Actions: Select
+		55 목록 항목 Task 055 - 한글 작업과 레이아웃 🔎, 승인 필요, Worker 165 · 승인 필요, Secondary Actions: Select
+		56 목록 항목 Task 059 - 한글 작업과 레이아웃 🔎, 승인 필요, Worker 179 · 승인 필요, Secondary Actions: Select
+		57 목록 항목 Task 060 - 한글 작업과 레이아웃 🔎, 승인 필요, Worker 181 · 승인 필요, Secondary Actions: Select
+		58 목록 항목 Task 061 - 한글 작업과 레이아웃 🔎, 승인 필요, Worker 183 · 승인 필요, Secondary Actions: Select
+		59 목록 항목 Task 065 - 한글 작업과 레이아웃 🔎, 승인 필요, Worker 197 · 승인 필요, Secondary Actions: Select
+		60 목록 항목 Task 066 - 한글 작업과 레이아웃 🔎, 승인 필요, Worker 199 · 승인 필요, Secondary Actions: Select
+		61 목록 항목 Task 067 - 한글 작업과 레이아웃 🔎, 승인 필요, Worker 201 · 승인 필요, Secondary Actions: Select
+		62 목록 항목 Task 071 - 한글 작업과 레이아웃 🔎, 승인 필요, Worker 215 · 승인 필요, Secondary Actions: Select
+		63 목록 항목 Task 072 - 한글 작업과 레이아웃 🔎, 승인 필요, Worker 217 · 승인 필요, Secondary Actions: Select
+		64 목록 항목 Task 073 - 한글 작업과 레이아웃 🔎, 승인 필요, Worker 219 · 승인 필요, Secondary Actions: Select
+		65 목록 항목 Task 077 - 한글 작업과 레이아웃 🔎, 승인 필요, Worker 233 · 승인 필요, Secondary Actions: Select
+		66 목록 항목 Task 078 - 한글 작업과 레이아웃 🔎, 승인 필요, Worker 235 · 승인 필요, Secondary Actions: Select
+		67 목록 항목 Task 079 - 한글 작업과 레이아웃 🔎, 승인 필요, Worker 237 · 승인 필요, Secondary Actions: Select
+		68 목록 항목 Task 083 - 한글 작업과 레이아웃 🔎, 승인 필요, Worker 251 · 승인 필요, Secondary Actions: Select
+		69 목록 항목 Task 084 - 한글 작업과 레이아웃 🔎, 승인 필요, Worker 253 · 승인 필요, Secondary Actions: Select
+		70 목록 항목 Task 085 - 한글 작업과 레이아웃 🔎, 승인 필요, Worker 255 · 승인 필요, Secondary Actions: Select
+		71 목록 항목 Task 089 - 한글 작업과 레이아웃 🔎, 승인 필요, Worker 269 · 승인 필요, Secondary Actions: Select
+		72 목록 항목 Task 090 - 한글 작업과 레이아웃 🔎, 승인 필요, Worker 271 · 승인 필요, Secondary Actions: Select
+		73 목록 항목 Task 091 - 한글 작업과 레이아웃 🔎, 승인 필요, Worker 273 · 승인 필요, Secondary Actions: Select
+		74 목록 항목 Task 095 - 한글 작업과 레이아웃 🔎, 승인 필요, Worker 287 · 승인 필요, Secondary Actions: Select
+		75 목록 항목 Task 096 - 한글 작업과 레이아웃 🔎, 승인 필요, Worker 289 · 승인 필요, Secondary Actions: Select
+		76 목록 항목 Task 097 - 한글 작업과 레이아웃 🔎, 승인 필요, Worker 291 · 승인 필요, Secondary Actions: Select
+		77 목록 항목 Task 003 - 한글 작업과 레이아웃 🔎, 실패, Worker 11 · 오류, Secondary Actions: Select
+		78 목록 항목 Task 004 - 한글 작업과 레이아웃 🔎, 실패, Worker 13 · 오류, Secondary Actions: Select
+		79 목록 항목 Task 005 - 한글 작업과 레이아웃 🔎, 실패, Worker 15 · 오류, Secondary Actions: Select
+		80 목록 항목 Task 009 - 한글 작업과 레이아웃 🔎, 실패, Worker 29 · 오류, Secondary Actions: Select
+		81 목록 항목 Task 010 - 한글 작업과 레이아웃 🔎, 실패, Worker 31 · 오류, Secondary Actions: Select
+		82 목록 항목 Task 011 - 한글 작업과 레이아웃 🔎, 실패, Worker 33 · 오류, Secondary Actions: Select
+		83 목록 항목 Task 015 - 한글 작업과 레이아웃 🔎, 실패, Worker 47 · 오류, Secondary Actions: Select
+		84 목록 항목 Task 016 - 한글 작업과 레이아웃 🔎, 실패, Worker 49 · 오류, Secondary Actions: Select
+		85 목록 항목 Task 017 - 한글 작업과 레이아웃 🔎, 실패, Worker 51 · 오류, Secondary Actions: Select
+		86 목록 항목 Task 021 - 한글 작업과 레이아웃 🔎, 실패, Worker 65 · 오류, Secondary Actions: Select
+		87 목록 항목 Task 022 - 한글 작업과 레이아웃 🔎, 실패, Worker 67 · 오류, Secondary Actions: Select
+		88 목록 항목 Task 023 - 한글 작업과 레이아웃 🔎, 실패, Worker 69 · 오류, Secondary Actions: Select
+		89 목록 항목 Task 027 - 한글 작업과 레이아웃 🔎, 실패, Worker 83 · 오류, Secondary Actions: Select
+		90 목록 항목 Task 028 - 한글 작업과 레이아웃 🔎, 실패, Worker 85 · 오류, Secondary Actions: Select
+		91 목록 항목 Task 029 - 한글 작업과 레이아웃 🔎, 실패, Worker 87 · 오류, Secondary Actions: Select
+		92 목록 항목 Task 033 - 한글 작업과 레이아웃 🔎, 실패, Worker 101 · 오류, Secondary Actions: Select
+		93 목록 항목 Task 034 - 한글 작업과 레이아웃 🔎, 실패, Worker 103 · 오류, Secondary Actions: Select
+		94 목록 항목 Task 035 - 한글 작업과 레이아웃 🔎, 실패, Worker 105 · 오류, Secondary Actions: Select
+		95 목록 항목 Task 039 - 한글 작업과 레이아웃 🔎, 실패, Worker 119 · 오류, Secondary Actions: Select
+		96 목록 항목 Task 040 - 한글 작업과 레이아웃 🔎, 실패, Worker 121 · 오류, Secondary Actions: Select
+		97 목록 항목 Task 041 - 한글 작업과 레이아웃 🔎, 실패, Worker 123 · 오류, Secondary Actions: Select
+		98 목록 항목 Task 045 - 한글 작업과 레이아웃 🔎, 실패, Worker 137 · 오류, Secondary Actions: Select
+		99 목록 항목 Task 046 - 한글 작업과 레이아웃 🔎, 실패, Worker 139 · 오류, Secondary Actions: Select
+		100 목록 항목 Task 047 - 한글 작업과 레이아웃 🔎, 실패, Worker 141 · 오류, Secondary Actions: Select
+		101 목록 항목 Task 051 - 한글 작업과 레이아웃 🔎, 실패, Worker 155 · 오류, Secondary Actions: Select
+		102 목록 항목 Task 052 - 한글 작업과 레이아웃 🔎, 실패, Worker 157 · 오류, Secondary Actions: Select
+		103 목록 항목 Task 053 - 한글 작업과 레이아웃 🔎, 실패, Worker 159 · 오류, Secondary Actions: Select
+		104 목록 항목 Task 057 - 한글 작업과 레이아웃 🔎, 실패, Worker 173 · 오류, Secondary Actions: Select
+		105 목록 항목 Task 058 - 한글 작업과 레이아웃 🔎, 실패, Worker 175 · 오류, Secondary Actions: Select
+		106 목록 항목 Task 059 - 한글 작업과 레이아웃 🔎, 실패, Worker 177 · 오류, Secondary Actions: Select
+		107 목록 항목 Task 063 - 한글 작업과 레이아웃 🔎, 실패, Worker 191 · 오류, Secondary Actions: Select
+		108 목록 항목 Task 064 - 한글 작업과 레이아웃 🔎, 실패, Worker 193 · 오류, Secondary Actions: Select
+		109 목록 항목 Task 065 - 한글 작업과 레이아웃 🔎, 실패, Worker 195 · 오류, Secondary Actions: Select
+		110 목록 항목 Task 069 - 한글 작업과 레이아웃 🔎, 실패, Worker 209 · 오류, Secondary Actions: Select
+		111 목록 항목 Task 070 - 한글 작업과 레이아웃 🔎, 실패, Worker 211 · 오류, Secondary Actions: Select
+		112 목록 항목 Task 071 - 한글 작업과 레이아웃 🔎, 실패, Worker 213 · 오류, Secondary Actions: Select
+		113 목록 항목 Task 075 - 한글 작업과 레이아웃 🔎, 실패, Worker 227 · 오류, Secondary Actions: Select
+		114 목록 항목 Task 076 - 한글 작업과 레이아웃 🔎, 실패, Worker 229 · 오류, Secondary Actions: Select
+		115 목록 항목 Task 077 - 한글 작업과 레이아웃 🔎, 실패, Worker 231 · 오류, Secondary Actions: Select
+		116 목록 항목 Task 081 - 한글 작업과 레이아웃 🔎, 실패, Worker 245 · 오류, Secondary Actions: Select
+		117 목록 항목 Task 082 - 한글 작업과 레이아웃 🔎, 실패, Worker 247 · 오류, Secondary Actions: Select
+		118 목록 항목 Task 083 - 한글 작업과 레이아웃 🔎, 실패, Worker 249 · 오류, Secondary Actions: Select
+		119 목록 항목 Task 087 - 한글 작업과 레이아웃 🔎, 실패, Worker 263 · 오류, Secondary Actions: Select
+		120 목록 항목 Task 088 - 한글 작업과 레이아웃 🔎, 실패, Worker 265 · 오류, Secondary Actions: Select
+		121 목록 항목 Task 089 - 한글 작업과 레이아웃 🔎, 실패, Worker 267 · 오류, Secondary Actions: Select
+		122 목록 항목 Task 093 - 한글 작업과 레이아웃 🔎, 실패, Worker 281 · 오류, Secondary Actions: Select
+		123 목록 항목 Task 094 - 한글 작업과 레이아웃 🔎, 실패, Worker 283 · 오류, Secondary Actions: Select
+		124 목록 항목 Task 095 - 한글 작업과 레이아웃 🔎, 실패, Worker 285 · 오류, Secondary Actions: Select
+		125 목록 항목 Task 099 - 한글 작업과 레이아웃 🔎, 실패, Worker 299 · 오류, Secondary Actions: Select
+		126 단추 작업 중 모두 보기
+		127 목록 항목 Worker 0, 작업 중, Task 000 - 한글 작업과 레이아웃 🔎, Secondary Actions: Select
+		128 목록 항목 Worker 14, 작업 중, Task 004 - 한글 작업과 레이아웃 🔎, Secondary Actions: Select
+		129 목록 항목 Worker 16, 작업 중, Task 005 - 한글 작업과 레이아웃 🔎, Secondary Actions: Select
+		130 목록 항목 Worker 18, 작업 중, Task 006 - 한글 작업과 레이아웃 🔎, Secondary Actions: Select
+		131 목록 항목 Worker 32, 작업 중, Task 010 - 한글 작업과 레이아웃 🔎, Secondary Actions: Select
+		132 단추 완료 모두 보기
+		133 목록 항목 Worker 2, 완료, Task 000 - 한글 작업과 레이아웃 🔎, Secondary Actions: Select
+		134 목록 항목 Worker 4, 완료, Task 001 - 한글 작업과 레이아웃 🔎, Secondary Actions: Select
+		135 목록 항목 Worker 6, 완료, Task 002 - 한글 작업과 레이아웃 🔎, Secondary Actions: Select
+		136 목록 항목 Worker 20, 완료, Task 006 - 한글 작업과 레이아웃 🔎, Secondary Actions: Select
+		137 목록 항목 Worker 22, 완료, Task 007 - 한글 작업과 레이아웃 🔎, Secondary Actions: Select
+	138 탭 항목 … Worker 0, Secondary Actions: Select
+	139 단추 패널 메뉴
+	140 편집 터미널 입력 및 출력
+	141 탭 항목 … Worker 1, Secondary Actions: Select
+	142 단추 패널 메뉴
+	143 편집 터미널 입력 및 출력
+	144 탭 항목 … Worker 2, Secondary Actions: Select
+	145 단추 패널 메뉴
+	146 편집 터미널 입력 및 출력
+	147 탭 항목 … Worker 3, Secondary Actions: Select
+	148 단추 패널 메뉴
+	149 편집 터미널 입력 및 출력
+	150 LIST 최근 알림
+	151 단추 상태
+	152 단추 알림 0

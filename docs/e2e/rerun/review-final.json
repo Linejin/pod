@@ -1,0 +1,50 @@
+﻿{
+  "deliveries": [
+    {
+      "id": "d1",
+      "task": "sample/app-rerun",
+      "terminal": "t1",
+      "comment_ids": [
+        "c1"
+      ],
+      "state": "delivered",
+      "prompt": "Code review feedback on your changes in this worktree (task sample/app-rerun). Please address each of the 1 comment(s) below. File paths are relative to the worktree root; line numbers refer to the current file unless marked as the base version. When you are done, reply with a short summary per comment.\n\n1. calc.py:2\n```\n   2 |     return a + b\n```\nReviewer: Add a one-line docstring to add: Return the sum of a and b. Do not change behavior.\n",
+      "created_ms": 1794186101952,
+      "delivered_ms": 1794186101952,
+      "agent_state": "done",
+      "delivered_state": "done",
+      "app_bracketed_paste": true
+    },
+    {
+      "id": "d2",
+      "task": "sample/app-rerun",
+      "terminal": "t1",
+      "comment_ids": [
+        "c2"
+      ],
+      "state": "delivered",
+      "prompt": "Code review feedback on your changes in this worktree (task sample/app-rerun). Please address each of the 1 comment(s) below. File paths are relative to the worktree root; line numbers refer to the current file unless marked as the base version. When you are done, reply with a short summary per comment.\n\n1. test_calc.py:6\n```\n   6 |         self.assertEqual(add(2, 3), 5)\n```\nReviewer: Add a test for add(-2, -3) == -5 and run python -m unittest -v. Do not commit.\n",
+      "created_ms": 1794186172977,
+      "delivered_ms": 1794186312377,
+      "agent_state": "working",
+      "delivered_state": "done",
+      "app_bracketed_paste": true
+    }
+  ],
+  "submits": {
+    "d1": {
+      "state": "confirmed",
+      "enters": 1,
+      "signal": "working",
+      "entered_ms": 1794186102590,
+      "settled_ms": 1794186102681
+    },
+    "d2": {
+      "state": "confirmed",
+      "enters": 1,
+      "signal": "working",
+      "entered_ms": 1794186313147,
+      "settled_ms": 1794186313609
+    }
+  }
+}

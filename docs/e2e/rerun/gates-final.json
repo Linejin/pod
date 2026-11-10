@@ -1,0 +1,14 @@
+﻿{
+  "gates": [
+    {
+      "id": "g1",
+      "title": "Rerun reconnect",
+      "message": "Continue rerun after daemon restart?",
+      "task": "sample/app-rerun",
+      "terminal": "t1",
+      "state": "approved",
+      "created_ms": 1794186177224,
+      "resolved_ms": 1794186308715
+    }
+  ]
+}

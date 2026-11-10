@@ -1,0 +1,235 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Pod 디자인 샘플</title>
+<style>
+:root{
+  --bg:#F4F5F7;--surface:#FFFFFF;--surface2:#EEF0F3;--line:#DADDE3;--text:#1C1F24;--text2:#4C525C;--muted:#5F6672;
+  --accent:#2F66D0;--accent-fg:#2459BF;--on-accent:#FFFFFF;--chip:#E6E9EE;--new:#1A7048;--new-bg:#E2F3EA;
+  --scrim:rgba(14,18,24,.72);--shadow:0 1px 2px rgba(16,24,40,.06),0 4px 16px rgba(16,24,40,.06);
+  color-scheme:light;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --bg:#121417;--surface:#1A1D21;--surface2:#22262B;--line:#2C3036;--text:#E6E8EC;--text2:#B4B9C2;--muted:#9AA0AA;
+    --accent:#3D6FD6;--accent-fg:#8DB5FF;--on-accent:#FFFFFF;--chip:#262A30;--new:#7FD1A3;--new-bg:#183126;
+    --scrim:rgba(0,0,0,.8);--shadow:0 1px 2px rgba(0,0,0,.3);color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#121417;--surface:#1A1D21;--surface2:#22262B;--line:#2C3036;--text:#E6E8EC;--text2:#B4B9C2;--muted:#9AA0AA;
+  --accent:#3D6FD6;--accent-fg:#8DB5FF;--on-accent:#FFFFFF;--chip:#262A30;--new:#7FD1A3;--new-bg:#183126;
+  --scrim:rgba(0,0,0,.8);--shadow:0 1px 2px rgba(0,0,0,.3);color-scheme:dark;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font:400 14px/1.55 "Segoe UI Variable Text","Segoe UI","Malgun Gothic","Apple SD Gothic Neo",system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
+:focus-visible{outline:2px solid var(--accent-fg);outline-offset:2px;border-radius:6px}
+.wrap{max-width:1480px;margin:0 auto;padding:28px 24px 64px}
+header{display:flex;flex-wrap:wrap;align-items:flex-end;gap:12px 24px;margin-bottom:20px}
+header h1{font:600 24px/1.25 "Segoe UI Variable Display","Segoe UI","Malgun Gothic",sans-serif;letter-spacing:-.01em}
+header p{color:var(--text2);max-width:760px;margin-top:6px}
+.hd-tools{margin-left:auto;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.seg{display:inline-flex;background:var(--surface2);border:1px solid var(--line);border-radius:8px;padding:2px;gap:2px}
+.seg button{padding:3px 12px;border-radius:6px;color:var(--text2);font-size:13px;white-space:nowrap}
+.seg button[aria-pressed="true"]{background:var(--surface);color:var(--text);box-shadow:0 0 0 1px var(--line);font-weight:600}
+.filters{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 20px}
+.filters button{padding:4px 12px;border-radius:999px;background:var(--chip);color:var(--text2);font-size:13px;white-space:nowrap}
+.filters button[aria-pressed="true"]{background:var(--accent);color:var(--on-accent);font-weight:600}
+.filters .n{opacity:.75;margin-left:4px;font-variant-numeric:tabular-nums}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:20px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:12px;overflow:hidden;display:flex;flex-direction:column;box-shadow:var(--shadow)}
+.shot{display:block;width:100%;aspect-ratio:3/2;background:var(--surface2);border-bottom:1px solid var(--line);position:relative;overflow:hidden}
+.shot img{width:100%;height:100%;object-fit:cover;display:block}
+.shot .zoom{position:absolute;right:8px;bottom:8px;background:var(--scrim);color:#fff;font-size:12px;padding:2px 8px;border-radius:6px;opacity:0;transition:opacity .12s}
+.shot:hover .zoom,.shot:focus-visible .zoom{opacity:1}
+.body{padding:12px 14px 14px;display:flex;flex-direction:column;gap:6px;flex:1}
+.top{display:flex;align-items:center;gap:8px}
+.num{font:600 12px/20px "Cascadia Mono",Consolas,monospace;color:var(--muted);font-variant-numeric:tabular-nums}
+.name{font-weight:600;font-size:15px}
+.tag{font-size:11px;line-height:18px;padding:0 7px;border-radius:9px;background:var(--chip);color:var(--text2);white-space:nowrap}
+.tag.new{background:var(--new-bg);color:var(--new);font-weight:600}
+.line{color:var(--text2)}
+.notes{display:grid;grid-template-columns:auto 1fr;gap:2px 10px;font-size:12.5px;color:var(--muted)}
+.notes dt{color:var(--muted)} .notes dd{color:var(--text2)}
+.foot{display:flex;align-items:center;gap:8px;margin-top:auto;padding-top:6px}
+.origin{font-size:12px;color:var(--muted)}
+.empty{color:var(--muted);padding:40px 0;text-align:center}
+/* lightbox */
+dialog{border:0;padding:0;background:transparent;max-width:none;max-height:none;width:100vw;height:100vh;color:var(--text)}
+dialog::backdrop{background:rgba(8,10,14,.92)}
+.lb{display:flex;flex-direction:column;height:100%;padding:16px;gap:12px}
+.lb-bar{display:flex;align-items:center;gap:12px;flex-wrap:wrap;background:var(--surface);border-radius:10px;padding:8px 10px 8px 14px}
+.lb-bar .name{font-size:16px}
+.lb-bar .sp{flex:1}
+.ib{width:34px;height:34px;border-radius:8px;display:inline-flex;align-items:center;justify-content:center;color:var(--text2);border:1px solid var(--line)}
+.ib:hover{background:var(--surface2);color:var(--text)}
+.lb-img{flex:1;min-height:0;display:flex;align-items:center;justify-content:center}
+.lb-img img{max-width:100%;max-height:100%;border-radius:8px;box-shadow:0 12px 40px rgba(0,0,0,.4);background:var(--surface2)}
+.lb-info{background:var(--surface);border-radius:10px;padding:10px 14px;display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:4px 24px;font-size:13px}
+.lb-info b{font-weight:600;margin-right:6px}
+.pro b{color:var(--new)}
+svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:1.75;stroke-linecap:round;stroke-linejoin:round}
+@media (max-width:640px){
+  .wrap{padding:20px 16px 48px}
+  .grid{grid-template-columns:1fr}
+  .hd-tools{margin-left:0}
+  .lb{padding:8px}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div>
+      <h1>Pod 디자인 샘플</h1>
+      <p>방향을 고르기 전에 나란히 비교하기 위한 작업 공간 화면입니다. 01–06은 기존 D4 6안, 07–18은 새 샘플입니다. 새 샘플은 같은 한국어 fixture(작업 6개, Claude/Codex 작업자, 승인 대기 1, 실패 1)를 960×640 @150%로 렌더링했습니다.</p>
+    </div>
+    <div class="hd-tools">
+      <span class="origin">모든 카드</span>
+      <div class="seg" role="group" aria-label="모든 카드 테마">
+        <button type="button" data-all="dark">다크</button>
+        <button type="button" data-all="light">라이트</button>
+      </div>
+      <div class="seg" role="group" aria-label="페이지 테마">
+        <button type="button" data-page="auto" aria-pressed="true">시스템</button>
+        <button type="button" data-page="light">밝게</button>
+        <button type="button" data-page="dark">어둡게</button>
+      </div>
+    </div>
+  </header>
+  <nav class="filters" id="filters" aria-label="분류 필터"></nav>
+  <main class="grid" id="grid"></main>
+  <p class="empty" id="empty" hidden>이 분류에 샘플이 없습니다.</p>
+</div>
+
+<dialog id="lb" aria-label="샘플 크게 보기">
+  <div class="lb">
+    <div class="lb-bar">
+      <span class="num" id="lb-num"></span><span class="name" id="lb-name"></span><span class="tag" id="lb-cat"></span>
+      <span class="sp"></span>
+      <div class="seg" role="group" aria-label="테마">
+        <button type="button" data-lbt="dark">다크</button>
+        <button type="button" data-lbt="light">라이트</button>
+      </div>
+      <button type="button" class="ib" id="lb-prev" aria-label="이전 샘플 (←)"><svg viewBox="0 0 24 24"><path d="m15 18-6-6 6-6"/></svg></button>
+      <button type="button" class="ib" id="lb-next" aria-label="다음 샘플 (→)"><svg viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></svg></button>
+      <button type="button" class="ib" id="lb-close" aria-label="닫기 (Esc)"><svg viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
+    </div>
+    <div class="lb-img"><img id="lb-img" alt=""></div>
+    <div class="lb-info" id="lb-info"></div>
+  </div>
+</dialog>
+
+<script>
+const SAMPLES = /*DATA*/[];
+const CATS = ['전체', ...new Set(SAMPLES.map(s => s.cat))];
+const state = { cat: '전체', theme: Object.fromEntries(SAMPLES.map(s => [s.id, 'dark'])), open: -1 };
+const $ = s => document.querySelector(s);
+const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+
+function store(k, v) { try { localStorage.setItem('pod-gallery-' + k, v); } catch (e) {} }
+function load(k) { try { return localStorage.getItem('pod-gallery-' + k); } catch (e) { return null; } }
+
+function renderFilters() {
+  $('#filters').innerHTML = CATS.map(c => {
+    const n = c === '전체' ? SAMPLES.length : SAMPLES.filter(s => s.cat === c).length;
+    return `<button type="button" data-cat="${esc(c)}" aria-pressed="${c === state.cat}">${esc(c)}<span class="n">${n}</span></button>`;
+  }).join('');
+}
+
+function card(s) {
+  const t = state.theme[s.id];
+  return `<article class="card" data-id="${s.id}">
+    <button type="button" class="shot" data-open="${s.id}" aria-label="${esc(s.id + ' ' + s.name)} 크게 보기">
+      <img src="${t === 'dark' ? s.dark : s.light}" alt="${esc(s.name)} ${t === 'dark' ? '다크' : '라이트'} 작업 공간" loading="lazy" width="1440" height="960">
+      <span class="zoom">크게 보기</span>
+    </button>
+    <div class="body">
+      <div class="top"><span class="num">${s.id}</span><span class="name">${esc(s.name)}</span>
+        ${s.new ? '<span class="tag new">새 샘플</span>' : ''}<span class="tag">${esc(s.cat)}</span></div>
+      <div class="line">${esc(s.line)}</div>
+      <dl class="notes"><dt>밀도</dt><dd>${esc(s.density)}</dd><dt>색</dt><dd>${esc(s.colour)}</dd></dl>
+      <div class="foot"><span class="origin">${esc(s.origin || 'Pod 새 샘플')}</span><span style="flex:1"></span>
+        <div class="seg" role="group" aria-label="${esc(s.name)} 테마">
+          <button type="button" data-t="dark" data-id="${s.id}" aria-pressed="${t === 'dark'}">다크</button>
+          <button type="button" data-t="light" data-id="${s.id}" aria-pressed="${t === 'light'}">라이트</button>
+        </div></div>
+    </div></article>`;
+}
+
+function visible() { return SAMPLES.filter(s => state.cat === '전체' || s.cat === state.cat); }
+
+function renderGrid() {
+  const v = visible();
+  $('#grid').innerHTML = v.map(card).join('');
+  $('#empty').hidden = v.length > 0;
+}
+
+function setCardTheme(id, t) {
+  state.theme[id] = t;
+  const s = SAMPLES.find(x => x.id === id);
+  const el = document.querySelector(`.card[data-id="${id}"]`);
+  if (!el) return;
+  const img = el.querySelector('img');
+  img.src = t === 'dark' ? s.dark : s.light;
+  img.alt = `${s.name} ${t === 'dark' ? '다크' : '라이트'} 작업 공간`;
+  el.querySelectorAll('[data-t]').forEach(b => b.setAttribute('aria-pressed', b.dataset.t === t));
+}
+
+function openLb(i) {
+  const v = visible();
+  if (!v.length) return;
+  state.open = (i + v.length) % v.length;
+  const s = v[state.open], t = state.theme[s.id];
+  $('#lb-num').textContent = s.id;
+  $('#lb-name').textContent = s.name + (s.origin ? ` · ${s.origin}` : '');
+  $('#lb-cat').textContent = s.cat;
+  $('#lb-img').src = t === 'dark' ? s.dark : s.light;
+  $('#lb-img').alt = `${s.name} ${t === 'dark' ? '다크' : '라이트'} 작업 공간 (1440×960)`;
+  document.querySelectorAll('[data-lbt]').forEach(b => b.setAttribute('aria-pressed', b.dataset.lbt === t));
+  $('#lb-info').innerHTML = `<div><b>성격</b>${esc(s.line)}</div><div><b>밀도</b>${esc(s.density)}</div><div><b>색</b>${esc(s.colour)}</div>
+    <div class="pro"><b>좋은 점</b>${esc(s.pro)}</div><div><b>걸리는 점</b>${esc(s.con)}</div>`;
+  const d = $('#lb');
+  if (!d.open) d.showModal();
+}
+
+document.addEventListener('click', ev => {
+  const b = ev.target.closest('button');
+  if (!b) return;
+  if (b.dataset.cat) { state.cat = b.dataset.cat; store('cat', state.cat); renderFilters(); renderGrid(); }
+  else if (b.dataset.t) setCardTheme(b.dataset.id, b.dataset.t);
+  else if (b.dataset.all) { SAMPLES.forEach(s => setCardTheme(s.id, b.dataset.all)); }
+  else if (b.dataset.page) setPage(b.dataset.page);
+  else if (b.dataset.open) openLb(visible().findIndex(s => s.id === b.dataset.open));
+  else if (b.dataset.lbt) { const s = visible()[state.open]; setCardTheme(s.id, b.dataset.lbt); openLb(state.open); }
+  else if (b.id === 'lb-prev') openLb(state.open - 1);
+  else if (b.id === 'lb-next') openLb(state.open + 1);
+  else if (b.id === 'lb-close') $('#lb').close();
+});
+$('#lb').addEventListener('click', ev => { if (ev.target.classList.contains('lb-img')) $('#lb').close(); });
+document.addEventListener('keydown', ev => {
+  if (!$('#lb').open) return;
+  if (ev.key === 'ArrowLeft') openLb(state.open - 1);
+  else if (ev.key === 'ArrowRight') openLb(state.open + 1);
+  else if (ev.key === 'd' || ev.key === 'l') { const s = visible()[state.open]; setCardTheme(s.id, ev.key === 'd' ? 'dark' : 'light'); openLb(state.open); }
+});
+
+function setPage(m) {
+  if (m === 'auto') document.documentElement.removeAttribute('data-theme');
+  else document.documentElement.setAttribute('data-theme', m);
+  document.querySelectorAll('[data-page]').forEach(b => b.setAttribute('aria-pressed', b.dataset.page === m));
+  store('page', m);
+}
+
+const savedCat = load('cat');
+if (savedCat && CATS.includes(savedCat)) state.cat = savedCat;
+setPage(load('page') || 'auto');
+renderFilters();
+renderGrid();
+</script>
+</body>
+</html>

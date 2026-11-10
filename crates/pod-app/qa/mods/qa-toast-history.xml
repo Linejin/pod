@@ -1,0 +1,1 @@
+<toast><visual><binding template="ToastGeneric"><text>에이전트가 답을 기다립니다</text><text>t1: blocked:question (확장 감지)</text><text placement="attribution">데모: 질문 알림 · Pod</text></binding></visual></toast>

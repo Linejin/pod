@@ -1,0 +1,268 @@
+﻿orch-s7 scenario 20261110-052823
+[05:28:23] ok: podd pipe
+pod repo add C:\Users\User\AppData\Local\Temp\pod-orch-s7-20261110-052823\repo --name demo -> 0
+demo C:\Users\User\AppData\Local\Temp\pod-orch-s7-20261110-052823\repo (default base main)
+pod task new demo coord --json -- C:\Users\User\orca\workspaces\ide\orch-s7\target\debug\examples\fake-agent.exe orch-loop:C:\Users\User\AppData\Local\Temp\pod-orch-s7-20261110-052823\agents -> 0
+{
+  "id": "demo/coord",
+  "repo": "demo",
+  "name": "coord",
+  "branch": "pod/coord",
+  "base": "main",
+  "base_commit": "f942913797f7d7ab94b1cf1ae7d74de460f05f82",
+  "worktree": "C:\\Users\\User\\AppData\\Local\\Temp\\pod-orch-s7-20261110-052823\\worktrees\\demo\\coord",
+  "agent": {
+    "argv": [
+      "C:\\Users\\User\\orca\\workspaces\\ide\\orch-s7\\target\\debug\\examples\\fake-agent.exe",
+      "orch-loop:C:\\Users\\User\\AppData\\Local\\Temp\\pod-orch-s7-20261110-052823\\agents"
+    ]
+  },
+  "created_ms": 1794256104913,
+  "terminals": [
+    {
+      "id": "t1",
+      "info": {
+        "id": "t1",
+        "name": "demo/coord",
+        "argv": [
+          "C:\\Users\\User\\orca\\workspaces\\ide\\orch-s7\\target\\debug\\examples\\fake-agent.exe",
+          "orch-loop:C:\\Users\\User\\AppData\\Local\\Temp\\pod-orch-s7-20261110-052823\\agents"
+        ],
+        "cwd": "C:\\Users\\User\\AppData\\Local\\Temp\\pod-orch-s7-20261110-052823\\worktrees\\demo\\coord",
+        "state": "running",
+        "pid": 52452,
+        "holder_pid": 45700,
+        "cols": 120,
+        "rows": 30,
+        "created_ms": 1794256104919,
+        "killed": false,
+        "lost": false,
+        "attached": 0,
+        "conpty": "bundled:C:\\Users\\User\\orca\\workspaces\\ide\\orch-s7\\target\\debug\\conpty.dll",
+        "status": {
+          "state": "idle",
+          "source": "osc",
+          "confidence": 0.9,
+          "since": 1794256105004,
+          "turn": 0,
+          "badge": "idle",
+          "records": 0,
+          "running_children": 0,
+          "blocked_children": 0,
+          "hooks_accepted": 0,
+          "hooks_rejected": 0
+        }
+      }
+    }
+  ],
+  "worktree_exists": true,
+  "git": {
+    "branch": "pod/coord",
+    "head": "f942913797f7d7ab94b1cf1ae7d74de460f05f82",
+    "ahead": 0,
+    "behind": 0,
+    "dirty": 0,
+    "unpushed": 0,
+    "last_commit": {
+      "sha": "f942913797f7d7ab94b1cf1ae7d74de460f05f82",
+      "summary": "init",
+      "author": "Pod Test",
+      "time_ms": 1794256103000
+    }
+  },
+  "status": {
+    "state": "idle",
+    "terminal": "t1",
+    "badge": "idle",
+    "terminals": 1
+  },
+  "lifecycle": "active",
+  "agent_terminal": "t1"
+}
+[05:28:25] coordinator task demo/coord terminal t1
+[05:28:25] ok: coordinator agent
+[05:28:25] ok: coord out-1
+[05:28:25] ok: coord out-2
+[05:28:28] ok: worker agents
+[05:29:45] ok: a2 out-1
+pod orch workers --run r1 --json -> 0
+{
+  "workers": [
+    {
+      "attempt": {
+        "id": "a1",
+        "run": "r1",
+        "item": "i1",
+        "generation": 1,
+        "state": "ready",
+        "worker": "active",
+        "agent": "argv",
+        "place": "new",
+        "depth": 1,
+        "task": "demo/r1-a1",
+        "terminal": "t2",
+        "brief_path": "C:\\Users\\User\\AppData\\Local\\Temp\\pod-orch-s7-20261110-052823\\state\\briefs\\demo\\r1-a1.md",
+        "created_ms": 1794256105526,
+        "ready_ms": 1794256113379,
+        "seen_turn": 1,
+        "escalated_turn": 1,
+        "reopens": 0
+      },
+      "item_title": "세션 만료 처리 고치기",
+      "status": {
+        "state": "working",
+        "source": "osc",
+        "confidence": 0.9,
+        "since": 1794256184853,
+        "turn": 1,
+        "badge": "working",
+        "records": 0,
+        "running_children": 0,
+        "blocked_children": 0,
+        "hooks_accepted": 0,
+        "hooks_rejected": 0
+      },
+      "last_output_ms": 1794256184852,
+      "waiting_answer": true,
+      "unread": 0,
+      "next": "waiting for an answer"
+    },
+    {
+      "attempt": {
+        "id": "a2",
+        "run": "r1",
+        "item": "i2",
+        "generation": 1,
+        "state": "ready",
+        "worker": "active",
+        "agent": "argv",
+        "place": "new",
+        "depth": 1,
+        "task": "demo/r1-a2",
+        "terminal": "t3",
+        "brief_path": "C:\\Users\\User\\AppData\\Local\\Temp\\pod-orch-s7-20261110-052823\\state\\briefs\\demo\\r1-a2.md",
+        "created_ms": 1794256105581,
+        "ready_ms": 1794256114531,
+        "seen_turn": 2,
+        "escalated_turn": 2,
+        "reopens": 0
+      },
+      "item_title": "회귀 테스트 추가",
+      "status": {
+        "state": "idle",
+        "source": "osc",
+        "confidence": 0.9,
+        "since": 1794256184844,
+        "turn": 2,
+        "badge": "idle",
+        "records": 0,
+        "running_children": 0,
+        "blocked_children": 0,
+        "hooks_accepted": 0,
+        "hooks_rejected": 0
+      },
+      "last_output_ms": 1794256184843,
+      "waiting_answer": false,
+      "unread": 0,
+      "next": "idle: waiting for mail or its done report"
+    }
+  ]
+}
+[05:29:45] ok: question recorded
+[05:29:47] capture C:\Users\User\orca\workspaces\ide\orch-s7\crates\pod-app\qa\orch\e2e\01-board-inbox-question.png rect=2549,224,4491,1446 dpi=144
+[05:29:47] uia: 33 named orchestration elements
+[05:29:47] ok: coord out-3
+[05:29:47] ok: coord out-4
+[05:29:47] ok: a1 out-1
+[05:29:48] ok: a1 out-2
+[05:29:48] ok: a2 out-2
+pod orch run show r1 --json -> 0
+{
+  "run": {
+    "id": "r1",
+    "objective": "세션 만료 처리 고치기",
+    "coordinator_terminal": "t1",
+    "depth": 0,
+    "created_ms": 1794256105526
+  },
+  "items": [
+    {
+      "id": "i1",
+      "run": "r1",
+      "title": "세션 만료 처리 고치기",
+      "spec": "세션 만료 처리를 고친다.\n완료 기준: 테스트 통과.",
+      "state": "completed",
+      "generation": 1,
+      "start_failures": 0,
+      "circuit_open": false,
+      "attempt": "a1",
+      "created_ms": 1794256105526,
+      "updated_ms": 1794256187928
+    },
+    {
+      "id": "i2",
+      "run": "r1",
+      "title": "회귀 테스트 추가",
+      "spec": "로그인 회귀 테스트를 추가한다.",
+      "state": "completed",
+      "generation": 1,
+      "start_failures": 0,
+      "circuit_open": false,
+      "attempt": "a2",
+      "created_ms": 1794256105581,
+      "updated_ms": 1794256187965
+    }
+  ],
+  "attempts": [
+    {
+      "id": "a1",
+      "run": "r1",
+      "item": "i1",
+      "generation": 1,
+      "state": "succeeded",
+      "worker": "finished",
+      "agent": "argv",
+      "place": "new",
+      "depth": 1,
+      "task": "demo/r1-a1",
+      "terminal": "t2",
+      "brief_path": "C:\\Users\\User\\AppData\\Local\\Temp\\pod-orch-s7-20261110-052823\\state\\briefs\\demo\\r1-a1.md",
+      "created_ms": 1794256105526,
+      "ready_ms": 1794256113379,
+      "ended_ms": 1794256187928,
+      "body": "무엇을: 401 유지 / 찾은 것: 갱신 경쟁 / 남은 것: 없음",
+      "seen_turn": 2,
+      "escalated_turn": 2,
+      "reopens": 0
+    },
+    {
+      "id": "a2",
+      "run": "r1",
+      "item": "i2",
+      "generation": 1,
+      "state": "succeeded",
+      "worker": "finished",
+      "agent": "argv",
+      "place": "new",
+      "depth": 1,
+      "task": "demo/r1-a2",
+      "terminal": "t3",
+      "brief_path": "C:\\Users\\User\\AppData\\Local\\Temp\\pod-orch-s7-20261110-052823\\state\\briefs\\demo\\r1-a2.md",
+      "created_ms": 1794256105581,
+      "ready_ms": 1794256114531,
+      "ended_ms": 1794256187965,
+      "body": "무엇을: 회귀 테스트 3개 / 찾은 것: 없음 / 남은 것: 없음",
+      "seen_turn": 2,
+      "escalated_turn": 2,
+      "reopens": 0
+    }
+  ],
+  "unread": 3,
+  "mail": 9
+}
+[05:29:48] ok: both attempts succeeded
+[05:29:50] capture C:\Users\User\orca\workspaces\ide\orch-s7\crates\pod-app\qa\orch\e2e\02-board-inbox-done.png rect=2549,224,4491,1446 dpi=144
+[05:29:50] uia: 43 named orchestration elements
+[05:36:25] capture C:\Users\User\orca\workspaces\ide\orch-s7\crates\pod-app\qa\orch\e2e\03-cleanup-restored-layout.png rect=2549,224,4491,1446 dpi=144
+[05:36:25] uia: 11 named orchestration elements
+[05:36:25] scenario passed

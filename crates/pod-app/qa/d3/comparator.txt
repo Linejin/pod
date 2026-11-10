@@ -1,0 +1,13 @@
+﻿
+Image      ChangedPixels Tolerance Pass
+-----      ------------- --------- ----
+sample.png             0         8 True
+
+
+
+Image      ChangedPixels Tolerance  Pass
+-----      ------------- ---------  ----
+sample.png             1         8 False
+
+
+PASS: tolerance boundary 8, one changed pixel at 9, nonzero failure exit, diff PNG

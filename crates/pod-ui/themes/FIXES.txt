@@ -1,0 +1,41 @@
+Contrast corrections applied by tools/themes/gen.py (docs/10 §D5.2)
+quiet/dark+teal: bg.selected #173336 -> #163134
+quiet/dark+green: bg.selected #1E3B34 -> #19312D
+quiet/dark+indigo: bg.selected #262D45 -> #252C43
+quiet/light+violet: bg.selected #E9E2FB -> #EBE4FB
+layered/dark+blue: bg.selected #1F2C42 -> #1E2B40
+layered/dark+teal: bg.selected #173336 -> #142F30
+layered/dark+green: bg.selected #1E3B34 -> #172F2B
+layered/dark+indigo: bg.selected #262D45 -> #232A3F
+mission/dark+green: bg.selected #1E3B34 -> #1B352F
+mission/light+violet: bg.selected #E9E2FB -> #EBE4FB
+dense/light: border.control #868D98 -> #828993
+islands/dark+green: bg.selected #1E3B34 -> #1D3932
+islands/light: border.control #868D98 -> #767D87
+mono/dark: action.primary.hover #3463C4 -> #D4D4D4 (sample 09 left the blue hover of its base palette; white-on-white button needs a grey hover)
+mono/light: action.primary.hover #2959B8 -> #333333 (sample 09 left the blue hover of its base palette)
+mono/dark: action.primary.pressed #2F59B0 -> #BDBDBD (derived from the blue hover; keep the button monochrome)
+mono/light: action.primary.pressed #2550A6 -> #474747 (derived from the blue hover; keep the button monochrome)
+warm/dark: action.primary.bg #B8653A -> #AD5F36
+warm/dark+green: bg.selected #1E3B34 -> #1D3932
+warm/light: border.control #868D98 -> #7A818B
+blocks/dark+teal: bg.selected #173336 -> #163134
+blocks/dark+green: bg.selected #1E3B34 -> #19312D
+blocks/dark+indigo: bg.selected #262D45 -> #252C43
+blocks/light: border.control #868D98 -> #828993
+blocks/light+violet: bg.selected #E9E2FB -> #EBE4FB
+kanban/dark+green: bg.selected #1E3B34 -> #1D3932
+kanban/light: border.control #868D98 -> #7E858F
+kanban/light+violet: bg.selected #E9E2FB -> #EBE4FB
+review/dark+teal: bg.selected #173336 -> #163134
+review/dark+green: bg.selected #1E3B34 -> #19312D
+review/dark+indigo: bg.selected #262D45 -> #252C43
+review/light: border.control #868D98 -> #828993
+review/light+violet: bg.selected #E9E2FB -> #EBE4FB
+access/dark: action.primary.bg #4C82F0 -> #4472D4
+quiet-teal/dark: action.primary.bg #1F8A86 -> #1D827E
+quiet-teal/dark+green: bg.selected #1E3B34 -> #1C3730
+quiet-teal/light+violet: bg.selected #E9E2FB -> #EBE4FB
+quiet-violet/dark+teal: bg.selected #173336 -> #153032
+quiet-violet/dark+green: bg.selected #1E3B34 -> #18302C
+quiet-violet/dark+indigo: bg.selected #262D45 -> #242B41

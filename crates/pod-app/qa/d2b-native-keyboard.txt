@@ -1,0 +1,5 @@
+Native attempt: ui-automation press-key --app pid:15412 --key Tab --restore-window --no-screenshot --json
+Result: window_not_focused: keyboard input requires the target window to be focused; restoreWindow was requested but the target window is still not focused.
+Stopped restore retries. Semantic UI actions and HWND-targeted WM_KEYDOWN/WM_CHAR are used for screen QA; they do not establish native keyboard-only completion.
+
+Final integrated release retry on pid 64720 also returned window_not_focused; full response: d2b-native-keyboard-final.json. No native keyboard-only pass claimed.

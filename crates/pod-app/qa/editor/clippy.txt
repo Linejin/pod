@@ -1,0 +1,10 @@
+﻿cargo.exe :     Checking pod-app v0.1.0 (C:\Users\User\dev\workspaces\ide\p3-integrate\crates\pod-app)
+At C:\Users\User\AppData\Local\Temp\claude\37e0ca56f0ecb16e\eb4db9b3-b8d0-4450-8501-f0cc6c820c91\scratchpad\cg.ps1:11 c
+har:1
++ & cargo @CargoArgs *> $Log
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (    Checking po...crates\pod-app):String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 2.17s
+EXIT 0 after 2s

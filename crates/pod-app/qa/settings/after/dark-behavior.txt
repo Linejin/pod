@@ -1,0 +1,55 @@
+﻿--- fresh
+TabItem  설정  IsSelected=True
+TabItem  모양  IsSelected=True
+TabItem  글꼴  IsSelected=False
+TabItem  일반  IsSelected=False
+ComboBox 스타일  ExpandCollapse=Collapsed  Value=조용한 편집기
+ComboBox 레이아웃  ExpandCollapse=Collapsed  Value=작업대
+Button 고대비 미리보기  Toggle=Off
+--- after Down on category 0
+TabItem  설정  IsSelected=True
+TabItem  모양  IsSelected=False
+TabItem  글꼴  IsSelected=True
+TabItem  일반  IsSelected=False
+ComboBox UI 글꼴  ExpandCollapse=Collapsed  Value=Malgun Gothic
+ComboBox UI 글자 크기  ExpandCollapse=Collapsed  Value=13
+ComboBox 터미널 글꼴  ExpandCollapse=Collapsed  Value=Cascadia Mono
+ComboBox 터미널 글자 크기  ExpandCollapse=Collapsed  Value=14
+--- select open
+TabItem  설정  IsSelected=True
+TabItem  모양  IsSelected=False
+TabItem  글꼴  IsSelected=True
+TabItem  일반  IsSelected=False
+ComboBox UI 글꼴  ExpandCollapse=Collapsed  Value=Malgun Gothic
+ComboBox UI 글자 크기  ExpandCollapse=Collapsed  Value=13
+ComboBox 터미널 글꼴  ExpandCollapse=Expanded  Value=Cascadia Mono
+ComboBox 터미널 글자 크기  ExpandCollapse=Collapsed  Value=14
+ListItem Cascadia Mono  IsSelected=True
+ListItem Consolas  IsSelected=False
+ListItem D2Coding  IsSelected=False
+--- after Down+Enter
+TabItem  설정  IsSelected=True
+TabItem  모양  IsSelected=False
+TabItem  글꼴  IsSelected=True
+TabItem  일반  IsSelected=False
+ComboBox UI 글꼴  ExpandCollapse=Collapsed  Value=Malgun Gothic
+ComboBox UI 글자 크기  ExpandCollapse=Collapsed  Value=13
+ComboBox 터미널 글꼴  ExpandCollapse=Collapsed  Value=Consolas
+ComboBox 터미널 글자 크기  ExpandCollapse=Collapsed  Value=14
+saved terminal_font=Consolas
+after closed Down: terminal_font=D2Coding
+--- category 2
+TabItem  설정  IsSelected=True
+TabItem  모양  IsSelected=False
+TabItem  글꼴  IsSelected=False
+TabItem  일반  IsSelected=True
+Button 움직임 줄이기  Toggle=On
+Button Windows 알림  Toggle=On
+--- switch
+TabItem  설정  IsSelected=True
+TabItem  모양  IsSelected=False
+TabItem  글꼴  IsSelected=False
+TabItem  일반  IsSelected=True
+Button 움직임 줄이기  Toggle=On
+Button Windows 알림  Toggle=On
+os_notifications: start=True click=False space=True; reduced_motion=True

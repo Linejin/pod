@@ -1,0 +1,43 @@
+﻿ControlType.Text	에스컬레이션 · r1: worker a1 ended its turn without `pod orch done` — 받은 편지함 (Ctrl+Shift+M)
+ControlType.Text	에스컬레이션 · r1: worker a2 ended its turn without `pod orch done` — 받은 편지함 (Ctrl+Shift+M)
+ControlType.Text	에이전트 훅이 이 Pod의 pod-hook과 다릅니다. 다른 pod-hook을 실행합니다: 설치된 pod-hook ? · 이 Pod의 pod-hook 0.1.0
+ControlType.TabItem	실행 보드
+ControlType.Group	실행 보드
+ControlType.Button	받은 편지함 (Ctrl+Shift+M)
+ControlType.Button	끝난 워커 정리
+ControlType.Button	실행 보드 다시 읽기
+ControlType.List	실행 목록
+ControlType.Button	실행 목록: r1 · 세션 만료 처리 고치기 · 끝남, 선택됨
+ControlType.Group	실행 목록 r1: 세션 만료 처리 고치기
+ControlType.Button	r1 코디네이터 터미널 열기 (t1)
+ControlType.List	워커
+ControlType.ListItem	워커 a1, 세션 만료 처리 고치기, argv, 성공, 끝남 · 자동 정리 대기
+ControlType.Button	a1 · 세션 만료 처리 고치기 터미널 정리
+ControlType.ListItem	워커 a2, 회귀 테스트 추가, argv, 성공, 끝남 · 자동 정리 대기
+ControlType.Button	a2 · 회귀 테스트 추가 터미널 정리
+ControlType.TabItem	받은 편지함
+ControlType.Group	받은 편지함
+ControlType.Button	실행 보드 (Ctrl+Shift+J)
+ControlType.Group	실행 목록 r1 · 세션 만료 처리 고치기
+ControlType.List	받은 편지함 r1
+ControlType.ListItem	완료 보고 m9: done (succeeded): 회귀 테스트 추가 — 워커 a2 · 회귀 테스트 추가
+ControlType.Edit	코디네이터 대신 답장 (Enter로 보내기)
+ControlType.Button	m9 답장 보내기 (워커 a2 · 회귀 테스트 추가)
+ControlType.ListItem	완료 보고 m8: done (succeeded): 세션 만료 처리 고치기 — 워커 a1 · 세션 만료 처리 고치기
+ControlType.Edit	코디네이터 대신 답장 (Enter로 보내기)
+ControlType.Button	m8 답장 보내기 (워커 a1 · 세션 만료 처리 고치기)
+ControlType.ListItem	에스컬레이션 m7: worker a1 ended its turn without `pod orch done` — 워커 a1 · 세션 만료 처리 고치기
+ControlType.Edit	코디네이터 대신 답장 (Enter로 보내기)
+ControlType.Button	m7 답장 보내기 (워커 a1 · 세션 만료 처리 고치기)
+ControlType.ListItem	질문 m5: 세션 만료를 401로 둘까요, 403으로 바꿀까요? — 워커 a1 · 세션 만료 처리 고치기
+ControlType.Edit	코디네이터 대신 답장 (Enter로 보내기)
+ControlType.Button	m5 답장 보내기 (워커 a1 · 세션 만료 처리 고치기)
+ControlType.ListItem	에스컬레이션 m4: worker a2 ended its turn without `pod orch done` — 워커 a2 · 회귀 테스트 추가
+ControlType.Edit	코디네이터 대신 답장 (Enter로 보내기)
+ControlType.Button	m4 답장 보내기 (워커 a2 · 회귀 테스트 추가)
+ControlType.ListItem	에스컬레이션 m2: worker a2 ended its turn without `pod orch done` — 워커 a2 · 회귀 테스트 추가
+ControlType.Edit	코디네이터 대신 답장 (Enter로 보내기)
+ControlType.Button	m2 답장 보내기 (워커 a2 · 회귀 테스트 추가)
+ControlType.ListItem	에스컬레이션 m1: worker a1 ended its turn without `pod orch done` — 워커 a1 · 세션 만료 처리 고치기
+ControlType.Edit	코디네이터 대신 답장 (Enter로 보내기)
+ControlType.Button	m1 답장 보내기 (워커 a1 · 세션 만료 처리 고치기)

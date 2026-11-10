@@ -1,0 +1,21 @@
+﻿[package]
+name = "pod-ui"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+publish = false
+
+[dependencies]
+gpui-kit = "=0.9.0"
+pod-status = { path = "../pod-status" }
+# Style theme files (docs/10 §D5); both already in the tree (MIT/Apache-2.0).
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+
+[dev-dependencies]
+# Headless window tests (tests/select_scroll.rs); the same GPUI the toolkit uses.
+gpui = { package = "gpui-pre", version = "=0.3.11", features = ["test-support"] }
+
+[lints]
+workspace = true

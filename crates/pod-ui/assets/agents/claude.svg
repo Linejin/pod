@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">
+  <!-- Pod original agent mark (Apache-2.0): rounded square, "C" cut out. Not a vendor logo. -->
+  <mask id="cut"><rect width="24" height="24" fill="#fff"/><path d="M15.4 8.4A5 5 0 1 0 15.4 15.6" fill="none" stroke="#000" stroke-width="3" stroke-linecap="round"/></mask>
+  <rect x="2" y="2" width="20" height="20" rx="6" fill="#000" mask="url(#cut)"/>
+</svg>

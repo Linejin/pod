@@ -1,0 +1,7 @@
+﻿cargo deny check (2026-11-10, branch SJin-Choi/editor-tabs2)
+   ┌─ C:\Users\User\orca\workspaces\ide\editor-tabs2\deny.toml:22:6
+   │
+22 │     "ISC",
+   │      ━━━ unmatched license allowance
+System.Management.Automation.RemoteException
+advisories ok, bans ok, licenses ok, sources ok

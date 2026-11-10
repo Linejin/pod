@@ -1,0 +1,15 @@
+[package]
+name = "pod-spike"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+publish = false
+description = "UI spike: GPUI terminal grid renderer + dock, multi-terminal FPS check"
+
+[dependencies]
+gpui-kit = "0.9.0"
+pod-terminal-view = { path = "../pod-terminal-view" }
+portable-pty = "0.9"
+anyhow = "1"
+futures = "0.3"

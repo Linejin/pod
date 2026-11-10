@@ -1,0 +1,66 @@
+﻿[
+    {
+        "Image":  "dark-editor-terminal-wide.png",
+        "DPI":  144,
+        "Rect":  [
+                     2584,
+                     259,
+                     4024,
+                     1219
+                 ],
+        "Scene":  "editor-terminal-wide",
+        "Theme":  "dark",
+        "Fixture":  true,
+        "Font":  "Malgun Gothic",
+        "TerminalFont":  "Cascadia Mono",
+        "HighContrast":  false
+    },
+    {
+        "Image":  "dark-editor-terminal-cjk.png",
+        "DPI":  144,
+        "Rect":  [
+                     2584,
+                     259,
+                     4024,
+                     1219
+                 ],
+        "Scene":  "editor-terminal-cjk",
+        "Theme":  "dark",
+        "Fixture":  true,
+        "Font":  "Malgun Gothic",
+        "TerminalFont":  "Cascadia Mono",
+        "HighContrast":  false
+    },
+    {
+        "Image":  "light-editor-terminal-wide.png",
+        "DPI":  144,
+        "Rect":  [
+                     2584,
+                     259,
+                     4024,
+                     1219
+                 ],
+        "Scene":  "editor-terminal-wide",
+        "Theme":  "light",
+        "Fixture":  true,
+        "Font":  "Malgun Gothic",
+        "TerminalFont":  "Cascadia Mono",
+        "HighContrast":  false
+    },
+    {
+        "Image":  "light-editor-terminal-cjk.png",
+        "DPI":  144,
+        "Rect":  [
+                     2584,
+                     259,
+                     4024,
+                     1219
+                 ],
+        "Scene":  "editor-terminal-cjk",
+        "Theme":  "light",
+        "Fixture":  true,
+        "Font":  "Malgun Gothic",
+        "TerminalFont":  "Cascadia Mono",
+        "HighContrast":  false
+    }
+]

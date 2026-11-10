@@ -1,0 +1,100 @@
+2026-11-09 15:24:46.486   Log opened. (Time zone: UTC+09:00)
+2026-11-09 15:24:46.486   Setup version: Inno Setup version 6.7.3
+2026-11-09 15:24:46.486   Original Uninstall EXE: C:\Users\User\AppData\Local\Temp\pod-install-shots\app\unins000.exe
+2026-11-09 15:24:46.486   Uninstall DAT: C:\Users\User\AppData\Local\Temp\pod-install-shots\app\unins000.dat
+2026-11-09 15:24:46.486   Current Uninstall EXE: C:\Users\User\AppData\Local\Temp\is-J83NWJVQKR-uninstall.tmp\_unins.tmp
+2026-11-09 15:24:46.486   Uninstall command line: /SECONDPHASE="C:\Users\User\AppData\Local\Temp\pod-install-shots\app\unins000.exe" /FIRSTPHASEWND=$141E11D8 /LOG="C:\Users\User\dev\workspaces\ide\fu-icon\assets\icon\qa\installer-pages\uninstall.log"
+2026-11-09 15:24:46.486   Windows version: 10.0.26200
+2026-11-09 15:24:46.486   Windows architecture: x64 (64-bit)
+2026-11-09 15:24:46.486   Machine types supported by system: x86 x64
+2026-11-09 15:24:46.486   User privileges: Administrative
+2026-11-09 15:24:46.488   Administrative install mode: No
+2026-11-09 15:24:46.488   Install mode root key: HKEY_CURRENT_USER
+2026-11-09 15:24:46.488   RedirectionGuard status for current process: Enabled in enforcing mode
+2026-11-09 15:24:46.488   Cleaning up any residual temporary files from previous Uninstall runs.
+2026-11-09 15:24:46.490   Deleted file: C:\Users\User\AppData\Local\Temp\is-7BLSM0PP43-uninstall.tmp\_unins.tmp
+2026-11-09 15:24:46.490   Cleanup finished (4 directories found, 4 directories checked, 1 files deleted).
+2026-11-09 15:24:46.492   Created protected temporary directory: C:\Users\User\AppData\Local\Temp\is-80RCICLYWP.tmp
+2026-11-09 15:24:46.627   Message box (Yes/No):
+                          실행 중인 Pod 터미널이 1개 있습니다(그 안의 에이전트 포함).
+
+                          Pod를 제거하려면 이 터미널을 모두 종료해야 합니다. 종료하면 저장하지 않은 작업이 사라질 수 있습니다.
+
+                          터미널을 모두 종료하고 제거할까요? ("아니요"를 누르면 제거를 취소합니다)
+2026-11-09 15:24:48.475   User chose Yes.
+2026-11-09 15:24:48.929   pod server stop --kill -> exit 0
+2026-11-09 15:24:48.929   pod server stop --kill output:
+                          podd stopping (killed 1 running terminal(s))
+
+2026-11-09 15:24:49.617   taskkill /PID 64520 (pod-app.exe) -> 0
+2026-11-09 15:24:50.369   pod server stop -> exit 0
+2026-11-09 15:24:50.371   pod server stop output:
+                          podd stopping (0 running terminal(s) stay alive in their holders)
+
+2026-11-09 15:24:50.843   Message box (Yes/No):
+                          Pod 및 해당 구성 요소를 모두 제거하시겠습니까?
+2026-11-09 15:24:52.531   User chose Yes.
+2026-11-09 15:24:52.581   PATH -= C:\Users\User\AppData\Local\Temp\pod-install-shots\app
+2026-11-09 15:24:52.998   pod hooks status -> exit 0
+2026-11-09 15:24:52.998   pod hooks status output:
+                          pod-hook: C:\Users\User\AppData\Local\Temp\pod-install-shots\localappdata\Pod\bin\pod-hook.exe (missing)
+                          claude: C:\Users\User\.claude\settings.json - 13 Pod event(s), 16 other hook group(s)
+                            runs C:/Users/User/AppData/Local/Pod/bin/pod-hook.exe
+                          codex: C:\Users\User\.codex\hooks.json - 9 Pod event(s), 9 other hook group(s)
+                            runs C:/Users/User/AppData/Local/Pod/bin/pod-hook.exe
+
+2026-11-09 15:24:52.998   Message box (Yes/No):
+                          Claude Code·Codex 전역 설정(~/.claude/settings.json, ~/.codex/hooks.json)에 Pod 훅이 있습니다.
+
+                          훅도 제거할까요? ("pod hooks uninstall": 파일을 백업한 뒤 Pod 항목만 지웁니다)
+
+                          "아니요"를 고르면 훅과 C:\Users\User\AppData\Local\Temp\pod-install-shots\localappdata\pod\bin\pod-hook.exe가 남습니다. 이 훅은 Pod 밖에서는 아무 일도 하지 않습니다.
+2026-11-09 15:24:55.249   User chose No.
+2026-11-09 15:24:55.249   Starting the uninstallation process.
+2026-11-09 15:24:55.249   Deleting registry key: HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Uninstall\{8C7541A9-1FDB-43FC-B2EB-44131622A0CF}_is1
+2026-11-09 15:24:55.497   Deleting file: C:\Users\User\AppData\Roaming\Microsoft\Windows\Start Menu\Programs\Pod.lnk
+2026-11-09 15:24:55.498   Deleting file: C:\Users\User\AppData\Local\Temp\pod-install-shots\app\licenses\Lucide-LICENSE.txt
+2026-11-09 15:24:55.499   Deleting file: C:\Users\User\AppData\Local\Temp\pod-install-shots\app\licenses\ConPTY-LICENSE.txt
+2026-11-09 15:24:55.499   Deleting file: C:\Users\User\AppData\Local\Temp\pod-install-shots\app\THIRD-PARTY-NOTICES.txt
+2026-11-09 15:24:55.499   Deleting file: C:\Users\User\AppData\Local\Temp\pod-install-shots\app\README.txt
+2026-11-09 15:24:55.500   Deleting file: C:\Users\User\AppData\Local\Temp\pod-install-shots\app\LICENSE.txt
+2026-11-09 15:24:55.500   Deleting file: C:\Users\User\AppData\Local\Temp\pod-install-shots\app\x64\OpenConsole.exe
+2026-11-09 15:24:55.501   Deleting file: C:\Users\User\AppData\Local\Temp\pod-install-shots\app\conpty.dll
+2026-11-09 15:24:55.502   Deleting file: C:\Users\User\AppData\Local\Temp\pod-install-shots\app\podd.exe
+2026-11-09 15:24:55.503   Deleting file: C:\Users\User\AppData\Local\Temp\pod-install-shots\app\pod.exe
+2026-11-09 15:24:55.504   Deleting file: C:\Users\User\AppData\Local\Temp\pod-install-shots\app\pod-hook.exe
+2026-11-09 15:24:55.504   Deleting file: C:\Users\User\AppData\Local\Temp\pod-install-shots\app\pod-holder.exe
+2026-11-09 15:24:55.506   Deleting file: C:\Users\User\AppData\Local\Temp\pod-install-shots\app\pod-app.exe
+2026-11-09 15:24:55.510   Deleting file: C:\Users\User\AppData\Local\Temp\pod-install-shots\app\conpty.dll.old-20261109152440
+2026-11-09 15:24:55.510   Deleting file: C:\Users\User\AppData\Local\Temp\pod-install-shots\app\pod-holder.exe.old-20261109152440
+2026-11-09 15:24:55.511   Deleting file: C:\Users\User\AppData\Local\Temp\pod-install-shots\app\x64\OpenConsole.exe.old-20261109152440
+2026-11-09 15:24:55.513   Deleting directory: C:\Users\User\AppData\Local\Temp\pod-install-shots\app\x64
+2026-11-09 15:24:55.513   Deleting directory: C:\Users\User\AppData\Local\Temp\pod-install-shots\app\licenses
+2026-11-09 15:24:55.513   Deleting directory: C:\Users\User\AppData\Local\Temp\pod-install-shots\app
+2026-11-09 15:24:55.514   Failed to delete directory (145). Will retry later.
+2026-11-09 15:24:55.514   Deleting registry key: HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Uninstall\{8C7541A9-1FDB-43FC-B2EB-44131622A0CF}_is1
+2026-11-09 15:24:55.517   Deleting directory: C:\Users\User\AppData\Local\Temp\pod-install-shots\app
+2026-11-09 15:24:55.517   Failed to delete directory (145). Will retry later.
+2026-11-09 15:24:55.517   Deleting directory: C:\Users\User\AppData\Local\Temp\pod-install-shots\app
+2026-11-09 15:24:55.519   Failed to delete directory (145). Will retry later.
+2026-11-09 15:24:55.755   Deleting Uninstall data files.
+2026-11-09 15:24:55.756   Creating "_unins-done.tmp" file.
+2026-11-09 15:24:56.271   Deleting directory: C:\Users\User\AppData\Local\Temp\pod-install-shots\app
+2026-11-09 15:24:56.279   Uninstallation process succeeded.
+2026-11-09 15:24:56.279   Removed all? Yes
+2026-11-09 15:24:56.279   Need to restart Windows? No
+2026-11-09 15:24:56.283   Message box (Yes/No):
+                          Pod 사용자 데이터도 지울까요?
+
+                            - 터미널 기록·상태: C:\Users\User\AppData\Local\Temp\pod-install-shots\localappdata\pod\state
+                            - 데몬 로그: C:\Users\User\AppData\Local\Temp\pod-install-shots\localappdata\pod\podd.log
+                            - 앱 설정·레이아웃: C:\Users\User\AppData\Local\Temp\pod-install-shots\appdata\pod
+
+                          작업 worktree(%USERPROFILE%\pod\worktrees)와 에이전트 훅 파일은 지우지 않습니다.
+                          "아니요"를 고르면 다시 설치했을 때 그대로 이어서 씁니다.
+2026-11-09 15:24:58.185   User chose Yes.
+2026-11-09 15:24:58.189   user data removed
+2026-11-09 15:24:58.189   Message box (OK):
+                          Pod이(가) 컴퓨터에서 성공적으로 제거되었습니다.
+2026-11-09 15:25:00.879   User chose OK.
+2026-11-09 15:25:00.881   Log closed.

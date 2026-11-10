@@ -1,0 +1,15 @@
+﻿cargo.exe : warning[license-not-encountered]: license was not encountered
+At C:\Users\User\AppData\Local\Temp\claude\37e0ca56f0ecb16e\eb4db9b3-b8d0-4450-8501-f0cc6c820c91\scratchpad\cg.ps1:11 c
+har:1
++ & cargo @CargoArgs *> $Log
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (warning[license...not encountered:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+   ┌─ C:\Users\User\dev\workspaces\ide\p3-integrate\deny.toml:22:6
+   │
+22 │     "ISC",
+   │      ━━━ unmatched license allowance
+
+advisories ok, bans ok, licenses ok, sources ok
+EXIT 0 after 2s

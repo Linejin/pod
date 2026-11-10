@@ -1,0 +1,2 @@
+   Compiling pod-app v0.1.0 (C:\Users\User\dev\workspaces\ide\d3-finish\crates\pod-app)
+    Finished `release` profile [optimized + debuginfo] target(s) in 13.28s

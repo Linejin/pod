@@ -1,0 +1,230 @@
+//! `file:` URI <-> filesystem path conversion, Windows first.
+//!
+//! Language servers disagree on drive-letter spelling (`file:///C:/x`,
+//! `file:///c%3A/x`, `file:///c:/x`), so every URI coming back from a server
+//! goes through [`uri_to_path`] and paths are compared with [`path_key`].
+
+use std::path::{Component, Path, PathBuf, Prefix};
+use std::str::FromStr;
+
+/// Characters left unescaped in a path segment (RFC 3986 unreserved plus
+/// the sub-delims servers commonly leave alone). Everything else is
+/// percent-encoded, including spaces, `#`, `%`, `?` and non-ASCII bytes.
+fn keep(b: u8) -> bool {
+    b.is_ascii_alphanumeric()
+        || matches!(
+            b,
+            b'-' | b'.'
+                | b'_'
+                | b'~'
+                | b'!'
+                | b'$'
+                | b'&'
+                | b'\''
+                | b'('
+                | b')'
+                | b'*'
+                | b'+'
+                | b','
+                | b';'
+                | b'='
+                | b'@'
+        )
+}
+
+fn encode_segment(out: &mut String, seg: &str) {
+    for &b in seg.as_bytes() {
+        if keep(b) {
+            out.push(b as char);
+        } else {
+            out.push_str(&format!("%{b:02X}"));
+        }
+    }
+}
+
+/// Strips the `\\?\` verbatim prefix `canonicalize` adds on Windows.
+pub fn simplify(path: &Path) -> PathBuf {
+    let s = path.to_string_lossy();
+    if let Some(rest) = s.strip_prefix(r"\\?\UNC\") {
+        return PathBuf::from(format!(r"\\{rest}"));
+    }
+    if let Some(rest) = s.strip_prefix(r"\\?\") {
+        return PathBuf::from(rest);
+    }
+    path.to_path_buf()
+}
+
+/// Builds the URI string for an absolute path.
+///
+/// `C:\a b\x.rs` -> `file:///C:/a%20b/x.rs`, `\\srv\share\x` -> `file://srv/share/x`.
+pub fn path_to_uri_string(path: &Path) -> String {
+    let path = simplify(path);
+    let mut out = String::from("file://");
+    let mut segments: Vec<String> = Vec::new();
+    for comp in path.components() {
+        match comp {
+            Component::Prefix(p) => match p.kind() {
+                Prefix::Disk(d) | Prefix::VerbatimDisk(d) => {
+                    out.push('/');
+                    out.push((d as char).to_ascii_uppercase());
+                    out.push(':');
+                }
+                Prefix::UNC(server, share) | Prefix::VerbatimUNC(server, share) => {
+                    out.push_str(&server.to_string_lossy());
+                    out.push('/');
+                    encode_segment(&mut out, &share.to_string_lossy());
+                }
+                _ => {}
+            },
+            Component::RootDir => {}
+            Component::CurDir => {}
+            Component::ParentDir => segments.push("..".into()),
+            Component::Normal(s) => segments.push(s.to_string_lossy().into_owned()),
+        }
+    }
+    if segments.is_empty() {
+        out.push('/');
+    }
+    for seg in segments {
+        out.push('/');
+        encode_segment(&mut out, &seg);
+    }
+    out
+}
+
+pub fn path_to_uri(path: &Path) -> lsp_types::Uri {
+    lsp_types::Uri::from_str(&path_to_uri_string(path)).expect("encoded file URI is valid")
+}
+
+fn decode(s: &str) -> Option<String> {
+    let bytes = s.as_bytes();
+    let mut out = Vec::with_capacity(bytes.len());
+    let mut i = 0;
+    while i < bytes.len() {
+        if bytes[i] == b'%' {
+            let hex = s.get(i + 1..i + 3)?;
+            out.push(u8::from_str_radix(hex, 16).ok()?);
+            i += 3;
+        } else {
+            out.push(bytes[i]);
+            i += 1;
+        }
+    }
+    String::from_utf8(out).ok()
+}
+
+/// Parses a `file:` URI string into a native path. `None` for other schemes.
+pub fn uri_str_to_path(uri: &str) -> Option<PathBuf> {
+    let rest = uri
+        .strip_prefix("file://")
+        .or_else(|| uri.strip_prefix("FILE://"))?;
+    let rest = rest.split(['?', '#']).next().unwrap_or(rest);
+    let (host, path) = match rest.find('/') {
+        Some(i) => (&rest[..i], &rest[i..]),
+        None => (rest, "/"),
+    };
+    let path = decode(path)?;
+    if cfg!(windows) {
+        let host = decode(host)?;
+        if !host.is_empty() && !host.eq_ignore_ascii_case("localhost") {
+            return Some(PathBuf::from(format!(
+                r"\\{host}{}",
+                path.replace('/', "\\")
+            )));
+        }
+        // "/c:/x" -> "C:\x"
+        let p = path.strip_prefix('/').unwrap_or(&path);
+        let b = p.as_bytes();
+        if b.len() >= 2 && b[0].is_ascii_alphabetic() && b[1] == b':' {
+            let drive = (b[0] as char).to_ascii_uppercase();
+            let tail = p[2..].replace('/', "\\");
+            let tail = if tail.is_empty() {
+                "\\".to_string()
+            } else {
+                tail
+            };
+            return Some(PathBuf::from(format!("{drive}:{tail}")));
+        }
+        Some(PathBuf::from(path.replace('/', "\\")))
+    } else {
+        Some(PathBuf::from(path))
+    }
+}
+
+pub fn uri_to_path(uri: &lsp_types::Uri) -> Option<PathBuf> {
+    uri_str_to_path(uri.as_str())
+}
+
+/// Comparison key: on Windows paths are case-insensitive and may use either
+/// separator, so lowercase and normalise separators.
+pub fn path_key(path: &Path) -> String {
+    let s = simplify(path).to_string_lossy().into_owned();
+    if cfg!(windows) {
+        s.replace('/', "\\").to_lowercase()
+    } else {
+        s
+    }
+}
+
+/// Key for a URI, equal for every spelling of the same file.
+pub fn uri_key(uri: &lsp_types::Uri) -> String {
+    match uri_to_path(uri) {
+        Some(p) => path_key(&p),
+        None => uri.as_str().to_string(),
+    }
+}
+
+#[cfg(all(test, windows))]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn drive_paths_round_trip() {
+        let p = Path::new(r"C:\Users\me\a b\한글#1.rs");
+        let u = path_to_uri_string(p);
+        assert_eq!(u, "file:///C:/Users/me/a%20b/%ED%95%9C%EA%B8%80%231.rs");
+        assert_eq!(uri_str_to_path(&u).unwrap(), p);
+        // The typed wrapper accepts what we produce.
+        let typed = path_to_uri(p);
+        assert_eq!(uri_to_path(&typed).unwrap(), p);
+    }
+
+    #[test]
+    fn server_spellings_of_drive_letters_agree() {
+        let want = PathBuf::from(r"C:\w\src\main.rs");
+        for s in [
+            "file:///c:/w/src/main.rs",
+            "file:///C:/w/src/main.rs",
+            "file:///c%3A/w/src/main.rs",
+            "file:///C%3a/w/src/main.rs",
+        ] {
+            assert_eq!(uri_str_to_path(s).unwrap(), want, "{s}");
+        }
+        let a = path_to_uri(&want);
+        let b = lsp_types::Uri::from_str("file:///c%3A/w/src/main.rs").unwrap();
+        assert_eq!(uri_key(&a), uri_key(&b));
+        assert_eq!(path_key(Path::new("c:/W/src/MAIN.rs")), path_key(&want));
+    }
+
+    #[test]
+    fn unc_and_verbatim_prefixes() {
+        let p = Path::new(r"\\server\share\dir\x.txt");
+        let u = path_to_uri_string(p);
+        assert_eq!(u, "file://server/share/dir/x.txt");
+        assert_eq!(uri_str_to_path(&u).unwrap(), p);
+        assert_eq!(
+            path_to_uri_string(Path::new(r"\\?\C:\x\y.rs")),
+            "file:///C:/x/y.rs"
+        );
+        assert_eq!(
+            simplify(Path::new(r"\\?\UNC\srv\s\f")),
+            PathBuf::from(r"\\srv\s\f")
+        );
+    }
+
+    #[test]
+    fn non_file_schemes_are_rejected() {
+        assert!(uri_str_to_path("https://example.com/x").is_none());
+        assert!(uri_str_to_path("untitled:Untitled-1").is_none());
+    }
+}

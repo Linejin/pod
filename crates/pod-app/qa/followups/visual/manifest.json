@@ -1,0 +1,34 @@
+﻿[
+    {
+        "Image":  "dark-shortcuts.png",
+        "DPI":  144,
+        "Rect":  [
+                     2584,
+                     259,
+                     4024,
+                     1219
+                 ],
+        "Scene":  "shortcuts",
+        "Theme":  "dark",
+        "Fixture":  true,
+        "Font":  "Malgun Gothic",
+        "TerminalFont":  "Cascadia Mono",
+        "HighContrast":  false
+    },
+    {
+        "Image":  "light-shortcuts.png",
+        "DPI":  144,
+        "Rect":  [
+                     2584,
+                     259,
+                     4024,
+                     1219
+                 ],
+        "Scene":  "shortcuts",
+        "Theme":  "light",
+        "Fixture":  true,
+        "Font":  "Malgun Gothic",
+        "TerminalFont":  "Cascadia Mono",
+        "HighContrast":  false
+    }
+]

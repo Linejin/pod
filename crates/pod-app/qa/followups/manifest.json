@@ -1,0 +1,34 @@
+﻿[
+    {
+        "Image":  "dark-editor-terminal-links.png",
+        "DPI":  144,
+        "Rect":  [
+                     2584,
+                     259,
+                     4024,
+                     1219
+                 ],
+        "Scene":  "editor-terminal-links",
+        "Theme":  "dark",
+        "Fixture":  true,
+        "Font":  "Malgun Gothic",
+        "TerminalFont":  "Cascadia Mono",
+        "HighContrast":  false
+    },
+    {
+        "Image":  "light-editor-terminal-links.png",
+        "DPI":  144,
+        "Rect":  [
+                     2584,
+                     259,
+                     4024,
+                     1219
+                 ],
+        "Scene":  "editor-terminal-links",
+        "Theme":  "light",
+        "Fixture":  true,
+        "Font":  "Malgun Gothic",
+        "TerminalFont":  "Cascadia Mono",
+        "HighContrast":  false
+    }
+]

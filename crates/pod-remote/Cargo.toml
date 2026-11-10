@@ -1,0 +1,16 @@
+[package]
+name = "pod-remote"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+publish = false
+description = "Remote machines for Pod: SSH machine profiles and the system-ssh transport (docs/17 R3)"
+
+[dependencies]
+podd = { path = "../podd", default-features = false }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+
+[lints]
+workspace = true

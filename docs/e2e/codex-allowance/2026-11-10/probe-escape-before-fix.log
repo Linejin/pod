@@ -1,0 +1,35 @@
+codex-allowance probe 2026-11-10T12:53:12
+codex: C:\Users\User\AppData\Local\Programs\OpenAI\Codex\bin\codex.exe codex-cli 0.159.0
+PASS  control: pod ls is denied in the sandbox
+PASS  control: git add is denied (index.lock)
+PASS  rules file hidden from git
+PASS  pod --version runs
+PASS  pod ls reaches the pipe
+PASS  pod orch queue reaches the pipe
+PASS  git status runs (sandbox)
+PASS  git add runs
+PASS  git commit runs
+PASS  git log shows the commit
+PASS  git diff runs (sandbox)
+PASS  writing outside the worktree is still denied
+PASS  pod orch limits (not allowed) stays sandboxed
+exec mode never asks: a command outside the rules fails in the sandbox instead of asking.
+PASS  (a) the worktree .git file cannot be rewritten
+PASS  (a) the worktree .git file cannot be deleted
+PASS  nested repos with hooks were set up in the sandbox
+PASS  nested repo payloads cannot fire inside the sandbox
+PASS  control: the payloads fire when git runs unsandboxed
+PASS  (b/c) commit in a nested repo (workdir) [as is]: no hook/fsmonitor outside the sandbox
+PASS  (b/c) add in a nested repo (workdir) [as is]: no hook/fsmonitor outside the sandbox
+PASS  (b/c) cd into a nested repo, commit [as is]: no hook/fsmonitor outside the sandbox
+PASS  (b/c) GIT_DIR=<nested> git commit [as is]: no hook/fsmonitor outside the sandbox
+PASS  (b/c) git --git-dir=<nested> commit [as is]: no hook/fsmonitor outside the sandbox
+FAIL  (b/c) commit in a nested repo (workdir) [safe.directory=*]: no hook/fsmonitor outside the sandbox
+      markers: pod-codex-escape-56412-s1-fsm.txt, pod-codex-escape-56412-s1-hook.txt | Chunk ID: ce24a0 | Wall time: 3.4065 seconds | Process exited with code 0 | Original token count: 23 | Output: | [master (root-commit) 78bd72a] s1 |  1 file changed, 1 insertion(+) |  create mode 100644 x.txt | 
+FAIL  (b/c) add in a nested repo (workdir) [safe.directory=*]: no hook/fsmonitor outside the sandbox
+      markers: pod-codex-escape-56412-s2-fsm.txt | Chunk ID: 704535 | Wall time: 3.2911 seconds | Process exited with code 0 | Original token count: 51 | Output: | warning: in the working copy of 'fsm', LF will be replaced by CRLF the next time Git touches it | warning: in the working copy of 'h/pre-commit', LF will be replaced by CRLF the next time Git touches it | 
+PASS  (b/c) cd into a nested repo, commit [safe.directory=*]: no hook/fsmonitor outside the sandbox
+PASS  (b/c) GIT_DIR=<nested> git commit [safe.directory=*]: no hook/fsmonitor outside the sandbox
+PASS  (b/c) git --git-dir=<nested> commit [safe.directory=*]: no hook/fsmonitor outside the sandbox
+PASS  (c) git add of a path outside the worktree is refused
+RESULT: 2 FAILED

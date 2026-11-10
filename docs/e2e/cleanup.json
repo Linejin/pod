@@ -1,0 +1,15 @@
+﻿{
+    "checked_utc":  "2026-11-08T22:46:12.5851137+00:00",
+    "remaining_owned_processes":  [
+
+                                  ],
+    "worktrees":  [
+                      "worktree C:/ai/pod-e2e/sample",
+                      "HEAD c8d00bcb17707a6089d9df928d7ed43e81429b08",
+                      "branch refs/heads/main",
+                      ""
+                  ],
+    "pod_branches":  [
+
+                     ]
+}

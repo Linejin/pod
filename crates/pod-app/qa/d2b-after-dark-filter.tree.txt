@@ -1,0 +1,42 @@
+App=pod-app (pid 64188)
+Window: "", App: pod-app.
+
+0 영역
+	1 title bar TitleBar
+		2 menu bar 시스템 메뉴 모음
+			3 menu item 시스템
+		4 button 최소화
+		5 button 복원
+		6 button 닫기
+	7 단추 명령·터미널 검색
+	8 단추 설정
+	9 단추 격자
+	10 단추 + 작업
+	11 단추 + 터미널
+	12 단추 + 그룹
+	13 단추 에이전트
+	14 편집 저장소, 작업, 터미널 검색, Value: auth, Secondary Actions: SetValue
+	15 콘솔 트리 sample/auth | 승인 필요 · 출처: osc · 신뢰도: 90% · 상위: 승인 필요 · 마지막: — | 1168초 전
+		16 상태 승인 필요 · 출처: osc · 신뢰도: 90% · 상위: 승인 필요 · 마지막: —
+	17 단추 닫기
+	18 Tab
+		19 탭 항목, Secondary Actions: Select
+			20 단추
+		21 탭 항목, Secondary Actions: Select
+			22 단추
+		23 탭 항목, Secondary Actions: Select
+			24 단추
+		25 탭 항목, Secondary Actions: Select
+			26 단추
+		27 단추
+		28 단추
+	29 Tab
+		30 탭 항목, Secondary Actions: Select
+			31 단추
+		32 탭 항목, Secondary Actions: Select
+			33 단추
+		34 탭 항목, Secondary Actions: Select
+			35 단추
+		36 단추
+	37 단추 상태
+	38 단추 알림 1

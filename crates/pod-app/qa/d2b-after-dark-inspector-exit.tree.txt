@@ -1,0 +1,50 @@
+App=pod-app (pid 64188)
+Window: "", App: pod-app.
+
+0 영역
+	1 title bar TitleBar
+		2 menu bar 시스템 메뉴 모음
+			3 menu item 시스템
+		4 button 최소화
+		5 button 복원
+		6 button 닫기
+	7 단추 명령·터미널 검색
+	8 단추 설정
+	9 단추 격자
+	10 단추 + 작업
+	11 단추 + 터미널
+	12 단추 + 그룹
+	13 단추 에이전트
+	14 편집 저장소, 작업, 터미널 검색, Secondary Actions: SetValue
+	15 콘솔 트리 sample/auth | 승인 필요 · 출처: osc · 신뢰도: 90% · 상위: 승인 필요 · 마지막: — | 1289초 전
+		16 상태 승인 필요 · 출처: osc · 신뢰도: 90% · 상위: 승인 필요 · 마지막: —
+	17 콘솔 트리 sample/compare-shell-1 | 상태 미확인 · 추정 · 출처: unknown · 신뢰도: 0% · 상위: 상태 미확인 · 마지막: — | 1287초 전
+		18 상태 상태 미확인 · 추정 · 출처: unknown · 신뢰도: 0% · 상위: 상태 미확인 · 마지막: —
+	19 콘솔 트리 sample/compare-shell-2 | 상태 미확인 · 추정 · 출처: unknown · 신뢰도: 0% · 상위: 상태 미확인 · 마지막: — | 1285초 전
+		20 상태 상태 미확인 · 추정 · 출처: unknown · 신뢰도: 0% · 상위: 상태 미확인 · 마지막: —
+	21 콘솔 트리 exit-seven | 실패 종료 (7) · 출처: unknown · 신뢰도: 0% · 상위: 종료 · 마지막: — | 1280초 전
+		22 상태 실패 종료 (7) · 출처: unknown · 신뢰도: 0% · 상위: 종료 · 마지막: —
+	23 단추 닫기
+	24 Tab
+		25 탭 항목, Secondary Actions: Select
+			26 단추
+		27 탭 항목, Secondary Actions: Select
+			28 단추
+		29 탭 항목, Secondary Actions: Select
+			30 단추
+		31 탭 항목, Secondary Actions: Select
+			32 단추
+		33 탭 항목, Secondary Actions: Select
+			34 단추
+		35 단추
+		36 단추
+	37 Tab
+		38 탭 항목, Secondary Actions: Select
+			39 단추
+		40 탭 항목, Secondary Actions: Select
+			41 단추
+		42 탭 항목, Secondary Actions: Select
+			43 단추
+		44 단추
+	45 단추 상태
+	46 단추 알림 1

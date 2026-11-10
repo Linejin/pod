@@ -1,0 +1,12 @@
+    Checking pod-status v0.1.0 (C:\Users\User\orca\workspaces\ide\small-fixes\crates\pod-status)
+   Compiling podd v0.1.0 (C:\Users\User\orca\workspaces\ide\small-fixes\crates\podd)
+    Checking pod-forge v0.1.0 (C:\Users\User\orca\workspaces\ide\small-fixes\crates\pod-forge)
+   Compiling pod-app v0.1.0 (C:\Users\User\orca\workspaces\ide\small-fixes\crates\pod-app)
+    Checking pod-ui v0.1.0 (C:\Users\User\orca\workspaces\ide\small-fixes\crates\pod-ui)
+    Checking pod-terminal-view v0.1.0 (C:\Users\User\orca\workspaces\ide\small-fixes\crates\pod-terminal-view)
+    Checking pod-diff v0.1.0 (C:\Users\User\orca\workspaces\ide\small-fixes\crates\pod-diff)
+    Checking pod-editor v0.1.0 (C:\Users\User\orca\workspaces\ide\small-fixes\crates\pod-editor)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 7.42s
+EXIT 0
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.95s
+EXIT vendor 0

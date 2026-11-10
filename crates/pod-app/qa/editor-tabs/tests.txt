@@ -1,0 +1,1666 @@
+﻿cargo :    Compiling windows-sys v0.61.2
+At line:1 char:644
++ ... | Out-Null; cargo test --workspace -- --test-threads=4 *> crates/pod- ...
++                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (   Compiling windows-sys v0.61.2:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+   Compiling allocator-api2 v0.2.21
+   Compiling embed-resource v3.0.12
+   Compiling libc v0.2.191
+   Compiling hashbrown v0.17.1
+   Compiling indexmap v2.14.2
+   Compiling toml_write v0.1.2
+   Compiling winnow v0.7.15
+   Compiling toml_edit v0.25.19+spec-1.1.0
+   Compiling polling v3.11.0
+   Compiling tempfile v3.27.0
+   Compiling winapi-util v0.1.11
+   Compiling serde_json v1.0.154
+   Compiling rusty-fork v0.3.1
+   Compiling proc-macro-crate v3.5.0
+   Compiling schemars v1.2.3
+   Compiling pod-status v0.1.0 (C:\Users\User\orca\workspaces\ide\editor-tabs\crates\pod-status)
+   Compiling same-file v1.0.6
+   Compiling errno v0.3.14
+   Compiling gpui-pre v0.3.11
+   Compiling gpui-pre-collections v0.3.11
+   Compiling proptest v1.12.0
+   Compiling gpui-pre-shared-string v0.3.11
+   Compiling gpui-pre-macros v0.3.11
+   Compiling rustix v1.1.6
+   Compiling gpui-pre-http-client v0.3.11
+   Compiling walkdir v2.5.0
+   Compiling rquickjs-sys v0.14.0
+   Compiling toml_edit v0.22.27
+   Compiling rquickjs-core v0.14.0
+   Compiling async-io v2.6.0
+   Compiling miow v0.6.1
+   Compiling home v0.5.12
+   Compiling rquickjs v0.14.0
+   Compiling alacritty_terminal v0.26.0
+   Compiling toml v0.8.23
+   Compiling tree-sitter v0.26.13
+   Compiling rust-i18n-support v4.2.4
+   Compiling async-net v2.0.0
+   Compiling async-process v2.5.0
+   Compiling rust-embed-utils v8.13.0
+   Compiling lsp-types v0.97.0
+   Compiling rust-i18n-macro v4.2.4
+   Compiling rust-embed v8.13.0
+   Compiling smol v2.0.2
+   Compiling pod-mods v0.1.0 (C:\Users\User\orca\workspaces\ide\editor-tabs\crates\pod-mods)
+   Compiling gpui-pre-windows v0.3.11
+   Compiling gpui-component v0.9.0 (C:\Users\User\orca\workspaces\ide\editor-tabs\vendor\gpui-component)
+   Compiling gpui-base v0.9.0
+   Compiling notify v8.2.1
+   Compiling rust-i18n v4.2.4
+   Compiling gpui-kit-assets v0.9.0
+   Compiling gpui-component-macros v0.9.0
+   Compiling pod-forge v0.1.0 (C:\Users\User\orca\workspaces\ide\editor-tabs\crates\pod-forge)
+   Compiling mio v1.2.4
+   Compiling socket2 v0.6.5
+   Compiling podd v0.1.0 (C:\Users\User\orca\workspaces\ide\editor-tabs\crates\podd)
+   Compiling tokio v1.54.1
+   Compiling gpui-pre-platform v0.3.11
+   Compiling gpui-kit v0.9.0
+   Compiling ignore v0.4.34
+   Compiling pod-ui v0.1.0 (C:\Users\User\orca\workspaces\ide\editor-tabs\crates\pod-ui)
+   Compiling pod-editor v0.1.0 (C:\Users\User\orca\workspaces\ide\editor-tabs\crates\pod-editor)
+   Compiling anstyle v1.0.14
+   Compiling once_cell_polyfill v1.70.2
+   Compiling utf8parse v0.2.2
+   Compiling anstyle-parse v1.0.0
+   Compiling anstyle-wincon v3.0.11
+   Compiling anstyle-query v1.1.5
+   Compiling is_terminal_polyfill v1.70.2
+   Compiling colorchoice v1.0.5
+   Compiling anstream v1.0.0
+   Compiling clap_lex v1.1.1
+   Compiling strsim v0.11.1
+   Compiling clap_builder v4.6.7
+   Compiling winapi v0.3.9
+   Compiling pod-diff v0.1.0 (C:\Users\User\orca\workspaces\ide\editor-tabs\crates\pod-diff)
+   Compiling pod-cli v0.1.0 (C:\Users\User\orca\workspaces\ide\editor-tabs\crates\pod-cli)
+   Compiling pod-hook v0.1.0 (C:\Users\User\orca\workspaces\ide\editor-tabs\crates\pod-hook)
+   Compiling toml_datetime v0.6.11
+   Compiling clap v4.6.7
+   Compiling pod-terminal-view v0.1.0 (C:\Users\User\orca\workspaces\ide\editor-tabs\crates\pod-terminal-view)
+   Compiling lazy_static v1.5.1
+   Compiling shared_library v0.1.9
+   Compiling nix v0.28.0
+   Compiling winreg v0.10.1
+   Compiling filedescriptor v0.8.3
+   Compiling serial2 v0.2.39
+   Compiling pod-app v0.1.0 (C:\Users\User\orca\workspaces\ide\editor-tabs\crates\pod-app)
+   Compiling shell-words v1.1.1
+   Compiling downcast-rs v1.2.1
+   Compiling portable-pty v0.9.0
+   Compiling diff-spike v0.1.0 (C:\Users\User\orca\workspaces\ide\editor-tabs\crates\diff-spike)
+   Compiling pod-spike v0.1.0 (C:\Users\User\orca\workspaces\ide\editor-tabs\crates\pod-spike)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 4m 58s
+     Running unittests src\main.rs (target\debug\deps\diff_spike-bfb3d58457495d03.exe)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src\main.rs (target\debug\deps\pod_app-a455fd3801364426.exe)
+
+running 94 tests
+test attach::tests::outputs_merge_and_reset_clears ... ok
+test attach::tests::lag_flag ... ok
+test chrome::palette_tests::fuzzy_unicode_ranges_and_order ... ok
+test gates::tests::durations ... ok
+test gates::tests::expiry_lines ... ok
+test groups::tests::check_command_round_trip ... ok
+test editor_panel::tests::state_roundtrip_keeps_tabs_and_cursor ... ok
+test groups::tests::check_summaries_report_failure_as_failure ... ok
+test groups::tests::error_names ... ok
+test groups::tests::specs_and_member_names_follow_podd_rules ... ok
+test groups::tests::validation_messages ... ok
+test hooks_prompt::tests::agents_not_in_use_are_not_missing ... ok
+test chrome::palette_tests::documented_shortcuts_match_in_app_help ... ok
+test hooks_prompt::tests::missing_hooks_name_the_agents ... ok
+test hooks_prompt::tests::other_or_older_binaries_are_outdated ... ok
+test hooks_prompt::tests::preview_lists_files_backups_and_codex_trust ... ok
+test hooks_prompt::tests::versions_from_newer_pod_decide_outdated ... ok
+test layout::tests::chrome_panels_survive_without_daemon_targets ... ok
+test layout::tests::active_tab_falls_back_to_first ... ok
+test layout::tests::editor_panels_need_an_existing_worktree ... ok
+test layout::tests::grid ... ok
+test layout::tests::prune_drops_dead_terminals_and_empty_containers ... ok
+test layout::tests::review_and_group_need_their_target ... ok
+test layout::tests::restores_review_group_gates_agents_and_right_dock ... ok
+test layout::tests::unknown_leaves_are_dropped ... ok
+test layout::tests::saved_roundtrip ... ok
+test mods_ui::tests::labels_cover_every_permission_and_reason ... ok
+test hooks_prompt::tests::dismissal_key_changes_with_the_hook_build ... ok
+test mods_ui::tests::example_presets_parse ... ok
+test native_qa::a_shortcuts_work_at_launch_and_after_the_focused_panel_closes ... ok
+test native_qa::a_enter_in_dialogs_goes_to_the_focused_control ... ok
+test native_qa::c_shift_tab_from_the_agents_tree_reverses_tab ... ok
+test native_qa::a_keyboard_only_repo_task_terminal_blocked_work_done ... ok
+test native_qa::b_escape_returns_focus_to_the_opener ... ok
+test native_qa::d_ime_palette_sidebar_filter_new_task_name ... ok
+test native_qa::d_ime_terminal_sends_bytes_only_on_commit ... ok
+test native_qa::e_dpi_scales_keep_chrome_rows_dialogs_inside_the_window ... ok
+test native_qa::f_hook_prompt_installs_only_after_the_user_confirms ... ok
+test native_qa::f_hook_prompt_later_is_remembered_per_build ... ok
+test native_qa::f_palette_sends_ctrl_p_and_ctrl_k_to_the_current_terminal ... ok
+test native_qa::f_status_bar_language_server_menu_off_restart_log ... ok
+test native_qa::d_ime_review_comment_editor ... ok
+test native_qa::g_saving_in_the_editor_touches_the_task ... ok
+test native_qa::f_terminal_links_keyboard_picker_and_ctrl_click ... ok
+test native_qa::g_snippet_completion_tab_stops_and_auto_import ... ok
+test native_qa::c_review_controls_are_reachable_by_keyboard ... ok
+test native_qa::g_task_removing_saves_unsaved_edits_or_closes_a_clean_editor ... ok
+test orch::tests::badges_follow_status_and_lifecycle ... ok
+test orch::tests::pending_sorts_numerically_and_resolved_newest_first ... ok
+test orch::tests::snapshot_merge_reports_new_and_drops_vanished_pending ... ok
+test panel::tests::persisted_state_roundtrip ... ok
+test panel::tests::reply_filter ... ok
+test pr_panel::tests::checks_and_error_texts ... ok
+test pr_panel::tests::conflicts_from_github_merge_state ... ok
+test pr_panel::tests::fixture_scenes_come_from_the_fake_forge ... ok
+test pr_panel::tests::title_and_body_prefill ... ok
+test native_qa::c_tab_order_cycles_and_reverses_on_main_screens ... ok
+test pr_qa::pr_create_by_keyboard_prefills_and_pushes ... ok
+test native_qa::h_tree_delete_prompt_esc_cancels_enter_deletes ... ok
+test review::editor_tests::first_change_line_for_open_in_editor ... ok
+test review::tests::queued_to_delivered_is_reported_once ... ok
+test review::tests::refusal_messages ... ok
+test review::tests::selection_or_all_open ... ok
+test review::tests::submit_check_lines_and_unconfirmed_toast_once ... ok
+test review::tests::turn_end_detection ... ok
+test source::tests::color_reply_filter_drops_stale_and_duplicate_replies ... ok
+test source::tests::command_line_quotes ... ok
+test source::tests::lifecycle_events_map_to_refreshes_and_removal ... ok
+test source::tests::orchestration_stream_events ... ok
+test source::tests::presets ... ok
+test source::tests::transport_vs_rpc_errors ... ok
+test strings::toolkit_tests::host_catalog_reaches_dock_and_diff ... ok
+test pr_qa::pr_without_a_remote_shows_the_connect_guidance ... ok
+test term_links::tests::accept_checks_files_and_url_schemes ... ok
+test term_links::tests::msys_paths_become_drive_paths ... ok
+test term_links::tests::owning_task_prefers_the_terminal_task_and_gives_a_slash_path ... ok
+test term_links::tests::resolves_relative_to_cwd_then_worktree_with_both_separators ... ok
+test theme::tests::old_settings_get_independent_font_defaults ... ok
+test theme::tests::os_contrast_theme_forces_high_contrast_tokens ... ok
+test theme::tests::app_switches_tokens_when_the_os_reports_high_contrast ... ok
+test tree::tests::collapse_hides_children_but_keeps_aggregate ... ok
+test tree::tests::group_started_from_a_terminal_nests_under_it_with_aggregate ... ok
+test tree::tests::loose_terminal_chain_and_self_parent ... ok
+test tree::tests::pod_run_child_terminal_nests_under_parent_terminal_and_survives_exit ... ok
+test tree::tests::unknown_parents_and_cycles_fall_back_to_roots ... ok
+test vm::tests::program_labels ... ok
+test vm::tests::task_from_protocol_v3 ... ok
+test vm::tests::task_parse_and_counts ... ok
+test vm::tests::terminal_from_p0_info ... ok
+test vm::tests::terminal_parent_fields_v7 ... ok
+test workspace::tests::needs_you_toast_suppressed_only_for_the_terminal_in_view ... ok
+test vm::tests::terminal_with_future_fields ... ok
+test pr_qa::pr_failed_checks_then_merge_after_confirmation ... ok
+test native_qa::h_editor_tabs_keyboard_preview_mru_close_reopen ... ok
+
+test result: ok. 94 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 4.42s
+
+     Running unittests src\main.rs (target\debug\deps\pod-3a41726ce51c7fcc.exe)
+
+running 14 tests
+test hooks_install::tests::command_exes ... ok
+test hooks_install::tests::stamps ... ok
+test hooks_install::tests::hook_versions_and_event_names ... ok
+test pr::tests::summary_lines ... ok
+test reconnect::tests::disconnects_and_backoff ... ok
+test hooks_install::tests::codex_trust_entries_pruned_and_rekeyed ... ok
+test tests::cli_definition_is_valid ... ok
+test tests::keys_and_stop_parse ... ok
+test tests::run_takes_argv_after_double_dash ... ok
+test tests::pr_commands_parse ... ok
+test tests::wait_flags_conflict ... ok
+test tests::status_commands_parse ... ok
+test tests::task_commands_parse ... ok
+test tests::orchestration_commands_parse ... ok
+
+test result: ok. 14 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+     Running tests\hooks.rs (target\debug\deps\hooks-440013111f45548c.exe)
+
+running 5 tests
+test install_creates_missing_files_and_uninstall_does_not ... ok
+test status_reports_binary_paths_and_versions ... ok
+test uninstall_removes_pod_codex_trust_entries_from_temp_config ... ok
+test install_reinstall_status_uninstall_keep_foreign_entries ... ok
+test codex_hooks_trusted_via_app_server_in_temp_home ... ok
+
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 3.50s
+
+     Running unittests src\lib.rs (target\debug\deps\pod_diff-8a2de7fb49769ff5.exe)
+
+running 7 tests
+test model::tests::excerpt_lines ... ok
+test model::tests::patch_added_deleted_no_newline_crlf ... ok
+test model::tests::patch_full_context_and_markers ... ok
+test model::tests::bench_is_deterministic ... ok
+test model::tests::patch_rename_and_binary ... ok
+test tests::parse_rows_match_sources ... ok
+test model::tests::load_changed_from_git ... ok
+
+test result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.95s
+
+     Running unittests src\lib.rs (target\debug\deps\pod_editor-d16394c1edc62921.exe)
+
+running 63 tests
+test fuzzy::tests::indices_point_at_matched_chars ... ok
+test fuzzy::tests::filename_beats_directory_match ... ok
+test fuzzy::tests::path_queries_use_directories ... ok
+test fuzzy::tests::consecutive_and_shorter_win ... ok
+test fuzzy::tests::subsequence_required_and_case_insensitive ... ok
+test fuzzy::tests::word_starts_beat_scattered ... ok
+test git::tests::porcelain_records_and_renames ... ok
+test git::tests::dirs_roll_up_highest_priority ... ok
+test index::tests::recents_boost_and_empty_query ... ok
+test lsp::client::tests::pending_requests_fail_when_server_dies ... ok
+test lsp::client::tests::requests_notifications_and_server_requests ... ok
+test index::tests::index_respects_gitignore ... ok
+test lsp::registry::tests::languages_by_extension ... ok
+test lsp::registry::tests::registry_merge_overrides_and_adds ... ok
+test lsp::registry::tests::roots_stay_inside_worktree ... ok
+test lsp::registry::tests::which_uses_pathext ... ok
+test lsp::rpc::tests::classify_messages ... ok
+test lsp::rpc::tests::extra_headers_and_case ... ok
+test lsp::rpc::tests::frames_round_trip_with_unicode ... ok
+test lsp::rpc::tests::truncated_and_bad_frames_error ... ok
+test lsp::server::tests::apply_edit_waits_for_the_editor_answer ... ok
+test lsp::server::tests::backoff_doubles_then_gives_up ... ok
+test lsp::server::tests::initialize_params_use_file_uri ... ok
+test lsp::snippet::tests::parses_stops_in_visiting_order ... ok
+test lsp::snippet::tests::session_follows_edits_and_steps ... ok
+test lsp::snippet::tests::trivial_snippets_need_no_session ... ok
+test lsp::store::tests::apply_edits_back_to_front ... ok
+test lsp::store::tests::completion_extras_match_the_inserted_text_once ... ok
+test lsp::store::tests::completion_filtering ... ok
+test lsp::store::tests::incremental_ranges_replay_to_the_same_text ... ok
+test lsp::store::tests::snippets_expand_to_their_default_text ... ok
+test tabs::tests::closed_stack_is_capped_and_deduplicated ... ok
+test tabs::tests::closing_activates_the_most_recent_and_remembers ... ok
+test tabs::tests::ctrl_page_keys_move_by_position_and_wrap ... ok
+test tabs::tests::ctrl_tab_walks_mru_while_held_and_toggles_after_release ... ok
+test tabs::tests::mru_round_trips_through_indices ... ok
+test tabs::tests::new_tabs_go_after_the_active_one ... ok
+test tabs::tests::preview_is_replaced_in_place_until_pinned ... ok
+test tabs::tests::rename_follows_tabs_history_and_preview ... ok
+test tabs::tests::reopen_closed_restores_position_newest_first_and_skips_open_files ... ok
+test text::tests::bom_and_binary ... ok
+test text::tests::crlf_round_trip_keeps_bytes ... ok
+test text::tests::offsets_and_positions ... ok
+test text::tests::size_guard_flags ... ok
+test text::tests::utf16_columns_with_astral_and_hangul ... ok
+test tree::tests::gitignore_respected_and_dirs_first ... ok
+test tree::tests::keyboard_navigation ... ok
+test tree::tests::nested_gitignore_and_lazy_expand ... ok
+test index::tests::fifty_thousand_files_query_is_fast ... ok
+test ui::quick_open::tests::highlight_ranges_are_byte_ranges_per_part ... ok
+test ui::strings::tests::tab_names_say_path_and_state ... ok
+test ui::workspace::tests::line_col_parsing ... ok
+test ui::workspace::tests::session_json_is_stable ... ok
+test ui::workspace::tests::tree_names_stay_inside_the_root ... ok
+test uri::tests::drive_paths_round_trip ... ok
+test uri::tests::non_file_schemes_are_rejected ... ok
+test uri::tests::server_spellings_of_drive_letters_agree ... ok
+test uri::tests::unc_and_verbatim_prefixes ... ok
+test tree::tests::reveal_and_refresh ... ok
+test watch::tests::classify_filters_ignored_and_git ... ok
+test lsp::job::tests::closing_the_job_kills_grandchildren ... ok
+test watch::tests::batches_real_changes ... ok
+test git::tests::real_repository_status ... ok
+
+test result: ok. 63 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.75s
+
+     Running unittests src\bin\pod-editor-demo.rs (target\debug\deps\pod_editor_demo-d1d889ab7ecb950e.exe)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src\bin\fake_lsp.rs (target\debug\deps\pod_editor_fake_lsp-382ac42a663777e5.exe)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests\lsp_lifecycle.rs (target\debug\deps\lsp_lifecycle-f70ebef6f2fe9779.exe)
+
+running 7 tests
+test missing_server_is_reported_not_spawned ... ok
+test rust_analyzer_code_actions ... ignored
+test rust_analyzer_smoke ... ignored
+test crash_is_reported_and_pending_requests_fail ... ok
+test fake_server_full_lifecycle ... ok
+test server_apply_edit_is_forwarded_and_answered ... ok
+test dropping_a_server_kills_its_process_tree ... ok
+
+test result: ok. 5 passed; 0 failed; 2 ignored; 0 measured; 0 filtered out; finished in 1.30s
+
+     Running tests\tabs_lsp.rs (target\debug\deps\tabs_lsp-7478ebfabfc86311.exe)
+
+running 2 tests
+test restored_background_tabs_open_on_the_server_only_when_shown ... ok
+test tabs_open_and_close_server_documents_exactly_once ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.60s
+
+     Running unittests src\lib.rs (target\debug\deps\pod_forge-b10bd9c32f53a5bf.exe)
+
+running 26 tests
+test error::tests::classifies_real_messages ... ok
+test error::tests::empty_stderr_names_the_exit_code ... ok
+test fake::tests::drafts_cannot_merge_and_close_works ... ok
+test fake::tests::injected_failures_and_no_remote ... ok
+test fake::tests::create_requires_a_push_then_tracks_checks_to_merge ... ok
+test fixtures::tests::scenario_verdicts ... ok
+test gh::tests::checks_pending_exit_code_and_no_checks ... ok
+test gh::tests::create_reuses_an_existing_pull_request ... ok
+test gh::tests::create_sends_body_on_stdin_then_views ... ok
+test gh::tests::create_with_a_base_missing_on_the_remote ... ok
+test gh::tests::parses_recorded_check_fixtures ... ok
+test gh::tests::parses_recorded_view_fixtures ... ok
+test gh::tests::parses_paginated_comments ... ok
+test gh::tests::push_errors_are_classified ... ok
+test gh::tests::push_merge_close_and_find_commands ... ok
+test gh::tests::url_numbers_and_branch_choice ... ok
+test remote::tests::remote_v_and_choice ... ok
+test remote::tests::url_shapes ... ok
+test fake::tests::file_backed_state_is_shared ... ok
+test tests::merge_method_words ... ok
+test tests::slug_args ... ok
+test tests::summary_counts_and_verdict ... ok
+test time::tests::known_dates ... ok
+test runner::tests::runs_and_captures_stdin_stdout_stderr ... ok
+test remote::tests::detects_from_a_real_repository_without_network ... ok
+test runner::tests::missing_tool_and_timeout ... ok
+
+test result: ok. 26 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.36s
+
+     Running unittests src\main.rs (target\debug\deps\pod_hook-182f5e90bd4082a0.exe)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests\cli.rs (target\debug\deps\cli-73bc690525da2795.exe)
+
+running 11 tests
+test detached_spawn_still_answers_on_pipes ... ok
+test env_set_but_no_pipe_prints_empty_object_and_exits_fast ... ok
+test install_dry_run_profile_writes_nothing ... ok
+test no_env_does_not_wait_for_stdin ... ok
+test bad_args_still_harmless ... ok
+test install_requires_dry_run_and_prints_blocks ... ok
+test no_env_prints_empty_object_and_exits_fast ... ok
+test windows_exe_is_gui_subsystem ... ok
+test pipe::delivers_one_json_line_to_the_pipe ... ok
+test env_set_and_stdin_never_closed_still_exits_within_budget ... ok
+test parallel_burst_all_answer_and_exit ... ok
+
+test result: ok. 11 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.88s
+
+     Running unittests src\lib.rs (target\debug\deps\pod_mods-3bc30d4af00b716b.exe)
+
+running 8 tests
+test manifest::tests::layout_rules ... ok
+test runtime::tests::events_reach_handlers_and_logs_reach_the_host ... ok
+test runtime::tests::host_errors_become_catchable_exceptions ... ok
+test runtime::tests::exceptions_have_messages ... ok
+test runtime::tests::no_filesystem_network_process_or_modules ... ok
+test manifest::tests::manifest_rules ... ok
+test runtime::tests::memory_bombs_hit_the_limit ... ok
+test runtime::tests::loops_are_interrupted_and_uncatchable ... ok
+
+test result: ok. 8 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.46s
+
+     Running tests\manager.rs (target\debug\deps\manager-c8bd06fe41be97ae.exe)
+
+running 9 tests
+test detectors_see_matching_terminals_only ... ok
+test events_reach_only_registered_mods_and_logs_are_kept ... ok
+test discovery_enable_grant_and_persistence ... ok
+test example_mods_load_and_work ... ok
+test palette_commands_and_layout_only_mods ... ok
+test rate_limits ... ok
+test permissions_and_scope_are_enforced ... ok
+test looping_throwing_and_memory_hungry_mods_are_stopped ... ok
+test queue_overflow_is_counted_not_blocking ... ok
+
+test result: ok. 9 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 5.34s
+
+     Running unittests src\main.rs (target\debug\deps\pod_spike-a7fba00fba6b2bc6.exe)
+
+running 1 test
+test tests::command_line_quotes ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src\lib.rs (target\debug\deps\pod_status-54778c2d6279f92a.exe)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests\heuristics.rs (target\debug\deps\heuristics-2aec617775c31fb5.exe)
+
+running 9 tests
+test claude_title_glyphs ... ok
+test claude_tracker_working_then_idle_mark_is_done ... ok
+test agent_from_title_when_process_unknown ... ok
+test codex_quiet_time_idle ... ok
+test codex_title_samples ... ok
+test process_adapter ... ok
+test screen_blocked_overrides_title_and_clears ... ok
+test screen_patterns ... ok
+test tables_are_well_formed ... ok
+
+test result: ok. 9 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests\hooks.rs (target\debug\deps\hooks-426fb8880bebf226.exe)
+
+running 10 tests
+test apply_refuses_real_user_config ... ok
+test claude_block_shape ... ok
+test codex_block_shape ... ok
+test claude_mapping_table ... ok
+test codex_mapping_table ... ok
+test every_installed_event_has_a_mapping ... ok
+test wire_message_round_trip ... ok
+test merge_keeps_foreign_hooks_and_is_idempotent ... ok
+test malformed_existing_file_is_an_error_not_overwritten ... ok
+test plan_and_apply_in_temp_dir_global_and_profile ... ok
+
+test result: ok. 10 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.04s
+
+     Running tests\mod_source.rs (target\debug\deps\mod_source-04d9a7ff1f0d3042.exe)
+
+running 3 tests
+test clearing_and_exit_drop_mod_evidence ... ok
+test source_order ... ok
+test mod_beats_heuristics_but_not_osc_or_hooks ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests\osc_parser.rs (target\debug\deps\osc_parser-6f421bbfe9fa1c5a.exe)
+
+running 15 tests
+test base64_padding_optional_and_empty_text ... ok
+test clear_with_and_without_id ... ok
+test encode_round_trip ... ok
+test invalid_field_drops_whole_record ... ok
+test kind_only_kept_for_blocked_and_unknown_keys_ignored ... ok
+test non_ascii_payload_dropped ... ok
+test progress_forms ... ok
+test sample_b_claude_query ... ok
+test sample_c_claude_reports ... ok
+test sample_d_question_msg_decoded ... ok
+test sample_e_all_fields ... ok
+test sample_a_query_reply_bytes ... ok
+test value_charset_and_lengths ... ok
+test stream_robustness ... ok
+test payload_size_limit ... ok
+
+test result: ok. 15 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.20s
+
+     Running tests\state_machine.rs (target\debug\deps\state_machine-642cf6d6e358a830.exe)
+
+running 29 tests
+test aggregate_priority ... ok
+test answer_keys ... ok
+test answered_permission_prompt_is_working_until_the_next_hook ... ok
+test aggregate_snapshots_uses_display_state ... ok
+test any_state_to_exited_keeps_final_state_and_restart_resets ... ok
+test blocked_to_idle_on_interrupt ... ok
+test blocked_to_working_on_approve_or_answer ... ok
+test done_to_idle_on_ack_and_done_to_working_on_new_prompt ... ok
+test esc_and_unanswered_prompts_keep_their_behaviour ... ok
+test heuristic_idle_does_not_ack_stale_hook_done ... ok
+test heuristic_working_overrides_stale_hook_done ... ok
+test hook_blocked_clears_on_osc_turn_end_after_interrupt ... ok
+test hook_outranks_osc_while_fresh ... ok
+test hook_subagents ... ok
+test idle_to_working_by_osc_and_hook ... ok
+test osc_clear_demotes_to_lower_source ... ok
+test osc_never_goes_stale_and_outranks_heuristics ... ok
+test osc_sub_records_and_held_open_done ... ok
+test replay_sample_d_turns_like_hc ... ok
+test replay_sample_e_and_query_count ... ok
+test snapshot_serializes_to_json ... ok
+test stale_hook_yields_to_newer_osc_only ... ok
+test unknown_to_idle_by_hook_session_start ... ok
+test unknown_to_idle_by_osc ... ok
+test unknown_to_working_by_heuristic_spinner ... ok
+test working_interrupt_to_idle_cancelled ... ok
+test working_to_blocked_kinds ... ok
+test working_to_done_and_turn_counter ... ok
+test working_to_error_and_back ... ok
+
+test result: ok. 29 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src\lib.rs (target\debug\deps\pod_terminal_view-45124aee5a66df3c.exe)
+
+running 38 tests
+test element::tests::wide_glyphs_fill_their_two_cells ... ok
+test element::tests::segments_isolate_wide_chars ... ok
+test keys::tests::alt_combos ... ok
+test element::tests::wider_glyphs_shrink_to_the_slot ... ok
+test keys::tests::control_keys ... ok
+test keys::tests::ctrl_combos ... ok
+test keys::tests::cursor_keys_and_modes ... ok
+test keys::tests::editing_keys ... ok
+test keys::tests::focus ... ok
+test keys::tests::function_keys ... ok
+test keys::tests::paste ... ok
+test keys::tests::plain_text_goes_to_text_path ... ok
+test keys::tests::windows_key_is_not_sent ... ok
+test links::tests::char_ranges_cover_the_printed_text ... ok
+test links::tests::not_links ... ok
+test links::tests::rustc_gcc_grep_forms ... ok
+test links::tests::urls_trim_punctuation_and_parens ... ok
+test links::tests::wide_chars_map_to_their_first_cell ... ok
+test links::tests::windows_paths_and_msvc ... ok
+test links::tests::wrapped_link_spans_rows_and_is_found_from_either_row ... ok
+test mouse::tests::legacy_encoding ... ok
+test mouse::tests::motion_by_mode ... ok
+test mouse::tests::off_reports_nothing ... ok
+test mouse::tests::sgr_modifiers_and_wheel ... ok
+test mouse::tests::sgr_press_release ... ok
+test mouse::tests::utf8_encoding ... ok
+test selection::tests::line_selection_follows_wraps ... ok
+test selection::tests::row_spans ... ok
+test selection::tests::simple_multi_line_trims_trailing_blanks ... ok
+test selection::tests::simple_single_line ... ok
+test selection::tests::soft_wrap_joins_without_newline ... ok
+test selection::tests::wide_chars ... ok
+test selection::tests::word_bounds_korean ... ok
+test selection::tests::word_selection ... ok
+test vt::alacritty::tests::host_defaults_and_program_precedence ... ok
+test vt::alacritty::tests::soft_wrap_flag ... ok
+test vt::alacritty::tests::modes_and_replies ... ok
+test vt::alacritty::tests::feed_and_read_rows ... ok
+
+test result: ok. 38 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+     Running unittests src\lib.rs (target\debug\deps\pod_ui-4e5a50583a034797.exe)
+
+running 10 tests
+test tests::child_blocked_overrides_done_but_not_exited ... ok
+test tests::every_status_has_unique_shape_and_label ... ok
+test tests::contrast_protects_readable_roles ... ok
+test tests::list_selection_survives_refresh_and_ime_never_executes ... ok
+test tests::nested_focus_round_trip_and_keyboard_wrap ... ok
+test tests::status_metadata_does_not_destroy_state ... ok
+test tests::summary_deduplicates_and_preserves_mixed_lifecycle ... ok
+test tests::summary_exit_code_requires_agreement_and_known_codes ... ok
+test tests::terminal_indexed_and_truecolor_boundary ... ok
+test tests::toast_pause_and_persistent_attention ... ok
+
+test result: ok. 10 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src\lib.rs (target\debug\deps\podd-51faff9552fd21cc.exe)
+
+running 64 tests
+test endpoint::tests::paths ... ok
+test detach::tests::quoting_follows_the_crt_rules ... ok
+test env::tests::drops_launcher_markers_and_keeps_user_config ... ok
+test env::tests::set_var_is_case_insensitive ... ok
+test git::tests::misc_parsers ... ok
+test git::tests::numstat_and_name_status ... ok
+test git::tests::path_helpers ... ok
+test git::tests::status_entries_skip_rename_sources ... ok
+test git::tests::worktree_list_porcelain ... ok
+test keys::tests::named_keys ... ok
+test holder_proto::tests::frames_roundtrip ... ok
+test holder_proto::tests::foreign_hello_and_version_check ... ok
+test protocol::tests::agent_spec_wire_shape ... ok
+test pr_protocol::tests::info_flattens_the_forge_status ... ok
+test protocol::tests::base64_roundtrip ... ok
+test osc_replay::tests::keeps_latest_per_record_and_title ... ok
+test protocol::tests::empty_params_accept_null_and_object ... ok
+test protocol::tests::terminal_ref_parse ... ok
+test protocol::tests::wait_until_wire_shape ... ok
+test pty::tests::quoting_matches_msvc_rules ... ok
+test server::agent_launch::tests::codex_gets_trust_for_its_worktree_only ... ok
+test server::agent_launch::tests::quotes_and_slashes ... ok
+test pty::tests::cmd_shims_go_through_cmd_exe ... ok
+test protocol::tests::schema_lists_all_methods ... ok
+test server::groups::tests::member_naming ... ok
+test server::lifecycle::tests::git_baseline_then_changes ... ok
+test server::lifecycle::tests::status_changes_are_detected ... ok
+test server::orch_store::tests::store_roundtrip_ids_and_corrupt_file ... ok
+test server::pr::tests::default_base_strips_remote_prefixes ... ok
+test server::pr::tests::forge_errors_keep_their_kind_in_data ... ok
+test server::query_dedup::tests::color_replies_first_passes_others_dropped ... ok
+test server::query_dedup::tests::holder_answered_replies_are_dropped_once_per_client ... ok
+test server::query_dedup::tests::keys_are_not_replies ... ok
+test server::query_dedup::tests::late_and_stray_replies_are_dropped ... ok
+test server::query_dedup::tests::scanner_finds_queries_across_chunks ... ok
+test server::retention::tests::durations ... ok
+test server::review::tests::inflight_rules ... ok
+test server::review::tests::line_extraction ... ok
+test server::review::tests::paths ... ok
+test server::review::tests::prompt_shape_and_paste ... ok
+test server::review::tests::queue_expiry ... ok
+test server::review::tests::sanitizing_strips_escapes ... ok
+test server::status::tests::secrets_compare ... ok
+test server::status::tests::titles_bel_st_and_chunks ... ok
+test server::status::tests::titles_unterminated_and_overlong_dropped ... ok
+test server::status::tests::token_is_random_hex ... ok
+test server::submit::tests::a_program_that_pauses_gets_a_longer_quiet_period ... ok
+test server::submit::tests::baseline_and_reaction ... ok
+test server::submit::tests::settle_rules ... ok
+test server::tasks::tests::agent_command_lines ... ok
+test server::tasks::tests::names ... ok
+test server::tasks::tests::registry_roundtrip_and_lookup ... ok
+test status_protocol::tests::task_aggregate_uses_priority_and_display_state ... ok
+test vt::tests::alt_screen_snapshot ... ok
+test vt::tests::alt_screen_snapshot_keeps_main_screen ... ok
+test vt::tests::osc7501_query_scanner ... ok
+test vt::tests::scroll_region_survives_snapshot ... ok
+test vt::tests::snapshot_limits_scrollback_and_keeps_modes ... ok
+test vt::tests::snapshot_reproduces_text_wraps_and_cursor ... ok
+test winsec::tests::registry_environment_has_basics ... ok
+test winsec::tests::sid_and_user_only_descriptor ... ok
+test detach::tests::child_does_not_inherit_our_pipe ... ok
+test server::groups::tests::check_runner_cancel_kills_the_command ... ok
+test server::groups::tests::check_runner_exit_codes_output_and_timeout ... ok
+
+test result: ok. 64 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.68s
+
+     Running unittests src\bin\pod-holder.rs (target\debug\deps\pod_holder-a06c3785cc7fa9f7.exe)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src\main.rs (target\debug\deps\podd-aee4dc92931e3652.exe)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests\daemon.rs (target\debug\deps\daemon-78d2907d77096145.exe)
+
+running 6 tests
+[podd 1794232262382] listening on \\.\pipe\podd-test-attach-72220-1794232261593614600-0 (pid 44632, state C:\Users\User
+\AppData\Local\Temp\podd-test-attach-72220-1794232261593614600-0)
+[podd 1794232262383] extensions from C:\Users\User\AppData\Local\Temp\podd-test-attach-72220-1794232261593614600-0\exte
+nsions
+[podd 1794232262383] 0 repo(s), 0 task(s); worktrees under C:\Users\User\AppData\Local\Temp\podd-test-attach-72220-1794
+232261593614600-0\work trees
+[podd 1794232262392] listening on \\.\pipe\podd-test-e2e-72220-1794232261593703500-1 (pid 53684, state C:\Users\User\Ap
+pData\Local\Temp\podd-test-e2e-72220-1794232261593703500-1)
+[podd 1794232262393] extensions from C:\Users\User\AppData\Local\Temp\podd-test-e2e-72220-1794232261593703500-1\extensi
+ons
+[podd 1794232262393] 0 repo(s), 0 task(s); worktrees under C:\Users\User\AppData\Local\Temp\podd-test-e2e-72220-1794232
+261593703500-1\work trees
+[podd 1794232262407] listening on \\.\pipe\podd-test-tree-72220-1794232261593775500-2 (pid 65020, state C:\Users\User\A
+ppData\Local\Temp\podd-test-tree-72220-1794232261593775500-2)
+[podd 1794232262408] extensions from C:\Users\User\AppData\Local\Temp\podd-test-tree-72220-1794232261593775500-2\extens
+ions
+[podd 1794232262408] 0 repo(s), 0 task(s); worktrees under C:\Users\User\AppData\Local\Temp\podd-test-tree-72220-179423
+2261593775500-2\work trees
+[podd 1794232262431] listening on \\.\pipe\podd-test-rpc-72220-1794232261593890900-3 (pid 51464, state C:\Users\User\Ap
+pData\Local\Temp\podd-test-rpc-72220-1794232261593890900-3)
+[podd 1794232262432] extensions from C:\Users\User\AppData\Local\Temp\podd-test-rpc-72220-1794232261593890900-3\extensi
+ons
+[podd 1794232262432] 0 repo(s), 0 task(s); worktrees under C:\Users\User\AppData\Local\Temp\podd-test-rpc-72220-1794232
+261593890900-3\work trees
+[podd 1794232262646] stopping; killed and released 0 terminal(s)
+[podd 1794232262650] run t1 ["powershell", "-NoLogo", "-NoProfile", "-Command", "$p = Start-Process ping -ArgumentList 
+'-n','600','127.0.0.1' -WindowStyle Hidden -PassThru; Write-Output ('grandchild-pid=' + $p.Id); Start-Sleep 600"] in C:
+\Users\User\AppData\Local\Temp\ (holder pid 57036)
+[podd 1794232262650] run t1 ["cmd", "/c", "echo hello"] in C:\Users\User\AppData\Local\Temp\ (holder pid 58956)
+test raw_jsonrpc_errors ... ok
+[podd 1794232262891] run t2 ["powershell", "-NoLogo", "-NoProfile"] in C:\Users\User\AppData\Local\Temp\ (holder pid 61
+76)
+[podd 1794232262895] listening on \\.\pipe\podd-test-lock-72220-1794232262871409000-4 (pid 72276, state C:\Users\User\A
+ppData\Local\Temp\podd-test-lock-72220-1794232262871409000-4)
+[podd 1794232262895] extensions from C:\Users\User\AppData\Local\Temp\podd-test-lock-72220-1794232262871409000-4\extens
+ions
+[podd 1794232262895] 0 repo(s), 0 task(s); worktrees under C:\Users\User\AppData\Local\Temp\podd-test-lock-72220-179423
+2262871409000-4\work trees
+[podd 1794232262934] stopping; killed and released 0 terminal(s)
+[podd 1794232262968] run t1 ["powershell", "-NoLogo", "-NoProfile"] in C:\Users\User\AppData\Local\Temp\ (holder pid 63
+040)
+test second_daemon_on_same_pipe_is_refused ... ok
+[podd 1794232263181] listening on \\.\pipe\podd-test-restart-72220-1794232263157881900-5 (pid 71184, state C:\Users\Use
+r\AppData\Local\Temp\podd-test-restart-72220-1794232263157881900-5)
+[podd 1794232263182] extensions from C:\Users\User\AppData\Local\Temp\podd-test-restart-72220-1794232263157881900-5\ext
+ensions
+[podd 1794232263182] 0 repo(s), 0 task(s); worktrees under C:\Users\User\AppData\Local\Temp\podd-test-restart-72220-179
+4232263157881900-5\work trees
+[podd 1794232263291] run t1 ["powershell", "-NoLogo", "-NoProfile"] in C:\Users\User\AppData\Local\Temp\ (holder pid 67
+000)
+[podd 1794232263380] kill t1
+[podd 1794232263663] attach t1 at seq 1938
+[podd 1794232263997] stopping; terminals stay alive in their holders
+[podd 1794232264097] stopping; killed and released 1 terminal(s)
+[podd 1794232264317] kill t2
+[podd 1794232264318] rm t2
+test kill_ends_the_whole_process_tree ... ok
+[podd 1794232264604] listening on \\.\pipe\podd-test-restart-72220-1794232263157881900-5 (pid 57968, state C:\Users\Use
+r\AppData\Local\Temp\podd-test-restart-72220-1794232263157881900-5)
+[podd 1794232264608] re-attached t1 (holder pid 67000, running)
+[podd 1794232264608] extensions from C:\Users\User\AppData\Local\Temp\podd-test-restart-72220-1794232263157881900-5\ext
+ensions
+[podd 1794232264608] 0 repo(s), 0 task(s); worktrees under C:\Users\User\AppData\Local\Temp\podd-test-restart-72220-179
+4232263157881900-5\work trees
+[podd 1794232264664] stopping; killed and released 1 terminal(s)
+test echo_exit_send_wait_kill_rm ... ok
+[podd 1794232265024] run t2 ["cmd", "/c", "exit 3"] in C:\Users\User\AppData\Local\Temp\ (holder pid 52792)
+[podd 1794232265205] stopping; killed and released 2 terminal(s)
+[podd 1794232265268] detach t1
+[podd 1794232265282] kill t1
+[podd 1794232265283] stopping; killed and released 1 terminal(s)
+test terminal_survives_daemon_restart ... ok
+test attach_snapshot_then_live_bytes_without_gaps_and_resize ... ok
+
+test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 3.91s
+
+     Running tests\detach.rs (target\debug\deps\detach-3b9c45b262408bc3.exe)
+
+running 1 test
+   Compiling proc-macro2 v1.0.107
+   Compiling windows-sys v0.61.2
+   Compiling serde_core v1.0.229
+   Compiling foldhash v0.2.0
+   Compiling hashbrown v0.17.1
+   Compiling memchr v2.8.3
+   Compiling winnow v1.0.5
+   Compiling quote v1.0.47
+   Compiling serde_spanned v1.1.3
+   Compiling syn v3.0.9
+   Compiling toml_parser v1.1.5+spec-1.1.0
+   Compiling toml_datetime v1.1.3+spec-1.1.0
+   Compiling toml v1.2.1+spec-1.1.0
+   Compiling indexmap v2.14.2
+   Compiling winreg v0.56.0
+   Compiling serde_json v1.0.154
+   Compiling crossbeam-utils v0.8.23
+   Compiling serde_derive_internals v0.30.0
+   Compiling serde_derive v1.0.229
+   Compiling embed-resource v3.0.12
+   Compiling ref-cast-impl v1.0.27
+   Compiling ref-cast v1.0.27
+   Compiling serde v1.0.229
+   Compiling schemars_derive v1.2.3
+   Compiling smallvec v1.16.5
+   Compiling concurrent-queue v2.5.0
+   Compiling parking_lot_core v0.9.12
+   Compiling rquickjs-core v0.14.0
+   Compiling aho-corasick v1.1.5
+   Compiling bitflags v2.13.2
+   Compiling arrayvec v0.7.8
+   Compiling fastrand v2.5.0
+   Compiling schemars v1.2.3
+   Compiling log v0.4.35
+   Compiling regex-syntax v0.8.11
+   Compiling piper v0.2.5
+   Compiling vte v0.15.0
+   Compiling anstyle-wincon v3.0.11
+   Compiling rquickjs v0.14.0
+   Compiling regex-automata v0.4.18
+   Compiling parking_lot v0.12.5
+   Compiling pod-status v0.1.0 (C:\Users\User\orca\workspaces\ide\editor-tabs\crates\pod-status)
+   Compiling polling v3.11.0
+   Compiling podd v0.1.0 (C:\Users\User\orca\workspaces\ide\editor-tabs\crates\podd)
+   Compiling tokio-macros v2.7.2
+   Compiling socket2 v0.6.5
+   Compiling anstyle-query v1.1.5
+   Compiling mio v1.2.4
+   Compiling home v0.5.12
+   Compiling miow v0.6.1
+   Compiling tokio v1.54.1
+   Compiling anstream v1.0.0
+   Compiling alacritty_terminal v0.26.0
+   Compiling pod-mods v0.1.0 (C:\Users\User\orca\workspaces\ide\editor-tabs\crates\pod-mods)
+   Compiling pod-forge v0.1.0 (C:\Users\User\orca\workspaces\ide\editor-tabs\crates\pod-forge)
+   Compiling clap_builder v4.6.7
+   Compiling clap_derive v4.6.7
+test piped_pod_ls_reaches_eof_while_the_auto_started_daemon_runs has been running for over 60 seconds
+   Compiling pod-cli v0.1.0 (C:\Users\User\orca\workspaces\ide\editor-tabs\crates\pod-cli)
+   Compiling pod-hook v0.1.0 (C:\Users\User\orca\workspaces\ide\editor-tabs\crates\pod-hook)
+   Compiling toml_edit v0.22.27
+   Compiling clap v4.6.7
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 1m 18s
+test piped_pod_ls_reaches_eof_while_the_auto_started_daemon_runs ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 79.70s
+
+     Running tests\gaps.rs (target\debug\deps\gaps-1cf70354357241c9.exe)
+
+running 4 tests
+[podd 1794232346215] listening on \\.\pipe\podd-test-holders-65544-1794232346160846400-0 (pid 47660, state C:\Users\Use
+r\AppData\Local\Temp\podd-test-holders-65544-1794232346160846400-0)
+[podd 1794232346216] t7: incompatible holder: holder protocol 99, this podd supports 1..=2 (pipe \\.\pipe\podd-test-hol
+ders-65544-1794232346160846400-0-t7)
+[podd 1794232346216] re-attached t7 (holder pid 42564, incompatible holder)
+[podd 1794232346217] re-attached t8 (holder pid 1, running)
+[podd 1794232346217] extensions from C:\Users\User\AppData\Local\Temp\podd-test-holders-65544-1794232346160846400-0\ext
+ensions
+[podd 1794232346217] 0 repo(s), 0 task(s); worktrees under C:\Users\User\AppData\Local\Temp\podd-test-holders-65544-179
+4232346160846400-0\work trees
+[podd 1794232346389] run t9 ["cmd", "/c", "echo n"] in C:\Users\User\AppData\Local\Temp\ (holder pid 14660)
+[podd 1794232346390] rm t7 (incompatible holder terminated)
+[podd 1794232346584] stopping; killed and released 2 terminal(s)
+   Compiling indexmap v2.14.2
+test holder_versions_are_negotiated ... ok
+   Compiling serde_json v1.0.154
+   Compiling schemars v1.2.3
+   Compiling pod-status v0.1.0 (C:\Users\User\orca\workspaces\ide\editor-tabs\crates\pod-status)
+   Compiling pod-forge v0.1.0 (C:\Users\User\orca\workspaces\ide\editor-tabs\crates\pod-forge)
+   Compiling pod-mods v0.1.0 (C:\Users\User\orca\workspaces\ide\editor-tabs\crates\pod-mods)
+   Compiling podd v0.1.0 (C:\Users\User\orca\workspaces\ide\editor-tabs\crates\podd)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 18.41s
+   Compiling serde_core v1.0.229
+   Compiling winreg v0.56.0
+   Compiling indexmap v2.14.2
+   Compiling serde v1.0.229
+   Compiling embed-resource v3.0.12
+   Compiling windows-sys v0.61.2
+   Compiling toml_edit v0.22.27
+   Compiling podd v0.1.0 (C:\Users\User\orca\workspaces\ide\editor-tabs\crates\podd)
+   Compiling pod-hook v0.1.0 (C:\Users\User\orca\workspaces\ide\editor-tabs\crates\pod-hook)
+   Compiling serde_json v1.0.154
+   Compiling anstyle-wincon v3.0.11
+   Compiling anstyle-query v1.1.5
+   Compiling schemars v1.2.3
+   Compiling pod-status v0.1.0 (C:\Users\User\orca\workspaces\ide\editor-tabs\crates\pod-status)
+   Compiling anstream v1.0.0
+   Compiling pod-cli v0.1.0 (C:\Users\User\orca\workspaces\ide\editor-tabs\crates\pod-cli)
+   Compiling clap_builder v4.6.7
+   Compiling pod-mods v0.1.0 (C:\Users\User\orca\workspaces\ide\editor-tabs\crates\pod-mods)
+   Compiling pod-forge v0.1.0 (C:\Users\User\orca\workspaces\ide\editor-tabs\crates\pod-forge)
+   Compiling clap v4.6.7
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 28.23s
+[podd 1794232392950] listening on \\.\pipe\podd-test-dedup-65544-1794232392920816500-1 (pid 50980, state C:\Users\User\
+AppData\Local\Temp\podd-test-dedup-65544-1794232392920816500-1)
+[podd 1794232392950] extensions from C:\Users\User\AppData\Local\Temp\podd-test-dedup-65544-1794232392920816500-1\exten
+sions
+[podd 1794232392951] 0 repo(s), 0 task(s); worktrees under C:\Users\User\AppData\Local\Temp\podd-test-dedup-65544-17942
+32392920816500-1\work trees
+[podd 1794232392964] listening on \\.\pipe\podd-test-parent-65544-1794232392920939600-2 (pid 53536, state C:\Users\User
+\AppData\Local\Temp\podd-test-parent-65544-1794232392920939600-2)
+[podd 1794232392965] extensions from C:\Users\User\AppData\Local\Temp\podd-test-parent-65544-1794232392920939600-2\exte
+nsions
+[podd 1794232392965] 0 repo(s), 0 task(s); worktrees under C:\Users\User\AppData\Local\Temp\podd-test-parent-65544-1794
+232392920939600-2\work trees
+[podd 1794232392981] listening on \\.\pipe\podd-test-lag-65544-1794232392921047400-3 (pid 62284, state C:\Users\User\Ap
+pData\Local\Temp\podd-test-lag-65544-1794232392921047400-3)
+[podd 1794232392982] extensions from C:\Users\User\AppData\Local\Temp\podd-test-lag-65544-1794232392921047400-3\extensi
+ons
+[podd 1794232392982] 0 repo(s), 0 task(s); worktrees under C:\Users\User\AppData\Local\Temp\podd-test-lag-65544-1794232
+392921047400-3\work trees
+[podd 1794232393126] run t1 ["powershell", "-NoLogo", "-NoProfile"] in C:\Users\User\AppData\Local\Temp\ (holder pid 62
+924)
+[podd 1794232393147] run t1 ["C:\\Users\\User\\orca\\workspaces\\ide\\editor-tabs\\target\\debug\\examples/fake-agent.e
+xe", "print:agent-ready", "wait-file:C:\\Users\\User\\AppData\\Local\\Temp\\podd-test-lag-go-65544-1794232393015445000-
+5", "flood:6000", "print:big-done", "hold"] in C:\Users\User\AppData\Local\Temp\ (holder pid 12804)
+[podd 1794232393149] attach t1 at seq 36
+[podd 1794232393439] run t1 ["C:\\Users\\User\\orca\\workspaces\\ide\\editor-tabs\\target\\debug\\examples/fake-agent.e
+xe", "print:agent-started", "wait-file:C:\\Users\\User\\AppData\\Local\\Temp\\podd-test-dedup-files-65544-1794232392980
+698700-4\\go.flag", "print:\u{1b}[c\u{1b}]11;?\u{7}", "paste-loop-silent:C:\\Users\\User\\AppData\\Local\\Temp\\podd-te
+st-dedup-files-65544-1794232392980698700-4\\input.log"] in C:\Users\User\AppData\Local\Temp\ (holder pid 46480)
+[podd 1794232393440] attach t1 at seq 38
+[podd 1794232393493] t1: dropped query replies from attach input (1 duplicate, 0 late)
+[podd 1794232393493] t1: dropped query replies from attach input (0 duplicate, 2 late)
+[podd 1794232393675] detach t1
+[podd 1794232393694] kill t1
+[podd 1794232393696] stopping; killed and released 1 terminal(s)
+[podd 1794232393739] attach t1 lagged at seq 77861 (16384 bytes queued); dropped
+[podd 1794232393739] detach t1
+[podd 1794232393746] attach t1 at seq 298942
+[podd 1794232393746] detach t1
+[podd 1794232393772] stopping; killed and released 1 terminal(s)
+test attach_query_replies_are_not_duplicated ... ok
+test slow_attach_client_is_dropped_and_can_reattach ... ok
+[podd 1794232394375] run t2 ["cmd", "/c", "echo kid-out"] in C:\Users\User\AppData\Local\Temp (holder pid 72432)
+[podd 1794232394453] run t3 ["cmd", "/c", "echo a"] in C:\Users\User\AppData\Local\Temp\ (holder pid 34808)
+[podd 1794232394453] unknown parent terminal t999 ignored
+[podd 1794232394534] run t4 ["cmd", "/c", "echo b"] in C:\Users\User\AppData\Local\Temp\ (holder pid 68448)
+[podd 1794232394540] stopping; terminals stay alive in their holders
+[podd 1794232394786] listening on \\.\pipe\podd-test-parent-65544-1794232392920939600-2 (pid 9000, state C:\Users\User\
+AppData\Local\Temp\podd-test-parent-65544-1794232392920939600-2)
+[podd 1794232394790] re-attached t1 (holder pid 62924, running)
+[podd 1794232394793] re-attached t2 (holder pid 72432, running)
+[podd 1794232394796] re-attached t3 (holder pid 34808, running)
+[podd 1794232394799] re-attached t4 (holder pid 68448, running)
+[podd 1794232394799] extensions from C:\Users\User\AppData\Local\Temp\podd-test-parent-65544-1794232392920939600-2\exte
+nsions
+[podd 1794232394799] 0 repo(s), 0 task(s); worktrees under C:\Users\User\AppData\Local\Temp\podd-test-parent-65544-1794
+232392920939600-2\work trees
+[podd 1794232394847] stopping; killed and released 4 terminal(s)
+test pod_run_inside_a_terminal_records_its_parent ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 48.93s
+
+     Running tests\lifecycle.rs (target\debug\deps\lifecycle-6d6a9965aca3a9fa.exe)
+
+running 1 test
+[podd 1794232396093] listening on \\.\pipe\podd-test-lifecycle-70852-1794232396060810700-1 (pid 64820, state C:\Users\U
+ser\AppData\Local\Temp\podd-test-lifecycle-70852-1794232396060810700-1)
+[podd 1794232396093] extensions from C:\Users\User\AppData\Local\Temp\podd-test-lifecycle-70852-1794232396060810700-1\e
+xtensions
+[podd 1794232396093] 0 repo(s), 0 task(s); worktrees under C:\Users\User\AppData\Local\Temp\podd-test-lifecycle-70852-1
+794232396060810700-1\work trees
+[podd 1794232396227] run t1 ["cmd.exe", "/c", "exit 3"] in C:\Users\User\AppData\Local\Temp\ (holder pid 22508)
+[podd 1794232396392] rm t1
+[podd 1794232396454] repo add lc C:\Users\User\AppData\Local\Temp\podd-test-lc-repo-70852-1794232395616490900-0\repo
+[podd 1794232397056] task lc/one: worktree C:\Users\User\AppData\Local\Temp\podd-test-lifecycle-70852-17942323960608107
+00-1\work trees\lc\one on pod/one from main (95ea9fee90f0)
+[podd 1794232397148] run t2 ["cmd.exe", "/q", "/k"] in C:\Users\User\AppData\Local\Temp\podd-test-lifecycle-70852-17942
+32396060810700-1\work trees\lc\one (holder pid 60628)
+[podd 1794232397151] task lc/one: agent terminal t2
+[podd 1794232401739] run t3 ["cmd.exe", "/q", "/k"] in C:\Users\User\AppData\Local\Temp\podd-test-lifecycle-70852-17942
+32396060810700-1\work trees\lc\one (holder pid 65772)
+[podd 1794232402163] task lc/two: worktree C:\Users\User\AppData\Local\Temp\podd-test-lifecycle-70852-17942323960608107
+00-1\work trees\lc\two on pod/two from main (95ea9fee90f0)
+[podd 1794232402242] run t4 ["cmd.exe", "/q", "/k"] in C:\Users\User\AppData\Local\Temp\podd-test-lifecycle-70852-17942
+32396060810700-1\work trees\lc\two (holder pid 66576)
+[podd 1794232402246] task lc/two: agent terminal t4
+[podd 1794232409503] rm t2
+[podd 1794232409532] rm t3
+[podd 1794232409806] task rm lc/one (terminals ["t2", "t3"], worktree removed true, branch deleted true)
+[podd 1794232412855] rm t4
+[podd 1794232413141] task rm lc/two (terminals ["t4"], worktree removed true, branch deleted true)
+[podd 1794232413141] stopping; killed and released 0 terminal(s)
+test lifecycle_events_and_task_touch ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 17.77s
+
+     Running tests\mods.rs (target\debug\deps\mods-404346f9f6e48b76.exe)
+
+running 1 test
+[podd 1794232413952] listening on \\.\pipe\podd-test-mods-41476-1794232413927413700-0 (pid 69728, state C:\Users\User\A
+ppData\Local\Temp\podd-test-mods-41476-1794232413927413700-0)
+[podd 1794232413953] extensions from C:\Users\User\AppData\Local\Temp\podd-test-mods-41476-1794232413927413700-0\extens
+ions
+[podd 1794232413953] 0 repo(s), 0 task(s); worktrees under C:\Users\User\AppData\Local\Temp\podd-test-mods-41476-179423
+2413927413700-0\work trees
+[podd 1794232414081] run t1 ["powershell", "-NoLogo", "-NoProfile"] in C:\Users\User\AppData\Local\Temp\ (holder pid 22
+784)
+[podd 1794232416695] stopping; killed and released 1 terminal(s)
+test mods_in_the_daemon ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 3.01s
+
+     Running tests\orchestration.rs (target\debug\deps\orchestration-c317430784fe5b02.exe)
+
+running 10 tests
+[podd 1794232417537] listening on \\.\pipe\podd-test-gate-expiry-67776-1794232417511791000-2 (pid 7152, state C:\Users\
+User\AppData\Local\Temp\podd-test-gate-expiry-67776-1794232417511791000-2)
+[podd 1794232417538] extensions from C:\Users\User\AppData\Local\Temp\podd-test-gate-expiry-67776-1794232417511791000-2
+\extensions
+[podd 1794232417538] 0 repo(s), 0 task(s); worktrees under C:\Users\User\AppData\Local\Temp\podd-test-gate-expiry-67776
+-1794232417511791000-2\work trees
+[podd 1794232417594] gate g1 requested (task -, terminal -)
+[podd 1794232417599] gate g2 requested (task -, terminal -)
+[podd 1794232418117] listening on \\.\pipe\podd-test-gate-67776-1794232418092357800-4 (pid 43656, state C:\Users\User\A
+ppData\Local\Temp\podd-test-gate-67776-1794232418092357800-4)
+[podd 1794232418118] extensions from C:\Users\User\AppData\Local\Temp\podd-test-gate-67776-1794232418092357800-4\extens
+ions
+[podd 1794232418118] 0 repo(s), 0 task(s); worktrees under C:\Users\User\AppData\Local\Temp\podd-test-gate-67776-179423
+2418092357800-4\work trees
+[podd 1794232418136] listening on \\.\pipe\podd-test-group-67776-1794232418114783200-5 (pid 45444, state C:\Users\User\
+AppData\Local\Temp\podd-test-group-67776-1794232418114783200-5)
+[podd 1794232418136] extensions from C:\Users\User\AppData\Local\Temp\podd-test-group-67776-1794232418114783200-5\exten
+sions
+[podd 1794232418137] 0 repo(s), 0 task(s); worktrees under C:\Users\User\AppData\Local\Temp\podd-test-group-67776-17942
+32418114783200-5\work trees
+[podd 1794232418151] listening on \\.\pipe\podd-test-perm-approved-67776-1794232418130284100-6 (pid 46104, state C:\Use
+rs\User\AppData\Local\Temp\podd-test-perm-approved-67776-1794232418130284100-6)
+[podd 1794232418152] extensions from C:\Users\User\AppData\Local\Temp\podd-test-perm-approved-67776-1794232418130284100
+-6\extensions
+[podd 1794232418152] 0 repo(s), 0 task(s); worktrees under C:\Users\User\AppData\Local\Temp\podd-test-perm-approved-677
+76-1794232418130284100-6\work trees
+[podd 1794232418199] repo add demo C:\Users\User\AppData\Local\Temp\podd-test-orch-repo-67776-1794232417511748400-1\pod
+ repo
+   Compiling podd v0.1.0 (C:\Users\User\orca\workspaces\ide\editor-tabs\crates\podd)
+   Compiling pod-cli v0.1.0 (C:\Users\User\orca\workspaces\ide\editor-tabs\crates\pod-cli)
+   Compiling pod-hook v0.1.0 (C:\Users\User\orca\workspaces\ide\editor-tabs\crates\pod-hook)
+[podd 1794232418227] repo add demo C:\Users\User\AppData\Local\Temp\podd-test-orch-repo-67776-1794232417511853400-3\pod
+ repo
+[podd 1794232418242] repo add demo C:\Users\User\AppData\Local\Temp\podd-test-orch-repo-67776-1794232417511721100-0\pod
+ repo
+[podd 1794232418602] gate g1 expired
+[podd 1794232419064] task demo/gt: worktree C:\Users\User\AppData\Local\Temp\podd-test-gate-67776-1794232418092357800-4
+\work trees\demo\gt on pod/gt from main (8109a9cce2c3)
+[podd 1794232419125] task demo/fx-shell-1: worktree C:\Users\User\AppData\Local\Temp\podd-test-group-67776-179423241811
+4783200-5\work trees\demo\fx-shell-1 on pod/fx-shell-1 from 8109a9cce2c34c2a59d643a0aa679ad4be9b0639 (8109a9cce2c3)
+[podd 1794232419182] run t1 ["powershell", "-NoLogo", "-NoProfile"] in C:\Users\User\AppData\Local\Temp\podd-test-gate-
+67776-1794232418092357800-4\work trees\demo\gt (holder pid 70724)
+[podd 1794232419185] task demo/gt: agent terminal t1
+[podd 1794232419260] run t1 ["powershell", "-NoLogo"] in C:\Users\User\AppData\Local\Temp\podd-test-group-67776-1794232
+418114783200-5\work trees\demo\fx-shell-1 (holder pid 24464)
+[podd 1794232419264] task demo/fx-shell-1: agent terminal t1
+[podd 1794232420126] task demo/fx-shell-2: worktree C:\Users\User\AppData\Local\Temp\podd-test-group-67776-179423241811
+4783200-5\work trees\demo\fx-shell-2 on pod/fx-shell-2 from 8109a9cce2c34c2a59d643a0aa679ad4be9b0639 (8109a9cce2c3)
+[podd 1794232420258] run t2 ["powershell", "-NoLogo"] in C:\Users\User\AppData\Local\Temp\podd-test-group-67776-1794232
+418114783200-5\work trees\demo\fx-shell-2 (holder pid 46812)
+[podd 1794232420262] task demo/fx-shell-2: agent terminal t2
+[podd 1794232421091] task demo/fx-shell-3: worktree C:\Users\User\AppData\Local\Temp\podd-test-group-67776-179423241811
+4783200-5\work trees\demo\fx-shell-3 on pod/fx-shell-3 from 8109a9cce2c34c2a59d643a0aa679ad4be9b0639 (8109a9cce2c3)
+[podd 1794232421210] run t3 ["powershell", "-NoLogo"] in C:\Users\User\AppData\Local\Temp\podd-test-group-67776-1794232
+418114783200-5\work trees\demo\fx-shell-3 (holder pid 46444)
+[podd 1794232421214] task demo/fx-shell-3: agent terminal t3
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 4.78s
+[podd 1794232423077] gate g1 requested (task demo/gt, terminal t1)
+[podd 1794232423083] gate g3 requested (task -, terminal -)
+[podd 1794232423083] stopping; terminals stay alive in their holders
+[podd 1794232423117] task demo/perm: worktree C:\Users\User\AppData\Local\Temp\podd-test-perm-approved-67776-1794232418
+130284100-6\work trees\demo\perm on pod/perm from main (8109a9cce2c3)
+[podd 1794232423269] run t1 ["C:\\Users\\User\\orca\\workspaces\\ide\\editor-tabs\\target\\debug\\examples/fake-agent.e
+xe", "hold"] in C:\Users\User\AppData\Local\Temp\podd-test-perm-approved-67776-1794232418130284100-6\work trees\demo\pe
+rm (holder pid 27528)
+[podd 1794232423272] task demo/perm: agent terminal t1
+[podd 1794232424007] run t2 ["C:\\Users\\User\\orca\\workspaces\\ide\\editor-tabs\\target\\debug\\examples/fake-agent.e
+xe", "hook:codex:UserPromptSubmit:{\"hook_event_name\":\"UserPromptSubmit\"}", "hook:codex:PermissionRequest:{\"hook_ev
+ent_name\":\"PermissionRequest\",\"tool_name\":\"shell\"}", "read", "print:running the approved command", "hold"] in C:
+\Users\User\AppData\Local\Temp\ (holder pid 47480)
+[podd 1794232424165] review: 1 comment(s) added to demo/perm
+[podd 1794232424674] review: d1 -> t2 queued (agent working)
+[podd 1794232424674] stopping; terminals stay alive in their holders
+[podd 1794232424863] group demo/fx: 3 member(s) from 8109a9cce2c3
+[podd 1794232424961] listening on \\.\pipe\podd-test-perm-approved-67776-1794232418130284100-6 (pid 46436, state C:\Use
+rs\User\AppData\Local\Temp\podd-test-perm-approved-67776-1794232418130284100-6)
+[podd 1794232424968] re-attached t1 (holder pid 27528, running)
+[podd 1794232424973] re-attached t2 (holder pid 47480, running)
+[podd 1794232424974] extensions from C:\Users\User\AppData\Local\Temp\podd-test-perm-approved-67776-1794232418130284100
+-6\extensions
+[podd 1794232424975] 1 repo(s), 1 task(s); worktrees under C:\Users\User\AppData\Local\Temp\podd-test-perm-approved-677
+76-1794232418130284100-6\work trees
+[podd 1794232425058] stopping; killed and released 2 terminal(s)
+[podd 1794232425310] gate g1 Approved
+test approved_permission_is_working_and_reviews_queue ... ok
+[podd 1794232425737] gate g2 requested (task demo/gt, terminal t1)
+[podd 1794232425743] gate g2 Rejected
+[podd 1794232425837] listening on \\.\pipe\podd-test-gate-expiry-67776-1794232417511791000-2 (pid 46520, state C:\Users
+\User\AppData\Local\Temp\podd-test-gate-expiry-67776-1794232417511791000-2)
+[podd 1794232425838] extensions from C:\Users\User\AppData\Local\Temp\podd-test-gate-expiry-67776-1794232417511791000-2
+\extensions
+[podd 1794232425839] 0 repo(s), 0 task(s); worktrees under C:\Users\User\AppData\Local\Temp\podd-test-gate-expiry-67776
+-1794232417511791000-2\work trees
+[podd 1794232425844] gate g3 expired
+[podd 1794232425863] stopping; killed and released 0 terminal(s)
+[podd 1794232425957] stopping; killed and released 1 terminal(s)
+test gates_expire ... ok
+[podd 1794232426199] listening on \\.\pipe\podd-test-review-expire-67776-1794232426155283900-9 (pid 28480, state C:\Use
+rs\User\AppData\Local\Temp\podd-test-review-expire-67776-1794232426155283900-9)
+[podd 1794232426200] extensions from C:\Users\User\AppData\Local\Temp\podd-test-review-expire-67776-1794232426155283900
+-9\extensions
+[podd 1794232426200] 0 repo(s), 0 task(s); worktrees under C:\Users\User\AppData\Local\Temp\podd-test-review-expire-677
+76-1794232426155283900-9\work trees
+test gate_requested_in_terminal_subscribe_and_wait ... ok
+[podd 1794232426368] repo add demo C:\Users\User\AppData\Local\Temp\podd-test-orch-repo-67776-1794232425344894000-7\pod
+ repo
+[podd 1794232427023] listening on \\.\pipe\podd-test-review-67776-1794232426977109100-11 (pid 60440, state C:\Users\Use
+r\AppData\Local\Temp\podd-test-review-67776-1794232426977109100-11)
+[podd 1794232427024] extensions from C:\Users\User\AppData\Local\Temp\podd-test-review-67776-1794232426977109100-11\ext
+ensions
+[podd 1794232427024] 0 repo(s), 0 task(s); worktrees under C:\Users\User\AppData\Local\Temp\podd-test-review-67776-1794
+232426977109100-11\work trees
+[podd 1794232427142] listening on \\.\pipe\podd-test-review-burst-67776-1794232427099251600-12 (pid 56340, state C:\Use
+rs\User\AppData\Local\Temp\podd-test-review-burst-67776-1794232427099251600-12)
+[podd 1794232427144] extensions from C:\Users\User\AppData\Local\Temp\podd-test-review-burst-67776-1794232427099251600-
+12\extensions
+[podd 1794232427145] 0 repo(s), 0 task(s); worktrees under C:\Users\User\AppData\Local\Temp\podd-test-review-burst-6777
+6-1794232427099251600-12\work trees
+[podd 1794232427157] repo add demo C:\Users\User\AppData\Local\Temp\podd-test-orch-repo-67776-1794232426089024800-8\pod
+ repo
+[podd 1794232427272] repo add demo C:\Users\User\AppData\Local\Temp\podd-test-orch-repo-67776-1794232426218651300-10\po
+d repo
+[podd 1794232427455] task demo/busy: worktree C:\Users\User\AppData\Local\Temp\podd-test-review-expire-67776-1794232426
+155283900-9\work trees\demo\busy on pod/busy from main (3ae785c45e1e)
+[podd 1794232427636] run t1 ["C:\\Users\\User\\orca\\workspaces\\ide\\editor-tabs\\target\\debug\\examples/fake-agent.e
+xe", "osc:state=working", "hold"] in C:\Users\User\AppData\Local\Temp\podd-test-review-expire-67776-1794232426155283900
+-9\work trees\demo\busy (holder pid 12876)
+[podd 1794232427639] task demo/busy: agent terminal t1
+[podd 1794232428300] review: 1 comment(s) added to demo/busy
+[podd 1794232428305] review: d1 -> t1 queued (agent working)
+[podd 1794232428353] task demo/rev: worktree C:\Users\User\AppData\Local\Temp\podd-test-review-67776-179423242697710910
+0-11\work trees\demo\rev on pod/rev from main (3ae785c45e1e)
+[podd 1794232428415] task demo/burst: worktree C:\Users\User\AppData\Local\Temp\podd-test-review-burst-67776-1794232427
+099251600-12\work trees\demo\burst on pod/burst from main (3ae785c45e1e)
+[podd 1794232428475] run t1 ["C:\\Users\\User\\orca\\workspaces\\ide\\editor-tabs\\target\\debug\\examples/fake-agent.e
+xe", "osc:state=working", "wait-file:C:\\Users\\User\\AppData\\Local\\Temp\\podd-test-orch-repo-67776-17942324260890248
+00-8\\go.flag", "paste-loop:C:\\Users\\User\\AppData\\Local\\Temp\\podd-test-orch-repo-67776-1794232426089024800-8\\rec
+eived.log"] in C:\Users\User\AppData\Local\Temp\podd-test-review-67776-1794232426977109100-11\work trees\demo\rev (hold
+er pid 12596)
+[podd 1794232428479] task demo/rev: agent terminal t1
+[podd 1794232428522] run t1 ["C:\\Users\\User\\orca\\workspaces\\ide\\editor-tabs\\target\\debug\\examples/fake-agent.e
+xe", "burst-loop:C:\\Users\\User\\AppData\\Local\\Temp\\podd-test-orch-repo-67776-1794232426218651300-10\\received.log:
+300"] in C:\Users\User\AppData\Local\Temp\podd-test-review-burst-67776-1794232427099251600-12\work trees\demo\burst (ho
+lder pid 71820)
+[podd 1794232428526] task demo/burst: agent terminal t1
+[podd 1794232428986] review: 1 comment(s) added to demo/burst
+[podd 1794232428988] review: d1 -> t1 delivered (1 comment(s), agent idle)
+[podd 1794232429100] review: 3 comment(s) added to demo/rev
+[podd 1794232429101] stopping; terminals stay alive in their holders
+[podd 1794232429346] listening on \\.\pipe\podd-test-review-67776-1794232426977109100-11 (pid 14396, state C:\Users\Use
+r\AppData\Local\Temp\podd-test-review-67776-1794232426977109100-11)
+[podd 1794232429350] re-attached t1 (holder pid 12596, running)
+[podd 1794232429350] extensions from C:\Users\User\AppData\Local\Temp\podd-test-review-67776-1794232426977109100-11\ext
+ensions
+[podd 1794232429350] 1 repo(s), 1 task(s); worktrees under C:\Users\User\AppData\Local\Temp\podd-test-review-67776-1794
+232426977109100-11\work trees
+[podd 1794232429817] review: d1 -> t1 queued (agent working)
+[podd 1794232429869] group demo/fx: check job k1 started on 3 member(s)
+[podd 1794232429957] group demo/fx: check in demo/fx-shell-2: passed
+[podd 1794232429969] group demo/fx: check in demo/fx-shell-1: FAILED
+[podd 1794232429995] group demo/fx: check in demo/fx-shell-3: FAILED
+[podd 1794232430002] group demo/fx: check job k1 Finished (all passed: false)
+[podd 1794232430149] t1: lagging program (output paused up to 568 ms): Enter 1161 ms after the text
+[podd 1794232430183] review: d1 submitted (working, Enter x1)
+[podd 1794232430383] review: d1 failed: expired: queued for 2s (review queue timeout 2s); comments are open again
+[podd 1794232430410] stopping; killed and released 1 terminal(s)
+test queued_review_expires_with_an_event ... ok
+[podd 1794232431159] listening on \\.\pipe\podd-test-review-quiet-67776-1794232431138407300-14 (pid 51372, state C:\Use
+rs\User\AppData\Local\Temp\podd-test-review-quiet-67776-1794232431138407300-14)
+[podd 1794232431160] extensions from C:\Users\User\AppData\Local\Temp\podd-test-review-quiet-67776-1794232431138407300-
+14\extensions
+[podd 1794232431160] 0 repo(s), 0 task(s); worktrees under C:\Users\User\AppData\Local\Temp\podd-test-review-quiet-6777
+6-1794232431138407300-14\work trees
+[podd 1794232431241] repo add demo C:\Users\User\AppData\Local\Temp\podd-test-orch-repo-67776-1794232430651778700-13\po
+d repo
+[podd 1794232431337] review: d1 -> t1 delivered from the queue (agent idle, turn 1)
+[podd 1794232431789] stopping; killed and released 1 terminal(s)
+[podd 1794232431920] task demo/quiet: worktree C:\Users\User\AppData\Local\Temp\podd-test-review-quiet-67776-1794232431
+138407300-14\work trees\demo\quiet on pod/quiet from main (811f628b423d)
+[podd 1794232431954] group demo/fx: check job k2 started on 3 member(s)
+[podd 1794232432007] run t1 ["C:\\Users\\User\\orca\\workspaces\\ide\\editor-tabs\\target\\debug\\examples/fake-agent.e
+xe", "paste-loop-silent:C:\\Users\\User\\AppData\\Local\\Temp\\podd-test-orch-repo-67776-1794232430651778700-13\\receiv
+ed.log"] in C:\Users\User\AppData\Local\Temp\podd-test-review-quiet-67776-1794232431138407300-14\work trees\demo\quiet 
+(holder pid 44792)
+[podd 1794232432011] task demo/quiet: agent terminal t1
+test review_delivery_submits_to_a_lagging_paste_burst_tui ... ok
+[podd 1794232432066] group demo/fx: check in demo/fx-shell-2: passed
+[podd 1794232432071] group demo/fx: check in demo/fx-shell-1: FAILED
+[podd 1794232432105] group demo/fx: check in demo/fx-shell-3: FAILED
+[podd 1794232432114] group demo/fx: check job k2 Finished (all passed: false)
+[podd 1794232432407] review: d1 submitted (working, Enter x1)
+[podd 1794232432478] review: 2 comment(s) added to demo/quiet
+[podd 1794232432485] review: d1 -> t1 delivered (1 comment(s), agent unknown)
+[podd 1794232432489] review: d2 -> t1 queued (agent unknown)
+[podd 1794232432692] listening on \\.\pipe\podd-test-parent-task-67776-1794232432660240700-16 (pid 65396, state C:\User
+s\User\AppData\Local\Temp\podd-test-parent-task-67776-1794232432660240700-16)
+[podd 1794232432692] extensions from C:\Users\User\AppData\Local\Temp\podd-test-parent-task-67776-1794232432660240700-1
+6\extensions
+[podd 1794232432693] 0 repo(s), 0 task(s); worktrees under C:\Users\User\AppData\Local\Temp\podd-test-parent-task-67776
+-1794232432660240700-16\work trees
+[podd 1794232432784] repo add demo C:\Users\User\AppData\Local\Temp\podd-test-orch-repo-67776-1794232432056171900-15\po
+d repo
+[podd 1794232433502] task demo/boss: worktree C:\Users\User\AppData\Local\Temp\podd-test-parent-task-67776-179423243266
+0240700-16\work trees\demo\boss on pod/boss from main (c422252938f8)
+[podd 1794232433634] run t1 ["powershell", "-NoLogo", "-NoProfile"] in C:\Users\User\AppData\Local\Temp\podd-test-paren
+t-task-67776-1794232432660240700-16\work trees\demo\boss (holder pid 68788)
+[podd 1794232433639] task demo/boss: agent terminal t1
+[podd 1794232434232] run t2 ["cmd", "/c", "echo kid"] in C:\Users\User\AppData\Local\Temp\ (holder pid 57632)
+[podd 1794232434399] stopping; killed and released 2 terminal(s)
+[podd 1794232434434] review: 1 comment(s) added to demo/rev
+[podd 1794232434466] group demo/fx: check job k3 started on 3 member(s)
+test run_from_a_task_terminal_records_parent_task ... ok
+[podd 1794232434738] review: d2 -> t1 delivered (1 comment(s), agent idle)
+[podd 1794232435192] listening on \\.\pipe\podd-test-wait-restart-67776-1794232435167267500-18 (pid 46964, state C:\Use
+rs\User\AppData\Local\Temp\podd-test-wait-restart-67776-1794232435167267500-18)
+[podd 1794232435193] extensions from C:\Users\User\AppData\Local\Temp\podd-test-wait-restart-67776-1794232435167267500-
+18\extensions
+[podd 1794232435193] 0 repo(s), 0 task(s); worktrees under C:\Users\User\AppData\Local\Temp\podd-test-wait-restart-6777
+6-1794232435167267500-18\work trees
+[podd 1794232435279] repo add demo C:\Users\User\AppData\Local\Temp\podd-test-orch-repo-67776-1794232434650561500-17\po
+d repo
+[podd 1794232435597] review: d2 -> t1 delivered from the queue (agent unknown, turn 0)
+[podd 1794232435670] group demo/fx: cancelling check job k3
+[podd 1794232435676] group demo/fx: check in demo/fx-shell-2: FAILED
+[podd 1794232435682] group demo/fx: check in demo/fx-shell-1: FAILED
+[podd 1794232435692] group demo/fx: check in demo/fx-shell-3: FAILED
+[podd 1794232435699] group demo/fx: check job k3 Cancelled (all passed: false)
+[podd 1794232435727] group demo/fx: check job k4 started on 3 member(s)
+[podd 1794232435753] group demo/fx: cancelling check job k4
+[podd 1794232435764] group demo/fx: check in demo/fx-shell-1: FAILED
+[podd 1794232435772] group demo/fx: check in demo/fx-shell-2: FAILED
+[podd 1794232435780] group demo/fx: check in demo/fx-shell-3: FAILED
+[podd 1794232435787] group demo/fx: check job k4 Cancelled (all passed: false)
+[podd 1794232435795] group demo/fx: picked demo/fx-shell-2
+[podd 1794232435795] review: d2 submitted (working, Enter x1)
+[podd 1794232435885] task demo/wr: worktree C:\Users\User\AppData\Local\Temp\podd-test-wait-restart-67776-1794232435167
+267500-18\work trees\demo\wr on pod/wr from main (3b903eacd2b1)
+[podd 1794232435977] run t1 ["C:\\Users\\User\\orca\\workspaces\\ide\\editor-tabs\\target\\debug\\examples/fake-agent.e
+xe", "osc:state=working", "wait-file:C:\\Users\\User\\AppData\\Local\\Temp\\podd-test-orch-repo-67776-17942324346505615
+00-17\\go.flag", "osc:state=done", "hold"] in C:\Users\User\AppData\Local\Temp\podd-test-wait-restart-67776-17942324351
+67267500-18\work trees\demo\wr (holder pid 4616)
+[podd 1794232435981] task demo/wr: agent terminal t1
+[podd 1794232436335] task demo/blk: worktree C:\Users\User\AppData\Local\Temp\podd-test-review-67776-179423242697710910
+0-11\work trees\demo\blk on pod/blk from main (3ae785c45e1e)
+[podd 1794232436385] gate g1 requested (task demo/wr, terminal -)
+[podd 1794232436420] run t2 ["C:\\Users\\User\\orca\\workspaces\\ide\\editor-tabs\\target\\debug\\examples/fake-agent.e
+xe", "osc:state=blocked:kind=question:msg=UHJvY2VlZD8=", "hold"] in C:\Users\User\AppData\Local\Temp\podd-test-review-6
+7776-1794232426977109100-11\work trees\demo\blk (holder pid 50624)
+[podd 1794232436423] task demo/blk: agent terminal t2
+[podd 1794232436544] group demo/fx: picked demo/fx-shell-2
+[podd 1794232436575] rm t1
+[podd 1794232436827] review: 1 comment(s) added to demo/blk
+[podd 1794232436881] task rm demo/fx-shell-1 (terminals ["t1"], worktree removed true, branch deleted true)
+[podd 1794232436908] stopping; killed and released 2 terminal(s)
+[podd 1794232436912] rm t3
+test review_comments_persist_queue_and_deliver_once ... ok
+[podd 1794232437186] task rm demo/fx-shell-3 (terminals ["t3"], worktree removed true, branch deleted true)
+[podd 1794232437978] stopping; killed and released 1 terminal(s)
+test group_fan_out_compare_check_pick ... ok
+[podd 1794232438665] stopping; killed and released 1 terminal(s)
+test review_queue_is_prompt_for_terminals_without_turns ... ok
+[podd 1794232439444] listening on \\.\pipe\podd-test-wait-restart-67776-1794232435167267500-18 (pid 65576, state C:\Use
+rs\User\AppData\Local\Temp\podd-test-wait-restart-67776-1794232435167267500-18)
+[podd 1794232439448] re-attached t1 (holder pid 4616, running)
+[podd 1794232439448] extensions from C:\Users\User\AppData\Local\Temp\podd-test-wait-restart-67776-1794232435167267500-
+18\extensions
+[podd 1794232439449] 1 repo(s), 1 task(s); worktrees under C:\Users\User\AppData\Local\Temp\podd-test-wait-restart-6777
+6-1794232435167267500-18\work trees
+[podd 1794232440980] gate g1 Approved
+[podd 1794232441010] gate g2 requested (task demo/wr, terminal -)
+[podd 1794232441830] stopping; terminals stay alive in their holders
+[podd 1794232443567] listening on \\.\pipe\podd-test-wait-restart-67776-1794232435167267500-18 (pid 42668, state C:\Use
+rs\User\AppData\Local\Temp\podd-test-wait-restart-67776-1794232435167267500-18)
+[podd 1794232443571] re-attached t1 (holder pid 4616, running)
+[podd 1794232443571] extensions from C:\Users\User\AppData\Local\Temp\podd-test-wait-restart-67776-1794232435167267500-
+18\extensions
+[podd 1794232443571] 1 repo(s), 1 task(s); worktrees under C:\Users\User\AppData\Local\Temp\podd-test-wait-restart-6777
+6-1794232435167267500-18\work trees
+[podd 1794232443617] stopping; killed and released 1 terminal(s)
+test waits_survive_a_daemon_restart ... ok
+
+test result: ok. 10 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 26.35s
+
+     Running tests\pr.rs (target\debug\deps\pr-31c70f42034fa915.exe)
+
+running 4 tests
+[podd 1794232445014] listening on \\.\pipe\podd-test-pr-noremote-43072-1794232444986636300-5 (pid 57768, state C:\Users
+\User\AppData\Local\Temp\podd-test-pr-noremote-43072-1794232444986636300-5)
+[podd 1794232445015] extensions from C:\Users\User\AppData\Local\Temp\podd-test-pr-noremote-43072-1794232444986636300-5
+\extensions
+[podd 1794232445015] 0 repo(s), 0 task(s); worktrees under C:\Users\User\AppData\Local\Temp\podd-test-pr-noremote-43072
+-1794232444986636300-5\work trees
+[podd 1794232445041] listening on \\.\pipe\podd-test-pr-flow-43072-1794232445013743600-7 (pid 49252, state C:\Users\Use
+r\AppData\Local\Temp\podd-test-pr-flow-43072-1794232445013743600-7)
+[podd 1794232445043] extensions from C:\Users\User\AppData\Local\Temp\podd-test-pr-flow-43072-1794232445013743600-7\ext
+ensions
+[podd 1794232445043] 0 repo(s), 0 task(s); worktrees under C:\Users\User\AppData\Local\Temp\podd-test-pr-flow-43072-179
+4232445013743600-7\work trees
+[podd 1794232445069] listening on \\.\pipe\podd-test-pr-errors-43072-1794232445033077100-9 (pid 54072, state C:\Users\U
+ser\AppData\Local\Temp\podd-test-pr-errors-43072-1794232445033077100-9)
+[podd 1794232445069] pull request polling off (POD_PR_POLL)
+[podd 1794232445069] extensions from C:\Users\User\AppData\Local\Temp\podd-test-pr-errors-43072-1794232445033077100-9\e
+xtensions
+[podd 1794232445069] 0 repo(s), 0 task(s); worktrees under C:\Users\User\AppData\Local\Temp\podd-test-pr-errors-43072-1
+794232445033077100-9\work trees
+[podd 1794232445093] repo add demo C:\Users\User\AppData\Local\Temp\podd-test-pr-repo-43072-1794232444346472100-3\pod r
+epo
+[podd 1794232445112] listening on \\.\pipe\podd-test-pr-cli-43072-1794232445086700700-11 (pid 71168, state C:\Users\Use
+r\AppData\Local\Temp\podd-test-pr-cli-43072-1794232445086700700-11)
+[podd 1794232445113] pull request polling off (POD_PR_POLL)
+[podd 1794232445113] extensions from C:\Users\User\AppData\Local\Temp\podd-test-pr-cli-43072-1794232445086700700-11\ext
+ensions
+[podd 1794232445113] 0 repo(s), 0 task(s); worktrees under C:\Users\User\AppData\Local\Temp\podd-test-pr-cli-43072-1794
+232445086700700-11\work trees
+[podd 1794232445131] repo add demo C:\Users\User\AppData\Local\Temp\podd-test-pr-repo-43072-1794232444346366900-0\pod r
+epo
+[podd 1794232445161] repo add demo C:\Users\User\AppData\Local\Temp\podd-test-pr-repo-43072-1794232444346399900-1\pod r
+epo
+[podd 1794232445197] repo add demo C:\Users\User\AppData\Local\Temp\podd-test-pr-repo-43072-1794232444346437600-2\pod r
+epo
+[podd 1794232445799] task demo/feat: worktree C:\Users\User\AppData\Local\Temp\podd-test-pr-flow-43072-1794232445013743
+600-7\work trees\demo\feat on pod/feat from main (587cebcf9fc9)
+[podd 1794232445799] task demo/local: worktree C:\Users\User\AppData\Local\Temp\podd-test-pr-noremote-43072-17942324449
+86636300-5\work trees\demo\local on pod/local from main (587cebcf9fc9)
+[podd 1794232445853] task demo/err: worktree C:\Users\User\AppData\Local\Temp\podd-test-pr-errors-43072-179423244503307
+7100-9\work trees\demo\err on pod/err from main (587cebcf9fc9)
+[podd 1794232445902] run t1 ["cmd", "/c", "ping -n 600 127.0.0.1 >nul"] in C:\Users\User\AppData\Local\Temp\podd-test-p
+r-flow-43072-1794232445013743600-7\work trees\demo\feat (holder pid 41044)
+[podd 1794232445907] task demo/feat: agent terminal t1
+[podd 1794232445911] run t1 ["cmd", "/c", "ping -n 600 127.0.0.1 >nul"] in C:\Users\User\AppData\Local\Temp\podd-test-p
+r-noremote-43072-1794232444986636300-5\work trees\demo\local (holder pid 66372)
+[podd 1794232445915] task demo/local: agent terminal t1
+[podd 1794232445952] task demo/cli: worktree C:\Users\User\AppData\Local\Temp\podd-test-pr-cli-43072-179423244508670070
+0-11\work trees\demo\cli on pod/cli from main (587cebcf9fc9)
+[podd 1794232445984] run t1 ["cmd", "/c", "ping -n 600 127.0.0.1 >nul"] in C:\Users\User\AppData\Local\Temp\podd-test-p
+r-errors-43072-1794232445033077100-9\work trees\demo\err (holder pid 56108)
+[podd 1794232445988] task demo/err: agent terminal t1
+[podd 1794232446049] run t1 ["cmd", "/c", "ping -n 600 127.0.0.1 >nul"] in C:\Users\User\AppData\Local\Temp\podd-test-p
+r-cli-43072-1794232445086700700-11\work trees\demo\cli (holder pid 63756)
+[podd 1794232446053] task demo/cli: agent terminal t1
+[podd 1794232447218] task.pr.create demo/err pod/err -> main (push true, draft true)
+   Compiling pod-cli v0.1.0 (C:\Users\User\orca\workspaces\ide\editor-tabs\crates\pod-cli)
+[podd 1794232447667] task.pr.create demo/feat pod/feat -> main (push true, draft false)
+[podd 1794232447670] task.pr.create demo/err pod/err -> main (push false, draft true)
+[podd 1794232447702] pr: demo/err -> #1 Open checks pending
+[podd 1794232447714] pr: demo/feat -> #1 Open checks pending
+[podd 1794232448733] stopping; killed and released 1 terminal(s)
+test without_a_remote_status_is_empty_and_create_refuses ... ok
+[podd 1794232449320] task.pr.create demo/feat pod/feat -> main (push true, draft false)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 3.26s
+[podd 1794232450295] pr: demo/feat -> #1 Open checks failed
+[podd 1794232450926] stopping; killed and released 1 terminal(s)
+test forge_failures_keep_their_kind_and_change_nothing ... ok
+[podd 1794232451234] task.pr.create demo/cli pod/cli -> main (push true, draft false)
+[podd 1794232451272] pr: demo/cli -> #1 Open checks pending
+[podd 1794232451918] pr: demo/feat -> #1 Open checks passed
+[podd 1794232452027] task.pr.merge demo/feat Squash: Some(Merged)
+[podd 1794232452033] pr: demo/feat -> #1 Merged checks passed
+[podd 1794232453974] task.pr.merge demo/cli Rebase: Some(Merged)
+[podd 1794232453979] pr: demo/cli -> #1 Merged checks pending
+[podd 1794232454436] stopping; killed and released 1 terminal(s)
+test pod_pr_cli ... ok
+[podd 1794232455902] stopping; terminals stay alive in their holders
+[podd 1794232456161] listening on \\.\pipe\podd-test-pr-flow-43072-1794232445013743600-7 (pid 70352, state C:\Users\Use
+r\AppData\Local\Temp\podd-test-pr-flow-43072-1794232445013743600-7)
+[podd 1794232456167] re-attached t1 (holder pid 41044, running)
+[podd 1794232456167] extensions from C:\Users\User\AppData\Local\Temp\podd-test-pr-flow-43072-1794232445013743600-7\ext
+ensions
+[podd 1794232456167] 1 repo(s), 1 task(s); worktrees under C:\Users\User\AppData\Local\Temp\podd-test-pr-flow-43072-179
+4232445013743600-7\work trees
+[podd 1794232457128] stopping; killed and released 1 terminal(s)
+test create_follow_checks_and_merge_through_the_fake_forge ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 13.03s
+
+     Running tests\retention.rs (target\debug\deps\retention-cb3c5bb937462b4b.exe)
+
+running 1 test
+   Compiling pod-cli v0.1.0 (C:\Users\User\orca\workspaces\ide\editor-tabs\crates\pod-cli)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 3.39s
+[podd 1794232461850] listening on \\.\pipe\podd-test-retention-61292-1794232457885268500-0 (pid 50932, state C:\Users\U
+ser\AppData\Local\Temp\podd-test-retention-61292-1794232457885268500-0)
+[podd 1794232461850] extensions from C:\Users\User\AppData\Local\Temp\podd-test-retention-61292-1794232457885268500-0\e
+xtensions
+[podd 1794232461851] 0 repo(s), 0 task(s); worktrees under C:\Users\User\AppData\Local\Temp\podd-test-retention-61292-1
+794232457885268500-0\work trees
+[podd 1794232461959] run t1 ["powershell", "-NoLogo", "-NoProfile"] in C:\Users\User\AppData\Local\Temp\ (holder pid 35
+672)
+[podd 1794232462035] run t2 ["cmd", "/c", "echo a"] in C:\Users\User\AppData\Local\Temp\ (holder pid 49120)
+[podd 1794232462112] run t3 ["cmd", "/c", "echo b"] in C:\Users\User\AppData\Local\Temp\ (holder pid 54792)
+[podd 1794232462281] keep t3
+[podd 1794232465646] retention: removing exited terminal t2
+[podd 1794232465647] rm t2
+[podd 1794232465692] stopping; terminals stay alive in their holders
+[podd 1794232465938] listening on \\.\pipe\podd-test-retention-61292-1794232457885268500-0 (pid 53024, state C:\Users\U
+ser\AppData\Local\Temp\podd-test-retention-61292-1794232457885268500-0)
+[podd 1794232465942] re-attached t1 (holder pid 35672, running)
+[podd 1794232465946] re-attached t3 (holder pid 54792, running)
+[podd 1794232465947] extensions from C:\Users\User\AppData\Local\Temp\podd-test-retention-61292-1794232457885268500-0\e
+xtensions
+[podd 1794232465947] 0 repo(s), 0 task(s); worktrees under C:\Users\User\AppData\Local\Temp\podd-test-retention-61292-1
+794232457885268500-0\work trees
+[podd 1794232467473] unkeep t3
+[podd 1794232468205] retention: removing exited terminal t3
+[podd 1794232468206] rm t3
+[podd 1794232468279] stopping; terminals stay alive in their holders
+[podd 1794232468543] listening on \\.\pipe\podd-test-retention-61292-1794232457885268500-0 (pid 38860, state C:\Users\U
+ser\AppData\Local\Temp\podd-test-retention-61292-1794232457885268500-0)
+[podd 1794232468549] re-attached t1 (holder pid 35672, running)
+[podd 1794232468549] extensions from C:\Users\User\AppData\Local\Temp\podd-test-retention-61292-1794232457885268500-0\e
+xtensions
+[podd 1794232468549] 0 repo(s), 0 task(s); worktrees under C:\Users\User\AppData\Local\Temp\podd-test-retention-61292-1
+794232457885268500-0\work trees
+[podd 1794232468652] run t2 ["cmd", "/c", "echo e"] in C:\Users\User\AppData\Local\Temp\ (holder pid 65720)
+[podd 1794232470351] stopping; killed and released 2 terminal(s)
+test exited_terminals_expire_unless_kept_and_ls_hides_them ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 12.70s
+
+     Running tests\status.rs (target\debug\deps\status-02e8d1c3ec1fe406.exe)
+
+running 6 tests
+[podd 1794232471162] listening on \\.\pipe\podd-status-codex-46796-1794232471130065000 (pid 64320, state C:\Users\User\
+AppData\Local\Temp\podd-status-codex-46796-1794232471130065000)
+[podd 1794232471162] extensions from C:\Users\User\AppData\Roaming\Pod\mods
+[podd 1794232471163] 0 repo(s), 0 task(s); worktrees under C:\Users\User\pod\worktrees
+[podd 1794232471184] listening on \\.\pipe\podd-status-hook-46796-1794232471130140000 (pid 72152, state C:\Users\User\A
+ppData\Local\Temp\podd-status-hook-46796-1794232471130140000)
+[podd 1794232471185] extensions from C:\Users\User\AppData\Roaming\Pod\mods
+[podd 1794232471185] 0 repo(s), 0 task(s); worktrees under C:\Users\User\pod\worktrees
+[podd 1794232471202] listening on \\.\pipe\podd-status-osc-46796-1794232471130216400 (pid 25148, state C:\Users\User\Ap
+pData\Local\Temp\podd-status-osc-46796-1794232471130216400)
+[podd 1794232471203] extensions from C:\Users\User\AppData\Roaming\Pod\mods
+[podd 1794232471203] 0 repo(s), 0 task(s); worktrees under C:\Users\User\pod\worktrees
+[podd 1794232471220] listening on \\.\pipe\podd-status-cli-46796-1794232471130466400 (pid 46044, state C:\Users\User\Ap
+pData\Local\Temp\podd-status-cli-46796-1794232471130466400)
+[podd 1794232471221] extensions from C:\Users\User\AppData\Roaming\Pod\mods
+[podd 1794232471221] 0 repo(s), 0 task(s); worktrees under C:\Users\User\pod\worktrees
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.48s
+[podd 1794232471876] run t1 ["C:\\Users\\User\\orca\\workspaces\\ide\\editor-tabs\\target\\debug\\examples/fake-agent.e
+xe", "osc:state=working:app=fake", "read", "osc:state=blocked:app=fake:kind=question:msg=UHJvY2VlZD8=", "read", "osc:st
+ate=done:app=fake", "hold"] in C:\Users\User\AppData\Local\Temp\ (holder pid 44260)
+[podd 1794232471876] run t1 ["C:\\Users\\User\\orca\\workspaces\\ide\\editor-tabs\\target\\debug\\examples/fake-agent.e
+xe", "osc:state=working:app=claude-code", "read", "hook:claude:PermissionRequest:{\"hook_event_name\":\"PermissionReque
+st\",\"tool_name\":\"Bash\"}", "wait-file:C:\\Users\\User\\AppData\\Local\\Temp\\podd-status-hook-flags-46796-179423247
+1751033200\\1", "osc:state=working:app=claude-code", "print:osc-working-sent", "wait-file:C:\\Users\\User\\AppData\\Loc
+al\\Temp\\podd-status-hook-flags-46796-1794232471751033200\\2", "osc:state=idle:app=claude-code", "print:osc-idle-sent"
+, "read", "hook:claude:Stop:{\"hook_event_name\":\"Stop\"}", "hold"] in C:\Users\User\AppData\Local\Temp\ (holder pid 7
+0300)
+[podd 1794232471876] run t1 ["C:\\Users\\User\\orca\\workspaces\\ide\\editor-tabs\\target\\debug\\examples/fake-agent.e
+xe", "osc:state=working", "read", "osc:state=done", "hold"] in C:\Users\User\AppData\Local\Temp\ (holder pid 66500)
+[podd 1794232471878] run t1 ["C:\\Users\\User\\AppData\\Local\\Temp\\podd-status-codex-bin-46796-1794232471174609600\\c
+odex.exe", "title:⠋ Reply ok | work", "print:thinking...", "read", "title:Reply ok | work", "read", "print:Would you li
+ke to run the following command?", "hold"] in C:\Users\User\AppData\Local\Temp\ (holder pid 69916)
+[podd 1794232471915] hook: claude PermissionRequest for t1 rejected (token mismatch)
+[podd 1794232471940] hook: claude PermissionRequest for t1 rejected (missing token)
+[podd 1794232472695] stopping; killed and released 1 terminal(s)
+test osc_reports_drive_show_and_subscribe ... ok
+[podd 1794232472943] listening on \\.\pipe\podd-status-restart-46796-1794232472920036100 (pid 19548, state C:\Users\Use
+r\AppData\Local\Temp\podd-status-restart-46796-1794232472920036100)
+[podd 1794232472943] extensions from C:\Users\User\AppData\Roaming\Pod\mods
+[podd 1794232472943] 0 repo(s), 0 task(s); worktrees under C:\Users\User\pod\worktrees
+[podd 1794232473098] run t1 ["C:\\Users\\User\\orca\\workspaces\\ide\\editor-tabs\\target\\debug\\examples/fake-agent.e
+xe", "osc:state=working:app=fake", "read", "osc:state=done:app=fake", "read", "hook:claude:UserPromptSubmit:{\"hook_eve
+nt_name\":\"UserPromptSubmit\"}", "hold"] in C:\Users\User\AppData\Local\Temp\ (holder pid 56476)
+[podd 1794232473098] stopping; terminals stay alive in their holders
+[podd 1794232473155] stopping; killed and released 1 terminal(s)
+[podd 1794232473349] listening on \\.\pipe\podd-status-restart-46796-1794232472920036100 (pid 65252, state C:\Users\Use
+r\AppData\Local\Temp\podd-status-restart-46796-1794232472920036100)
+[podd 1794232473353] re-attached t1 (holder pid 56476, running)
+[podd 1794232473353] extensions from C:\Users\User\AppData\Roaming\Pod\mods
+[podd 1794232473354] 0 repo(s), 0 task(s); worktrees under C:\Users\User\pod\worktrees
+test hooks_authenticated_and_outrank_osc ... ok
+[podd 1794232473417] listening on \\.\pipe\podd-status-restart-persist-46796-1794232473389340000 (pid 16980, state C:\U
+sers\User\AppData\Local\Temp\podd-status-restart-persist-46796-1794232473389340000)
+[podd 1794232473417] extensions from C:\Users\User\AppData\Roaming\Pod\mods
+[podd 1794232473418] 0 repo(s), 0 task(s); worktrees under C:\Users\User\pod\worktrees
+[podd 1794232473570] stopping; killed and released 1 terminal(s)
+[podd 1794232473573] run t1 ["C:\\Users\\User\\orca\\workspaces\\ide\\editor-tabs\\target\\debug\\examples/fake-agent.e
+xe", "osc:state=working:app=fake", "read", "osc:state=done:app=fake", "read", "hook:claude:PermissionRequest:{\"session
+_id\":\"s-restart\",\"hook_event_name\":\"PermissionRequest\",\"tool_name\":\"Bash\"}", "hold"] in C:\Users\User\AppDat
+a\Local\Temp\ (holder pid 72136)
+test pod_cli_wait_status_and_ls ... ok
+[podd 1794232474215] rm t1
+[podd 1794232474217] stopping; killed and released 0 terminal(s)
+[podd 1794232474219] stopping; terminals stay alive in their holders
+test status_rederived_after_daemon_restart ... ok
+[podd 1794232474466] listening on \\.\pipe\podd-status-restart-persist-46796-1794232473389340000 (pid 63088, state C:\U
+sers\User\AppData\Local\Temp\podd-status-restart-persist-46796-1794232473389340000)
+[podd 1794232474470] re-attached t1 (holder pid 72136, running)
+[podd 1794232474471] extensions from C:\Users\User\AppData\Roaming\Pod\mods
+[podd 1794232474471] 0 repo(s), 0 task(s); worktrees under C:\Users\User\pod\worktrees
+[podd 1794232474522] rm t1
+[podd 1794232474522] stopping; killed and released 0 terminal(s)
+test turn_and_hook_evidence_survive_daemon_restart ... ok
+[podd 1794232476671] stopping; killed and released 1 terminal(s)
+test codex_title_spinner_heuristic ... ok
+
+test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 5.78s
+
+     Running tests\submit.rs (target\debug\deps\submit-22dc7f47bdaa7c90.exe)
+
+running 4 tests
+[podd 1794232477438] listening on \\.\pipe\podd-test-submit-send-61876-1794232477409140100-1 (pid 50296, state C:\Users
+\User\AppData\Local\Temp\podd-test-submit-send-61876-1794232477409140100-1)
+[podd 1794232477439] extensions from C:\Users\User\AppData\Local\Temp\podd-test-submit-send-61876-1794232477409140100-1
+\extensions
+[podd 1794232477439] 0 repo(s), 0 task(s); worktrees under C:\Users\User\AppData\Local\Temp\podd-test-submit-send-61876
+-1794232477409140100-1\work trees
+[podd 1794232477459] listening on \\.\pipe\podd-test-submit-shell-61876-1794232477409432800-3 (pid 844, state C:\Users\
+User\AppData\Local\Temp\podd-test-submit-shell-61876-1794232477409432800-3)
+[podd 1794232477459] extensions from C:\Users\User\AppData\Local\Temp\podd-test-submit-shell-61876-1794232477409432800-
+3\extensions
+[podd 1794232477460] 0 repo(s), 0 task(s); worktrees under C:\Users\User\AppData\Local\Temp\podd-test-submit-shell-6187
+6-1794232477409432800-3\work trees
+[podd 1794232477480] listening on \\.\pipe\podd-test-submit-retry-61876-1794232477409015600-0 (pid 42540, state C:\User
+s\User\AppData\Local\Temp\podd-test-submit-retry-61876-1794232477409015600-0)
+[podd 1794232477481] extensions from C:\Users\User\AppData\Local\Temp\podd-test-submit-retry-61876-1794232477409015600-
+0\extensions
+[podd 1794232477481] 0 repo(s), 0 task(s); worktrees under C:\Users\User\AppData\Local\Temp\podd-test-submit-retry-6187
+6-1794232477409015600-0\work trees
+[podd 1794232477502] listening on \\.\pipe\podd-test-submit-lag-61876-1794232477409290900-2 (pid 51964, state C:\Users\
+User\AppData\Local\Temp\podd-test-submit-lag-61876-1794232477409290900-2)
+[podd 1794232477503] extensions from C:\Users\User\AppData\Local\Temp\podd-test-submit-lag-61876-1794232477409290900-2\
+extensions
+[podd 1794232477503] 0 repo(s), 0 task(s); worktrees under C:\Users\User\AppData\Local\Temp\podd-test-submit-lag-61876-
+1794232477409290900-2\work trees
+[podd 1794232477582] run t1 ["powershell", "-NoLogo", "-NoProfile"] in C:\Users\User\AppData\Local\Temp\ (holder pid 47
+408)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.50s
+[podd 1794232478192] run t1 ["C:\\Users\\User\\orca\\workspaces\\ide\\editor-tabs\\target\\debug\\examples/fake-agent.e
+xe", "burst-loop:C:\\Users\\User\\AppData\\Local\\Temp\\podd-test-burst-lag-61876-1794232477531110500-6:300"] in C:\Use
+rs\User\AppData\Local\Temp\ (holder pid 51644)
+[podd 1794232478192] run t1 ["C:\\Users\\User\\orca\\workspaces\\ide\\editor-tabs\\target\\debug\\examples/fake-agent.e
+xe", "burst-loop:C:\\Users\\User\\AppData\\Local\\Temp\\podd-test-burst-send-61876-1794232477469103700-4:0"] in C:\User
+s\User\AppData\Local\Temp\ (holder pid 42740)
+[podd 1794232478193] run t1 ["C:\\Users\\User\\orca\\workspaces\\ide\\editor-tabs\\target\\debug\\examples/fake-agent.e
+xe", "swallow-enters:1", "burst-loop:C:\\Users\\User\\AppData\\Local\\Temp\\podd-test-burst-retry-61876-179423247750930
+2000-5:0"] in C:\Users\User\AppData\Local\Temp\ (holder pid 66052)
+[podd 1794232478510] stopping; killed and released 1 terminal(s)
+test shell_send_is_unverifiable ... ok
+[podd 1794232479491] t1: lagging program (output paused up to 638 ms): Enter 1297 ms after the text
+[podd 1794232479584] stopping; killed and released 1 terminal(s)
+[podd 1794232479676] stopping; killed and released 1 terminal(s)
+test send_submits_to_a_paste_burst_tui ... ok
+test send_waits_for_a_lagging_tui ... ok
+[podd 1794232483598] t1: no reaction 4000 ms after Enter; pressed Enter again
+[podd 1794232483707] run t2 ["C:\\Users\\User\\orca\\workspaces\\ide\\editor-tabs\\target\\debug\\examples/fake-agent.e
+xe", "swallow-enters:9", "burst-loop:C:\\Users\\User\\AppData\\Local\\Temp\\podd-test-burst-deaf-61876-1794232483628396
+000-7:0"] in C:\Users\User\AppData\Local\Temp\ (holder pid 47764)
+[podd 1794232489125] t2: no reaction 4000 ms after Enter; pressed Enter again
+[podd 1794232493126] t2: sent text was not confirmed as submitted (Enter pressed 2 times)
+[podd 1794232493647] stopping; killed and released 2 terminal(s)
+test missed_enter_is_retried_once_then_reported ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 16.46s
+
+     Running tests\tasks.rs (target\debug\deps\tasks-18f618334acbe730.exe)
+
+running 2 tests
+[podd 1794232494875] listening on \\.\pipe\podd-test-registry-64076-1794232494853859400-2 (pid 53280, state C:\Users\Us
+er\AppData\Local\Temp\podd-test-registry-64076-1794232494853859400-2)
+[podd 1794232494876] extensions from C:\Users\User\AppData\Local\Temp\podd-test-registry-64076-1794232494853859400-2\ex
+tensions
+[podd 1794232494876] 0 repo(s), 0 task(s); worktrees under C:\Users\User\AppData\Local\Temp\podd-test-registry-64076-17
+94232494853859400-2\work trees
+[podd 1794232494889] listening on \\.\pipe\podd-test-tasks-64076-1794232494860891700-3 (pid 70084, state C:\Users\User\
+AppData\Local\Temp\podd-test-tasks-64076-1794232494860891700-3)
+[podd 1794232494890] extensions from C:\Users\User\AppData\Local\Temp\podd-test-tasks-64076-1794232494860891700-3\exten
+sions
+[podd 1794232494890] 0 repo(s), 0 task(s); worktrees under C:\Users\User\AppData\Local\Temp\podd-test-tasks-64076-17942
+32494860891700-3\work trees
+[podd 1794232494958] repo add keep C:\Users\User\AppData\Local\Temp\podd-test-repo-64076-1794232494344979500-0\pod repo
+[podd 1794232495118] stopping; terminals stay alive in their holders
+[podd 1794232495121] repo add demo C:\Users\User\AppData\Local\Temp\podd-test-repo-64076-1794232494344984500-1\pod repo
+[podd 1794232495366] listening on \\.\pipe\podd-test-registry-64076-1794232494853859400-2 (pid 61980, state C:\Users\Us
+er\AppData\Local\Temp\podd-test-registry-64076-1794232494853859400-2)
+[podd 1794232495367] extensions from C:\Users\User\AppData\Local\Temp\podd-test-registry-64076-1794232494853859400-2\ex
+tensions
+[podd 1794232495367] 1 repo(s), 0 task(s); worktrees under C:\Users\User\AppData\Local\Temp\podd-test-registry-64076-17
+94232494853859400-2\work trees
+[podd 1794232495576] repo rm keep
+[podd 1794232495576] stopping; killed and released 0 terminal(s)
+test registry_survives_restart_and_unknown_tasks_error ... ok
+[podd 1794232495895] task demo/feat-1: worktree C:\Users\User\AppData\Local\Temp\podd-test-tasks-64076-1794232494860891
+700-3\work trees\demo\feat-1 on pod/feat-1 from main (855dd1bed99e)
+[podd 1794232495974] run t1 ["powershell", "-NoLogo"] in C:\Users\User\AppData\Local\Temp\podd-test-tasks-64076-1794232
+494860891700-3\work trees\demo\feat-1 (holder pid 71024)
+[podd 1794232495978] task demo/feat-1: agent terminal t1
+[podd 1794232502168] task demo/feat-2: worktree C:\Users\User\AppData\Local\Temp\podd-test-tasks-64076-1794232494860891
+700-3\work trees\demo\feat-2 on pod/feat-2 from pod/feat-1 (60c38077ff15)
+[podd 1794232502244] run t2 ["cmd", "/c", "echo child-ok"] in C:\Users\User\AppData\Local\Temp\podd-test-tasks-64076-17
+94232494860891700-3\work trees\demo\feat-2 (holder pid 54428)
+[podd 1794232502247] task demo/feat-2: agent terminal t2
+[podd 1794232502747] run t3 ["cmd", "/c", "echo %POD_TASK_ID% & cd"] in C:\Users\User\AppData\Local\Temp\podd-test-task
+s-64076-1794232494860891700-3\work trees\demo\feat-2 (holder pid 53984)
+[podd 1794232503108] stopping; terminals stay alive in their holders
+[podd 1794232503557] listening on \\.\pipe\podd-test-tasks-64076-1794232494860891700-3 (pid 66376, state C:\Users\User\
+AppData\Local\Temp\podd-test-tasks-64076-1794232494860891700-3)
+[podd 1794232503561] re-attached t1 (holder pid 71024, running)
+[podd 1794232503564] re-attached t2 (holder pid 54428, running)
+[podd 1794232503567] re-attached t3 (holder pid 53984, running)
+[podd 1794232503567] extensions from C:\Users\User\AppData\Local\Temp\podd-test-tasks-64076-1794232494860891700-3\exten
+sions
+[podd 1794232503567] 1 repo(s), 2 task(s); worktrees under C:\Users\User\AppData\Local\Temp\podd-test-tasks-64076-17942
+32494860891700-3\work trees
+[podd 1794232504847] run t4 ["cmd", "/c", "exit 0"] in C:\Users\User\AppData\Local\Temp\ (holder pid 43000)
+[podd 1794232505274] rm t1
+[podd 1794232505533] task rm demo/feat-1 (terminals ["t1"], worktree removed true, branch deleted true)
+[podd 1794232506278] rm t2
+[podd 1794232506283] rm t3
+[podd 1794232506476] task rm demo/feat-2 (terminals ["t2", "t3"], worktree removed true, branch deleted false)
+[podd 1794232506586] repo rm demo
+[podd 1794232506586] stopping; killed and released 1 terminal(s)
+test task_lifecycle_with_restart_and_removal_rules ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 12.49s
+
+   Doc-tests pod_diff
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests pod_editor
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests pod_forge
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests pod_mods
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests pod_status
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests pod_terminal_view
+
+running 1 test
+test crates\pod-terminal-view\src\lib.rs - (line 9) ... ignored
+
+test result: ok. 0 passed; 0 failed; 1 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+all doctests ran in 0.80s; merged doctests compilation took 0.36s
+   Doc-tests pod_ui
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests podd
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+exit=0

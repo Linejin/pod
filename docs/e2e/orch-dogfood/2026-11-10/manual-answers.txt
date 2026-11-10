@@ -1,0 +1,4 @@
+﻿[09:24:24] MANUAL: answered Codex approval prompt in t2 (a1) with 'y' (Yes, proceed) for: pod orch ask --question ... (Codex sandbox asks before reaching podd's named pipe)
+[09:31:52] MANUAL: answered Codex approval in t2 (a1) 'y' for: git add <4 files> (sandbox cannot write the linked worktree's index under repo\.git\worktrees\r1-a1)
+[09:33:34] MANUAL: answered Codex approval in t2 (a1) 'y' for: git commit -m 'fix(podd): integrate default task shell prompt marks' (same sandbox/gitdir reason)
+[09:34:12] MANUAL: answered Codex approval in t2 (a1) 'y' for: pod orch done --outcome succeeded --body ... (named pipe denied in the Codex sandbox)

@@ -1,0 +1,38 @@
+﻿[
+    {
+        "Image":  "dark-dense-warm-dense-details.png",
+        "DPI":  144,
+        "Rect":  [
+                     2584,
+                     259,
+                     4024,
+                     1219
+                 ],
+        "Scene":  "dense",
+        "Theme":  "dark",
+        "Style":  "warm",
+        "Layout":  "dense-details",
+        "Fixture":  true,
+        "Font":  "Malgun Gothic",
+        "TerminalFont":  "Cascadia Mono",
+        "HighContrast":  false
+    },
+    {
+        "Image":  "light-dense-warm-dense-details.png",
+        "DPI":  144,
+        "Rect":  [
+                     2584,
+                     259,
+                     4024,
+                     1219
+                 ],
+        "Scene":  "dense",
+        "Theme":  "light",
+        "Style":  "warm",
+        "Layout":  "dense-details",
+        "Fixture":  true,
+        "Font":  "Malgun Gothic",
+        "TerminalFont":  "Cascadia Mono",
+        "HighContrast":  false
+    }
+]

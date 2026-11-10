@@ -1,0 +1,38 @@
+﻿[
+    {
+        "Image":  "dark-orch-board.png",
+        "DPI":  144,
+        "Rect":  [
+                     2584,
+                     259,
+                     4024,
+                     1219
+                 ],
+        "Scene":  "orch-board",
+        "Theme":  "dark",
+        "Style":  "",
+        "Layout":  "",
+        "Fixture":  true,
+        "Font":  "Malgun Gothic",
+        "TerminalFont":  "Cascadia Mono",
+        "HighContrast":  true
+    },
+    {
+        "Image":  "dark-orch-inbox.png",
+        "DPI":  144,
+        "Rect":  [
+                     2584,
+                     259,
+                     4024,
+                     1219
+                 ],
+        "Scene":  "orch-inbox",
+        "Theme":  "dark",
+        "Style":  "",
+        "Layout":  "",
+        "Fixture":  true,
+        "Font":  "Malgun Gothic",
+        "TerminalFont":  "Cascadia Mono",
+        "HighContrast":  true
+    }
+]

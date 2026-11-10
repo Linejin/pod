@@ -1,0 +1,81 @@
+# Pod CI (quality-01). Windows is the only supported platform.
+#
+# Not active yet: pushing this file needs a GitHub token with the `workflow`
+# scope, which the current one lacks (see CONTRIBUTING.md "CI").
+#
+# Plain cargo commands build the workspace default-members = every shipped
+# crate; the UI/diff spikes are left out on purpose (Cargo.toml, quality-14).
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+env:
+  CARGO_TERM_COLOR: always
+  CARGO_INCREMENTAL: 0
+  RUST_BACKTRACE: 1
+
+jobs:
+  windows:
+    runs-on: windows-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: clippy, rustfmt
+
+      - uses: Swatinem/rust-cache@v2
+
+      - name: Repository policy checks (no cargo)
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = "Stop"
+          foreach ($s in "check-workspace", "check-docs", "check-vendor-notices", "test-publish-public") {
+            powershell -NoProfile -ExecutionPolicy Bypass -File "tools/$s.ps1"
+            if ($LASTEXITCODE -ne 0) { throw "$s failed" }
+          }
+
+      - name: cargo fmt --check
+        run: cargo fmt --all -- --check
+
+      - name: Bundled ConPTY (pinned version and SHA-256)
+        run: powershell -NoProfile -ExecutionPolicy Bypass -File tools/fetch-conpty.ps1
+
+      - name: cargo clippy
+        run: cargo clippy --workspace --exclude pod-spike --exclude diff-spike --all-targets --locked -- -D warnings
+
+      # pod-cli integration tests run the podd / pod-holder / pod-hook
+      # executables next to pod.exe, so build every binary first.
+      - name: cargo build
+        run: cargo build --workspace --exclude pod-spike --exclude diff-spike --locked
+
+      # POD_REQUIRE_TOOLS=1: a test that would skip because a tool is missing
+      # fails instead (quality-07). Codex is not installed on the runner, so
+      # its one test is skipped by name here, visibly.
+      - name: cargo test
+        env:
+          POD_REQUIRE_TOOLS: "1"
+        run: cargo test --workspace --exclude pod-spike --exclude diff-spike --locked -- --skip codex_hooks_trusted_via_app_server_in_temp_home
+
+  # cargo-deny-action is a container action (Linux runners only); the policy
+  # itself targets x86_64-pc-windows-msvc (deny.toml [graph]).
+  deny:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: EmbarkStudios/cargo-deny-action@v2
+        with:
+          command: check

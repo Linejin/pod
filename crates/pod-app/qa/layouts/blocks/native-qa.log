@@ -1,0 +1,35 @@
+test layouts::blocks::tests::approval_buttons_map_to_gate_resolve_decisions ... ok
+test layouts::blocks::tests::keyboard_navigation_and_input_target_cycle ... ok
+test layouts::blocks_model::tests::scanner_finds_marks_and_alt_screen_across_chunks ... ok
+test layouts::blocks_model::tests::agent_status_transitions_cut_steps_without_marks ... ok
+test layouts::blocks_model::tests::full_screen_programs_are_one_live_block_and_never_cut ... ok
+test layouts::blocks_model::tests::prompt_detection_for_plain_shells_and_earlier_output ... ok
+test layouts::blocks::tests::feed_merges_terminals_chronologically_with_gates_on_the_newest_block ... ok
+test layouts::blocks_qa::preset_11_maps_to_the_block_terminal ... ok
+test layouts::blocks_model::tests::cmd_prompt_without_c_mark_still_makes_blocks ... ok
+test layouts::blocks_model::tests::osc_133_marks_cut_command_blocks_with_exit_codes ... ok
+test layouts::blocks_model::tests::long_output_keeps_the_newest_lines_and_exit_closes ... ok
+[native-qa] blocks-actions | keys f6 | focus: workspace text input (value "") [Root > PodBlocks > PodBlocksInput > Input]
+[native-qa] blocks-actions | keys f6 | focus: workspace control [Root > PodBlocks]
+[native-qa] blocks-actions | keys down | focus: workspace control [Root > PodBlocks]
+[native-qa] blocks-actions | keys enter | focus: workspace control [Root > PodBlocks]
+[native-qa] blocks-actions | keys up | focus: workspace control [Root > PodBlocks]
+[native-qa] blocks-actions | keys tab tab | focus: workspace control [Root > PodBlocks]
+[native-qa] blocks-actions | keys enter | focus: workspace control [Root > PodBlocks]
+[native-qa] blocks-actions | keys a | focus: workspace control [Root > PodBlocks]
+[native-qa] blocks-actions | keys n | focus: workspace control [Root > PodBlocks]
+[native-qa] blocks-actions | keys f6 | focus: workspace text input (value "") [Root > PodBlocks > PodBlocksInput > Input]
+[native-qa] blocks-actions | keys tab | focus: workspace text input (value "") [Root > PodBlocks > PodBlocksInput > Input]
+[native-qa] blocks-actions | type "ls" | focus: workspace text input (value "ls") [Root > PodBlocks > PodBlocksInput > Input]
+[native-qa] blocks-actions | keys enter | focus: workspace text input (value "") [Root > PodBlocks > PodBlocksInput > Input]
+[native-qa] blocks-actions | keys escape | focus: workspace control [Root > PodBlocks]
+[native-qa] blocks-actions | keys c | focus: workspace control [Root > PodBlocks]
+test layouts::blocks_qa::keyboard_approval_in_the_block_and_input_to_one_agent ... ok
+test layouts::blocks_qa::korean_block_text_fits_at_100_to_175_percent_and_large_fonts ... ok
+[native-qa] blocks-switch | keys escape | focus: workspace control [Root > PodBlocks]
+[native-qa] blocks-switch | keys tab | focus: workspace control [Root > PodBlocks]
+[native-qa] blocks-switch | keys enter | focus: terminal w1
+[native-qa] blocks-switch | keys f6 | focus: workspace control [Root > PodBlocks]
+[native-qa] blocks-switch | keys tab tab tab | focus: workspace control [Root > PodBlocks]
+[native-qa] blocks-switch | keys enter | focus: workspace control [Root > PodBlocks]
+test layouts::blocks_qa::switching_layouts_keeps_terminals_attached_and_the_dock_as_it_was ... ok

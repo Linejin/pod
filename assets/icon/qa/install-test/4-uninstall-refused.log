@@ -1,0 +1,25 @@
+2026-11-09 15:05:37.188   Log opened. (Time zone: UTC+09:00)
+2026-11-09 15:05:37.189   Setup version: Inno Setup version 6.7.3
+2026-11-09 15:05:37.189   Original Uninstall EXE: C:\Users\User\AppData\Local\Temp\pod-install-test\app\unins000.exe
+2026-11-09 15:05:37.189   Uninstall DAT: C:\Users\User\AppData\Local\Temp\pod-install-test\app\unins000.dat
+2026-11-09 15:05:37.189   Current Uninstall EXE: C:\Users\User\AppData\Local\Temp\is-4F5M52CICV-uninstall.tmp\_unins.tmp
+2026-11-09 15:05:37.189   Uninstall command line: /SECONDPHASE="C:\Users\User\AppData\Local\Temp\pod-install-test\app\unins000.exe" /FIRSTPHASEWND=$9EF104C /VERYSILENT /SUPPRESSMSGBOXES /NORESTART /LOG="C:\Users\User\dev\workspaces\ide\fu-icon\assets\icon\qa\install-test\4-uninstall-refused.log"
+2026-11-09 15:05:37.189   Windows version: 10.0.26200
+2026-11-09 15:05:37.189   Windows architecture: x64 (64-bit)
+2026-11-09 15:05:37.189   Machine types supported by system: x86 x64
+2026-11-09 15:05:37.189   User privileges: Administrative
+2026-11-09 15:05:37.189   Administrative install mode: No
+2026-11-09 15:05:37.189   Install mode root key: HKEY_CURRENT_USER
+2026-11-09 15:05:37.189   RedirectionGuard status for current process: Enabled in enforcing mode
+2026-11-09 15:05:37.189   Cleaning up any residual temporary files from previous Uninstall runs.
+2026-11-09 15:05:37.192   Deleted file: C:\Users\User\AppData\Local\Temp\is-8EUBORUNWV-uninstall.tmp\_unins.tmp
+2026-11-09 15:05:37.193   Cleanup finished (4 directories found, 4 directories checked, 1 files deleted).
+2026-11-09 15:05:37.195   Created protected temporary directory: C:\Users\User\AppData\Local\Temp\is-HQ0AWMSLP4.tmp
+2026-11-09 15:05:37.327   silent: "실행 중인 Pod 터미널이 1개 있습니다(그 안의 에이전트 포함).
+
+                          Pod를 제거하려면 이 터미널을 모두 종료해야 합니다. 종료하면 저장하지 않은 작업이 사라질 수 있습니다.
+
+                          터미널을 모두 종료하고 제거할까요? ("아니요"를 누르면 제거를 취소합니다)" -> 7
+2026-11-09 15:05:37.327   uninstall cancelled: 1 terminal(s) running
+2026-11-09 15:05:37.327   InitializeUninstall returned False; aborting.
+2026-11-09 15:05:37.330   Log closed.

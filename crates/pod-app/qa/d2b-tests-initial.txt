@@ -1,0 +1,81 @@
+   Compiling tempfile v3.27.0
+   Compiling pod-app v0.1.0 (C:\Users\User\dev\workspaces\ide\d2b-polish\crates\pod-app)
+   Compiling pod-spike v0.0.1 (C:\Users\User\dev\workspaces\ide\d2b-polish\crates\pod-spike)
+   Compiling pod-ui v0.1.0 (C:\Users\User\dev\workspaces\ide\d2b-polish\crates\pod-ui)
+   Compiling pod-status v0.1.0 (C:\Users\User\dev\workspaces\ide\d2b-polish\crates\pod-status)
+   Compiling pod-cli v0.2.0 (C:\Users\User\dev\workspaces\ide\d2b-polish\crates\pod-cli)
+   Compiling diff-spike v0.0.1 (C:\Users\User\dev\workspaces\ide\d2b-polish\crates\diff-spike)
+   Compiling pod-diff v0.1.0 (C:\Users\User\dev\workspaces\ide\d2b-polish\crates\pod-diff)
+   Compiling pod-terminal-view v0.0.1 (C:\Users\User\dev\workspaces\ide\d2b-polish\crates\pod-terminal-view)
+   Compiling podd v0.2.0 (C:\Users\User\dev\workspaces\ide\d2b-polish\crates\podd)
+   Compiling pod-hook v0.1.0 (C:\Users\User\dev\workspaces\ide\d2b-polish\crates\pod-hook)
+    Finished `release` profile [optimized + debuginfo] target(s) in 1m 22s
+     Running unittests src\main.rs (target\release\deps\diff_spike-a3922339cb8d3c9d.exe)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src\main.rs (target\release\deps\pod_app-eb2643e8b46c1c6b.exe)
+
+running 38 tests
+test attach::tests::outputs_merge_and_reset_clears ... ok
+test chrome::palette_tests::fuzzy_unicode_ranges_and_order ... ok
+test attach::tests::lag_flag ... ok
+test gates::tests::durations ... ok
+test gates::tests::expiry_lines ... ok
+test groups::tests::check_command_round_trip ... ok
+test groups::tests::check_summaries_report_failure_as_failure ... FAILED
+test groups::tests::error_names ... ok
+test groups::tests::specs_and_member_names_follow_podd_rules ... ok
+test groups::tests::validation_messages ... FAILED
+test layout::tests::active_tab_falls_back_to_first ... ok
+test orch::tests::badges_follow_status_and_lifecycle ... ok
+test orch::tests::pending_sorts_numerically_and_resolved_newest_first ... ok
+test orch::tests::snapshot_merge_reports_new_and_drops_vanished_pending ... ok
+test panel::tests::persisted_state_roundtrip ... ok
+test layout::tests::grid ... ok
+test layout::tests::prune_drops_dead_terminals_and_empty_containers ... ok
+test panel::tests::reply_filter ... ok
+test review::tests::queued_to_delivered_is_reported_once ... ok
+test layout::tests::unknown_leaves_are_dropped ... ok
+test layout::tests::saved_roundtrip ... ok
+test review::tests::selection_or_all_open ... ok
+test review::tests::refusal_messages ... ok
+test source::tests::orchestration_stream_events ... ok
+test source::tests::transport_vs_rpc_errors ... ok
+test review::tests::turn_end_detection ... ok
+test source::tests::command_line_quotes ... ok
+test theme::tests::old_settings_get_independent_font_defaults ... ok
+test source::tests::presets ... ok
+test strings::toolkit_tests::host_catalog_reaches_dock_and_diff ... ok
+test tree::tests::collapse_hides_children_but_keeps_aggregate ... ok
+test tree::tests::group_started_from_a_terminal_nests_under_it_with_aggregate ... ok
+test tree::tests::unknown_parents_and_cycles_fall_back_to_roots ... ok
+test vm::tests::program_labels ... ok
+test vm::tests::task_from_protocol_v3 ... ok
+test vm::tests::task_parse_and_counts ... ok
+test vm::tests::terminal_from_p0_info ... ok
+test vm::tests::terminal_with_future_fields ... ok
+
+failures:
+
+---- groups::tests::check_summaries_report_failure_as_failure stdout ----
+
+thread 'groups::tests::check_summaries_report_failure_as_failure' (71640) panicked at crates\pod-app\src\groups.rs:1246:9:
+assertion failed: check_summary(&c).0.contains("FAILED · exit 1 · 1.5 s")
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+---- groups::tests::validation_messages stdout ----
+
+thread 'groups::tests::validation_messages' (70428) panicked at crates\pod-app\src\groups.rs:1213:9:
+assertion failed: validate("fx", "do it", &one, false).unwrap().contains("repository")
+
+
+failures:
+    groups::tests::check_summaries_report_failure_as_failure
+    groups::tests::validation_messages
+
+test result: FAILED. 36 passed; 2 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+error: test failed, to rerun pass `-p pod-app --bin pod-app`

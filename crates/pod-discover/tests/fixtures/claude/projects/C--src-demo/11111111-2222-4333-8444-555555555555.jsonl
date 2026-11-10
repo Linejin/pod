@@ -1,0 +1,11 @@
+{"type":"permission-mode","permissionMode":"default","sessionId":"11111111-2222-4333-8444-555555555555"}
+{"type":"file-history-snapshot","messageId":"m0","snapshot":{"messageId":"m0","trackedFileBackups":{}},"isSnapshotUpdate":false}
+{"userType":"external","entrypoint":"cli","cwd":"C:\\src\\demo","sessionId":"11111111-2222-4333-8444-555555555555","version":"2.1.0","gitBranch":"main","type":"user","isMeta":true,"uuid":"u0","timestamp":"2026-11-01T09:59:59.000Z","message":{"role":"user","content":"<command-name>/clear</command-name>"}}
+{"userType":"external","entrypoint":"cli","cwd":"C:\\src\\demo","sessionId":"11111111-2222-4333-8444-555555555555","version":"2.1.0","gitBranch":"main","type":"user","uuid":"u1","timestamp":"2026-11-01T10:00:00.000Z","message":{"role":"user","content":"Fix the login bug\nin auth.rs please"}}
+{not json at all
+{"type":"future-thing","x":[1,2,3]}
+{"userType":"external","entrypoint":"cli","cwd":"C:\\src\\demo","sessionId":"11111111-2222-4333-8444-555555555555","version":"2.1.0","gitBranch":"main","type":"assistant","uuid":"a1","timestamp":"2026-11-01T10:00:05.000Z","message":{"model":"claude-test-model","role":"assistant","content":[{"type":"text","text":"ok"}]}}
+{"userType":"external","entrypoint":"cli","cwd":"C:\\src\\demo","sessionId":"11111111-2222-4333-8444-555555555555","version":"2.1.0","gitBranch":"main","type":"user","uuid":"u2","timestamp":"2026-11-01T10:01:00.000Z","message":{"role":"user","content":[{"type":"tool_result","tool_use_id":"x","content":"done"}]}}
+{"type":"ai-title","aiTitle":"Fix login bug","sessionId":"11111111-2222-4333-8444-555555555555"}
+{"userType":"external","entrypoint":"cli","cwd":"C:\\src\\demo","sessionId":"11111111-2222-4333-8444-555555555555","version":"2.1.0","gitBranch":"feature/login","type":"assistant","uuid":"a2","timestamp":"2026-11-01T10:05:00.000Z","message":{"model":"<synthetic>","role":"assistant","content":[]}}
+{"type":"user","timestamp":"2026-11-01T11:

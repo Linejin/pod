@@ -1,0 +1,21 @@
+shot 01-welcome
+shot 02-dir
+shot 03-tasks
+shot 04-ready
+shot 05-finished
+shot 06-upgrade-welcome
+shot 07-upgrade-app
+shot 08-upgrade-daemon
+shot 09-upgrade-terminals
+shot 10-upgrade-finished
+moved aside: conpty.dll.old-20261109152440, pod-holder.exe.old-20261109152440, OpenConsole.exe.old-20261109152440
+ID  NAME   STATE    STATUS   PID    SIZE    COMMAND                       CWD
+t1  shots  running  unknown  69896  120x30  cmd.exe /k echo upgrade-demo  C:\Users\User\dev\workspaces\ide\fu-icon
+
+shot 12-uninstall-terminals
+shot 11-uninstall-confirm
+shot 13-uninstall-hooks
+shot 14-uninstall-data
+shot 15-uninstall-done
+uninstall dialogs seen: 제거되었습니다, 터미널이 \d+개, 제거하시겠습니까, 사용자 데이터, pod hooks uninstall
+processes left: 0; app dir existed after uninstall: False; data exists: False; uninstall key: False; PATH same: True

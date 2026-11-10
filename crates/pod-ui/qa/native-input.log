@@ -1,0 +1,3 @@
+Dark/150% native input session completed and screenshots inspected: Hangul composition/commit, modal Tab and Escape return passed.
+Optional light native replay aborted before input due to target window occlusion; not counted as passed.
+Both themes separately passed the GPUI dispatch focus check.

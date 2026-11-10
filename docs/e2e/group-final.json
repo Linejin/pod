@@ -1,0 +1,159 @@
+﻿{
+  "id": "sample/duel",
+  "repo": "sample",
+  "name": "duel",
+  "base": "main",
+  "base_commit": "c8d00bcb17707a6089d9df928d7ed43e81429b08",
+  "prompt": "Fix calc.py so python -m unittest -v passes. Run the test. Do not commit or delegate.",
+  "check": [
+    "python",
+    "-m",
+    "unittest",
+    "-v"
+  ],
+  "created_ms": 1794177536487,
+  "picked": "sample/duel-codex-1",
+  "picked_ms": 1794177662254,
+  "members": [
+    {
+      "task": "sample/duel-codex-1",
+      "agent": "codex",
+      "info": {
+        "id": "sample/duel-codex-1",
+        "repo": "sample",
+        "name": "duel-codex-1",
+        "branch": "pod/duel-codex-1",
+        "base": "main",
+        "base_commit": "c8d00bcb17707a6089d9df928d7ed43e81429b08",
+        "worktree": "C:\\ai\\pod-e2e\\worktrees-5dfd20\\sample\\duel-codex-1",
+        "agent": "codex",
+        "prompt": "Fix calc.py so python -m unittest -v passes. Run the test. Do not commit or delegate.",
+        "created_ms": 1794177535296,
+        "terminals": [
+          {
+            "id": "t3",
+            "info": {
+              "id": "t3",
+              "name": "sample/duel-codex-1",
+              "argv": [
+                "codex",
+                "--no-daemon",
+                "-c",
+                "check_for_update_on_startup=false",
+                "-c",
+                "projects={'C:\\ai\\pod-e2e\\worktrees-5dfd20\\sample\\duel-codex-1'={trust_level='trusted'}}",
+                "Fix calc.py so python -m unittest -v passes. Run the test. Do not commit or delegate."
+              ],
+              "cwd": "C:\\ai\\pod-e2e\\worktrees-5dfd20\\sample\\duel-codex-1",
+              "state": "running",
+              "pid": 47152,
+              "holder_pid": 14212,
+              "cols": 120,
+              "rows": 30,
+              "created_ms": 1794177535229,
+              "killed": false,
+              "lost": false,
+              "attached": 0,
+              "conpty": "bundled:C:\\Users\\User\\dev\\workspaces\\ide\\e2e-verify\\target\\release\\conpty.dll",
+              "status": {
+                "state": "done",
+                "source": "hook",
+                "confidence": 0.95,
+                "since": 1794177558641,
+                "turn": 2,
+                "agent": "codex",
+                "outcome": "completed",
+                "badge": "done",
+                "records": 0,
+                "running_children": 0,
+                "blocked_children": 0,
+                "hooks_accepted": 11,
+                "hooks_rejected": 0
+              }
+            }
+          }
+        ],
+        "worktree_exists": true,
+        "git": {
+          "branch": "pod/duel-codex-1",
+          "head": "c8d00bcb17707a6089d9df928d7ed43e81429b08",
+          "ahead": 0,
+          "behind": 0,
+          "dirty": 1,
+          "unpushed": 0,
+          "last_commit": {
+            "sha": "c8d00bcb17707a6089d9df928d7ed43e81429b08",
+            "summary": "Fixture with failing addition test",
+            "author": "Pod E2E",
+            "time_ms": 1794177078000
+          }
+        },
+        "status": {
+          "state": "done",
+          "terminal": "t3",
+          "badge": "done",
+          "terminals": 1
+        },
+        "group": "sample/duel"
+      },
+      "removed": false,
+      "picked": true,
+      "check": {
+        "argv": [
+          "python",
+          "-m",
+          "unittest",
+          "-v"
+        ],
+        "passed": true,
+        "exit_code": 0,
+        "timed_out": false,
+        "duration_ms": 184,
+        "finished_ms": 1794177585471,
+        "output_tail": "test_add (test_calc.CalcTest.test_add) ... ok\r\n\r\n----------------------------------------------------------------------\r\nRan 1 test in 0.000s\r\n\r\nOK\r\n"
+      }
+    },
+    {
+      "task": "sample/duel-codex-2",
+      "agent": "codex",
+      "removed": true,
+      "picked": false,
+      "check": {
+        "argv": [
+          "python",
+          "-m",
+          "unittest",
+          "-v"
+        ],
+        "passed": true,
+        "exit_code": 0,
+        "timed_out": false,
+        "duration_ms": 191,
+        "finished_ms": 1794177585479,
+        "output_tail": "test_add (test_calc.CalcTest.test_add) ... ok\r\n\r\n----------------------------------------------------------------------\r\nRan 1 test in 0.000s\r\n\r\nOK\r\n"
+      }
+    }
+  ],
+  "check_job": {
+    "id": "k2",
+    "state": "finished",
+    "argv": [
+      "python",
+      "-m",
+      "unittest",
+      "-v"
+    ],
+    "tasks": [
+      "sample/duel-codex-1",
+      "sample/duel-codex-2"
+    ],
+    "done": [
+      "sample/duel-codex-1",
+      "sample/duel-codex-2"
+    ],
+    "timeout_ms": 600000,
+    "started_ms": 1794177585284,
+    "finished_ms": 1794177585481,
+    "all_passed": true
+  }
+}

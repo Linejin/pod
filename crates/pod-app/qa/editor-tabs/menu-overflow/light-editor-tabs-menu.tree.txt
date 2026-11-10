@@ -1,0 +1,95 @@
+﻿App=pod-app (pid 12972)
+Window: "", App: pod-app.
+
+0 영역
+	1 title bar TitleBar
+		2 menu bar 시스템 메뉴 모음
+			3 menu item 시스템
+		4 button 최소화
+		5 button 최대화
+		6 button 닫기
+	7 단추 명령·터미널 검색
+	8 단추 설정
+	9 트리 저장소와 작업 탐색
+		10 단추 격자
+		11 단추 + 작업
+		12 단추 + 터미널
+		13 단추 + 그룹
+		14 단추 에이전트
+		15 편집 저장소, 작업, 터미널 검색, Secondary Actions: SetValue
+		16 콘솔 트리 sample · 작업 100, Secondary Actions: Select
+		17 콘솔 트리 Task 000 - 한글 작업과 레이아웃 🔎, Secondary Actions: Select
+		18 콘솔 트리 Worker 0 | 작업 중 · 출처: osc · 신뢰도: 100% · 상위: 작업 중 · 마지막: — | 보고 없음
+			19 상태 작업 중 · 출처: osc · 신뢰도: 100% · 상위: 작업 중 · 마지막: —
+		20 콘솔 트리 Worker 1 | 승인 필요 · 출처: osc · 신뢰도: 100% · 상위: 승인 필요 · 마지막: — | 보고 없음
+			21 상태 승인 필요 · 출처: osc · 신뢰도: 100% · 상위: 승인 필요 · 마지막: —
+		22 콘솔 트리 Worker 2 | 완료 · 출처: osc · 신뢰도: 100% · 상위: 완료 · 마지막: — | 보고 없음
+			23 상태 완료 · 출처: osc · 신뢰도: 100% · 상위: 완료 · 마지막: —
+		24 콘솔 트리 Task 001 - 한글 작업과 레이아웃 🔎, Secondary Actions: Select
+		25 콘솔 트리 Worker 3 | 승인 필요 · 출처: osc · 신뢰도: 100% · 상위: 승인 필요 · 마지막: — | 보고 없음
+			26 상태 승인 필요 · 출처: osc · 신뢰도: 100% · 상위: 승인 필요 · 마지막: —
+		27 콘솔 트리 Worker 4 | 완료 · 출처: osc · 신뢰도: 100% · 상위: 완료 · 마지막: — | 보고 없음
+			28 상태 완료 · 출처: osc · 신뢰도: 100% · 상위: 완료 · 마지막: —
+		29 콘솔 트리 Worker 5 | 대기 · 출처: osc · 신뢰도: 100% · 상위: 대기 · 마지막: — | 보고 없음
+			30 상태 대기 · 출처: osc · 신뢰도: 100% · 상위: 대기 · 마지막: —
+		31 콘솔 트리 Task 002 - 한글 작업과 레이아웃 🔎, Secondary Actions: Select
+		32 콘솔 트리 Worker 6 | 완료 · 출처: osc · 신뢰도: 100% · 상위: 완료 · 마지막: — | 보고 없음
+			33 상태 완료 · 출처: osc · 신뢰도: 100% · 상위: 완료 · 마지막: —
+		34 콘솔 트리 Worker 7 | 대기 · 출처: osc · 신뢰도: 100% · 상위: 대기 · 마지막: — | 보고 없음
+			35 상태 대기 · 출처: osc · 신뢰도: 100% · 상위: 대기 · 마지막: —
+	36 LIST 최근 알림
+	37 탭 항목 파일 · sample/task-000, Secondary Actions: Select
+	38 단추 패널 메뉴
+	39 트리 파일 트리
+		40 콘솔 트리 config, Secondary Actions: Select
+		41 콘솔 트리 settings.json, Secondary Actions: Select
+		42 콘솔 트리 crates, Secondary Actions: Select
+		43 콘솔 트리 pod-app, Secondary Actions: Select
+		44 콘솔 트리 src, Secondary Actions: Select
+		45 콘솔 트리 mod.rs (U), Secondary Actions: Select
+		46 콘솔 트리 podd, Secondary Actions: Select
+		47 콘솔 트리 src, Secondary Actions: Select
+		48 콘솔 트리 mod.rs (U), Secondary Actions: Select
+		49 콘솔 트리 docs, Secondary Actions: Select
+		50 콘솔 트리 notes, Secondary Actions: Select
+		51 콘솔 트리 todo.md (U), Secondary Actions: Select
+		52 콘솔 트리 scripts, Secondary Actions: Select
+		53 콘솔 트리 tool.py, Secondary Actions: Select
+		54 콘솔 트리 src, Secondary Actions: Select
+		55 콘솔 트리 geometry.rs, Secondary Actions: Select
+		56 콘솔 트리 lib.rs, Secondary Actions: Select
+		57 콘솔 트리 main.rs (M), Secondary Actions: Select
+	58 Tab 열린 파일
+		59 탭 항목 README.md, Secondary Actions: Select
+			60 단추 탭 닫기 README.md
+		61 탭 항목 Cargo.toml, Secondary Actions: Select
+			62 단추 탭 닫기 Cargo.toml
+		63 탭 항목 lib.rs — src/lib.rs, Secondary Actions: Select
+			64 단추 탭 닫기 lib.rs
+		65 탭 항목 geometry.rs — src/geometry.rs, Secondary Actions: Select
+			66 단추 탭 닫기 geometry.rs
+		67 탭 항목 mod.rs — crates/podd/src/mod.rs, Secondary Actions: Select
+			68 단추 탭 닫기 mod.rs
+		69 탭 항목 mod.rs — crates/pod-app/src/mod.rs, Secondary Actions: Select
+			70 단추 탭 닫기 mod.rs
+		71 탭 항목 tool.py — scripts/tool.py, Secondary Actions: Select
+			72 단추 탭 닫기 tool.py
+		73 탭 항목 settings.json — config/settings.json, Secondary Actions: Select
+			74 단추 탭 닫기 settings.json
+		75 탭 항목 todo.md — notes/todo.md, Secondary Actions: Select
+			76 단추 탭 닫기 todo.md
+	77 단추 열린 파일 모두 보기
+	78 편집 편집기: crates/podd/src/mod.rs, Value: //! fixture, Secondary Actions: SetValue
+	79 단추 언어 서버 꺼짐
+	80 단추 상태
+	81 단추 알림 0
+	82 메뉴 탭 메뉴: mod.rs
+		83 메뉴 항목 닫기
+		84 메뉴 항목 다른 탭 닫기
+		85 메뉴 항목 오른쪽 탭 닫기
+		86 메뉴 항목 저장된 탭 닫기
+		87 메뉴 항목 모두 닫기
+		88 메뉴 항목 고정 해제
+		89 메뉴 항목 경로 복사
+		90 메뉴 항목 상대 경로 복사
+		91 메뉴 항목 파일 트리에서 보기

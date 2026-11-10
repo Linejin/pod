@@ -1,0 +1,86 @@
+{
+  "version": 1,
+  "dock": {
+    "version": 1,
+    "center": {
+      "panel_name": "StackPanel",
+      "children": [
+        {
+          "panel_name": "TabPanel",
+          "children": [
+            {
+              "panel_name": "PodTerminal",
+              "children": [],
+              "info": {
+                "panel": {
+                  "terminal": "t1"
+                }
+              }
+            },
+            {
+              "panel_name": "PodReview",
+              "children": [],
+              "info": {
+                "panel": {
+                  "task": "sample/app-rerun"
+                }
+              }
+            },
+            {
+              "panel_name": "PodGroup",
+              "children": [],
+              "info": {
+                "panel": {
+                  "group": "sample/duel"
+                }
+              }
+            }
+          ],
+          "info": {
+            "tabs": {
+              "active_index": 2
+            }
+          }
+        }
+      ],
+      "info": {
+        "stack": {
+          "sizes": [
+            596.0
+          ],
+          "axis": 0
+        }
+      }
+    },
+    "right_dock": {
+      "panel": {
+        "panel_name": "TabPanel",
+        "children": [
+          {
+            "panel_name": "PodAgentTree",
+            "children": [],
+            "info": {
+              "panel": {}
+            }
+          },
+          {
+            "panel_name": "PodGates",
+            "children": [],
+            "info": {
+              "panel": {}
+            }
+          }
+        ],
+        "info": {
+          "tabs": {
+            "active_index": 1
+          }
+        }
+      },
+      "placement": "right",
+      "size": 380.0,
+      "open": true
+    }
+  },
+  "labels": {}
+}

@@ -1,0 +1,27 @@
+App=pod-app (pid 57292)
+Window: "", App: pod-app.
+
+0 영역
+	1 title bar TitleBar
+		2 menu bar 시스템 메뉴 모음
+			3 menu item 시스템
+		4 button 최소화
+		5 button 복원
+		6 button 닫기
+	7 단추 Search commands / terminals Ctrl+K
+	8 단추 Settings
+	9 단추
+	10 단추 Status
+	11 단추 Notifications 1
+	12 단추 Close
+	13 대화 상자
+		14 단추 sample
+		15 단추 Add repository…
+		16 편집 task name, e.g. fix-login (branch pod/<name>), Secondary Actions: SetValue
+		17 편집 base ref (default: the repo's default branch), Secondary Actions: SetValue
+		18 단추 Shell
+		19 단추 Claude
+		20 단추 Codex
+		21 단추 Cancel
+		22 단추 Create
+		23 단추 Close

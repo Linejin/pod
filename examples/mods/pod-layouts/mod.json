@@ -1,0 +1,8 @@
+{
+  "pod": 1,
+  "name": "pod-layouts",
+  "version": "0.1.0",
+  "title": "기본 레이아웃 프리셋",
+  "description": "팔레트에서 고르는 화면 배치: 리뷰 집중, 4분할 에이전트.",
+  "layouts": ["layouts/review-focus.json", "layouts/agents-quad.json"]
+}

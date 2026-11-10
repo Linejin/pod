@@ -1,0 +1,59 @@
+App=pod-app (pid 58464)
+Window: "", App: pod-app.
+
+0 영역
+	1 title bar TitleBar
+		2 menu bar 시스템 메뉴 모음
+			3 menu item 시스템
+		4 button 최소화
+		5 button 복원
+		6 button 닫기
+	7 단추 Search commands / terminals Ctrl+K
+	8 단추 Settings
+	9 단추
+	10 단추
+	11 단추 Split
+	12 단추 Inline
+	13 단추 Expand
+	14 단추 Wrap
+	15 단추 ↑
+	16 단추 ↓
+	17 단추 ◀
+	18 단추 ▶
+	19 단추 Files ✓
+	20 단추 Comments ✓
+	21 단추 ⟳
+	22 문서 Diff for hello.rs
+		23 단추 Collapse hello.rs
+		24 단추 Select Original line 1
+		25 단추 Select Modified line 1
+		26 텍스트
+		27 단추 Add annotation to line 1
+		28 단추 Select Original line 2
+		29 텍스트
+		30 단추 Add annotation to line 2
+		31 단추 Select Modified line 2
+		32 텍스트
+		33 단추 Add annotation to line 2
+		34 단추 Resolve
+		35 단추 Delete
+		36 단추 Select Original line 3
+		37 단추 Select Modified line 3
+		38 텍스트
+		39 단추 Add annotation to line 3
+	40 단추 Resolve
+	41 단추 Delete
+	42 편집 Optional instructions for the agent (sent before the comments), Secondary Actions: SetValue
+	43 단추 Send 1 open to agent
+	44 Tab
+		45 탭 항목, Secondary Actions: Select
+			46 단추
+		47 탭 항목, Secondary Actions: Select
+			48 단추
+		49 단추
+	50 단추 Status
+	51 단추 Notifications 1
+	52 단추 Close
+	53 대화 상자
+		54 단추 sample/auth / 승인 필요
+		55 단추 Close

@@ -1,0 +1,52 @@
+﻿[
+    {
+        "DeviceName":  "\\\\.\\DISPLAY1",
+        "Primary":  true,
+        "Bounds":  {
+                       "Location":  {
+                                        "IsEmpty":  true,
+                                        "X":  0,
+                                        "Y":  0
+                                    },
+                       "Size":  {
+                                    "IsEmpty":  false,
+                                    "Width":  2560,
+                                    "Height":  1440
+                                },
+                       "X":  0,
+                       "Y":  0,
+                       "Width":  2560,
+                       "Height":  1440,
+                       "Left":  0,
+                       "Top":  0,
+                       "Right":  2560,
+                       "Bottom":  1440,
+                       "IsEmpty":  false
+                   }
+    },
+    {
+        "DeviceName":  "\\\\.\\DISPLAY2",
+        "Primary":  false,
+        "Bounds":  {
+                       "Location":  {
+                                        "IsEmpty":  false,
+                                        "X":  2560,
+                                        "Y":  235
+                                    },
+                       "Size":  {
+                                    "IsEmpty":  false,
+                                    "Width":  1920,
+                                    "Height":  1200
+                                },
+                       "X":  2560,
+                       "Y":  235,
+                       "Width":  1920,
+                       "Height":  1200,
+                       "Left":  2560,
+                       "Top":  235,
+                       "Right":  4480,
+                       "Bottom":  1435,
+                       "IsEmpty":  false
+                   }
+    }
+]

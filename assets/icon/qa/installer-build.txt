@@ -1,0 +1,22 @@
+==> Pod 0.1.0
+==> cargo build --release
+    Blocking waiting for file lock on package cache
+    Blocking waiting for file lock on package cache
+    Blocking waiting for file lock on package cache
+   Compiling podd v0.1.0 (C:\Users\User\dev\workspaces\ide\fu-icon\crates\podd)
+   Compiling pod-cli v0.1.0 (C:\Users\User\dev\workspaces\ide\fu-icon\crates\pod-cli)
+   Compiling pod-hook v0.1.0 (C:\Users\User\dev\workspaces\ide\fu-icon\crates\pod-hook)
+   Compiling pod-app v0.1.0 (C:\Users\User\dev\workspaces\ide\fu-icon\crates\pod-app)
+    Finished `release` profile [optimized + debuginfo] target(s) in 32.24s
+==> stage -> C:\Users\User\dev\workspaces\ide\fu-icon\dist\stage\Pod-0.1.0
+notices: 508 crates, 293 distinct texts, 29 without license file -> C:\Users\User\dev\workspaces\ide\fu-icon\dist\stage\Pod-0.1.0\THIRD-PARTY-NOTICES.txt
+licenses: 237 MIT OR Apache-2.0; 92 MIT; 50 Apache-2.0 OR MIT; 27 Apache-2.0; 22 Unicode-3.0; 21 MIT/Apache-2.0; 8 BSD-3-Clause; 7 MIT OR Apache-2.0 OR Zlib; 7 Unlicense OR MIT; 5 Apache-2.0/MIT; 4 BSD-2-Clause; 3 Zlib; 3 Zlib OR Apache-2.0 OR MIT; 2 MIT OR Zlib OR Apache-2.0; 2 BSD-2-Clause OR Apache-2.0 OR MIT; 2 (MIT OR Apache-2.0) AND Unicode-3.0; 2 Unlicense/MIT; 2 BSD-3-Clause OR Apache-2.0; 2 0BSD; 1 Apache-2.0 WITH LLVM-exception OR Apache-2.0 OR MIT; 1 Apache-2.0 OR BSL-1.0; 1 0BSD OR MIT OR Apache-2.0; 1 CC0-1.0 OR MIT-0 OR Apache-2.0; 1 (Apache-2.0 OR MIT) AND BSD-3-Clause; 1 CC0-1.0 OR Apache-2.0; 1 MIT / Apache-2.0; 1 Apache-2.0 / MIT; 1 MPL-2.0; 1 CC0-1.0
+==> ISCC (C:\Users\User\AppData\Local\Programs\Inno Setup 6\ISCC.exe)
+
+
+Preprocessing==> zip -> C:\Users\User\dev\workspaces\ide\fu-icon\dist\Pod-0.1.0-x64-portable.zip
+==> done
+C:\Users\User\dev\workspaces\ide\fu-icon\dist\Pod-Setup-0.1.0-x64.exe  12.2 MB
+C:\Users\User\dev\workspaces\ide\fu-icon\dist\Pod-0.1.0-x64-portable.zip  16.9 MB
+6c7178c64f7d7cb331e8c90fa91d6a055f4a8b2639f8fda55cce179c596b977f  Pod-Setup-0.1.0-x64.exe
+d0dfd5da1fbb42f3e6fa12a2edbbda23c20edb7f69bc00c295a6f62203688ed7  Pod-0.1.0-x64-portable.zip

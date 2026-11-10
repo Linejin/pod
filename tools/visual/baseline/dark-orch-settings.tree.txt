@@ -1,0 +1,127 @@
+﻿App=pod-app (pid 7952)
+Window: "Pod", App: pod-app.
+
+0 영역 Pod
+	1 title bar Pod
+		2 menu bar 시스템 메뉴 모음
+			3 menu item 시스템
+		4 button 최소화
+		5 button 최대화
+		6 button 닫기
+	7 단추 명령·터미널 검색
+	8 단추 설정
+	9 트리 저장소와 작업 탐색
+		10 단추 격자
+		11 단추 + 작업
+		12 단추 + 터미널
+		13 단추 + 그룹
+		14 단추 에이전트
+		15 편집 저장소, 작업, 터미널 검색, Secondary Actions: SetValue
+		16 콘솔 트리 sample · 작업 100개, Secondary Actions: Select
+		17 콘솔 트리 Task 000 - 한글 작업과 레이아웃 🔎 · Claude 에이전트, Codex 에이전트 · 작업 중 1 · 응답 1 · 완료 1, Secondary Actions: Select
+			18 이미지 에이전트: Claude, Codex
+		19 콘솔 트리 Worker 0 · Claude 에이전트 | 작업 중 · 출처: osc · 신뢰도: 100% · 상위: 작업 중 · 마지막: — | 보고 없음
+			20 이미지 Claude 에이전트
+			21 상태 작업 중 · 출처: osc · 신뢰도: 100% · 상위: 작업 중 · 마지막: —
+		22 콘솔 트리 Worker 1 · Codex 에이전트 | 승인 필요 · 출처: osc · 신뢰도: 100% · 상위: 승인 필요 · 마지막: — | 보고 없음
+			23 이미지 Codex 에이전트
+			24 상태 승인 필요 · 출처: osc · 신뢰도: 100% · 상위: 승인 필요 · 마지막: —
+		25 콘솔 트리 Worker 2 · 셸 터미널 | 완료 · 출처: osc · 신뢰도: 100% · 상위: 완료 · 마지막: — | 보고 없음
+			26 이미지 셸 터미널
+			27 상태 완료 · 출처: osc · 신뢰도: 100% · 상위: 완료 · 마지막: —
+		28 콘솔 트리 Task 001 - 한글 작업과 레이아웃 🔎 · Claude 에이전트, Codex 에이전트 · 응답 1 · 대기 1 · 완료 1, Secondary Actions: Select
+			29 이미지 에이전트: Claude, Codex
+		30 콘솔 트리 Worker 3 · Claude 에이전트 | 승인 필요 · 출처: osc · 신뢰도: 100% · 상위: 승인 필요 · 마지막: — | 보고 없음
+			31 이미지 Claude 에이전트
+			32 상태 승인 필요 · 출처: osc · 신뢰도: 100% · 상위: 승인 필요 · 마지막: —
+		33 콘솔 트리 Worker 4 · Codex 에이전트 | 완료 · 출처: osc · 신뢰도: 100% · 상위: 완료 · 마지막: — | 보고 없음
+			34 이미지 Codex 에이전트
+			35 상태 완료 · 출처: osc · 신뢰도: 100% · 상위: 완료 · 마지막: —
+		36 콘솔 트리 Worker 5 · 셸 터미널 | 대기 · 출처: osc · 신뢰도: 100% · 상위: 대기 · 마지막: — | 보고 없음
+			37 이미지 셸 터미널
+			38 상태 대기 · 출처: osc · 신뢰도: 100% · 상위: 대기 · 마지막: —
+		39 콘솔 트리 Task 002 - 한글 작업과 레이아웃 🔎 · Claude 에이전트, Codex 에이전트 · 미확인 1 · 대기 1 · 완료 1, Secondary Actions: Select
+			40 이미지 에이전트: Claude, Codex
+		41 콘솔 트리 Worker 6 · Claude 에이전트 | 완료 · 출처: osc · 신뢰도: 100% · 상위: 완료 · 마지막: — | 보고 없음
+			42 이미지 Claude 에이전트
+			43 상태 완료 · 출처: osc · 신뢰도: 100% · 상위: 완료 · 마지막: —
+		44 콘솔 트리 Worker 7 · Codex 에이전트 | 대기 · 출처: osc · 신뢰도: 100% · 상위: 대기 · 마지막: — | 보고 없음
+			45 이미지 Codex 에이전트
+			46 상태 대기 · 출처: osc · 신뢰도: 100% · 상위: 대기 · 마지막: —
+		47 콘솔 트리 Worker 8 · 셸 터미널 | 상태 미확인 · 추정 · 출처: heuristic · 신뢰도: 40% · 상위: 상태 미확인 · 마지막: — | 보고 없음
+			48 이미지 셸 터미널
+			49 상태 상태 미확인 · 추정 · 출처: heuristic · 신뢰도: 40% · 상위: 상태 미확인 · 마지막: —
+		50 콘솔 트리 Task 003 - 한글 작업과 레이아웃 🔎 · Claude 에이전트, Codex 에이전트 · 오류 1 · 미확인 1 · 대기 1, Secondary Actions: Select
+			51 이미지 에이전트: Claude, Codex
+		52 콘솔 트리 Worker 9 · Claude 에이전트 | 대기 · 출처: osc · 신뢰도: 100% · 상위: 대기 · 마지막: — | 보고 없음
+			53 이미지 Claude 에이전트
+			54 상태 대기 · 출처: osc · 신뢰도: 100% · 상위: 대기 · 마지막: —
+		55 콘솔 트리 Worker 10 · Codex 에이전트 | 상태 미확인 · 추정 · 출처: heuristic · 신뢰도: 40% · 상위: 상태 미확인 · 마지막: — | 보고 없음
+			56 이미지 Codex 에이전트
+			57 상태 상태 미확인 · 추정 · 출처: heuristic · 신뢰도: 40% · 상위: 상태 미확인 · 마지막: —
+	58 LIST 최근 알림
+		59 경고 승인 대기 1개: 승인 요청을 확인하세요 (상태 표시줄 ⚑, Ctrl+Shift+I).
+			60 단추 닫기
+	61 탭 항목 오케스트레이션 설정, Secondary Actions: Select
+	62 단추 패널 메뉴
+	63 그룹 오케스트레이션 설정
+		64 단추 받은 편지함 · 답을 기다리는 질문: 1 (Ctrl+Shift+M)
+		65 단추 실행 보드
+		66 단추 끝난 워커 정리
+		67 단추 오케스트레이션 설정 다시 읽기
+		68 라디오 그룹 워커 기본 배치
+			69 라디오 단추 워커 기본 배치: 새 워크트리, Secondary Actions: Select
+			70 라디오 단추 워커 기본 배치: 호출자 워크트리, Secondary Actions: Select
+		71 라디오 그룹 끝난 워커 자동 정리
+			72 라디오 단추 끝난 워커 자동 정리: 끔, Secondary Actions: Select
+			73 라디오 단추 끝난 워커 자동 정리: 5분, Secondary Actions: Select
+			74 라디오 단추 끝난 워커 자동 정리: 10분, Secondary Actions: Select
+			75 라디오 단추 끝난 워커 자동 정리: 30분, Secondary Actions: Select
+			76 라디오 단추 끝난 워커 자동 정리: 1시간, Secondary Actions: Select
+		77 라디오 그룹 멈춤 알림
+			78 라디오 단추 멈춤 알림: 끔, Secondary Actions: Select
+			79 라디오 단추 멈춤 알림: 10분, Secondary Actions: Select
+			80 라디오 단추 멈춤 알림: 20분, Secondary Actions: Select
+			81 라디오 단추 멈춤 알림: 1시간, Secondary Actions: Select
+		82 라디오 그룹 중첩 깊이 한도
+			83 라디오 단추 중첩 깊이 한도: 1, Secondary Actions: Select
+			84 라디오 단추 중첩 깊이 한도: 2, Secondary Actions: Select
+			85 라디오 단추 중첩 깊이 한도: 3, Secondary Actions: Select
+			86 라디오 단추 중첩 깊이 한도: 5, Secondary Actions: Select
+		87 그룹 자원 한도 (대기열)
+			88 라디오 그룹 동시 워커(전체): 동시에 일하는 워커 수(전체), 1–64
+				89 라디오 단추 동시 워커(전체): 1개, Secondary Actions: Select
+				90 라디오 단추 동시 워커(전체): 2개, Secondary Actions: Select
+				91 라디오 단추 동시 워커(전체): 3개, Secondary Actions: Select
+				92 라디오 단추 동시 워커(전체): 4개, Secondary Actions: Select
+				93 라디오 단추 동시 워커(전체): 6개, Secondary Actions: Select
+			94 라디오 그룹 실행당 워커: Run 하나의 열린 워커 수, 1–64
+				95 라디오 단추 실행당 워커: 2개, Secondary Actions: Select
+				96 라디오 단추 실행당 워커: 4개, Secondary Actions: Select
+				97 라디오 단추 실행당 워커: 8개, Secondary Actions: Select
+				98 라디오 단추 실행당 워커: 16개, Secondary Actions: Select
+			99 라디오 그룹 CPU 한도: 최근 1분 CPU가 이 %를 넘으면 새 워커 대기, 1–100 또는 off
+				100 라디오 단추 CPU 한도: 끔, Secondary Actions: Select
+				101 라디오 단추 CPU 한도: 50%, Secondary Actions: Select
+				102 라디오 단추 CPU 한도: 70%, Secondary Actions: Select
+				103 라디오 단추 CPU 한도: 85%, Secondary Actions: Select
+			104 라디오 그룹 최소 여유 메모리: 사용 가능 메모리가 이보다 적으면 대기(예: 4G), 또는 off
+				105 라디오 단추 최소 여유 메모리: 끔, Secondary Actions: Select
+				106 라디오 단추 최소 여유 메모리: 2G, Secondary Actions: Select
+				107 라디오 단추 최소 여유 메모리: 4G, Secondary Actions: Select
+				108 라디오 단추 최소 여유 메모리: 8G, Secondary Actions: Select
+			109 라디오 그룹 최소 여유 디스크: worktree 드라이브 여유가 이보다 적으면 대기(예: 20G), 또는 off
+				110 라디오 단추 최소 여유 디스크: 끔, Secondary Actions: Select
+				111 라디오 단추 최소 여유 디스크: 10G, Secondary Actions: Select
+				112 라디오 단추 최소 여유 디스크: 20G, Secondary Actions: Select
+				113 라디오 단추 최소 여유 디스크: 50G, Secondary Actions: Select
+			114 라디오 그룹 CPU 대기 최대: CPU 때문에 기다리는 최대 시간(예: 30m), 또는 off
+				115 라디오 단추 CPU 대기 최대: 끔, Secondary Actions: Select
+				116 라디오 단추 CPU 대기 최대: 10분, Secondary Actions: Select
+				117 라디오 단추 CPU 대기 최대: 30분, Secondary Actions: Select
+				118 라디오 단추 CPU 대기 최대: 60분, Secondary Actions: Select
+		119 그룹 Codex 워커 좁은 허용
+			120 그룹 sample: Codex 워커 좁은 허용 켬
+	121 상태 podd 연결됨 (podd UI fixture (read only) · pid 0) · 터미널 300 · 실행 300 · 패널 0 · 작업 중 49 · 응답 50 · 완료 51 · 작업 100개
+	122 단추 상태
+	123 단추 알림 1

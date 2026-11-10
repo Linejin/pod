@@ -1,0 +1,25 @@
+﻿test layouts::review_qa::keyboard_approve_a_pending_gate_from_the_review_header ... [native-qa] review-gate | keys down | focus: workspace control [Root > PodReviewLayout]
+[native-qa] review-gate | keys tab | focus: workspace control [Root > PodReviewLayout]
+[native-qa] review-gate | keys tab | focus: workspace control [Root > PodReviewLayout]
+[native-qa] review-gate | keys tab | focus: workspace control [Root > PodReviewLayout]
+[native-qa] review-gate | keys enter | focus: workspace control [Root > PodReviewLayout]
+test layouts::review_qa::korean_text_fits_at_100_to_175_percent_and_large_fonts ... [native-qa] review-dpi | keys down | focus: workspace control [Root > PodReviewLayout]
+[native-qa] review-dpi | keys down | focus: workspace control [Root > PodReviewLayout]
+[native-qa] review-dpi | keys down | focus: workspace control [Root > PodReviewLayout]
+[native-qa] review-dpi | keys down | focus: workspace control [Root > PodReviewLayout]
+[native-qa] review-dpi | keys down | focus: workspace control [Root > PodReviewLayout]
+test layouts::review_qa::preset_13_maps_to_the_review_layout ... ok
+test layouts::review_qa::switching_layouts_keeps_terminals_attached_and_the_dock_as_it_was ... [review] sample/로그인-수정 loaded: task.diff 211ms, load 268ms, patch+parse 0ms, 3 files, 34 lines · ready 489ms after open
+[native-qa] review-switch | keys f6 | focus: workspace control [Root > PodReviewLayout]
+[native-qa] review-switch | keys down | focus: workspace control [Root > PodReviewLayout]
+[native-qa] review-switch | keys enter | focus: review panel control [Root > PodReviewLayout > PodReview]
+[native-qa] review-switch | keys f6 | focus: terminal b1
+[native-qa] review-switch | keys shift-f6 | focus: review panel control [Root > PodReviewLayout > PodReview]
+[native-qa] review-switch | keys f6 | focus: terminal b1
+[native-qa] review-switch | keys ctrl-shift-x | focus: terminal b1
+[native-qa] review-switch | keys ctrl-shift-x | focus: terminal b1
+test layouts::review_qa::workbench_review_is_reused_and_panels_open_in_the_canvas ... [review] sample/로그인-수정 loaded: task.diff 190ms, load 246ms, patch+parse 0ms, 3 files, 34 lines · ready 444ms after open
+[native-qa] review-reuse | keys f6 | focus: workspace control [Root > PodReviewLayout]
+[native-qa] review-reuse | keys up | focus: workspace control [Root > PodReviewLayout]
+[native-qa] review-reuse | keys enter | focus: review panel control [Root > PodReviewLayout > PodReview]
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 165 filtered out; finished in 3.92s

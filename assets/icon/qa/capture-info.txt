@@ -1,0 +1,1 @@
+App HWND=173936716 DPI=144; monitor=\\.\DISPLAY2 bounds={X=2560,Y=235,Width=1920,Height=1200}

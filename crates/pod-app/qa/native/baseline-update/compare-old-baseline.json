@@ -1,0 +1,170 @@
+﻿[
+    {
+        "Image":  "dark-agents.png",
+        "ChangedPixels":  4002,
+        "Tolerance":  8,
+        "Pass":  false
+    },
+    {
+        "Image":  "dark-editor.png",
+        "ChangedPixels":  4002,
+        "Tolerance":  8,
+        "Pass":  false
+    },
+    {
+        "Image":  "dark-gates.png",
+        "ChangedPixels":  4002,
+        "Tolerance":  8,
+        "Pass":  false
+    },
+    {
+        "Image":  "dark-inspect.png",
+        "ChangedPixels":  4002,
+        "Tolerance":  8,
+        "Pass":  false
+    },
+    {
+        "Image":  "dark-new-group.png",
+        "ChangedPixels":  1427,
+        "Tolerance":  8,
+        "Pass":  false
+    },
+    {
+        "Image":  "dark-new-task.png",
+        "ChangedPixels":  1427,
+        "Tolerance":  8,
+        "Pass":  false
+    },
+    {
+        "Image":  "dark-notifications.png",
+        "ChangedPixels":  1427,
+        "Tolerance":  8,
+        "Pass":  false
+    },
+    {
+        "Image":  "dark-open-repo.png",
+        "ChangedPixels":  1427,
+        "Tolerance":  8,
+        "Pass":  false
+    },
+    {
+        "Image":  "dark-palette.png",
+        "ChangedPixels":  1427,
+        "Tolerance":  8,
+        "Pass":  false
+    },
+    {
+        "Image":  "dark-review.png",
+        "ChangedPixels":  3970,
+        "Tolerance":  8,
+        "Pass":  false
+    },
+    {
+        "Image":  "dark-settings.png",
+        "ChangedPixels":  4002,
+        "Tolerance":  8,
+        "Pass":  false
+    },
+    {
+        "Image":  "dark-shortcuts.png",
+        "ChangedPixels":  1427,
+        "Tolerance":  8,
+        "Pass":  false
+    },
+    {
+        "Image":  "dark-terminal.png",
+        "ChangedPixels":  1427,
+        "Tolerance":  8,
+        "Pass":  false
+    },
+    {
+        "Image":  "dark-workspace.png",
+        "ChangedPixels":  4002,
+        "Tolerance":  8,
+        "Pass":  false
+    },
+    {
+        "Image":  "light-agents.png",
+        "ChangedPixels":  3991,
+        "Tolerance":  8,
+        "Pass":  false
+    },
+    {
+        "Image":  "light-editor.png",
+        "ChangedPixels":  3991,
+        "Tolerance":  8,
+        "Pass":  false
+    },
+    {
+        "Image":  "light-gates.png",
+        "ChangedPixels":  3991,
+        "Tolerance":  8,
+        "Pass":  false
+    },
+    {
+        "Image":  "light-inspect.png",
+        "ChangedPixels":  3991,
+        "Tolerance":  8,
+        "Pass":  false
+    },
+    {
+        "Image":  "light-new-group.png",
+        "ChangedPixels":  3986,
+        "Tolerance":  8,
+        "Pass":  false
+    },
+    {
+        "Image":  "light-new-task.png",
+        "ChangedPixels":  3986,
+        "Tolerance":  8,
+        "Pass":  false
+    },
+    {
+        "Image":  "light-notifications.png",
+        "ChangedPixels":  3986,
+        "Tolerance":  8,
+        "Pass":  false
+    },
+    {
+        "Image":  "light-open-repo.png",
+        "ChangedPixels":  3986,
+        "Tolerance":  8,
+        "Pass":  false
+    },
+    {
+        "Image":  "light-palette.png",
+        "ChangedPixels":  3986,
+        "Tolerance":  8,
+        "Pass":  false
+    },
+    {
+        "Image":  "light-review.png",
+        "ChangedPixels":  3959,
+        "Tolerance":  8,
+        "Pass":  false
+    },
+    {
+        "Image":  "light-settings.png",
+        "ChangedPixels":  3991,
+        "Tolerance":  8,
+        "Pass":  false
+    },
+    {
+        "Image":  "light-shortcuts.png",
+        "ChangedPixels":  3986,
+        "Tolerance":  8,
+        "Pass":  false
+    },
+    {
+        "Image":  "light-terminal.png",
+        "ChangedPixels":  3986,
+        "Tolerance":  8,
+        "Pass":  false
+    },
+    {
+        "Image":  "light-workspace.png",
+        "ChangedPixels":  3991,
+        "Tolerance":  8,
+        "Pass":  false
+    }
+]

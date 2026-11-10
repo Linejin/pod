@@ -1,0 +1,45 @@
+Final checks, all exit codes 0. CARGO_TARGET_DIR=C:/ai/pod-target; CARGO_BUILD_JOBS=4.
+CPU gate ran before each build/test/clippy.
+
+$ cargo build -p pod-ui --release --all-targets
+
+    Finished `release` profile [optimized + debuginfo] target(s) in 7.97s
+
+$ cargo test -p pod-ui --release -- --nocapture
+    + CategoryInfo          : NotSpecified: (    Finished `r...get(s) in 1.16s:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+
+     Running unittests src\lib.rs (C:\ai\pod-target\release\deps\pod_ui-a13407eec699998f.exe)
+
+running 9 tests
+Dark: muted 6.013, control 3.352, focus 6.414, primary 4.714, semantic 5.751
+Light: muted 4.645, control 3.060, focus 5.655, primary 6.011, semantic 5.514
+test tests::child_blocked_overrides_done_but_not_exited ... ok
+test tests::every_status_has_unique_shape_and_label ... ok
+test tests::contrast_protects_readable_roles ... ok
+test tests::list_selection_survives_refresh_and_ime_never_executes ... ok
+test tests::nested_focus_round_trip_and_keyboard_wrap ... ok
+test tests::status_metadata_does_not_destroy_state ... ok
+test tests::summary_deduplicates_and_preserves_mixed_lifecycle ... ok
+test tests::terminal_indexed_and_truecolor_boundary ... ok
+test tests::toast_pause_and_persistent_attention ... ok
+
+test result: ok. 9 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests pod_ui
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+$ cargo clippy -p pod-ui --release --all-targets -- -D warnings
+
+    Finished `release` profile [optimized + debuginfo] target(s) in 1.74s
+
+$ cargo deny check
+   │
+22 │     "ISC",
+   │      ━━━ unmatched license allowance
+
+advisories ok, bans ok, licenses ok, sources ok

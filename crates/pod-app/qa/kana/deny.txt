@@ -1,0 +1,13 @@
+﻿cargo : warning[license-not-encountered]: license was not encountered
+At line:1 char:829
++ ... MaxCargo 1; cargo deny check *> crates/pod-app/qa/kana/deny.txt; "den ...
++                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (warning[license...not encountered:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+   ┌─ C:\Users\User\orca\workspaces\ide\kana\deny.toml:22:6
+   │
+22 │     "ISC",
+   │      ━━━ unmatched license allowance
+
+advisories ok, bans ok, licenses ok, sources ok

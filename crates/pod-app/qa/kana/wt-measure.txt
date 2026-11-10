@@ -1,0 +1,110 @@
+target/cjk/before/wt.png: cell pitch 14.000 px, origin x 23.0, line height ~25 px
+
+ひらがな あいうえお かきくけこ さしすせそ
+  ひ col  0 w2: ink  17px = 0.61 slot, left  4 right  7, height 17px
+  ら col  2 w2: ink  13px = 0.46 slot, left  6 right  9, height 20px
+  が col  4 w2: ink  19px = 0.68 slot, left  4 right  5, height 20px
+  な col  6 w2: ink  15px = 0.54 slot, left  5 right  8, height 20px
+  あ col  9 w2: ink  16px = 0.57 slot, left  4 right  8, height 20px
+  い col 11 w2: ink  16px = 0.57 slot, left  5 right  7, height 16px
+  う col 13 w2: ink  14px = 0.50 slot, left  5 right  9, height 19px
+  え col 15 w2: ink  15px = 0.54 slot, left  5 right  8, height 21px
+  お col 17 w2: ink  17px = 0.61 slot, left  4 right  7, height 19px
+  か col 20 w2: ink  18px = 0.64 slot, left  4 right  6, height 19px
+  き col 22 w2: ink  14px = 0.50 slot, left  5 right  9, height 20px
+  く col 24 w2: ink  11px = 0.39 slot, left  5 right 12, height 20px
+  け col 26 w2: ink  17px = 0.61 slot, left  4 right  7, height 19px
+  こ col 28 w2: ink  14px = 0.50 slot, left  6 right  8, height 16px
+  さ col 31 w2: ink  13px = 0.46 slot, left  5 right 10, height 20px
+  し col 33 w2: ink  13px = 0.46 slot, left  6 right  9, height 19px
+  す col 35 w2: ink  17px = 0.61 slot, left  4 right  7, height 20px
+  せ col 37 w2: ink  18px = 0.64 slot, left  3 right  7, height 18px
+  そ col 39 w2: ink  15px = 0.54 slot, left  5 right  8, height 21px
+
+カタカナ アイウエオ カキクケコ サシスセソ
+  カ col  0 w2: ink  13px = 0.46 slot, left  5 right 10, height 16px
+  タ col  2 w2: ink  13px = 0.46 slot, left  5 right 10, height 17px
+  カ col  4 w2: ink  13px = 0.46 slot, left  5 right 10, height 16px
+  ナ col  6 w2: ink  16px = 0.57 slot, left  4 right  8, height 19px
+  ア col  9 w2: ink  15px = 0.54 slot, left  4 right  9, height 16px
+  イ col 11 w2: ink  12px = 0.43 slot, left  4 right 12, height 20px
+  ウ col 13 w2: ink  16px = 0.57 slot, left  4 right  8, height 17px
+  エ col 15 w2: ink  18px = 0.64 slot, left  3 right  7, height 11px
+  オ col 17 w2: ink  16px = 0.57 slot, left  4 right  8, height 18px
+  カ col 20 w2: ink  13px = 0.46 slot, left  5 right 10, height 16px
+  キ col 22 w2: ink  14px = 0.50 slot, left  5 right  9, height 19px
+  ク col 24 w2: ink  13px = 0.46 slot, left  5 right 10, height 16px
+  ケ col 26 w2: ink  16px = 0.57 slot, left  4 right  8, height 19px
+  コ col 28 w2: ink  13px = 0.46 slot, left  5 right 10, height 15px
+  サ col 31 w2: ink  17px = 0.61 slot, left  4 right  7, height 18px
+  シ col 33 w2: ink  15px = 0.54 slot, left  4 right  9, height 19px
+  ス col 35 w2: ink  15px = 0.54 slot, left  4 right  9, height 16px
+  セ col 37 w2: ink  17px = 0.61 slot, left  3 right  8, height 17px
+  ソ col 39 w2: ink  14px = 0.50 slot, left  5 right  9, height 15px
+
+半角 ｶﾀｶﾅ ｱｲｳｴｵ ｶｷｸｹｺ ﾊﾟﾋﾟ
+  半 col  0 w2: ink  22px = 0.79 slot, left  1 right  5, height 22px
+  角 col  2 w2: ink  20px = 0.71 slot, left  1 right  7, height 22px
+  ｶ col  5 w1: ink  10px = 0.71 slot, left  1 right  3, height 19px
+  ﾀ col  6 w1: ink  10px = 0.71 slot, left  1 right  3, height 20px
+  ｶ col  7 w1: ink  10px = 0.71 slot, left  1 right  3, height 19px
+  ﾅ col  8 w1: ink  10px = 0.71 slot, left  1 right  3, height 20px
+  ｱ col 10 w1: ink  11px = 0.79 slot, left  1 right  2, height 17px
+  ｲ col 11 w1: ink  10px = 0.71 slot, left  1 right  3, height 20px
+  ｳ col 12 w1: ink  10px = 0.71 slot, left  1 right  3, height 20px
+  ｴ col 13 w1: ink  12px = 0.86 slot, left  0 right  2, height 13px
+  ｵ col 14 w1: ink  11px = 0.79 slot, left  1 right  2, height 19px
+  ｶ col 16 w1: ink  10px = 0.71 slot, left  1 right  3, height 19px
+  ｷ col 17 w1: ink  10px = 0.71 slot, left  1 right  3, height 19px
+  ｸ col 18 w1: ink  10px = 0.71 slot, left  1 right  3, height 20px
+  ｹ col 19 w1: ink  12px = 0.86 slot, left  0 right  2, height 20px
+  ｺ col 20 w1: ink   9px = 0.64 slot, left  1 right  4, height 13px
+  ﾊ col 22 w1: ink  12px = 0.86 slot, left  0 right  2, height 18px
+  ﾟ col 23: no ink
+  ﾋ col 24 w1: ink  10px = 0.71 slot, left  0 right  4, height 20px
+  ﾟ col 25: no ink
+
+漢字 日本語 東京 中文 简体字 繁體字
+  漢 col  0 w2: ink  22px = 0.79 slot, left  1 right  5, height 22px
+  字 col  2 w2: ink  22px = 0.79 slot, left  1 right  5, height 22px
+  日 col  5 w2: ink  14px = 0.50 slot, left  5 right  9, height 20px
+  本 col  7 w2: ink  22px = 0.79 slot, left  1 right  5, height 22px
+  語 col  9 w2: ink  22px = 0.79 slot, left  1 right  5, height 21px
+  東 col 12 w2: ink  22px = 0.79 slot, left  1 right  5, height 22px
+  京 col 14 w2: ink  22px = 0.79 slot, left  1 right  5, height 22px
+  中 col 17 w2: ink  18px = 0.64 slot, left  3 right  7, height 22px
+  文 col 19 w2: ink  22px = 0.79 slot, left  1 right  5, height 21px
+  简 col 22 w2: ink  22px = 0.79 slot, left  1 right  5, height 21px
+  体 col 24 w2: ink  22px = 0.79 slot, left  1 right  5, height 22px
+  字 col 26 w2: ink  22px = 0.79 slot, left  1 right  5, height 22px
+  繁 col 29 w2: ink  22px = 0.79 slot, left  1 right  5, height 22px
+  體 col 31 w2: ink  22px = 0.79 slot, left  1 right  5, height 22px
+  字 col 33 w2: ink  22px = 0.79 slot, left  1 right  5, height 22px
+
+한글 가나다라마바사 문서 확인
+  한 col  0 w2: ink  22px = 0.79 slot, left  1 right  5, height 22px
+  글 col  2 w2: ink  22px = 0.79 slot, left  1 right  5, height 21px
+  가 col  5 w2: ink  22px = 0.79 slot, left  2 right  4, height 23px
+  나 col  7 w2: ink  20px = 0.71 slot, left  3 right  5, height 23px
+  다 col  9 w2: ink  21px = 0.75 slot, left  3 right  4, height 23px
+  라 col 11 w2: ink  20px = 0.71 slot, left  3 right  5, height 23px
+  마 col 13 w2: ink  20px = 0.71 slot, left  3 right  5, height 23px
+  바 col 15 w2: ink  20px = 0.71 slot, left  3 right  5, height 23px
+  사 col 17 w2: ink  22px = 0.79 slot, left  1 right  5, height 23px
+  문 col 20 w2: ink  22px = 0.79 slot, left  1 right  5, height 21px
+  서 col 22 w2: ink  20px = 0.71 slot, left  1 right  7, height 23px
+  확 col 25 w2: ink  22px = 0.79 slot, left  1 right  5, height 23px
+  인 col 27 w2: ink  18px = 0.64 slot, left  3 right  7, height 22px
+
+emoji 😀👍🎉 end
+  e col  0 w1: ink  12px = 0.86 slot, left  1 right  1, height 12px
+  m col  1 w1: ink  12px = 0.86 slot, left  1 right  1, height 12px
+  o col  2 w1: ink  12px = 0.86 slot, left  1 right  1, height 12px
+  j col  3 w1: ink   9px = 0.64 slot, left  2 right  3, height 23px
+  i col  4 w1: ink  12px = 0.86 slot, left  1 right  1, height 18px
+  😀 col  6 w2: ink  24px = 0.86 slot, left  4 right  0, height 25px
+  👍 col  8 w2: ink  26px = 0.93 slot, left  0 right  2, height 24px
+  🎉 col 10 w2: ink  23px = 0.82 slot, left  5 right  0, height 29px
+  e col 13 w1: ink  12px = 0.86 slot, left  1 right  1, height 12px
+  n col 14 w1: ink  10px = 0.71 slot, left  2 right  2, height 21px
+  d col 15 w1: ink  11px = 0.79 slot, left  1 right  2, height 18px

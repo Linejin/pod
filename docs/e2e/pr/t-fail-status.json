@@ -1,0 +1,55 @@
+﻿{
+  "task": "fx/t-fail",
+  "branch": "pod/t-fail",
+  "default_base": "main",
+  "ahead": 1,
+  "unpushed": 0,
+  "dirty": 0,
+  "remote": {
+    "name": "origin",
+    "url": "https://github.com/SJin-Choi/pod-pr-e2e-20261109-1754.git",
+    "slug": {
+      "host": "github.com",
+      "owner": "SJin-Choi",
+      "name": "pod-pr-e2e-20261109-1754"
+    }
+  },
+  "pr": {
+    "number": 3,
+    "url": "https://github.com/SJin-Choi/pod-pr-e2e-20261109-1754/pull/3",
+    "title": "Flip gate to fail",
+    "state": "open",
+    "draft": false,
+    "head": "pod/t-fail",
+    "base": "main",
+    "merge_state": "UNSTABLE",
+    "mergeable": "MERGEABLE",
+    "additions": 1,
+    "deletions": 2,
+    "changed_files": 1,
+    "author": "SJin-Choi"
+  },
+  "checks": [
+    {
+      "name": "gate",
+      "bucket": "fail",
+      "state": "FAILURE",
+      "description": "gate.txt: fail"
+    },
+    {
+      "name": "quick",
+      "bucket": "pass",
+      "state": "SUCCESS",
+      "description": "passed"
+    }
+  ],
+  "summary": {
+    "total": 2,
+    "passed": 1,
+    "failed": 1,
+    "pending": 0,
+    "skipped": 0
+  },
+  "cached": false,
+  "refreshed_ms": 1794215245693
+}

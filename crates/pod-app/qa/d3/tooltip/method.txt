@@ -1,0 +1,1 @@
+Synthetic targeted WM_MOUSEMOVE, not native pointer input; visual result requires inspection.

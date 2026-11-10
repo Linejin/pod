@@ -1,0 +1,2 @@
+﻿[pod-app] reply sent for t8 after 0 ms: \x1b]10;rgb:2424/3232/4646\x1b\\
+[pod-app] reply sent for t8 after 0 ms: \x1b]11;rgb:fcfc/fdfd/fefe\x1b\\

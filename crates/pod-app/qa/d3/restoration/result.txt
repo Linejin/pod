@@ -1,0 +1,1 @@
+﻿PASS: settings center tab and status right inspector saved and restored; both tabs have UIA names

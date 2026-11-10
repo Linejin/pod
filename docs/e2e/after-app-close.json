@@ -1,0 +1,173 @@
+﻿{
+  "terminals": [
+    {
+      "id": "t1",
+      "name": "sample/cli-fix",
+      "argv": [
+        "codex",
+        "--no-daemon",
+        "-c",
+        "check_for_update_on_startup=false",
+        "-c",
+        "projects={'C:\\ai\\pod-e2e\\worktrees-5dfd20\\sample\\cli-fix'={trust_level='trusted'}}",
+        "Fix the failing test by correcting calc.py. Run python -m unittest -v. Keep the change minimal; do not commit or delegate."
+      ],
+      "cwd": "C:\\ai\\pod-e2e\\worktrees-5dfd20\\sample\\cli-fix",
+      "state": "running",
+      "pid": 46520,
+      "holder_pid": 38592,
+      "cols": 84,
+      "rows": 41,
+      "created_ms": 1794177158331,
+      "killed": false,
+      "lost": false,
+      "attached": 0,
+      "conpty": "bundled:C:\\Users\\User\\dev\\workspaces\\ide\\e2e-verify\\target\\release\\conpty.dll",
+      "status": {
+        "state": "idle",
+        "source": "hook",
+        "confidence": 0.95,
+        "since": 1794177717454,
+        "turn": 9,
+        "agent": "codex",
+        "outcome": "cancelled",
+        "badge": "idle",
+        "records": 0,
+        "running_children": 0,
+        "blocked_children": 0,
+        "hooks_accepted": 24,
+        "hooks_rejected": 0
+      }
+    },
+    {
+      "id": "t2",
+      "name": "sample/app-fix",
+      "argv": [
+        "codex",
+        "--no-daemon",
+        "-c",
+        "check_for_update_on_startup=false",
+        "-c",
+        "projects={'C:\\ai\\pod-e2e\\worktrees-5dfd20\\sample\\app-fix'={trust_level='trusted'}}",
+        "Fix calc.py so python -m unittest -v passes. Run the test. Do not commit or delegate."
+      ],
+      "cwd": "C:\\ai\\pod-e2e\\worktrees-5dfd20\\sample\\app-fix",
+      "state": "running",
+      "pid": 44580,
+      "holder_pid": 10376,
+      "cols": 134,
+      "rows": 41,
+      "created_ms": 1794177249285,
+      "killed": false,
+      "lost": false,
+      "attached": 0,
+      "conpty": "bundled:C:\\Users\\User\\dev\\workspaces\\ide\\e2e-verify\\target\\release\\conpty.dll",
+      "status": {
+        "state": "done",
+        "source": "hook",
+        "confidence": 0.95,
+        "since": 1794177633965,
+        "turn": 4,
+        "agent": "codex",
+        "outcome": "completed",
+        "badge": "done",
+        "records": 0,
+        "running_children": 0,
+        "blocked_children": 0,
+        "hooks_accepted": 5,
+        "hooks_rejected": 0
+      }
+    },
+    {
+      "id": "t3",
+      "name": "sample/duel-codex-1",
+      "argv": [
+        "codex",
+        "--no-daemon",
+        "-c",
+        "check_for_update_on_startup=false",
+        "-c",
+        "projects={'C:\\ai\\pod-e2e\\worktrees-5dfd20\\sample\\duel-codex-1'={trust_level='trusted'}}",
+        "Fix calc.py so python -m unittest -v passes. Run the test. Do not commit or delegate."
+      ],
+      "cwd": "C:\\ai\\pod-e2e\\worktrees-5dfd20\\sample\\duel-codex-1",
+      "state": "exited",
+      "exit_code": 0,
+      "pid": 47152,
+      "holder_pid": 14212,
+      "cols": 120,
+      "rows": 30,
+      "created_ms": 1794177535229,
+      "exited_ms": 1794177693156,
+      "killed": false,
+      "lost": false,
+      "attached": 0,
+      "conpty": "bundled:C:\\Users\\User\\dev\\workspaces\\ide\\e2e-verify\\target\\release\\conpty.dll",
+      "status": {
+        "state": "exited",
+        "source": "process",
+        "confidence": 1.0,
+        "since": 1794177693193,
+        "turn": 2,
+        "agent": "codex",
+        "outcome": "completed",
+        "final_state": "done",
+        "badge": "exited",
+        "records": 0,
+        "running_children": 0,
+        "blocked_children": 0,
+        "hooks_accepted": 11,
+        "hooks_rejected": 0
+      }
+    },
+    {
+      "id": "t5",
+      "name": "e2e-child",
+      "argv": [
+        "powershell",
+        "-NoProfile",
+        "-ExecutionPolicy",
+        "Bypass",
+        "-File",
+        "C:\\ai\\pod-e2e\\child.ps1"
+      ],
+      "cwd": "C:\\ai\\pod-e2e\\worktrees-5dfd20\\sample\\app-fix",
+      "state": "exited",
+      "exit_code": 7,
+      "pid": 49512,
+      "holder_pid": 28552,
+      "cols": 120,
+      "rows": 30,
+      "created_ms": 1794177599792,
+      "exited_ms": 1794177660066,
+      "killed": false,
+      "lost": false,
+      "attached": 0,
+      "conpty": "bundled:C:\\Users\\User\\dev\\workspaces\\ide\\e2e-verify\\target\\release\\conpty.dll",
+      "status": {
+        "state": "exited",
+        "source": "process",
+        "confidence": 1.0,
+        "since": 1794177660096,
+        "turn": 0,
+        "final_state": "unknown",
+        "badge": "exited",
+        "records": 0,
+        "running_children": 0,
+        "blocked_children": 0,
+        "hooks_accepted": 0,
+        "hooks_rejected": 0
+      },
+      "parent_terminal": "t2",
+      "parent_task": "sample/app-fix"
+    }
+  ],
+  "retention_ms": 86400000,
+  "retention": [
+    {
+      "id": "t5",
+      "kept": false,
+      "expires_ms": 1794264060066
+    }
+  ]
+}

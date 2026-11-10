@@ -1,0 +1,9 @@
+{
+  "pod": 1,
+  "name": "demo-notify",
+  "version": "0.1.0",
+  "title": "데모: 질문 알림",
+  "description": "확장이 감지한 상태(출처 mod)가 질문 대기로 바뀌면 알린다. 스크린샷용 데모 모드.",
+  "entry": "main.js",
+  "permissions": ["notify"]
+}

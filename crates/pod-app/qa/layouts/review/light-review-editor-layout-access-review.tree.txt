@@ -1,0 +1,66 @@
+﻿App=pod-app (pid 68948)
+Window: "", App: pod-app.
+
+0 영역
+	1 title bar TitleBar
+		2 menu bar 시스템 메뉴 모음
+			3 menu item 시스템
+		4 button 최소화
+		5 button 최대화
+		6 button 닫기
+	7 단추 명령·터미널 검색
+	8 단추 설정
+	9 LIST 작업, 100개
+		10 목록 항목 Task 000 - 한글 작업과 레이아웃 🔎, pod/task-000, 상태: 작업 1 · 응답 1 · 완료 1, Secondary Actions: Select
+		11 목록 항목 Task 001 - 한글 작업과 레이아웃 🔎, pod/task-001, 상태: 응답 1 · 대기 1 · 완료 1, Secondary Actions: Select
+		12 목록 항목 Task 002 - 한글 작업과 레이아웃 🔎, pod/task-002, 상태: 미확인 1 · 대기 1 · 완료 1, Secondary Actions: Select
+		13 목록 항목 Task 003 - 한글 작업과 레이아웃 🔎, pod/task-003, 상태: 오류 1 · 미확인 1 · 대기 1, Secondary Actions: Select
+		14 목록 항목 Task 004 - 한글 작업과 레이아웃 🔎, pod/task-004, 상태: 작업 1 · 오류 1 · 미확인 1, Secondary Actions: Select
+		15 목록 항목 Task 005 - 한글 작업과 레이아웃 🔎, pod/task-005, 상태: 작업 1 · 응답 1 · 오류 1, Secondary Actions: Select
+		16 목록 항목 Task 006 - 한글 작업과 레이아웃 🔎, pod/task-006, 상태: 작업 1 · 응답 1 · 완료 1, Secondary Actions: Select
+		17 목록 항목 Task 007 - 한글 작업과 레이아웃 🔎, pod/task-007, 상태: 응답 1 · 대기 1 · 완료 1, Secondary Actions: Select
+	18 영역 리뷰 화면
+		19 Tab
+			20 탭 항목 리뷰, Secondary Actions: Select
+			21 탭 항목 패널, Secondary Actions: Select
+		22 그룹 에이전트 상태
+		23 단추 응답하기
+		24 단추 나란히
+		25 단추 한 줄로
+		26 단추 펼치기
+		27 단추 줄바꿈 ✓
+		28 단추 이전 변경 (Shift+F7 / Alt+↑)
+		29 단추 다음 변경 (F7 / Alt+↓)
+		30 단추 이전 파일 (Alt+PgUp)
+		31 단추 다음 파일 (Alt+PgDn)
+		32 단추 파일 ✓
+		33 단추 의견 ✓
+		34 단추 변경, 의견과 전송 기록 새로고침 (F5)
+		35 문서 파일 3개 변경 비교
+			36 단추 README.md 접기
+			37 단추 편집기에서 열기 README.md
+			38 단추 변경 없는 5줄 펼치기
+			39 단추 원본 6줄 선택
+			40 텍스트
+			41 단추 6줄에 의견 추가
+			42 단추 변경 6줄 선택
+			43 텍스트
+			44 단추 6줄에 의견 추가
+		45 단추 코멘트
+		46 단추 PR
+		47 편집 에이전트에게 보낼 요청 (선택, 의견보다 먼저 전달), Secondary Actions: SetValue
+		48 단추 미해결 0개 보내기
+		49 영역 터미널, 3개
+			50 단추 터미널 접기
+			51 그룹 Powershell · Worker 0, 작업 중
+				52 단추 크게 보기
+				53 편집 터미널 입력 및 출력
+			54 그룹 Powershell · Worker 1, 승인 필요
+				55 단추 크게 보기
+				56 편집 터미널 입력 및 출력
+			57 그룹 Powershell · Worker 2, 완료
+				58 단추 크게 보기
+				59 편집 터미널 입력 및 출력
+	60 LIST 최근 알림
+	61 단추 상태
+	62 단추 알림 0

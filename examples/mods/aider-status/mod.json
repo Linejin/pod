@@ -1,0 +1,9 @@
+{
+  "pod": 1,
+  "name": "aider-status",
+  "version": "0.1.0",
+  "title": "Aider 상태 감지",
+  "description": "Aider 터미널 화면을 읽어 작업 중·질문 대기·완료·대기 상태를 Pod 상태로 알린다 (출처: mod).",
+  "entry": "main.js",
+  "permissions": ["status"]
+}

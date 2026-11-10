@@ -1,0 +1,62 @@
+App=pod-app (pid 58464)
+Window: "", App: pod-app.
+
+0 영역
+	1 title bar TitleBar
+		2 menu bar 시스템 메뉴 모음
+			3 menu item 시스템
+		4 button 최소화
+		5 button 복원
+		6 button 닫기
+	7 단추 Search commands / terminals Ctrl+K
+	8 단추 Settings
+	9 단추 Grid
+	10 단추 + Task
+	11 단추 + New
+	12 단추 + Group
+	13 단추 Agents
+	14 콘솔 트리 sample/auth | 승인 필요 · source: osc · confidence: 90% · root: 승인 필요 · final: — | 828s ago
+		15 상태 승인 필요 · source: osc · confidence: 90% · root: 승인 필요 · final: —
+	16 콘솔 트리 sample/compare-shell-1 | 상태 미확인 · 추정 · source: unknown · confidence: 0% · root: 상태 미확인 · final: — | 827s ago
+		17 상태 상태 미확인 · 추정 · source: unknown · confidence: 0% · root: 상태 미확인 · final: —
+	18 콘솔 트리 sample/compare-shell-2 | 상태 미확인 · 추정 · source: unknown · confidence: 0% · root: 상태 미확인 · final: — | 826s ago
+		19 상태 상태 미확인 · 추정 · source: unknown · confidence: 0% · root: 상태 미확인 · final: —
+	20 콘솔 트리 exit-seven | 실패 종료 (7) · source: unknown · confidence: 0% · root: 종료 · final: — | 824s ago
+		21 상태 실패 종료 (7) · source: unknown · confidence: 0% · root: 종료 · final: —
+	22 Tab
+		23 탭 항목, Secondary Actions: Select
+			24 단추
+		25 탭 항목, Secondary Actions: Select
+			26 단추
+		27 탭 항목, Secondary Actions: Select
+			28 단추
+		29 단추
+		30 단추
+	31 Tab
+		32 탭 항목, Secondary Actions: Select
+			33 단추
+		34 탭 항목, Secondary Actions: Select
+			35 단추
+		36 단추
+	37 콘솔 트리 ⧉ group sample/compare, Secondary Actions: Select
+		38 상태 상태 미확인 · 추정 · source: unknown · confidence: 0% · root: 상태 미확인 · final: —
+	39 콘솔 트리 ▣ sample/compare-shell-1, Secondary Actions: Select
+		40 상태 상태 미확인 · 추정 · source: unknown · confidence: 0% · root: 상태 미확인 · final: —
+	41 콘솔 트리 › sample/compare-shell-1, Secondary Actions: Select
+		42 상태 상태 미확인 · 추정 · source: unknown · confidence: 0% · root: 상태 미확인 · final: —
+	43 콘솔 트리 ▣ sample/compare-shell-2, Secondary Actions: Select
+		44 상태 상태 미확인 · 추정 · source: unknown · confidence: 0% · root: 상태 미확인 · final: —
+	45 콘솔 트리 › sample/compare-shell-2, Secondary Actions: Select
+		46 상태 상태 미확인 · 추정 · source: unknown · confidence: 0% · root: 상태 미확인 · final: —
+	47 콘솔 트리 ▣ sample/auth, Secondary Actions: Select
+		48 상태 확인 필요 · 추정 · source: unknown · confidence: 0% · root: 확인 필요 · final: —
+	49 콘솔 트리 › sample/auth, Secondary Actions: Select
+		50 상태 승인 필요 · source: osc · confidence: 90% · root: 승인 필요 · final: —
+	51 콘솔 트리 › exit-seven, Secondary Actions: Select
+		52 상태 실패 종료 (7) · source: unknown · confidence: 0% · root: 종료 · final: —
+	53 단추 Status
+	54 단추 Notifications 1
+	55 단추 Close
+	56 대화 상자
+		57 상태 승인 필요 · source: osc · confidence: 90% · root: 승인 필요 · final: —
+		58 단추 Close

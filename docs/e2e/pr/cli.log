@@ -1,0 +1,1071 @@
+﻿
+[2026-11-09T09:05:13.1974582+00:00] pod repo add C:\ai\pod-e2e\pr-1754\repo --name fx
+fx C:\ai\pod-e2e\pr-1754\repo (default base main)
+exit=0
+
+[2026-11-09T09:05:13.8975649+00:00] pod task new fx t-pass --base main --agent shell
+fx/t-pass  t1  pod/t-pass  C:\ai\pod-e2e\pr-1754\worktrees\fx\t-pass
+exit=0
+
+[2026-11-09T09:05:15.0382687+00:00] pod task new fx t-draft --base main --agent shell
+fx/t-draft  t2  pod/t-draft  C:\ai\pod-e2e\pr-1754\worktrees\fx\t-draft
+exit=0
+
+[2026-11-09T09:05:15.8051931+00:00] pod task new fx t-fail --base main --agent shell
+fx/t-fail  t3  pod/t-fail  C:\ai\pod-e2e\pr-1754\worktrees\fx\t-fail
+exit=0
+
+[2026-11-09T09:05:16.6071683+00:00] pod task ls
+TASK        STATUS   TERMINALS   BRANCH       AHEAD  BEHIND  DIRTY  LAST COMMIT
+fx/t-pass   unknown  t1:running  pod/t-pass   0      0       0      8abca6d54b Fixture: calc + gate file (checks via commit statuses)
+fx/t-draft  unknown  t2:running  pod/t-draft  0      0       0      8abca6d54b Fixture: calc + gate file (checks via commit statuses)
+fx/t-fail   unknown  t3:running  pod/t-fail   0      0       0      8abca6d54b Fixture: calc + gate file (checks via commit statuses)
+exit=0
+
+[2026-11-09T09:05:22.7714139+00:00] pod send t1 Add-Content calc.py 'def sub(a, b):'; Add-Content calc.py '    return a - b'; git add -A; git commit -q -m 'Add sub()'; git log --oneline -1
+
+exit=0
+
+[2026-11-09T09:05:23.1681223+00:00] pod send t2 Add-Content README.md 'Draft note.'; git commit -qam 'Docs: draft note'; git log --oneline -1
+
+exit=0
+
+[2026-11-09T09:05:23.5756694+00:00] pod send t3 Set-Content gate.txt 'fail'; git commit -qam 'Flip gate to fail'; git log --oneline -1
+
+exit=0
+
+[2026-11-09T09:05:27.9870210+00:00] pod read t1
+(base) PS C:\ai\pod-e2e\pr-1754\worktrees\fx\t-pass> Add-Content calc.py 'def sub(a, b):'; Add-Content calc.py '    return a - b'; git add -A; git commit -q -m 'Add sub()'; git log --oneline -1
+b05e32f (HEAD -> pod/t-pass) Add sub()
+(base) PS C:\ai\pod-e2e\pr-1754\worktrees\fx\t-pass>
+exit=0
+
+[2026-11-09T09:05:28.0157376+00:00] pod read t3
+(base) PS C:\ai\pod-e2e\pr-1754\worktrees\fx\t-fail> Set-Content gate.txt 'fail'; git commit -qam 'Flip gate to fail'; git log --oneline -1
+19b0ed2 (HEAD -> pod/t-fail) Flip gate to fail
+(base) PS C:\ai\pod-e2e\pr-1754\worktrees\fx\t-fail>
+exit=0
+
+[2026-11-09T09:05:28.0507821+00:00] pod pr status fx/t-pass
+task      fx/t-pass
+branch    pod/t-pass -> main (1 ahead, 1 unpushed, 0 uncommitted)
+remote    origin  https://github.com/SJin-Choi/pod-pr-e2e-20261109-1754
+pr        none for pod/t-pass
+exit=0
+
+[2026-11-09T09:05:35.8483017+00:00] pod pr create fx/t-pass --title Add sub() --body E2E: ready PR from a Pod shell task.
+task      fx/t-pass
+branch    pod/t-pass -> main (1 ahead, 0 unpushed, 0 uncommitted)
+remote    origin  https://github.com/SJin-Choi/pod-pr-e2e-20261109-1754
+pr        #1 open  https://github.com/SJin-Choi/pod-pr-e2e-20261109-1754/pull/1
+title     Add sub()
+review    no review required
+mergeable UNKNOWN
+checks    no checks
+exit=0
+
+[2026-11-09T09:05:50.4813847+00:00] pod pr status fx/t-pass
+task      fx/t-pass
+branch    pod/t-pass -> main (1 ahead, 0 unpushed, 0 uncommitted)
+remote    origin  https://github.com/SJin-Choi/pod-pr-e2e-20261109-1754
+pr        #1 open  https://github.com/SJin-Choi/pod-pr-e2e-20261109-1754/pull/1
+title     Add sub()
+review    no review required
+mergeable UNSTABLE
+checks    0 passed, 2 pending (pending)
+  ...  gate  https://github.com/SJin-Choi/pod-pr-e2e-20261109-1754/commit/b05e32fb44b0d1420f9b5663e5d5c594fa2c432f
+  ...  quick  https://github.com/SJin-Choi/pod-pr-e2e-20261109-1754/commit/b05e32fb44b0d1420f9b5663e5d5c594fa2c432f
+exit=0
+
+[2026-11-09T09:06:18.5590912+00:00] pod pr status fx/t-pass
+task      fx/t-pass
+branch    pod/t-pass -> main (1 ahead, 0 unpushed, 0 uncommitted)
+remote    origin  https://github.com/SJin-Choi/pod-pr-e2e-20261109-1754
+pr        #1 open  https://github.com/SJin-Choi/pod-pr-e2e-20261109-1754/pull/1
+title     Add sub()
+review    no review required
+mergeable UNSTABLE
+checks    1 passed, 1 pending (pending)
+  ...  gate  https://github.com/SJin-Choi/pod-pr-e2e-20261109-1754/commit/b05e32fb44b0d1420f9b5663e5d5c594fa2c432f
+  ok   quick
+exit=0
+
+[2026-11-09T09:06:36.6955941+00:00] pod pr status fx/t-pass
+task      fx/t-pass
+branch    pod/t-pass -> main (1 ahead, 0 unpushed, 0 uncommitted)
+remote    origin  https://github.com/SJin-Choi/pod-pr-e2e-20261109-1754
+pr        #1 open  https://github.com/SJin-Choi/pod-pr-e2e-20261109-1754/pull/1
+title     Add sub()
+review    no review required
+mergeable CLEAN
+checks    2 passed (passed)
+  ok   gate
+  ok   quick
+exit=0
+
+[2026-11-09T09:06:45.9297900+00:00] pod pr create fx/t-draft --draft --title Docs: draft note
+task      fx/t-draft
+branch    pod/t-draft -> main (1 ahead, 0 unpushed, 0 uncommitted)
+remote    origin  https://github.com/SJin-Choi/pod-pr-e2e-20261109-1754
+pr        #2 open (draft)  https://github.com/SJin-Choi/pod-pr-e2e-20261109-1754/pull/2
+title     Docs: draft note
+review    no review required
+mergeable UNKNOWN
+checks    no checks
+exit=0
+
+[2026-11-09T09:06:53.6621486+00:00] pod pr create fx/t-fail --title Flip gate to fail
+task      fx/t-fail
+branch    pod/t-fail -> main (1 ahead, 0 unpushed, 0 uncommitted)
+remote    origin  https://github.com/SJin-Choi/pod-pr-e2e-20261109-1754
+pr        #3 open  https://github.com/SJin-Choi/pod-pr-e2e-20261109-1754/pull/3
+title     Flip gate to fail
+review    no review required
+mergeable UNKNOWN
+checks    no checks
+exit=0
+
+[2026-11-09T09:07:20.4186060+00:00] pod pr status fx/t-fail
+task      fx/t-fail
+branch    pod/t-fail -> main (1 ahead, 0 unpushed, 0 uncommitted)
+remote    origin  https://github.com/SJin-Choi/pod-pr-e2e-20261109-1754
+pr        #3 open  https://github.com/SJin-Choi/pod-pr-e2e-20261109-1754/pull/3
+title     Flip gate to fail
+review    no review required
+mergeable UNSTABLE
+checks    1 passed, 1 failed (failed)
+  FAIL gate
+  ok   quick
+exit=0
+
+[2026-11-09T09:07:23.1363664+00:00] pod pr status fx/t-fail --json
+{
+  "task": "fx/t-fail",
+  "branch": "pod/t-fail",
+  "default_base": "main",
+  "ahead": 1,
+  "unpushed": 0,
+  "dirty": 0,
+  "remote": {
+    "name": "origin",
+    "url": "https://github.com/SJin-Choi/pod-pr-e2e-20261109-1754.git",
+    "slug": {
+      "host": "github.com",
+      "owner": "SJin-Choi",
+      "name": "pod-pr-e2e-20261109-1754"
+    }
+  },
+  "pr": {
+    "number": 3,
+    "url": "https://github.com/SJin-Choi/pod-pr-e2e-20261109-1754/pull/3",
+    "title": "Flip gate to fail",
+    "state": "open",
+    "draft": false,
+    "head": "pod/t-fail",
+    "base": "main",
+    "merge_state": "UNSTABLE",
+    "mergeable": "MERGEABLE",
+    "additions": 1,
+    "deletions": 2,
+    "changed_files": 1,
+    "author": "SJin-Choi"
+  },
+  "checks": [
+    {
+      "name": "gate",
+      "bucket": "fail",
+      "state": "FAILURE",
+      "description": "gate.txt: fail"
+    },
+    {
+      "name": "quick",
+      "bucket": "pass",
+      "state": "SUCCESS",
+      "description": "passed"
+    }
+  ],
+  "summary": {
+    "total": 2,
+    "passed": 1,
+    "failed": 1,
+    "pending": 0,
+    "skipped": 0
+  },
+  "cached": false,
+  "refreshed_ms": 1794215245693
+}
+exit=0
+
+[2026-11-09T09:07:33.6502549+00:00] pod pr merge fx/t-fail --method squash
+pod: would merge #3 (https://github.com/SJin-Choi/pod-pr-e2e-20261109-1754/pull/3) of fx/t-fail; pass --yes to merge
+exit=2
+
+[2026-11-09T09:07:34.3330088+00:00] pod pr merge fx/t-draft --method squash --yes
+pod: the GitHub command failed: GraphQL: Pull Request is still a draft (mergePullRequest)
+exit=2
+
+[2026-11-09T09:07:36.8312337+00:00] pod pr merge fx/t-pass --method squash --yes
+task      fx/t-pass
+branch    pod/t-pass -> main (1 ahead, 0 unpushed, 0 uncommitted)
+remote    origin  https://github.com/SJin-Choi/pod-pr-e2e-20261109-1754
+pr        #1 merged  https://github.com/SJin-Choi/pod-pr-e2e-20261109-1754/pull/1
+title     Add sub()
+review    no review required
+mergeable UNKNOWN
+checks    2 passed (passed)
+  ok   gate
+  ok   quick
+exit=0
+
+[2026-11-09T09:07:43.2939826+00:00] pod pr merge fx/t-pass --method squash --yes
+pod: pull request #1 is merged, not open
+exit=2
+
+[2026-11-09T09:07:44.1889318+00:00] pod pr open fx/t-pass --print
+https://github.com/SJin-Choi/pod-pr-e2e-20261109-1754/pull/1
+exit=0
+
+[2026-11-09T09:08:13.3318760+00:00] pod send t2 Add-Content README.md 'Local follow-up.'; git commit -qam 'Local follow-up'; git log --oneline -1
+
+exit=0
+
+[2026-11-09T09:08:16.7321367+00:00] pod pr status fx/t-draft
+task      fx/t-draft
+branch    pod/t-draft -> main (2 ahead, 1 unpushed, 0 uncommitted)
+remote    origin  https://github.com/SJin-Choi/pod-pr-e2e-20261109-1754
+pr        #2 open (draft)  https://github.com/SJin-Choi/pod-pr-e2e-20261109-1754/pull/2
+title     Docs: draft note
+review    no review required
+mergeable UNKNOWN
+checks    no checks
+exit=0
+
+[2026-11-09T09:08:19.7586125+00:00] pod pr create fx/t-draft --draft --title Docs: draft note
+pod: the GitHub command failed: error: failed to push some refs to 'https://github.com/SJin-Choi/pod-pr-e2e-20261109-1754.git'
+hint: Updates were rejected because the remote contains work that you do not
+hint: have locally. This is usually caused by another repository pushing to
+hint: the same ref. If you want to integrate the remote changes, use
+hint: 'git pull' before pushing again.
+hint: See the 'Note about fast-forwards' in 'git push --help' for details.
+exit=2
+
+[2026-11-09T09:08:21.8297489+00:00] pod pr create fx/t-draft --draft --title Docs: draft note --json
+pod: the GitHub command failed: error: failed to push some refs to 'https://github.com/SJin-Choi/pod-pr-e2e-20261109-1754.git'
+hint: Updates were rejected because the remote contains work that you do not
+hint: have locally. This is usually caused by another repository pushing to
+hint: the same ref. If you want to integrate the remote changes, use
+hint: 'git pull' before pushing again.
+hint: See the 'Note about fast-forwards' in 'git push --help' for details.
+exit=2
+
+[2026-11-09T09:08:34.6434992+00:00] pod pr create fx/t-fail --title x --base no-such-branch --no-push
+pod: the GitHub command failed: pull request create failed: GraphQL: Head sha can't be blank, Base sha can't be blank, No commits between no-such-branch and pod/t-fail, Base ref must be a branch (createPullRequest)
+exit=2
+
+[2026-11-09T09:08:37.6302374+00:00] pod task new fx t-nobase --base local-only --agent shell
+fx/t-nobase  t4  pod/t-nobase  C:\ai\pod-e2e\pr-1754\worktrees\fx\t-nobase
+exit=0
+
+[2026-11-09T09:08:38.5644304+00:00] pod send t-nobase Add-Content calc.py '# nobase'; git commit -qam 'nobase change'
+pod: no terminal t-nobase
+exit=2
+
+[2026-11-09T09:08:41.5990257+00:00] pod pr create fx/t-nobase --title base missing on remote
+pod: pod/t-nobase has no commits ahead of local-only; commit the changes first
+exit=2
+
+[2026-11-09T09:08:42.0748929+00:00] pod pr status fx/t-nobase
+task      fx/t-nobase
+branch    pod/t-nobase -> local-only (0 ahead, 0 unpushed, 0 uncommitted)
+remote    origin  https://github.com/SJin-Choi/pod-pr-e2e-20261109-1754
+pr        none for pod/t-nobase
+exit=0
+
+[2026-11-09T09:08:50.0561887+00:00] pod send t4 Add-Content calc.py '# nobase'; git commit -qam 'nobase change'
+
+exit=0
+
+[2026-11-09T09:08:53.4976183+00:00] pod pr create fx/t-nobase --title base missing on remote
+pod: the GitHub command failed: pull request create failed: GraphQL: Head sha can't be blank, Base sha can't be blank, No commits between local-only and pod/t-nobase, Base ref must be a branch (createPullRequest)
+exit=2
+
+[2026-11-09T09:09:09.5992907+00:00] pod server stop --json
+{
+  "stopping": true,
+  "killed": 0,
+  "detached": 4
+}
+exit=0
+
+[2026-11-09T09:09:09.6373936+00:00] pod pr status fx/t-fail
+pod: protocol error: daemon closed the connection
+exit=2
+
+[2026-11-09T09:09:09.8385725+00:00] pod ls
+ID  NAME         STATE    STATUS   PID    SIZE    COMMAND             CWD
+t1  fx/t-pass    running  unknown  62520  120x30  powershell -NoLogo  C:\ai\pod-e2e\pr-1754\worktrees\fx\t-pass
+t2  fx/t-draft   running  unknown  45708  120x30  powershell -NoLogo  C:\ai\pod-e2e\pr-1754\worktrees\fx\t-draft
+t3  fx/t-fail    running  unknown  72076  120x30  powershell -NoLogo  C:\ai\pod-e2e\pr-1754\worktrees\fx\t-fail
+t4  fx/t-nobase  running  unknown  65556  120x30  powershell -NoLogo  C:\ai\pod-e2e\pr-1754\worktrees\fx\t-nobase
+exit=0
+
+[2026-11-09T09:09:09.9040030+00:00] pod server stop --json
+{
+  "stopping": true,
+  "killed": 0,
+  "detached": 4
+}
+exit=0
+
+[2026-11-09T09:09:09.9248487+00:00] pod pr status fx/t-fail --cached
+pod: protocol error: daemon closed the connection
+exit=2
+
+[2026-11-09T09:09:19.7724725+00:00] pod pr status fx/t-fail
+task      fx/t-fail
+branch    pod/t-fail -> main (1 ahead, 0 unpushed, 0 uncommitted)
+remote    origin  https://github.com/SJin-Choi/pod-pr-e2e-20261109-1754
+pr        none for pod/t-fail
+note      timeout: gh pr did not finish within 30 s
+exit=0
+
+[2026-11-09T09:09:50.3421145+00:00] pod pr create fx/t-fail --title x --no-push
+pod: the GitHub command timed out: gh pr did not finish within 30 s
+exit=2
+
+[2026-11-09T09:11:06.3214992+00:00] pod server stop --json
+{
+  "stopping": true,
+  "killed": 0,
+  "detached": 4
+}
+exit=0
+
+[2026-11-09T09:11:09.3621798+00:00] pod pr status fx/t-fail --cached
+task      fx/t-fail
+branch    pod/t-fail -> main (1 ahead, 0 unpushed, 0 uncommitted)
+remote    origin  https://github.com/SJin-Choi/pod-pr-e2e-20261109-1754
+pr        #3 open  https://github.com/SJin-Choi/pod-pr-e2e-20261109-1754/pull/3
+title     Flip gate to fail
+review    no review required
+mergeable UNSTABLE
+checks    1 passed, 1 failed (failed)
+(cached: GitHub was not contacted)
+exit=0
+
+[2026-11-09T09:17:17.1746657+00:00] pod server stop --json
+{
+  "stopping": true,
+  "killed": 0,
+  "detached": 4
+}
+exit=0
+
+[2026-11-09T09:18:54.4287581+00:00] pod kill t1
+t1 killed (code 1)
+exit=0
+
+[2026-11-09T09:18:54.9267328+00:00] pod kill t2
+t2 killed (code 1)
+exit=0
+
+[2026-11-09T09:18:54.9841198+00:00] pod kill t3
+t3 killed (code 1)
+exit=0
+
+[2026-11-09T09:18:55.0620060+00:00] pod kill t4
+t4 killed (code 1)
+exit=0
+
+[2026-11-09T09:18:57.1269121+00:00] pod rm t1 --force
+t1 removed
+exit=0
+
+[2026-11-09T09:18:57.1634250+00:00] pod rm t2 --force
+t2 removed
+exit=0
+
+[2026-11-09T09:18:57.1944658+00:00] pod rm t3 --force
+t3 removed
+exit=0
+
+[2026-11-09T09:18:57.2282622+00:00] pod rm t4 --force
+t4 removed
+exit=0
+
+[2026-11-09T09:18:57.2660992+00:00] pod server stop --json
+{
+  "stopping": true,
+  "killed": 0,
+  "detached": 0
+}
+exit=0
+
+[2026-11-09T09:27:29.3052350+00:00] pod pr create fx/t-draft --draft --title Docs: draft note
+pod: the remote branch has commits the task does not have (push rejected; pull or rebase in the task first): error: failed to push some refs to 'https://github.com/SJin-Choi/pod-pr-e2e-20261109-1754.git'
+hint: Updates were rejected because the remote contains work that you do not
+hint: have locally. This is usually caused by another repository pushing to
+hint: the same ref. If you want to integrate the remote changes, use
+hint: 'git pull' before pushing again.
+hint: See the 'Note about fast-forwards' in 'git push --help' for details.
+exit=2
+
+[2026-11-09T09:27:31.3493874+00:00] pod pr create fx/t-nobase --title base missing on remote
+pod: not found on GitHub: base branch "local-only" does not exist on SJin-Choi/pod-pr-e2e-20261109-1754; push it first or choose another base (pull request create failed: GraphQL: Head sha can't be blank, Base sha can't be blank, No commits between local-only and pod/t-nobase, Base ref must be a branch (createPullRequest))
+exit=2
+
+[2026-11-09T09:27:35.1395500+00:00] pod pr merge fx/t-fail --method squash
+pod: would merge #3 (https://github.com/SJin-Choi/pod-pr-e2e-20261109-1754/pull/3) of fx/t-fail; checks: 1 passed, 1 failed (failed)
+pod: warning: 1 check failed
+pod: pass --yes to merge
+exit=2
+
+[2026-11-09T09:27:37.8824759+00:00] pod pr status fx/t-pass
+task      fx/t-pass
+branch    pod/t-pass -> main (1 ahead, 0 unpushed, 0 uncommitted)
+remote    origin  https://github.com/SJin-Choi/pod-pr-e2e-20261109-1754
+pr        #1 merged  https://github.com/SJin-Choi/pod-pr-e2e-20261109-1754/pull/1
+title     Add sub()
+review    no review required
+checks    2 passed (passed)
+  ok   gate
+  ok   quick
+exit=0
+
+[2026-11-09T09:27:44.7423087+00:00] pod server stop --json
+{
+  "stopping": true,
+  "killed": 0,
+  "detached": 0
+}
+exit=0
+
+[2026-11-09T09:27:47.7895651+00:00] pod pr status fx/t-fail
+task      fx/t-fail
+branch    pod/t-fail -> main (1 ahead, 0 unpushed, 0 uncommitted)
+remote    origin  https://github.com/SJin-Choi/pod-pr-e2e-20261109-1754
+pr        #3 open  https://github.com/SJin-Choi/pod-pr-e2e-20261109-1754/pull/3
+title     Flip gate to fail
+review    no review required
+mergeable UNKNOWN
+checks    1 passed, 1 failed (failed)
+note      timeout: gh pr view did not finish within 30 s
+(last known state: GitHub could not be read)
+exit=0
+
+[2026-11-09T09:28:18.2541990+00:00] pod server stop --json
+{
+  "stopping": true,
+  "killed": 0,
+  "detached": 0
+}
+exit=0
+
+[2026-11-09T09:28:41.3021611+00:00] pod pr status fx/t-fail
+task      fx/t-fail
+branch    pod/t-fail -> main (1 ahead, 0 unpushed, 0 uncommitted)
+remote    origin  https://github.com/SJin-Choi/pod-pr-e2e-20261109-1754
+pr        #3 open  https://github.com/SJin-Choi/pod-pr-e2e-20261109-1754/pull/3
+title     Flip gate to fail
+review    no review required
+mergeable UNSTABLE
+checks    1 passed, 1 failed (failed)
+  FAIL gate
+  ok   quick
+exit=0
+
+[2026-11-09T09:29:08.3078075+00:00] pod task new fx t-app --base main --agent shell
+fx/t-app  t1  pod/t-app  C:\ai\pod-e2e\pr-1754\worktrees\fx\t-app
+exit=0
+
+[2026-11-09T09:29:11.0791910+00:00] pod task show fx/t-app --json
+{
+  "id": "fx/t-app",
+  "repo": "fx",
+  "name": "t-app",
+  "branch": "pod/t-app",
+  "base": "main",
+  "base_commit": "8abca6d54bc9afa9605b6e41168fd0b7370b9e04",
+  "worktree": "C:\\ai\\pod-e2e\\pr-1754\\worktrees\\fx\\t-app",
+  "agent": "shell",
+  "created_ms": 1794216548733,
+  "terminals": [
+    {
+      "id": "t1",
+      "info": {
+        "id": "t1",
+        "name": "fx/t-app",
+        "argv": [
+          "powershell",
+          "-NoLogo"
+        ],
+        "cwd": "C:\\ai\\pod-e2e\\pr-1754\\worktrees\\fx\\t-app",
+        "state": "running",
+        "pid": 62324,
+        "holder_pid": 65560,
+        "cols": 120,
+        "rows": 30,
+        "created_ms": 1794216548595,
+        "killed": false,
+        "lost": false,
+        "attached": 0,
+        "conpty": "bundled:C:\\Users\\User\\orca\\workspaces\\ide\\pr-e2e\\target\\release\\conpty.dll",
+        "status": {
+          "state": "unknown",
+          "confidence": 0.0,
+          "since": 1794216548732,
+          "turn": 0,
+          "badge": "unknown",
+          "records": 0,
+          "running_children": 0,
+          "blocked_children": 0,
+          "hooks_accepted": 0,
+          "hooks_rejected": 0
+        }
+      }
+    }
+  ],
+  "worktree_exists": true,
+  "git": {
+    "branch": "pod/t-app",
+    "head": "8abca6d54bc9afa9605b6e41168fd0b7370b9e04",
+    "ahead": 0,
+    "behind": 0,
+    "dirty": 0,
+    "unpushed": 0,
+    "last_commit": {
+      "sha": "8abca6d54bc9afa9605b6e41168fd0b7370b9e04",
+      "summary": "Fixture: calc + gate file (checks via commit statuses)",
+      "author": "Pod E2E",
+      "time_ms": 1794214490000
+    }
+  },
+  "status": {
+    "state": "unknown",
+    "terminal": "t1",
+    "badge": "unknown",
+    "terminals": 1
+  }
+}
+exit=0
+
+[2026-11-09T09:29:11.4482135+00:00] pod send fx/t-app Add-Content calc.py 'def mul(a, b):'; Add-Content calc.py '    return a * b'; git add -A; git commit -q -m 'Add mul()'; git log --oneline -1
+
+exit=0
+
+[2026-11-09T09:29:16.0408241+00:00] pod task ls
+TASK         STATUS   TERMINALS   BRANCH        AHEAD  BEHIND  DIRTY  LAST COMMIT
+fx/t-pass    -        -           pod/t-pass    1      0       0      b05e32fb44 Add sub()
+fx/t-draft   -        -           pod/t-draft   2      0       0      dede0a8b9d Local follow-up
+fx/t-fail    -        -           pod/t-fail    1      0       0      19b0ed27c7 Flip gate to fail
+fx/t-nobase  -        -           pod/t-nobase  1      0       0      7201ab39ba nobase change
+fx/t-app     unknown  t1:running  pod/t-app     1      0       0      1758a1206d Add mul()
+exit=0
+
+[2026-11-09T09:33:25.2206197+00:00] pod pr status fx/t-app --cached
+task      fx/t-app
+branch    pod/t-app -> main (1 ahead, 0 unpushed, 0 uncommitted)
+remote    origin  https://github.com/SJin-Choi/pod-pr-e2e-20261109-1754
+pr        #4 open  https://github.com/SJin-Choi/pod-pr-e2e-20261109-1754/pull/4
+title     t-app
+review    no review required
+mergeable DIRTY
+checks    2 passed (passed)
+(cached: GitHub was not contacted)
+exit=0
+
+[2026-11-09T09:34:14.9216835+00:00] pod kill t1
+t1 killed (code 1)
+exit=0
+
+[2026-11-09T09:34:15.9861366+00:00] pod rm t1 --force
+t1 removed
+exit=0
+
+[2026-11-09T09:34:16.0112806+00:00] pod server stop --json
+{
+  "stopping": true,
+  "killed": 0,
+  "detached": 0
+}
+exit=0
+
+[2026-11-09T09:35:08.3737068+00:00] pod pr create fx/t-app --title t-app
+task      fx/t-app
+branch    pod/t-app -> main (3 ahead, 0 unpushed, 0 uncommitted)
+remote    origin  https://github.com/SJin-Choi/pod-pr-e2e-20261109-1754
+pr        #4 open  https://github.com/SJin-Choi/pod-pr-e2e-20261109-1754/pull/4
+title     t-app
+review    no review required
+mergeable UNKNOWN
+checks    no checks
+exit=0
+
+[2026-11-09T09:37:07.7807048+00:00] pod pr status fx/t-fail --cached
+task      fx/t-fail
+branch    pod/t-fail -> main (1 ahead, 0 unpushed, 0 uncommitted)
+remote    origin  https://github.com/SJin-Choi/pod-pr-e2e-20261109-1754
+pr        #3 open  https://github.com/SJin-Choi/pod-pr-e2e-20261109-1754/pull/3
+title     Flip gate to fail
+review    no review required
+mergeable UNSTABLE
+checks    1 passed, 1 failed (failed)
+(cached: GitHub was not contacted)
+exit=0
+
+[2026-11-09T09:37:20.2936572+00:00] pod group new fx duel --base main --prompt Add notes.txt --agent ["cmd.exe","/c","echo grp-a>notes.txt && git add notes.txt && git commit -qm \"Group member A\""] --agent ["cmd.exe","/c","echo grp-b>notes.txt && git add notes.txt && git commit -qm \"Group member B\""]
+error: unexpected argument 'grp-a>notes.txt' found
+System.Management.Automation.RemoteException
+Usage: pod.exe group new [OPTIONS] --prompt <PROMPT> --agent <AGENT> <REPO> <NAME> [-- <CHECK>...]
+System.Management.Automation.RemoteException
+For more information, try '--help'.
+exit=2
+
+[2026-11-09T09:37:25.3434643+00:00] pod group show fx/duel
+pod: no group "fx/duel"
+exit=2
+pod: --agent "[\"powershell\",\"-NoLogo\",\"-NoProfile\",\"-File\",\"C:\\ai\\pod-e2e\\pr-1754\\member-a.ps1\"]": bad JSON argv: invalid escape at line 1 column 50
+pod: no group "fx/duel"
+group    fx/duel
+base     main (8abca6d54b)
+prompt   Add notes.txt
+  TASK            AGENT                                                                   STATUS  GIT               CHECK
+  fx/duel-argv-1  powershell -NoLogo -NoProfile -File C:/ai/pod-e2e/pr-1754/member-a.ps1  exited  1 ahead, 0 dirty  -
+  fx/duel-argv-2  powershell -NoLogo -NoProfile -File C:/ai/pod-e2e/pr-1754/member-b.ps1  exited  1 ahead, 0 dirty  -
+group    fx/duel
+base     main (8abca6d54b)
+prompt   Add notes.txt
+  TASK            AGENT                                                                   STATUS  GIT               CHECK
+  fx/duel-argv-1  powershell -NoLogo -NoProfile -File C:/ai/pod-e2e/pr-1754/member-a.ps1  exited  1 ahead, 0 dirty  -
+  fx/duel-argv-2  powershell -NoLogo -NoProfile -File C:/ai/pod-e2e/pr-1754/member-b.ps1  exited  1 ahead, 0 dirty  -
+
+[2026-11-09T09:38:03.7732822+00:00] pod group pick fx/duel fx/duel-argv-1
+fx/duel: picked fx/duel-argv-1
+exit=0
+
+[2026-11-09T09:48:20.7161380+00:00] pod task ls --json
+{
+  "tasks": [
+    {
+      "id": "fx/t-pass",
+      "repo": "fx",
+      "name": "t-pass",
+      "branch": "pod/t-pass",
+      "base": "main",
+      "base_commit": "8abca6d54bc9afa9605b6e41168fd0b7370b9e04",
+      "worktree": "C:\\ai\\pod-e2e\\pr-1754\\worktrees\\fx\\t-pass",
+      "agent": "shell",
+      "created_ms": 1794215114691,
+      "terminals": [],
+      "worktree_exists": true,
+      "git": {
+        "branch": "pod/t-pass",
+        "head": "b05e32fb44b0d1420f9b5663e5d5c594fa2c432f",
+        "ahead": 1,
+        "behind": 0,
+        "dirty": 0,
+        "unpushed": 0,
+        "last_commit": {
+          "sha": "b05e32fb44b0d1420f9b5663e5d5c594fa2c432f",
+          "summary": "Add sub()",
+          "author": "Pod E2E",
+          "time_ms": 1794215123000
+        }
+      },
+      "pr": {
+        "number": 1,
+        "url": "https://github.com/SJin-Choi/pod-pr-e2e-20261109-1754/pull/1",
+        "title": "Add sub()",
+        "state": "merged",
+        "draft": false,
+        "checks": {
+          "total": 2,
+          "passed": 2,
+          "failed": 0,
+          "pending": 0,
+          "skipped": 0
+        },
+        "merge_state": "UNKNOWN",
+        "updated_ms": 1794216460172
+      }
+    },
+    {
+      "id": "fx/t-draft",
+      "repo": "fx",
+      "name": "t-draft",
+      "branch": "pod/t-draft",
+      "base": "main",
+      "base_commit": "8abca6d54bc9afa9605b6e41168fd0b7370b9e04",
+      "worktree": "C:\\ai\\pod-e2e\\pr-1754\\worktrees\\fx\\t-draft",
+      "agent": "shell",
+      "created_ms": 1794215115425,
+      "terminals": [],
+      "worktree_exists": true,
+      "git": {
+        "branch": "pod/t-draft",
+        "head": "dede0a8b9d668981108c22121134c2f6edf07014",
+        "ahead": 2,
+        "behind": 0,
+        "dirty": 0,
+        "unpushed": 1,
+        "last_commit": {
+          "sha": "dede0a8b9d668981108c22121134c2f6edf07014",
+          "summary": "Local follow-up",
+          "author": "Pod E2E",
+          "time_ms": 1794215293000
+        }
+      },
+      "pr": {
+        "number": 2,
+        "url": "https://github.com/SJin-Choi/pod-pr-e2e-20261109-1754/pull/2",
+        "title": "Docs: draft note",
+        "state": "open",
+        "draft": true,
+        "checks": {
+          "total": 0,
+          "passed": 0,
+          "failed": 0,
+          "pending": 0,
+          "skipped": 0
+        },
+        "merge_state": "CLEAN",
+        "updated_ms": 1794217108659
+      }
+    },
+    {
+      "id": "fx/t-fail",
+      "repo": "fx",
+      "name": "t-fail",
+      "branch": "pod/t-fail",
+      "base": "main",
+      "base_commit": "8abca6d54bc9afa9605b6e41168fd0b7370b9e04",
+      "worktree": "C:\\ai\\pod-e2e\\pr-1754\\worktrees\\fx\\t-fail",
+      "agent": "shell",
+      "created_ms": 1794215116193,
+      "terminals": [],
+      "worktree_exists": true,
+      "git": {
+        "branch": "pod/t-fail",
+        "head": "19b0ed27c777e424d583b5fb2a1075cfc58fe7a4",
+        "ahead": 1,
+        "behind": 0,
+        "dirty": 0,
+        "unpushed": 0,
+        "last_commit": {
+          "sha": "19b0ed27c777e424d583b5fb2a1075cfc58fe7a4",
+          "summary": "Flip gate to fail",
+          "author": "Pod E2E",
+          "time_ms": 1794215124000
+        }
+      },
+      "pr": {
+        "number": 3,
+        "url": "https://github.com/SJin-Choi/pod-pr-e2e-20261109-1754/pull/3",
+        "title": "Flip gate to fail",
+        "state": "open",
+        "draft": false,
+        "checks": {
+          "total": 2,
+          "passed": 1,
+          "failed": 1,
+          "pending": 0,
+          "skipped": 0
+        },
+        "merge_state": "UNSTABLE",
+        "updated_ms": 1794217111158
+      }
+    },
+    {
+      "id": "fx/t-nobase",
+      "repo": "fx",
+      "name": "t-nobase",
+      "branch": "pod/t-nobase",
+      "base": "local-only",
+      "base_commit": "8abca6d54bc9afa9605b6e41168fd0b7370b9e04",
+      "worktree": "C:\\ai\\pod-e2e\\pr-1754\\worktrees\\fx\\t-nobase",
+      "agent": "shell",
+      "created_ms": 1794215318101,
+      "terminals": [],
+      "worktree_exists": true,
+      "git": {
+        "branch": "pod/t-nobase",
+        "head": "7201ab39ba0e1337e618dfe2e3a3e2ce884c5fbb",
+        "ahead": 1,
+        "behind": 0,
+        "dirty": 0,
+        "unpushed": 0,
+        "last_commit": {
+          "sha": "7201ab39ba0e1337e618dfe2e3a3e2ce884c5fbb",
+          "summary": "nobase change",
+          "author": "Pod E2E",
+          "time_ms": 1794215330000
+        }
+      }
+    },
+    {
+      "id": "fx/t-app",
+      "repo": "fx",
+      "name": "t-app",
+      "branch": "pod/t-app",
+      "base": "main",
+      "base_commit": "8abca6d54bc9afa9605b6e41168fd0b7370b9e04",
+      "worktree": "C:\\ai\\pod-e2e\\pr-1754\\worktrees\\fx\\t-app",
+      "agent": "shell",
+      "created_ms": 1794216548733,
+      "terminals": [],
+      "worktree_exists": true,
+      "git": {
+        "branch": "pod/t-app",
+        "head": "5c07acd0afa600b8aa89ff3d9515bf1851708e3a",
+        "ahead": 3,
+        "behind": 0,
+        "dirty": 0,
+        "unpushed": 0,
+        "last_commit": {
+          "sha": "5c07acd0afa600b8aa89ff3d9515bf1851708e3a",
+          "summary": "Merge remote-tracking branch 'origin/main' into pod/t-app",
+          "author": "Pod E2E",
+          "time_ms": 1794216848000
+        }
+      },
+      "pr": {
+        "number": 4,
+        "url": "https://github.com/SJin-Choi/pod-pr-e2e-20261109-1754/pull/4",
+        "title": "t-app",
+        "state": "merged",
+        "draft": false,
+        "checks": {
+          "total": 2,
+          "passed": 2,
+          "failed": 0,
+          "pending": 0,
+          "skipped": 0
+        },
+        "merge_state": "UNKNOWN",
+        "updated_ms": 1794216980871
+      }
+    },
+    {
+      "id": "fx/duel-argv-1",
+      "repo": "fx",
+      "name": "duel-argv-1",
+      "branch": "pod/duel-argv-1",
+      "base": "main",
+      "base_commit": "8abca6d54bc9afa9605b6e41168fd0b7370b9e04",
+      "worktree": "C:\\ai\\pod-e2e\\pr-1754\\worktrees\\fx\\duel-argv-1",
+      "agent": {
+        "argv": [
+          "powershell",
+          "-NoLogo",
+          "-NoProfile",
+          "-File",
+          "C:/ai/pod-e2e/pr-1754/member-a.ps1"
+        ]
+      },
+      "prompt": "Add notes.txt",
+      "created_ms": 1794217066914,
+      "terminals": [
+        {
+          "id": "t1",
+          "info": {
+            "id": "t1",
+            "name": "fx/duel-argv-1",
+            "argv": [
+              "powershell",
+              "-NoLogo",
+              "-NoProfile",
+              "-File",
+              "C:/ai/pod-e2e/pr-1754/member-a.ps1"
+            ],
+            "cwd": "C:\\ai\\pod-e2e\\pr-1754\\worktrees\\fx\\duel-argv-1",
+            "state": "exited",
+            "exit_code": 0,
+            "pid": 58484,
+            "holder_pid": 65972,
+            "cols": 120,
+            "rows": 30,
+            "created_ms": 1794217066843,
+            "exited_ms": 1794217067505,
+            "killed": false,
+            "lost": false,
+            "attached": 0,
+            "conpty": "bundled:C:\\Users\\User\\orca\\workspaces\\ide\\pr-e2e\\target\\release\\conpty.dll",
+            "status": {
+              "state": "exited",
+              "source": "process",
+              "confidence": 1.0,
+              "since": 1794217067510,
+              "turn": 0,
+              "final_state": "unknown",
+              "badge": "exited",
+              "records": 0,
+              "running_children": 0,
+              "blocked_children": 0,
+              "hooks_accepted": 0,
+              "hooks_rejected": 0
+            }
+          }
+        }
+      ],
+      "worktree_exists": true,
+      "git": {
+        "branch": "pod/duel-argv-1",
+        "head": "dd9caa805680964aee72033ec693238c7ebcf21b",
+        "ahead": 1,
+        "behind": 0,
+        "dirty": 0,
+        "unpushed": 1,
+        "last_commit": {
+          "sha": "dd9caa805680964aee72033ec693238c7ebcf21b",
+          "summary": "Group member A",
+          "author": "Pod E2E",
+          "time_ms": 1794217067000
+        }
+      },
+      "status": {
+        "state": "exited",
+        "terminal": "t1",
+        "badge": "exited",
+        "terminals": 1
+      },
+      "group": "fx/duel"
+    },
+    {
+      "id": "fx/duel-argv-2",
+      "repo": "fx",
+      "name": "duel-argv-2",
+      "branch": "pod/duel-argv-2",
+      "base": "main",
+      "base_commit": "8abca6d54bc9afa9605b6e41168fd0b7370b9e04",
+      "worktree": "C:\\ai\\pod-e2e\\pr-1754\\worktrees\\fx\\duel-argv-2",
+      "agent": {
+        "argv": [
+          "powershell",
+          "-NoLogo",
+          "-NoProfile",
+          "-File",
+          "C:/ai/pod-e2e/pr-1754/member-b.ps1"
+        ]
+      },
+      "prompt": "Add notes.txt",
+      "created_ms": 1794217067613,
+      "terminals": [
+        {
+          "id": "t2",
+          "info": {
+            "id": "t2",
+            "name": "fx/duel-argv-2",
+            "argv": [
+              "powershell",
+              "-NoLogo",
+              "-NoProfile",
+              "-File",
+              "C:/ai/pod-e2e/pr-1754/member-b.ps1"
+            ],
+            "cwd": "C:\\ai\\pod-e2e\\pr-1754\\worktrees\\fx\\duel-argv-2",
+            "state": "exited",
+            "exit_code": 0,
+            "pid": 58456,
+            "holder_pid": 64720,
+            "cols": 120,
+            "rows": 30,
+            "created_ms": 1794217067537,
+            "exited_ms": 1794217068287,
+            "killed": false,
+            "lost": false,
+            "attached": 0,
+            "conpty": "bundled:C:\\Users\\User\\orca\\workspaces\\ide\\pr-e2e\\target\\release\\conpty.dll",
+            "status": {
+              "state": "exited",
+              "source": "process",
+              "confidence": 1.0,
+              "since": 1794217068292,
+              "turn": 0,
+              "final_state": "unknown",
+              "badge": "exited",
+              "records": 0,
+              "running_children": 0,
+              "blocked_children": 0,
+              "hooks_accepted": 0,
+              "hooks_rejected": 0
+            }
+          }
+        }
+      ],
+      "worktree_exists": true,
+      "git": {
+        "branch": "pod/duel-argv-2",
+        "head": "210b67b93802aa567ab1fc410291aa3b19bc8699",
+        "ahead": 1,
+        "behind": 0,
+        "dirty": 0,
+        "unpushed": 1,
+        "last_commit": {
+          "sha": "210b67b93802aa567ab1fc410291aa3b19bc8699",
+          "summary": "Group member B",
+          "author": "Pod E2E",
+          "time_ms": 1794217068000
+        }
+      },
+      "status": {
+        "state": "exited",
+        "terminal": "t2",
+        "badge": "exited",
+        "terminals": 1
+      },
+      "group": "fx/duel"
+    }
+  ]
+}
+exit=0
+
+[2026-11-09T09:48:23.1302808+00:00] pod task rm fx/t-pass --force --delete-branch
+fx/t-pass removed (terminals: none; worktree removed; branch deleted)
+exit=0
+
+[2026-11-09T09:48:23.4034313+00:00] pod task rm fx/t-draft --force --delete-branch
+fx/t-draft removed (terminals: none; worktree removed; branch deleted)
+exit=0
+
+[2026-11-09T09:48:23.6777501+00:00] pod task rm fx/t-fail --force --delete-branch
+fx/t-fail removed (terminals: none; worktree removed; branch deleted)
+exit=0
+
+[2026-11-09T09:48:23.9357169+00:00] pod task rm fx/t-nobase --force --delete-branch
+fx/t-nobase removed (terminals: none; worktree removed; branch deleted)
+exit=0
+
+[2026-11-09T09:48:24.2289946+00:00] pod task rm fx/t-app --force --delete-branch
+fx/t-app removed (terminals: none; worktree removed; branch deleted)
+exit=0
+
+[2026-11-09T09:48:24.5302775+00:00] pod task rm fx/duel-argv-1 --force --delete-branch
+fx/duel-argv-1 removed (terminals: t1; worktree removed; branch deleted)
+exit=0
+
+[2026-11-09T09:48:24.8112596+00:00] pod task rm fx/duel-argv-2 --force --delete-branch
+fx/duel-argv-2 removed (terminals: t2; worktree removed; branch deleted)
+exit=0
+
+[2026-11-09T09:48:25.0940308+00:00] pod ls --all --json
+{
+  "terminals": [],
+  "retention_ms": 86400000
+}
+exit=0
+
+[2026-11-09T09:48:25.1213981+00:00] pod group rm fx/duel
+fx/duel forgotten (tasks kept)
+exit=0
+
+[2026-11-09T09:48:25.1498898+00:00] pod repo rm fx
+fx unregistered
+exit=0
+
+[2026-11-09T09:48:25.1800049+00:00] pod server stop --kill --json
+{
+  "stopping": true,
+  "killed": 0,
+  "detached": 0
+}
+exit=0

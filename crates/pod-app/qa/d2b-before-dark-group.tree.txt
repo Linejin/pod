@@ -1,0 +1,41 @@
+App=pod-app (pid 58464)
+Window: "", App: pod-app.
+
+0 영역
+	1 title bar TitleBar
+		2 menu bar 시스템 메뉴 모음
+			3 menu item 시스템
+		4 button 최소화
+		5 button 복원
+		6 button 닫기
+	7 단추 Search commands / terminals Ctrl+K
+	8 단추 Settings
+	9 Tab
+		10 탭 항목, Secondary Actions: Select
+			11 단추
+		12 탭 항목, Secondary Actions: Select
+			13 단추
+		14 단추
+		15 단추
+	16 상태 상태 미확인 · 추정 · source: unknown · confidence: 0% · root: 상태 미확인 · final: —
+	17 편집 check command, e.g. cargo test (cmd /c in each worktree), Value: echo pass, Secondary Actions: SetValue
+	18 단추 Run check
+	19 단추 ⟳ Compare
+	20 상태 상태 미확인 · 추정 · source: unknown · confidence: 0% · root: 상태 미확인 · final: —
+	21 단추 Terminal
+	22 단추 Review
+	23 단추 Pick winner
+	24 상태 상태 미확인 · 추정 · source: unknown · confidence: 0% · root: 상태 미확인 · final: —
+	25 단추 Terminal
+	26 단추 Review
+	27 단추 Pick winner
+	28 Tab
+		29 탭 항목, Secondary Actions: Select
+			30 단추
+		31 탭 항목, Secondary Actions: Select
+			32 단추
+		33 단추
+	34 단추 Status
+	35 단추 Notifications 1
+	36 단추 Close
+	37 도구 설명

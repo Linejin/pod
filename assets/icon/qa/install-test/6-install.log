@@ -1,0 +1,107 @@
+2026-11-09 15:06:27.693   Log opened. (Time zone: UTC+09:00)
+2026-11-09 15:06:27.693   Setup version: Inno Setup version 6.7.3
+2026-11-09 15:06:27.693   Original Setup EXE: C:\Users\User\dev\workspaces\ide\fu-icon\dist\Pod-Setup-0.1.0-x64.exe
+2026-11-09 15:06:27.693   Setup command line: /SL5="$8041642,11545521,863232,C:\Users\User\dev\workspaces\ide\fu-icon\dist\Pod-Setup-0.1.0-x64.exe" /DIR="C:\Users\User\AppData\Local\Temp\pod-install-test\app" /CURRENTUSER /VERYSILENT /SUPPRESSMSGBOXES /NORESTART /LOG="C:\Users\User\dev\workspaces\ide\fu-icon\assets\icon\qa\install-test\6-install.log" /TASKS=
+2026-11-09 15:06:27.693   Windows version: 10.0.26200
+2026-11-09 15:06:27.693   Windows architecture: x64 (64-bit)
+2026-11-09 15:06:27.693   Machine types supported by system: x86 x64
+2026-11-09 15:06:27.693   User privileges: Administrative
+2026-11-09 15:06:27.694   Administrative install mode: No
+2026-11-09 15:06:27.694   Install mode root key: HKEY_CURRENT_USER
+2026-11-09 15:06:27.694   64-bit install mode: Yes
+2026-11-09 15:06:27.694   RedirectionGuard status for current process: Enabled in enforcing mode
+2026-11-09 15:06:27.695   Created protected temporary directory: C:\Users\User\AppData\Local\Temp\is-KXX7IFNS5U.tmp
+2026-11-09 15:06:28.167   Starting the installation process.
+2026-11-09 15:06:28.169   Creating directory: C:\Users\User\AppData\Local\Temp\pod-install-test\app
+2026-11-09 15:06:28.169   Directory for uninstall files: C:\Users\User\AppData\Local\Temp\pod-install-test\app
+2026-11-09 15:06:28.170   Creating new uninstall log: C:\Users\User\AppData\Local\Temp\pod-install-test\app\unins000.dat
+2026-11-09 15:06:28.174   -- File entry --
+2026-11-09 15:06:28.174   Dest filename: C:\Users\User\AppData\Local\Temp\pod-install-test\app\unins000.exe
+2026-11-09 15:06:28.174   Non-default bitness: 32-bit
+2026-11-09 15:06:28.177   Time stamp of our file: 2026-11-09 15:06:26.747
+2026-11-09 15:06:28.177   Installing the file.
+2026-11-09 15:06:28.233   Successfully installed the file.
+2026-11-09 15:06:28.234   -- File entry --
+2026-11-09 15:06:28.234   Dest filename: C:\Users\User\AppData\Local\Temp\pod-install-test\app\pod-app.exe
+2026-11-09 15:06:28.234   Time stamp of our file: 2026-11-09 15:02:04.000
+2026-11-09 15:06:28.234   Installing the file.
+2026-11-09 15:06:29.155   Successfully installed the file.
+2026-11-09 15:06:29.155   -- File entry --
+2026-11-09 15:06:29.155   Dest filename: C:\Users\User\AppData\Local\Temp\pod-install-test\app\pod-holder.exe
+2026-11-09 15:06:29.155   Time stamp of our file: 2026-11-09 15:01:40.000
+2026-11-09 15:06:29.155   Installing the file.
+2026-11-09 15:06:29.224   Successfully installed the file.
+2026-11-09 15:06:29.225   -- File entry --
+2026-11-09 15:06:29.225   Dest filename: C:\Users\User\AppData\Local\Temp\pod-install-test\app\pod-hook.exe
+2026-11-09 15:06:29.225   Time stamp of our file: 2026-11-09 15:01:38.000
+2026-11-09 15:06:29.225   Installing the file.
+2026-11-09 15:06:29.267   Successfully installed the file.
+2026-11-09 15:06:29.267   -- File entry --
+2026-11-09 15:06:29.267   Dest filename: C:\Users\User\AppData\Local\Temp\pod-install-test\app\pod.exe
+2026-11-09 15:06:29.267   Time stamp of our file: 2026-11-09 15:01:50.000
+2026-11-09 15:06:29.267   Installing the file.
+2026-11-09 15:06:29.505   Successfully installed the file.
+2026-11-09 15:06:29.505   -- File entry --
+2026-11-09 15:06:29.505   Dest filename: C:\Users\User\AppData\Local\Temp\pod-install-test\app\podd.exe
+2026-11-09 15:06:29.505   Time stamp of our file: 2026-11-09 15:01:54.000
+2026-11-09 15:06:29.505   Installing the file.
+2026-11-09 15:06:29.673   Successfully installed the file.
+2026-11-09 15:06:29.673   -- File entry --
+2026-11-09 15:06:29.674   Dest filename: C:\Users\User\AppData\Local\Temp\pod-install-test\app\conpty.dll
+2026-11-09 15:06:29.674   Time stamp of our file: 2026-10-01 00:04:24.000
+2026-11-09 15:06:29.674   Installing the file.
+2026-11-09 15:06:29.682   Successfully installed the file.
+2026-11-09 15:06:29.683   -- File entry --
+2026-11-09 15:06:29.683   Dest filename: C:\Users\User\AppData\Local\Temp\pod-install-test\app\x64\OpenConsole.exe
+2026-11-09 15:06:29.683   Time stamp of our file: 2026-10-01 00:04:24.000
+2026-11-09 15:06:29.683   Installing the file.
+2026-11-09 15:06:29.683   Creating directory: C:\Users\User\AppData\Local\Temp\pod-install-test\app\x64
+2026-11-09 15:06:29.717   Successfully installed the file.
+2026-11-09 15:06:29.717   -- File entry --
+2026-11-09 15:06:29.717   Dest filename: C:\Users\User\AppData\Local\Temp\pod-install-test\app\LICENSE.txt
+2026-11-09 15:06:29.717   Time stamp of our file: 2026-11-09 14:32:52.000
+2026-11-09 15:06:29.717   Installing the file.
+2026-11-09 15:06:29.719   Successfully installed the file.
+2026-11-09 15:06:29.719   -- File entry --
+2026-11-09 15:06:29.719   Dest filename: C:\Users\User\AppData\Local\Temp\pod-install-test\app\README.txt
+2026-11-09 15:06:29.721   Time stamp of our file: 2026-11-09 14:32:52.000
+2026-11-09 15:06:29.721   Installing the file.
+2026-11-09 15:06:29.723   Successfully installed the file.
+2026-11-09 15:06:29.723   -- File entry --
+2026-11-09 15:06:29.723   Dest filename: C:\Users\User\AppData\Local\Temp\pod-install-test\app\THIRD-PARTY-NOTICES.txt
+2026-11-09 15:06:29.723   Time stamp of our file: 2026-11-09 15:02:10.000
+2026-11-09 15:06:29.723   Installing the file.
+2026-11-09 15:06:29.735   Successfully installed the file.
+2026-11-09 15:06:29.735   -- File entry --
+2026-11-09 15:06:29.735   Dest filename: C:\Users\User\AppData\Local\Temp\pod-install-test\app\licenses\ConPTY-LICENSE.txt
+2026-11-09 15:06:29.735   Time stamp of our file: 2026-11-09 14:32:52.000
+2026-11-09 15:06:29.735   Installing the file.
+2026-11-09 15:06:29.736   Creating directory: C:\Users\User\AppData\Local\Temp\pod-install-test\app\licenses
+2026-11-09 15:06:29.738   Successfully installed the file.
+2026-11-09 15:06:29.739   -- File entry --
+2026-11-09 15:06:29.739   Dest filename: C:\Users\User\AppData\Local\Temp\pod-install-test\app\licenses\Lucide-LICENSE.txt
+2026-11-09 15:06:29.739   Time stamp of our file: 2026-11-09 14:32:52.000
+2026-11-09 15:06:29.739   Installing the file.
+2026-11-09 15:06:29.742   Successfully installed the file.
+2026-11-09 15:06:29.742   -- Icon entry --
+2026-11-09 15:06:29.742   Dest filename: C:\Users\User\AppData\Roaming\Microsoft\Windows\Start Menu\Programs\Pod.lnk
+2026-11-09 15:06:29.742   Creating the icon.
+2026-11-09 15:06:29.925   Successfully created the icon.
+2026-11-09 15:06:29.935   Saving uninstall information.
+2026-11-09 15:06:29.935   Creating new uninstall key: HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Uninstall\{8C7541A9-1FDB-43FC-B2EB-44131622A0CF}_is1
+2026-11-09 15:06:29.935   Writing uninstall key values.
+2026-11-09 15:06:29.937   Detected previous administrative 64-bit install? No
+2026-11-09 15:06:29.937   Detected previous administrative 32-bit install? No
+2026-11-09 15:06:29.942   Installation process succeeded.
+2026-11-09 15:06:30.667   pod hooks status -> exit 0
+2026-11-09 15:06:30.668   pod hooks status output:
+                          pod-hook: C:\Users\User\AppData\Local\Temp\pod-install-test\localappdata\Pod\bin\pod-hook.exe (missing)
+                          claude: C:\Users\User\.claude\settings.json - 13 Pod event(s), 16 other hook group(s)
+                            runs C:/Users/User/AppData/Local/Pod/bin/pod-hook.exe
+                          codex: C:\Users\User\.codex\hooks.json - 9 Pod event(s), 9 other hook group(s)
+                            runs C:/Users/User/AppData/Local/Pod/bin/pod-hook.exe
+
+2026-11-09 15:06:30.933   Need to restart Windows? No
+2026-11-09 15:06:30.938   hooks offered on the finished page: 에이전트 훅이 없거나 일부만 설치되어 있습니다
+2026-11-09 15:06:30.942   Deinitializing Setup.
+2026-11-09 15:06:30.946   Log closed.

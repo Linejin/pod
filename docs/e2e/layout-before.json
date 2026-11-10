@@ -1,0 +1,95 @@
+{
+  "version": 1,
+  "dock": {
+    "version": 1,
+    "center": {
+      "panel_name": "StackPanel",
+      "children": [
+        {
+          "panel_name": "TabPanel",
+          "children": [
+            {
+              "panel_name": "PodTerminal",
+              "children": [],
+              "info": {
+                "panel": {
+                  "terminal": "t1"
+                }
+              }
+            },
+            {
+              "panel_name": "PodTerminal",
+              "children": [],
+              "info": {
+                "panel": {
+                  "terminal": "t2"
+                }
+              }
+            },
+            {
+              "panel_name": "PodReview",
+              "children": [],
+              "info": {
+                "panel": {
+                  "task": "sample/cli-fix"
+                }
+              }
+            },
+            {
+              "panel_name": "PodGroup",
+              "children": [],
+              "info": {
+                "panel": {
+                  "group": "sample/duel"
+                }
+              }
+            }
+          ],
+          "info": {
+            "tabs": {
+              "active_index": 3
+            }
+          }
+        }
+      ],
+      "info": {
+        "stack": {
+          "sizes": [
+            753.3333
+          ],
+          "axis": 1
+        }
+      }
+    },
+    "right_dock": {
+      "panel": {
+        "panel_name": "TabPanel",
+        "children": [
+          {
+            "panel_name": "PodGates",
+            "children": [],
+            "info": {
+              "panel": {}
+            }
+          },
+          {
+            "panel_name": "PodAgentTree",
+            "children": [],
+            "info": {
+              "panel": {}
+            }
+          }
+        ],
+        "info": {
+          "tabs": {
+            "active_index": 1
+          }
+        }
+      },
+      "placement": "right",
+      "size": 380.0,
+      "open": true
+    }
+  },
+  "labels": {}
+}

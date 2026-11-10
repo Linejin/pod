@@ -1,0 +1,26 @@
+# Rust build output (also holds target/captures from tools/run-and-capture.ps1)
+/target/
+
+# Editor / OS leftovers
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+
+# Microsoft ConPTY package (MIT), fetched by tools/fetch-conpty.ps1
+/vendor/conpty/
+
+# Installer output (tools/installer/build.ps1)
+/dist/
+
+# Local-only research notes (never commit)
+/private/
+# Developer taskbar capture from assets/icon/capture.ps1 (personal desktop, not published)
+/assets/icon/qa/taskbar-primary-native.png
+
+# Python bytecode (tools/themes, tools/visual scripts)
+__pycache__/
+*.pyc

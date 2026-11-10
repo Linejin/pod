@@ -1,0 +1,21 @@
+[package]
+name = "pod-forge"
+version = "0.1.0"
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+publish = false
+description = "Forge (GitHub) operations for Pod tasks: detect the remote, push, pull requests and checks through the gh CLI, plus a fake forge for tests"
+
+[dependencies]
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+schemars = "1"
+
+# MIT OR Apache-2.0, already in the lockfile: the Job Object behind
+# `bounded` (kill the whole process tree on timeout).
+[target.'cfg(windows)'.dependencies]
+windows-sys = { version = "0.61", features = ["Win32_Foundation", "Win32_Security", "Win32_System_Diagnostics_ToolHelp", "Win32_System_IO", "Win32_System_JobObjects", "Win32_System_Threading"] }
+
+[lints]
+workspace = true

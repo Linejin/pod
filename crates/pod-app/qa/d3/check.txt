@@ -1,0 +1,7 @@
+   Compiling gpui-component v0.9.0 (C:\Users\User\dev\workspaces\ide\d3-finish\vendor\gpui-component)
+    Checking gpui-kit v0.9.0
+    Checking pod-ui v0.1.0 (C:\Users\User\dev\workspaces\ide\d3-finish\crates\pod-ui)
+    Checking pod-diff v0.1.0 (C:\Users\User\dev\workspaces\ide\d3-finish\crates\pod-diff)
+    Checking pod-terminal-view v0.0.1 (C:\Users\User\dev\workspaces\ide\d3-finish\crates\pod-terminal-view)
+    Checking pod-app v0.1.0 (C:\Users\User\dev\workspaces\ide\d3-finish\crates\pod-app)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 6.88s

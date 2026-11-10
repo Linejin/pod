@@ -1,0 +1,14 @@
+﻿[
+    {
+        "Path":  "C:\\Users\\User\\AppData\\Local\\Pod\\bin\\pod-hook.exe",
+        "Hash":  "86A607D66DB93A6E010594C5FC18A344A83CDFC95F3CACFB9C97FB69462ECA86"
+    },
+    {
+        "Path":  "C:\\Users\\User\\.codex\\config.toml",
+        "Hash":  "D3CA2948947AA0B136B57CF42D8AE6B25C2A1169684246598FBB7CD0FC1EEF04"
+    },
+    {
+        "Path":  "C:\\Users\\User\\.codex\\hooks.json",
+        "Hash":  "ADD0207861474DBEC0DEE6AAAA801DCC6095007FE2D831943FAB18ACA51BC555"
+    }
+]

@@ -1,0 +1,46 @@
+App=pod-app (pid 64720)
+Window: "", App: pod-app.
+
+0 영역
+	1 title bar TitleBar
+		2 menu bar 시스템 메뉴 모음
+			3 menu item 시스템
+		4 button 최소화
+		5 button 복원
+		6 button 닫기
+	7 단추 명령·터미널 검색
+	8 단추 설정
+	9 단추 격자
+	10 단추 + 작업
+	11 단추 + 터미널
+	12 단추 + 그룹
+	13 단추 에이전트
+	14 편집 저장소, 작업, 터미널 검색, Secondary Actions: SetValue
+	15 콘솔 트리 sample/auth | 승인 필요 · 출처: osc · 신뢰도: 90% · 상위: 승인 필요 · 마지막: — | 1781초 전
+		16 상태 승인 필요 · 출처: osc · 신뢰도: 90% · 상위: 승인 필요 · 마지막: —
+	17 콘솔 트리 sample/compare-shell-1 | 상태 미확인 · 추정 · 출처: unknown · 신뢰도: 0% · 상위: 상태 미확인 · 마지막: — | 1779초 전
+		18 상태 상태 미확인 · 추정 · 출처: unknown · 신뢰도: 0% · 상위: 상태 미확인 · 마지막: —
+	19 콘솔 트리 sample/compare-shell-2 | 상태 미확인 · 추정 · 출처: unknown · 신뢰도: 0% · 상위: 상태 미확인 · 마지막: — | 1777초 전
+		20 상태 상태 미확인 · 추정 · 출처: unknown · 신뢰도: 0% · 상위: 상태 미확인 · 마지막: —
+	21 콘솔 트리 exit-seven | 실패 종료 (7) · 출처: unknown · 신뢰도: 0% · 상위: 종료 · 마지막: — | 1772초 전
+		22 상태 실패 종료 (7) · 출처: unknown · 신뢰도: 0% · 상위: 종료 · 마지막: —
+	23 단추 닫기
+	24 Tab
+		25 탭 항목, Secondary Actions: Select
+			26 단추
+		27 탭 항목, Secondary Actions: Select
+			28 단추
+		29 단추
+	30 단추 상태
+	31 단추 알림 1
+	32 대화 상자
+		33 단추 sample
+		34 단추 저장소 추가…
+		35 편집 작업 이름 (예: fix-login, 브랜치 pod/<name>), Secondary Actions: SetValue
+		36 편집 기준 브랜치 (기본: 저장소의 기본 브랜치), Secondary Actions: SetValue
+		37 단추 셸
+		38 단추 Claude
+		39 단추 Codex
+		40 단추 취소
+		41 단추 만들기
+		42 단추 Close

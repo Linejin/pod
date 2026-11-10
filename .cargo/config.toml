@@ -1,0 +1,7 @@
+# Resource limits for this machine: several builds may run in parallel.
+# Each cargo invocation uses at most 4 of 16 threads.
+# Do NOT share CARGO_TARGET_DIR between worktrees: cargo can reuse another
+# worktree's stale artifacts for workspace crates. Share dependency compiles
+# with RUSTC_WRAPPER=sccache instead (set per shell; machine-specific).
+[build]
+jobs = 4

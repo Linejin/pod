@@ -1,0 +1,66 @@
+﻿App=pod-app (pid 57084)
+Window: "", App: pod-app.
+
+0 영역
+	1 title bar TitleBar
+		2 menu bar 시스템 메뉴 모음
+			3 menu item 시스템
+		4 button 최소화
+		5 button 최대화
+		6 button 닫기
+	7 단추 명령·터미널 검색
+	8 단추 설정
+	9 트리 저장소와 작업 탐색
+		10 단추 격자
+		11 단추 + 작업
+		12 단추 + 터미널
+		13 단추 + 그룹
+		14 단추 에이전트
+		15 편집 저장소, 작업, 터미널 검색, Secondary Actions: SetValue
+		16 콘솔 트리 sample · 작업 100, Secondary Actions: Select
+		17 콘솔 트리 Task 000 - 한글 작업과 레이아웃 🔎, Secondary Actions: Select
+		18 콘솔 트리 Worker 0 | 작업 중 · 출처: osc · 신뢰도: 100% · 상위: 작업 중 · 마지막: — | 보고 없음
+			19 상태 작업 중 · 출처: osc · 신뢰도: 100% · 상위: 작업 중 · 마지막: —
+		20 콘솔 트리 Worker 1 | 승인 필요 · 출처: osc · 신뢰도: 100% · 상위: 승인 필요 · 마지막: — | 보고 없음
+			21 상태 승인 필요 · 출처: osc · 신뢰도: 100% · 상위: 승인 필요 · 마지막: —
+		22 콘솔 트리 Worker 2 | 완료 · 출처: osc · 신뢰도: 100% · 상위: 완료 · 마지막: — | 보고 없음
+			23 상태 완료 · 출처: osc · 신뢰도: 100% · 상위: 완료 · 마지막: —
+		24 콘솔 트리 Task 001 - 한글 작업과 레이아웃 🔎, Secondary Actions: Select
+		25 콘솔 트리 Worker 3 | 승인 필요 · 출처: osc · 신뢰도: 100% · 상위: 승인 필요 · 마지막: — | 보고 없음
+			26 상태 승인 필요 · 출처: osc · 신뢰도: 100% · 상위: 승인 필요 · 마지막: —
+		27 콘솔 트리 Worker 4 | 완료 · 출처: osc · 신뢰도: 100% · 상위: 완료 · 마지막: — | 보고 없음
+			28 상태 완료 · 출처: osc · 신뢰도: 100% · 상위: 완료 · 마지막: —
+		29 콘솔 트리 Worker 5 | 대기 · 출처: osc · 신뢰도: 100% · 상위: 대기 · 마지막: — | 보고 없음
+			30 상태 대기 · 출처: osc · 신뢰도: 100% · 상위: 대기 · 마지막: —
+		31 콘솔 트리 Task 002 - 한글 작업과 레이아웃 🔎, Secondary Actions: Select
+		32 콘솔 트리 Worker 6 | 완료 · 출처: osc · 신뢰도: 100% · 상위: 완료 · 마지막: — | 보고 없음
+			33 상태 완료 · 출처: osc · 신뢰도: 100% · 상위: 완료 · 마지막: —
+		34 콘솔 트리 Worker 7 | 대기 · 출처: osc · 신뢰도: 100% · 상위: 대기 · 마지막: — | 보고 없음
+			35 상태 대기 · 출처: osc · 신뢰도: 100% · 상위: 대기 · 마지막: —
+	36 LIST 최근 알림
+	37 탭 항목 파일 · sample/task-000, Secondary Actions: Select
+	38 단추 패널 메뉴
+	39 트리 파일 트리
+		40 콘솔 트리 config, Secondary Actions: Select
+		41 콘솔 트리 docs, Secondary Actions: Select
+		42 콘솔 트리 notes, Secondary Actions: Select
+		43 콘솔 트리 scripts, Secondary Actions: Select
+		44 콘솔 트리 src, Secondary Actions: Select
+		45 콘솔 트리 geometry.rs, Secondary Actions: Select
+		46 콘솔 트리 lib.rs, Secondary Actions: Select
+		47 콘솔 트리 main.rs (M), Secondary Actions: Select
+		48 콘솔 트리 web, Secondary Actions: Select
+		49 콘솔 트리 .gitignore, Secondary Actions: Select
+		50 콘솔 트리 Cargo.toml, Secondary Actions: Select
+		51 콘솔 트리 README.md (M), Secondary Actions: Select
+	52 Tab 열린 파일
+		53 탭 항목 lib.rs, Secondary Actions: Select
+			54 단추 탭 닫기 lib.rs
+		55 탭 항목 main.rs, Secondary Actions: Select
+			56 단추 탭 닫기 main.rs
+	57 편집 편집기: src/main.rs, Value: use demo_app::geometry::{perimeter, Point}; use demo_app::{greet, word_count, Task}; fn main() { let message = greet("Pod"); println!("{message} ({} words)", word_count(&message)); let square = [ Point { x: 0.0, y: 0.0 }, Point { x: 1.0, y: 0.0 }, Point { x: 1.0, y: 1.0 }, Point { x: 0.0, y: 1.0 }, ]; println!("perimeter = {}", perimeter(&square)); let total = word_count(&message, 2); println!("{total}"); let mut task = Task::ne..., Secondary Actions: SetValue
+		58 단추 접기
+		59 단추 접기
+	60 단추 언어 서버 꺼짐
+	61 단추 상태
+	62 단추 알림 0

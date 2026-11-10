@@ -1,0 +1,5 @@
+PASS pod-app: nine exact optical PNGs, VERSIONINFO present
+PASS podd: nine exact optical PNGs, VERSIONINFO present
+PASS pod-holder: nine exact optical PNGs, VERSIONINFO present
+PASS pod: nine exact optical PNGs, VERSIONINFO present
+PASS pod-hook: nine exact optical PNGs, VERSIONINFO present

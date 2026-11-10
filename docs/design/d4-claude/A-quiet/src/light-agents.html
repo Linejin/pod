@@ -1,0 +1,1044 @@
+<!doctype html><html lang="ko"><head><meta charset="utf-8"><style>:root{--app:#F3F4F6;--sidebar:#F3F4F6;--panel:#FFFFFF;--raised:#FFFFFF;--overlay:#FFFFFF;--hover:#E8EAED;--active:#DEE1E6;--selected:#DFE8FA;--selected_quiet:#E6E8EC;--hairline:#E1E3E8;--strong:#CBD0D7;--control:#868D98;--focus:#2F6BDB;--text:#1C1F24;--text2:#4C525C;--muted:#5F6672;--disabled:#A2A8B1;--accent:#2F66D0;--accent_hover:#2959B8;--on_accent:#FFFFFF;--accent_fg:#2459BF;--working:#136894;--attention:#8F5A00;--done:#1A7048;--failed:#BF3434;--idle:#5F6672;--working_bg:#E3F1F8;--attention_bg:#FBF0DC;--done_bg:#E2F3EA;--failed_bg:#FBE7E6;--add_bg:#E6F4EA;--del_bg:#FCEBEA;--add_fg:#1C6E43;--del_fg:#B02E2E;--term_bg:#FFFFFF;--term_fg:#23272E}
+:root{--shadow:rgba(16,24,40,.14)}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{width:960px;height:640px;overflow:hidden}
+body{background:var(--app);color:var(--text);font:400 13px/20px "Segoe UI Variable Text","Segoe UI","Malgun Gothic",sans-serif;
+ -webkit-font-smoothing:antialiased;letter-spacing:0}
+.mono{font-family:"Cascadia Mono",Consolas,"Malgun Gothic",monospace}
+.ic{flex:none;display:block}
+.tb,.top,.crumb,.sbh,.sec,.tr,.wr,.ph,.tab,.wt,.stb,.rvh,.cph,.agc,.agh,.th,.ch,.qh,.ql,.r,.btn,.seg,.kbd,.k,.pillst,.chip,.cnt{white-space:nowrap}
+.row{display:flex;align-items:center}
+.col{display:flex;flex-direction:column}
+.grow{flex:1;min-width:0}
+.ell{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.t2{color:var(--text2)} .mu{color:var(--muted)} .acc{color:var(--accent_fg)}
+.s-working{color:var(--working)} .s-attention{color:var(--attention)} .s-done{color:var(--done)}
+.s-failed{color:var(--failed)} .s-idle{color:var(--idle)}
+.dot{width:8px;height:8px;border-radius:50%;flex:none}
+.d-working{background:var(--working)} .d-attention{background:var(--attention)} .d-done{background:var(--done)}
+.d-failed{background:var(--failed)} .d-idle{background:transparent;box-shadow:inset 0 0 0 1.5px var(--idle)}
+pre{font:12px/18px "Cascadia Mono",Consolas,"Malgun Gothic",monospace;color:var(--term_fg);white-space:pre}
+pre .dim{color:var(--muted)} pre .ok{color:var(--done)} pre .warn{color:var(--attention)} pre .info{color:var(--working)}
+pre .add{color:var(--add_fg)} pre .del{color:var(--del_fg)} pre .hl{color:var(--text);font-weight:600}
+pre .cursor{background:var(--text);display:inline-block;width:7px;height:15px;vertical-align:-3px}
+.kbd{font:11px/16px "Segoe UI","Malgun Gothic";color:var(--muted);border:1px solid var(--hairline);border-radius:3px;padding:0 4px}
+.caption{display:flex;height:100%}
+.caption div{width:46px;display:flex;align-items:center;justify-content:center;color:var(--text2)}
+.tip{position:absolute;background:var(--overlay);color:var(--text);border:1px solid var(--strong);border-radius:4px;padding:2px 8px;font-size:12px;line-height:18px;
+ box-shadow:0 4px 12px rgba(0,0,0,.25);white-space:nowrap;z-index:9}
+
+.tb{height:36px;display:flex;align-items:center;background:var(--app);border-bottom:1px solid var(--hairline);padding-left:12px;gap:8px}
+.logo{width:18px;height:18px;border-radius:5px;background:var(--accent);color:#fff;font:700 11px/18px "Segoe UI";text-align:center}
+.crumb{display:flex;align-items:center;gap:6px;color:var(--text2);font-size:13px}
+.crumb b{color:var(--text);font-weight:600}
+.pill{margin:0 auto;width:340px;height:26px;border-radius:6px;background:var(--panel);border:1px solid var(--hairline);display:flex;align-items:center;gap:8px;padding:0 6px 0 10px;color:var(--muted)}
+.ib{width:28px;height:28px;border-radius:4px;display:flex;align-items:center;justify-content:center;color:var(--text2);position:relative}
+.ib.on{background:var(--active);color:var(--text)}
+.ib .badge{position:absolute;top:4px;right:4px;width:7px;height:7px;border-radius:50%;background:var(--attention);box-shadow:0 0 0 2px var(--app)}
+.main{display:flex;height:580px}
+.sb{width:248px;background:var(--sidebar);border-right:1px solid var(--hairline);display:flex;flex-direction:column}
+.sbh{height:36px;display:flex;align-items:center;padding:0 6px 0 12px;gap:2px}
+.sbh .ib{width:26px;height:26px}
+.sec{height:26px;display:flex;align-items:center;gap:6px;padding:0 8px 0 10px;font-size:12px;color:var(--muted);font-weight:600}
+.tr{height:28px;margin:0 6px;border-radius:4px;display:flex;align-items:center;gap:8px;padding:0 8px 0 4px}
+.tr .chev{color:var(--muted);width:14px}
+.tr .ttl{flex:1;min-width:0;font-weight:500}
+.tr .meta{color:var(--muted);font-size:12px}
+.tr.cur{background:var(--selected_quiet)}
+.wr{height:28px;margin:0 6px;border-radius:4px;display:flex;align-items:center;gap:8px;padding:0 8px 0 30px;color:var(--text2)}
+.wr.sel{background:var(--selected);color:var(--text)}
+.wr.hov{background:var(--hover)}
+.wr .st{font-size:12px}
+.cnt{font-size:11px;line-height:16px;padding:0 5px;border-radius:8px;font-weight:600}
+.cnt.attention{background:var(--attention_bg);color:var(--attention)}
+.cnt.failed{background:var(--failed_bg);color:var(--failed)}
+.content{flex:1;min-width:0;display:flex;flex-direction:column;background:var(--panel);overflow:hidden}
+.tabs{height:32px;display:flex;align-items:stretch;overflow:hidden;background:var(--app);border-bottom:1px solid var(--hairline)}
+.tab{display:flex;align-items:center;gap:6px;padding:0 10px 0 12px;color:var(--text2);border-right:1px solid var(--hairline);font-size:13px;position:relative}
+.tab.on{background:var(--panel);color:var(--text);margin-bottom:-1px}
+.tab.on:before{content:"";position:absolute;left:0;right:0;top:0;height:2px;background:var(--accent)}
+.tab .x{color:var(--muted);opacity:0}
+.tab.on .x{opacity:1}
+.grid{flex:1;display:grid;grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr;gap:1px;background:var(--hairline);min-height:0}
+.pane{background:var(--term_bg);display:flex;flex-direction:column;min-width:0;min-height:0;position:relative}
+.ph{height:30px;display:flex;align-items:center;gap:8px;padding:0 6px 0 10px;border-bottom:1px solid var(--hairline);color:var(--text2);font-size:12px}
+.ph .nm{color:var(--text);font-size:13px;font-weight:500}
+.pane.focus{box-shadow:inset 0 0 0 1px var(--focus)}
+.pane pre{padding:8px 12px;overflow:hidden;flex:1}
+.ph .tools{display:flex;margin-left:auto;gap:0}
+.ph .tools .ib{width:24px;height:24px}
+.stb{height:24px;display:flex;align-items:center;background:var(--app);border-top:1px solid var(--hairline);padding:0 6px;font-size:12px;color:var(--text2);gap:0}
+.stb .g{display:flex;align-items:center;gap:6px;padding:0 8px;height:100%}
+.stb .sep{width:1px;height:12px;background:var(--strong)}
+.stb .g b{font-weight:600;color:var(--text)}
+.btn{height:28px;padding:0 12px;border-radius:4px;display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:500;color:var(--text);background:transparent;border:1px solid var(--strong)}
+.btn.pri{background:var(--accent);color:var(--on_accent);border-color:var(--accent)}
+.btn.ghost{border-color:transparent;color:var(--text2)}
+.btn.sm{height:24px;padding:0 8px;font-size:12px}
+.seg{display:inline-flex;height:26px;border-radius:5px;background:var(--app);border:1px solid var(--hairline);padding:2px;gap:2px}
+.seg div{display:flex;align-items:center;gap:5px;padding:0 8px;border-radius:3px;color:var(--text2);font-size:12px}
+.seg div.on{background:var(--raised);color:var(--text);box-shadow:0 0 0 1px var(--strong)}
+.banner{display:flex;align-items:flex-start;gap:8px;padding:8px 10px;border-radius:6px;font-size:12px;line-height:18px}
+.banner.info{background:var(--working_bg);color:var(--text)} .banner.info .ic{color:var(--working)}
+.banner.err{background:var(--failed_bg);color:var(--text)} .banner.err .ic{color:var(--failed)}
+.banner.warn{background:var(--attention_bg);color:var(--text)} .banner.warn .ic{color:var(--attention)}
+.banner .act{margin-left:auto;font-weight:600;color:var(--accent_fg);white-space:nowrap}
+
+.ag{width:430px;border-left:1px solid var(--hairline);background:var(--panel);display:flex;flex-direction:column}
+.agh{height:32px;display:flex;align-items:center;gap:6px;padding:0 6px 0 12px;font-weight:600;border-bottom:1px solid var(--hairline)}
+.agc{display:grid;grid-template-columns:1fr 64px 92px 40px;align-items:center;column-gap:8px;padding:0 12px 0 8px;height:28px}
+.agc.head{height:26px;font-size:11px;color:var(--muted);font-weight:600;border-bottom:1px solid var(--hairline)}
+.agc.task{font-weight:500}
+.agc.sel{background:var(--selected)}
+.agc .nm{display:flex;align-items:center;gap:6px;min-width:0}
+.agc .pr{font-size:12px;color:var(--muted)} .agc .tm{font-size:12px;color:var(--muted);text-align:right}
+.agc .stc{display:flex;align-items:center;gap:5px;font-size:12px}
+</style></head><body class="A light"><div class="tb"><div class="logo">P</div>
+<div class="crumb"><span>pod</span><svg class="ic " width="12" height="12" style="" xmlns="http://www.w3.org/2000/svg"
+ 
+ 
+  viewBox="0 0 24 24"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="1.75"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <path d="m9 18 6-6-6-6" />
+</svg><b>에이전트</b></div>
+<div class="pill"><svg class="ic " width="14" height="14" style="" xmlns="http://www.w3.org/2000/svg"
+ 
+ 
+  viewBox="0 0 24 24"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="1.75"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <circle cx="11" cy="11" r="8" />
+  <path d="m21 21-4.3-4.3" />
+</svg><span class="grow">작업, 터미널, 명령 검색</span><span class="kbd">Ctrl K</span></div>
+<div class="ib"><svg class="ic " width="16" height="16" style="" xmlns="http://www.w3.org/2000/svg"
+ 
+ 
+  viewBox="0 0 24 24"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="1.75"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <rect width="18" height="18" x="3" y="3" rx="2" />
+  <path d="M9 3v18" />
+</svg></div><div class="ib"><svg class="ic " width="16" height="16" style="" xmlns="http://www.w3.org/2000/svg"
+ 
+ 
+  viewBox="0 0 24 24"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="1.75"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <rect width="18" height="18" x="3" y="3" rx="2" />
+  <path d="M15 3v18" />
+</svg></div>
+<div class="ib"><svg class="ic " width="16" height="16" style="" xmlns="http://www.w3.org/2000/svg"
+ 
+ 
+  viewBox="0 0 24 24"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="1.75"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <path d="M10.268 21a2 2 0 0 0 3.464 0" />
+  <path d="M3.262 15.326A1 1 0 0 0 4 17h16a1 1 0 0 0 .74-1.673C19.41 13.956 18 12.499 18 8A6 6 0 0 0 6 8c0 4.499-1.411 5.956-2.738 7.326" />
+</svg><span class=badge></span></div><div class="ib"><svg class="ic " width="16" height="16" style="" xmlns="http://www.w3.org/2000/svg"
+ 
+ 
+  viewBox="0 0 24 24"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="1.75"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z" />
+  <circle cx="12" cy="12" r="3" />
+</svg></div>
+<div class="caption"><div><svg class="ic " width="16" height="16" style="" xmlns="http://www.w3.org/2000/svg"
+ 
+ 
+  viewBox="0 0 24 24"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="1.75"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <path d="M5 12h14" />
+</svg></div><div><svg class="ic " width="14" height="14" style="" xmlns="http://www.w3.org/2000/svg"
+ 
+ 
+  viewBox="0 0 24 24"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="1.75"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <rect width="18" height="18" x="3" y="3" rx="2" />
+</svg></div><div><svg class="ic " width="16" height="16" style="" xmlns="http://www.w3.org/2000/svg"
+ 
+ 
+  viewBox="0 0 24 24"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="1.75"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <path d="M18 6 6 18" />
+  <path d="m6 6 12 12" />
+</svg></div></div></div><div class="main"><div class="sb"><div class="sbh"><span style="font-weight:600">작업</span><span class="mu" style="margin-left:6px;font-size:12px">6</span>
+<span class="grow"></span><div class="ib"><svg class="ic " width="16" height="16" style="" xmlns="http://www.w3.org/2000/svg"
+ 
+ 
+  viewBox="0 0 24 24"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="1.75"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <path d="M3 6h18" />
+  <path d="M7 12h10" />
+  <path d="M10 18h4" />
+</svg></div><div class="ib"><svg class="ic " width="16" height="16" style="" xmlns="http://www.w3.org/2000/svg"
+ 
+ 
+  viewBox="0 0 24 24"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="1.75"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <path d="M5 12h14" />
+  <path d="M12 5v14" />
+</svg></div><div class="ib"><svg class="ic " width="16" height="16" style="" xmlns="http://www.w3.org/2000/svg"
+ 
+ 
+  viewBox="0 0 24 24"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="1.75"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <circle cx="12" cy="12" r="1" />
+  <circle cx="19" cy="12" r="1" />
+  <circle cx="5" cy="12" r="1" />
+</svg></div></div>
+<div class="sec"><svg class="ic " width="12" height="12" style="" xmlns="http://www.w3.org/2000/svg"
+ 
+ 
+  viewBox="0 0 24 24"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="1.75"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <path d="m6 9 6 6 6-6" />
+</svg><svg class="ic " width="14" height="14" style="" xmlns="http://www.w3.org/2000/svg"
+ 
+ 
+  viewBox="0 0 24 24"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="1.75"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <path d="M9 20H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h3.9a2 2 0 0 1 1.69.9l.81 1.2a2 2 0 0 0 1.67.9H20a2 2 0 0 1 2 2v5" />
+  <circle cx="13" cy="12" r="2" />
+  <path d="M18 19c-2.8 0-5-2.2-5-5v8" />
+  <circle cx="20" cy="19" r="2" />
+</svg><span>pod</span><span class="grow"></span><span style="font-weight:400">C:\src\pod</span></div><div class="tr cur"><span class="chev"><svg class="ic " width="14" height="14" style="" xmlns="http://www.w3.org/2000/svg"
+ 
+ 
+  viewBox="0 0 24 24"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="1.75"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <path d="m6 9 6 6 6-6" />
+</svg></span>
+<span class="dot d-attention"></span><span class="ttl ell">터미널 넓은 글자 정렬</span><span class="cnt attention">1</span></div><div class="wr"><svg class="ic s-working" width="14" height="14" style="" xmlns="http://www.w3.org/2000/svg"
+ 
+ 
+  viewBox="0 0 24 24"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="1.75"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <path d="M21 12a9 9 0 1 1-6.219-8.56" />
+</svg><span class="grow ell">Claude · 구현</span></div><div class="wr sel"><svg class="ic s-attention" width="14" height="14" style="" xmlns="http://www.w3.org/2000/svg"
+ 
+ 
+  viewBox="0 0 24 24"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="1.75"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z" />
+  <path d="M9.1 9a3 3 0 0 1 5.82 1c0 2-3 3-3 3" />
+  <path d="M12 17h.01" />
+</svg><span class="grow ell">Codex · 리뷰</span><span class="st s-attention">승인 필요</span></div><div class="wr"><svg class="ic s-done" width="14" height="14" style="" xmlns="http://www.w3.org/2000/svg"
+ 
+ 
+  viewBox="0 0 24 24"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="1.75"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <circle cx="12" cy="12" r="10" />
+  <path d="m9 12 2 2 4-4" />
+</svg><span class="grow ell">Claude · 문서</span></div><div class="wr"><svg class="ic s-idle" width="14" height="14" style="" xmlns="http://www.w3.org/2000/svg"
+ 
+ 
+  viewBox="0 0 24 24"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="1.75"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <circle cx="12" cy="12" r="10" />
+</svg><span class="grow ell">셸</span></div><div class="tr"><span class="chev"><svg class="ic " width="14" height="14" style="" xmlns="http://www.w3.org/2000/svg"
+ 
+ 
+  viewBox="0 0 24 24"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="1.75"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <path d="m6 9 6 6 6-6" />
+</svg></span>
+<span class="dot d-attention"></span><span class="ttl ell">리뷰 의견 전달 재시도</span><span class="cnt attention">1</span></div><div class="wr"><svg class="ic s-attention" width="14" height="14" style="" xmlns="http://www.w3.org/2000/svg"
+ 
+ 
+  viewBox="0 0 24 24"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="1.75"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z" />
+  <path d="M9.1 9a3 3 0 0 1 5.82 1c0 2-3 3-3 3" />
+  <path d="M12 17h.01" />
+</svg><span class="grow ell">Claude · 구현</span></div><div class="wr"><svg class="ic s-done" width="14" height="14" style="" xmlns="http://www.w3.org/2000/svg"
+ 
+ 
+  viewBox="0 0 24 24"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="1.75"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <circle cx="12" cy="12" r="10" />
+  <path d="m9 12 2 2 4-4" />
+</svg><span class="grow ell">셸</span></div><div class="tr"><span class="chev"><svg class="ic " width="14" height="14" style="" xmlns="http://www.w3.org/2000/svg"
+ 
+ 
+  viewBox="0 0 24 24"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="1.75"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <path d="m6 9 6 6 6-6" />
+</svg></span>
+<span class="dot d-failed"></span><span class="ttl ell">LSP 지연 시작</span><span class="cnt failed">1</span></div><div class="wr"><svg class="ic s-failed" width="14" height="14" style="" xmlns="http://www.w3.org/2000/svg"
+ 
+ 
+  viewBox="0 0 24 24"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="1.75"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <path d="m15 9-6 6" />
+  <path d="M2.586 16.726A2 2 0 0 1 2 15.312V8.688a2 2 0 0 1 .586-1.414l4.688-4.688A2 2 0 0 1 8.688 2h6.624a2 2 0 0 1 1.414.586l4.688 4.688A2 2 0 0 1 22 8.688v6.624a2 2 0 0 1-.586 1.414l-4.688 4.688a2 2 0 0 1-1.414.586H8.688a2 2 0 0 1-1.414-.586z" />
+  <path d="m9 9 6 6" />
+</svg><span class="grow ell">Codex · 구현</span><span class="st s-failed">실패 종료 (1)</span></div><div class="tr"><span class="chev"><svg class="ic " width="14" height="14" style="" xmlns="http://www.w3.org/2000/svg"
+ 
+ 
+  viewBox="0 0 24 24"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="1.75"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <path d="m9 18 6-6-6-6" />
+</svg></span>
+<span class="dot d-done"></span><span class="ttl ell">설정 화면 정리</span><span class="meta">21분</span></div><div class="tr"><span class="chev"><svg class="ic " width="14" height="14" style="" xmlns="http://www.w3.org/2000/svg"
+ 
+ 
+  viewBox="0 0 24 24"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="1.75"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <path d="m9 18 6-6-6-6" />
+</svg></span>
+<span class="dot d-done"></span><span class="ttl ell">Windows 설치 프로그램 서명</span><span class="meta">1시간</span></div><div class="tr"><span class="chev"><svg class="ic " width="14" height="14" style="" xmlns="http://www.w3.org/2000/svg"
+ 
+ 
+  viewBox="0 0 24 24"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="1.75"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <path d="m9 18 6-6-6-6" />
+</svg></span>
+<span class="dot d-idle"></span><span class="ttl ell">알림 묶음 처리</span><span class="meta">2시간</span></div><div class="sec" style="margin-top:6px"><svg class="ic " width="12" height="12" style="" xmlns="http://www.w3.org/2000/svg"
+ 
+ 
+  viewBox="0 0 24 24"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="1.75"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <path d="m9 18 6-6-6-6" />
+</svg><svg class="ic " width="14" height="14" style="" xmlns="http://www.w3.org/2000/svg"
+ 
+ 
+  viewBox="0 0 24 24"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="1.75"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <path d="M9 20H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h3.9a2 2 0 0 1 1.69.9l.81 1.2a2 2 0 0 0 1.67.9H20a2 2 0 0 1 2 2v5" />
+  <circle cx="13" cy="12" r="2" />
+  <path d="M18 19c-2.8 0-5-2.2-5-5v8" />
+  <circle cx="20" cy="19" r="2" />
+</svg><span>docs-site</span><span class="grow"></span><span style="font-weight:400">작업 1</span></div></div>
+<div class="content"><div class="tabs"><div class="tab on"><svg class="ic " width="14" height="14" style="" xmlns="http://www.w3.org/2000/svg"
+ 
+ 
+  viewBox="0 0 24 24"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="1.75"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <path d="m7 11 2-2-2-2" />
+  <path d="M11 13h4" />
+  <rect width="18" height="18" x="3" y="3" rx="2" ry="2" />
+</svg><span>터미널</span><span class="mu" style="font-size:12px">4</span><span class="x"><svg class="ic " width="12" height="12" style="" xmlns="http://www.w3.org/2000/svg"
+ 
+ 
+  viewBox="0 0 24 24"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="1.75"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <path d="M18 6 6 18" />
+  <path d="m6 6 12 12" />
+</svg></span></div><div class="tab"><svg class="ic " width="14" height="14" style="" xmlns="http://www.w3.org/2000/svg"
+ 
+ 
+  viewBox="0 0 24 24"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="1.75"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z" />
+  <path d="M9 10h6" />
+  <path d="M12 13V7" />
+  <path d="M9 17h6" />
+</svg><span>리뷰</span><span class="x"><svg class="ic " width="12" height="12" style="" xmlns="http://www.w3.org/2000/svg"
+ 
+ 
+  viewBox="0 0 24 24"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="1.75"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <path d="M18 6 6 18" />
+  <path d="m6 6 12 12" />
+</svg></span></div><div class="tab"><svg class="ic " width="14" height="14" style="" xmlns="http://www.w3.org/2000/svg"
+ 
+ 
+  viewBox="0 0 24 24"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="1.75"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z" />
+  <path d="M9 10h6" />
+  <path d="M12 13V7" />
+  <path d="M9 17h6" />
+</svg><span>terminal.rs</span><span class="dot" style="width:6px;height:6px;background:var(--text2)"></span><span class="x"><svg class="ic " width="12" height="12" style="" xmlns="http://www.w3.org/2000/svg"
+ 
+ 
+  viewBox="0 0 24 24"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="1.75"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <path d="M18 6 6 18" />
+  <path d="m6 6 12 12" />
+</svg></span></div><div class="grow"></div><div class="row" style="padding:0 6px;gap:2px"><div class="ib on"><svg class="ic " width="14" height="14" style="" xmlns="http://www.w3.org/2000/svg"
+ 
+ 
+  viewBox="0 0 24 24"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="1.75"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <rect width="7" height="7" x="3" y="3" rx="1" />
+  <rect width="7" height="7" x="14" y="3" rx="1" />
+  <rect width="7" height="7" x="14" y="14" rx="1" />
+  <rect width="7" height="7" x="3" y="14" rx="1" />
+</svg></div><div class="ib"><svg class="ic " width="14" height="14" style="" xmlns="http://www.w3.org/2000/svg"
+ 
+ 
+  viewBox="0 0 24 24"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="1.75"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <rect width="18" height="18" x="3" y="3" rx="2" />
+  <path d="M12 3v18" />
+</svg></div><div class="ib"><svg class="ic " width="14" height="14" style="" xmlns="http://www.w3.org/2000/svg"
+ 
+ 
+  viewBox="0 0 24 24"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="1.75"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <path d="M5 12h14" />
+  <path d="M12 5v14" />
+</svg></div></div></div><div class="grid" style="grid-template-columns:1fr"><div class="pane"><div class="ph"><svg class="ic s-working" width="14" height="14" style="" xmlns="http://www.w3.org/2000/svg"
+ 
+ 
+  viewBox="0 0 24 24"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="1.75"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <path d="M21 12a9 9 0 1 1-6.219-8.56" />
+</svg><span class="nm">Claude · 구현</span>
+<span class="s-working">작업 중</span><span class="mu">· claude · 4분</span><span class="grow"></span></div><pre><span class=dim>❯</span> 넓은 글자가 두 칸을 차지하도록 셀 너비 계산을 고칩니다.
+
+<span class=ok>•</span> 읽기  crates/pod-ui/src/terminal.rs <span class=dim>(412줄)</span>
+<span class=ok>•</span> 수정  crates/pod-ui/src/terminal.rs
+    <span class=del>-  let w = glyph.advance;</span>
+    <span class=add>+  let w = cell_w * width_of(ch) as f32;</span>
+<span class=ok>•</span> 실행  cargo test -p pod-ui wide_glyph
+    running 6 tests <span class=dim>…</span> <span class=ok>ok</span>
+<span class=info>⠋</span> 셀 경계 테스트 추가 중 <span class=dim>(42초 · esc 중단)</span></pre></div><div class="pane focus"><div class="ph"><svg class="ic s-attention" width="14" height="14" style="" xmlns="http://www.w3.org/2000/svg"
+ 
+ 
+  viewBox="0 0 24 24"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="1.75"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z" />
+  <path d="M9.1 9a3 3 0 0 1 5.82 1c0 2-3 3-3 3" />
+  <path d="M12 17h.01" />
+</svg><span class="nm">Codex · 리뷰</span>
+<span class="s-attention">승인 필요</span><span class="mu">· codex · 12초</span><span class="grow"></span></div><pre><span class=dim>codex</span>  리뷰 대상 pod/wide-glyph · 파일 3개
+
+변경 요약
+  terminal.rs  셀 폭 계산을 unicode 폭 기준으로 변경
+  status.rs    스피너 폭 고정
+
+<span class=warn>명령 실행 승인이 필요합니다</span>
+  <span class=hl>$ cargo clippy -p pod-ui -- -D warnings</span>
+  <span class=dim>[y]</span> 이번만 허용   <span class=dim>[a]</span> 항상 허용   <span class=dim>[n]</span> 거부</pre></div></div></div>
+<div class="ag"><div class="agh"><svg class="ic mu" width="16" height="16" style="" xmlns="http://www.w3.org/2000/svg"
+ 
+ 
+  viewBox="0 0 24 24"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="1.75"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <path d="M12 8V4H8" />
+  <rect width="16" height="12" x="4" y="8" rx="2" />
+  <path d="M2 14h2" />
+  <path d="M20 14h2" />
+  <path d="M15 13v2" />
+  <path d="M9 13v2" />
+</svg>에이전트<span class="mu" style="font-weight:400;font-size:12px">실행 7 · 확인 필요 2</span><span class="grow"></span><div class="ib"><svg class="ic " width="16" height="16" style="" xmlns="http://www.w3.org/2000/svg"
+ 
+ 
+  viewBox="0 0 24 24"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="1.75"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <path d="M3 6h18" />
+  <path d="M7 12h10" />
+  <path d="M10 18h4" />
+</svg></div><div class="ib"><svg class="ic " width="16" height="16" style="" xmlns="http://www.w3.org/2000/svg"
+ 
+ 
+  viewBox="0 0 24 24"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="1.75"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <path d="M18 6 6 18" />
+  <path d="m6 6 12 12" />
+</svg></div></div>
+<div class="banner err" style="margin:8px 10px"><svg class="ic " width="14" height="14" style="" xmlns="http://www.w3.org/2000/svg"
+ 
+ 
+  viewBox="0 0 24 24"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="1.75"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3" />
+  <path d="M12 9v4" />
+  <path d="M12 17h.01" />
+</svg><span>pod/lsp-lazy · Codex · 구현이 코드 1로 종료되었습니다.</span><span class="act">로그 보기</span></div>
+<div class="agc head"><span style="padding-left:20px">이름</span><span>프로그램</span><span>상태</span><span style="text-align:right">경과</span></div><div class="agc task"><span class="nm"><svg class="ic mu" width="14" height="14" style="" xmlns="http://www.w3.org/2000/svg"
+ 
+ 
+  viewBox="0 0 24 24"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="1.75"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <path d="m6 9 6 6 6-6" />
+</svg><svg class="ic mu" width="14" height="14" style="" xmlns="http://www.w3.org/2000/svg"
+ 
+ 
+  viewBox="0 0 24 24"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="1.75"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <path d="M12.83 2.18a2 2 0 0 0-1.66 0L2.6 6.08a1 1 0 0 0 0 1.83l8.58 3.91a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.83z" />
+  <path d="M2 12a1 1 0 0 0 .58.91l8.6 3.91a2 2 0 0 0 1.65 0l8.58-3.9A1 1 0 0 0 22 12" />
+  <path d="M2 17a1 1 0 0 0 .58.91l8.6 3.91a2 2 0 0 0 1.65 0l8.58-3.9A1 1 0 0 0 22 17" />
+</svg><span class="ell">터미널 넓은 글자 정렬</span></span>
+<span class="pr">작업 4</span><span class="stc s-attention"><span class="dot d-attention"></span>확인 필요</span><span class="tm">방금</span></div><div class="agc"><span class="nm" style="padding-left:34px"><svg class="ic mu" width="14" height="14" style="" xmlns="http://www.w3.org/2000/svg"
+ 
+ 
+  viewBox="0 0 24 24"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="1.75"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <path d="m7 11 2-2-2-2" />
+  <path d="M11 13h4" />
+  <rect width="18" height="18" x="3" y="3" rx="2" ry="2" />
+</svg><span class="ell">Claude · 구현</span></span>
+<span class="pr mono" style="font-size:11px">claude</span><span class="stc s-working"><svg class="ic " width="14" height="14" style="" xmlns="http://www.w3.org/2000/svg"
+ 
+ 
+  viewBox="0 0 24 24"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="1.75"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <path d="M21 12a9 9 0 1 1-6.219-8.56" />
+</svg>작업 중</span><span class="tm">4분</span></div><div class="agc sel"><span class="nm" style="padding-left:34px"><svg class="ic mu" width="14" height="14" style="" xmlns="http://www.w3.org/2000/svg"
+ 
+ 
+  viewBox="0 0 24 24"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="1.75"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <path d="m7 11 2-2-2-2" />
+  <path d="M11 13h4" />
+  <rect width="18" height="18" x="3" y="3" rx="2" ry="2" />
+</svg><span class="ell">Codex · 리뷰</span></span>
+<span class="pr mono" style="font-size:11px">codex</span><span class="stc s-attention"><svg class="ic " width="14" height="14" style="" xmlns="http://www.w3.org/2000/svg"
+ 
+ 
+  viewBox="0 0 24 24"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="1.75"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z" />
+  <path d="M9.1 9a3 3 0 0 1 5.82 1c0 2-3 3-3 3" />
+  <path d="M12 17h.01" />
+</svg>승인 필요</span><span class="tm">12초</span></div><div class="agc"><span class="nm" style="padding-left:34px"><svg class="ic mu" width="14" height="14" style="" xmlns="http://www.w3.org/2000/svg"
+ 
+ 
+  viewBox="0 0 24 24"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="1.75"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <path d="m7 11 2-2-2-2" />
+  <path d="M11 13h4" />
+  <rect width="18" height="18" x="3" y="3" rx="2" ry="2" />
+</svg><span class="ell">Claude · 문서</span></span>
+<span class="pr mono" style="font-size:11px">claude</span><span class="stc s-done"><svg class="ic " width="14" height="14" style="" xmlns="http://www.w3.org/2000/svg"
+ 
+ 
+  viewBox="0 0 24 24"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="1.75"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <circle cx="12" cy="12" r="10" />
+  <path d="m9 12 2 2 4-4" />
+</svg>완료</span><span class="tm">1분</span></div><div class="agc"><span class="nm" style="padding-left:34px"><svg class="ic mu" width="14" height="14" style="" xmlns="http://www.w3.org/2000/svg"
+ 
+ 
+  viewBox="0 0 24 24"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="1.75"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <path d="m7 11 2-2-2-2" />
+  <path d="M11 13h4" />
+  <rect width="18" height="18" x="3" y="3" rx="2" ry="2" />
+</svg><span class="ell">셸</span></span>
+<span class="pr mono" style="font-size:11px">pwsh</span><span class="stc s-idle"><svg class="ic " width="14" height="14" style="" xmlns="http://www.w3.org/2000/svg"
+ 
+ 
+  viewBox="0 0 24 24"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="1.75"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <circle cx="12" cy="12" r="10" />
+</svg>대기</span><span class="tm">—</span></div><div class="agc task"><span class="nm"><svg class="ic mu" width="14" height="14" style="" xmlns="http://www.w3.org/2000/svg"
+ 
+ 
+  viewBox="0 0 24 24"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="1.75"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <path d="m6 9 6 6 6-6" />
+</svg><svg class="ic mu" width="14" height="14" style="" xmlns="http://www.w3.org/2000/svg"
+ 
+ 
+  viewBox="0 0 24 24"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="1.75"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <path d="M12.83 2.18a2 2 0 0 0-1.66 0L2.6 6.08a1 1 0 0 0 0 1.83l8.58 3.91a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.83z" />
+  <path d="M2 12a1 1 0 0 0 .58.91l8.6 3.91a2 2 0 0 0 1.65 0l8.58-3.9A1 1 0 0 0 22 12" />
+  <path d="M2 17a1 1 0 0 0 .58.91l8.6 3.91a2 2 0 0 0 1.65 0l8.58-3.9A1 1 0 0 0 22 17" />
+</svg><span class="ell">리뷰 의견 전달 재시도</span></span>
+<span class="pr">작업 2</span><span class="stc s-attention"><span class="dot d-attention"></span>확인 필요</span><span class="tm">3분</span></div><div class="agc"><span class="nm" style="padding-left:34px"><svg class="ic mu" width="14" height="14" style="" xmlns="http://www.w3.org/2000/svg"
+ 
+ 
+  viewBox="0 0 24 24"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="1.75"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <path d="m7 11 2-2-2-2" />
+  <path d="M11 13h4" />
+  <rect width="18" height="18" x="3" y="3" rx="2" ry="2" />
+</svg><span class="ell">Claude · 구현</span></span>
+<span class="pr mono" style="font-size:11px">claude</span><span class="stc s-attention"><svg class="ic " width="14" height="14" style="" xmlns="http://www.w3.org/2000/svg"
+ 
+ 
+  viewBox="0 0 24 24"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="1.75"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z" />
+  <path d="M9.1 9a3 3 0 0 1 5.82 1c0 2-3 3-3 3" />
+  <path d="M12 17h.01" />
+</svg>응답 필요</span><span class="tm">3분</span></div><div class="agc"><span class="nm" style="padding-left:34px"><svg class="ic mu" width="14" height="14" style="" xmlns="http://www.w3.org/2000/svg"
+ 
+ 
+  viewBox="0 0 24 24"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="1.75"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <path d="m7 11 2-2-2-2" />
+  <path d="M11 13h4" />
+  <rect width="18" height="18" x="3" y="3" rx="2" ry="2" />
+</svg><span class="ell">셸</span></span>
+<span class="pr mono" style="font-size:11px">pwsh</span><span class="stc s-done"><svg class="ic " width="14" height="14" style="" xmlns="http://www.w3.org/2000/svg"
+ 
+ 
+  viewBox="0 0 24 24"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="1.75"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <circle cx="12" cy="12" r="10" />
+  <path d="m9 12 2 2 4-4" />
+</svg>완료</span><span class="tm">8분</span></div><div class="agc task"><span class="nm"><svg class="ic mu" width="14" height="14" style="" xmlns="http://www.w3.org/2000/svg"
+ 
+ 
+  viewBox="0 0 24 24"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="1.75"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <path d="m6 9 6 6 6-6" />
+</svg><svg class="ic mu" width="14" height="14" style="" xmlns="http://www.w3.org/2000/svg"
+ 
+ 
+  viewBox="0 0 24 24"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="1.75"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <path d="M12.83 2.18a2 2 0 0 0-1.66 0L2.6 6.08a1 1 0 0 0 0 1.83l8.58 3.91a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.83z" />
+  <path d="M2 12a1 1 0 0 0 .58.91l8.6 3.91a2 2 0 0 0 1.65 0l8.58-3.9A1 1 0 0 0 22 12" />
+  <path d="M2 17a1 1 0 0 0 .58.91l8.6 3.91a2 2 0 0 0 1.65 0l8.58-3.9A1 1 0 0 0 22 17" />
+</svg><span class="ell">LSP 지연 시작</span></span>
+<span class="pr">작업 1</span><span class="stc s-failed"><span class="dot d-failed"></span>실패 있음</span><span class="tm">9분</span></div><div class="agc"><span class="nm" style="padding-left:34px"><svg class="ic mu" width="14" height="14" style="" xmlns="http://www.w3.org/2000/svg"
+ 
+ 
+  viewBox="0 0 24 24"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="1.75"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <path d="m7 11 2-2-2-2" />
+  <path d="M11 13h4" />
+  <rect width="18" height="18" x="3" y="3" rx="2" ry="2" />
+</svg><span class="ell">Codex · 구현</span></span>
+<span class="pr mono" style="font-size:11px">codex</span><span class="stc s-failed"><svg class="ic " width="14" height="14" style="" xmlns="http://www.w3.org/2000/svg"
+ 
+ 
+  viewBox="0 0 24 24"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="1.75"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <path d="m15 9-6 6" />
+  <path d="M2.586 16.726A2 2 0 0 1 2 15.312V8.688a2 2 0 0 1 .586-1.414l4.688-4.688A2 2 0 0 1 8.688 2h6.624a2 2 0 0 1 1.414.586l4.688 4.688A2 2 0 0 1 22 8.688v6.624a2 2 0 0 1-.586 1.414l-4.688 4.688a2 2 0 0 1-1.414.586H8.688a2 2 0 0 1-1.414-.586z" />
+  <path d="m9 9 6 6" />
+</svg>실패 종료 (1)</span><span class="tm">9분</span></div><div class="agc task"><span class="nm"><svg class="ic mu" width="14" height="14" style="" xmlns="http://www.w3.org/2000/svg"
+ 
+ 
+  viewBox="0 0 24 24"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="1.75"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <path d="m9 18 6-6-6-6" />
+</svg><svg class="ic mu" width="14" height="14" style="" xmlns="http://www.w3.org/2000/svg"
+ 
+ 
+  viewBox="0 0 24 24"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="1.75"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <path d="M12.83 2.18a2 2 0 0 0-1.66 0L2.6 6.08a1 1 0 0 0 0 1.83l8.58 3.91a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.83z" />
+  <path d="M2 12a1 1 0 0 0 .58.91l8.6 3.91a2 2 0 0 0 1.65 0l8.58-3.9A1 1 0 0 0 22 12" />
+  <path d="M2 17a1 1 0 0 0 .58.91l8.6 3.91a2 2 0 0 0 1.65 0l8.58-3.9A1 1 0 0 0 22 17" />
+</svg><span class="ell">설정 화면 정리</span></span>
+<span class="pr">작업 2</span><span class="stc s-done"><span class="dot d-done"></span>완료</span><span class="tm">21분</span></div></div></div><div class="stb"><div class="g"><svg class="ic s-done" width="14" height="14" style="" xmlns="http://www.w3.org/2000/svg"
+ 
+ 
+  viewBox="0 0 24 24"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="1.75"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <path d="M12 22v-5" />
+  <path d="M9 8V2" />
+  <path d="M15 8V2" />
+  <path d="M18 8v5a4 4 0 0 1-4 4h-4a4 4 0 0 1-4-4V8Z" />
+</svg><span>podd</span></div><div class="sep"></div>
+<div class="g"><svg class="ic " width="14" height="14" style="" xmlns="http://www.w3.org/2000/svg"
+ 
+ 
+  viewBox="0 0 24 24"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="1.75"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <line x1="6" x2="6" y1="3" y2="15" />
+  <circle cx="18" cy="6" r="3" />
+  <circle cx="6" cy="18" r="3" />
+  <path d="M18 9a9 9 0 0 1-9 9" />
+</svg><span>pod/wide-glyph</span></div><div class="grow"></div>
+<div class="g" title="작업 상태"><svg class="ic s-working" width="14" height="14" style="" xmlns="http://www.w3.org/2000/svg"
+ 
+ 
+  viewBox="0 0 24 24"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="1.75"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <path d="M21 12a9 9 0 1 1-6.219-8.56" />
+</svg><b>3</b><svg class="ic s-attention" width="14" height="14" style="" xmlns="http://www.w3.org/2000/svg"
+ 
+ 
+  viewBox="0 0 24 24"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="1.75"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z" />
+  <path d="M9.1 9a3 3 0 0 1 5.82 1c0 2-3 3-3 3" />
+  <path d="M12 17h.01" />
+</svg><b>2</b><svg class="ic s-failed" width="14" height="14" style="" xmlns="http://www.w3.org/2000/svg"
+ 
+ 
+  viewBox="0 0 24 24"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="1.75"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <path d="m15 9-6 6" />
+  <path d="M2.586 16.726A2 2 0 0 1 2 15.312V8.688a2 2 0 0 1 .586-1.414l4.688-4.688A2 2 0 0 1 8.688 2h6.624a2 2 0 0 1 1.414.586l4.688 4.688A2 2 0 0 1 22 8.688v6.624a2 2 0 0 1-.586 1.414l-4.688 4.688a2 2 0 0 1-1.414.586H8.688a2 2 0 0 1-1.414-.586z" />
+  <path d="m9 9 6 6" />
+</svg><b>1</b><svg class="ic s-done" width="14" height="14" style="" xmlns="http://www.w3.org/2000/svg"
+ 
+ 
+  viewBox="0 0 24 24"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="1.75"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <circle cx="12" cy="12" r="10" />
+  <path d="m9 12 2 2 4-4" />
+</svg><b>5</b></div>
+<div class="sep"></div><div class="g"><svg class="ic " width="14" height="14" style="" xmlns="http://www.w3.org/2000/svg"
+ 
+ 
+  viewBox="0 0 24 24"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="1.75"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <path d="m7 11 2-2-2-2" />
+  <path d="M11 13h4" />
+  <rect width="18" height="18" x="3" y="3" rx="2" ry="2" />
+</svg><span>터미널 12</span></div></div></body></html>

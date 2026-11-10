@@ -1,0 +1,15 @@
+{
+  "version": 1,
+  "source": "git . (working tree vs HEAD)",
+  "comments": [
+    {
+      "id": 1,
+      "path": "crates/diff-spike/src/review.rs",
+      "side": "new",
+      "line": 11,
+      "end_line": 11,
+      "body": "Please split this function",
+      "code": "    Diff, DiffAnnotation, DiffFile, DiffFileStatus, DiffHoverHighlight, DiffLinePosition, DiffMode, DiffSide,\r\n"
+    }
+  ]
+}

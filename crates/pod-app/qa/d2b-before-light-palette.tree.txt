@@ -1,0 +1,38 @@
+App=pod-app (pid 57292)
+Window: "", App: pod-app.
+
+0 영역
+	1 title bar TitleBar
+		2 menu bar 시스템 메뉴 모음
+			3 menu item 시스템
+		4 button 최소화
+		5 button 복원
+		6 button 닫기
+	7 단추 Search commands / terminals Ctrl+K
+	8 단추 Settings
+	9 단추
+	10 단추 Status
+	11 단추 Notifications 1
+	12 단추 Close
+	13 대화 상자
+		14 편집 Search tasks, terminals or > commands, Secondary Actions: SetValue
+		15 옵션 sample/auth - sample/auth / 승인 필요, Secondary Actions: Select
+		16 옵션 sample/compare-shell-1 - sample/compare-shell-1 / 상태 미확인 · 추정, Secondary Actions: Select
+		17 옵션 sample/compare-shell-2 - sample/compare-shell-2 / 상태 미확인 · 추정, Secondary Actions: Select
+		18 옵션 exit-seven - Terminals / 실패 종료 (7), Secondary Actions: Select
+		19 옵션 sample/auth - sample/auth, Secondary Actions: Select
+		20 옵션 sample/compare-shell-1 - sample/compare-shell-1, Secondary Actions: Select
+		21 옵션 sample/compare-shell-2 - sample/compare-shell-2, Secondary Actions: Select
+		22 옵션 New task - Ctrl+N, Secondary Actions: Select
+		23 옵션 Open repository - Register a local Git repository, Secondary Actions: Select
+		24 옵션 New terminal - Ctrl+Shift+T, Secondary Actions: Select
+		25 옵션 Settings - Ctrl+,, Secondary Actions: Select
+		26 옵션 Find next blocked request - Return to the terminal that needs you, Secondary Actions: Select
+		27 옵션 Inspect current terminal status - Source and freshness, Secondary Actions: Select
+		28 옵션 Notifications - Pending requests and recent events, Secondary Actions: Select
+		29 옵션 Send Ctrl+K to current terminal - Terminal shortcut passthrough, Secondary Actions: Select
+		30 옵션 Arrange panels in a grid - Ctrl+Shift+G, Secondary Actions: Select
+		31 옵션 New comparison group - Compare parallel tasks, Secondary Actions: Select
+		32 옵션 Open gates inbox - Pending approvals, Secondary Actions: Select
+		33 옵션 Open agent tree - Tasks, groups and parent relations, Secondary Actions: Select
+		34 단추 Close

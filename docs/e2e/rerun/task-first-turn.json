@@ -1,0 +1,74 @@
+﻿{
+  "id": "sample/app-rerun",
+  "repo": "sample",
+  "name": "app-rerun",
+  "branch": "pod/app-rerun",
+  "base": "main",
+  "base_commit": "26738d4247000f2aea7679a87277a6b30985a2f7",
+  "worktree": "C:\\ai\\pod-e2e\\rerun-c9cf81\\worktrees\\sample\\app-rerun",
+  "agent": "codex",
+  "created_ms": 1794185909608,
+  "terminals": [
+    {
+      "id": "t1",
+      "info": {
+        "id": "t1",
+        "name": "sample/app-rerun",
+        "argv": [
+          "codex",
+          "--no-daemon",
+          "-c",
+          "check_for_update_on_startup=false",
+          "-c",
+          "projects={'C:\\ai\\pod-e2e\\rerun-c9cf81\\worktrees\\sample\\app-rerun'={trust_level='trusted'}}"
+        ],
+        "cwd": "C:\\ai\\pod-e2e\\rerun-c9cf81\\worktrees\\sample\\app-rerun",
+        "state": "running",
+        "pid": 72504,
+        "holder_pid": 62488,
+        "cols": 117,
+        "rows": 38,
+        "created_ms": 1794185909024,
+        "killed": false,
+        "lost": false,
+        "attached": 1,
+        "conpty": "bundled:C:\\Users\\User\\dev\\workspaces\\ide\\e2e-reverify\\target\\release\\conpty.dll",
+        "status": {
+          "state": "working",
+          "source": "hook",
+          "confidence": 0.95,
+          "since": 1794185941141,
+          "turn": 2,
+          "agent": "codex",
+          "badge": "working",
+          "records": 0,
+          "running_children": 0,
+          "blocked_children": 0,
+          "hooks_accepted": 10,
+          "hooks_rejected": 0
+        }
+      }
+    }
+  ],
+  "worktree_exists": true,
+  "git": {
+    "branch": "pod/app-rerun",
+    "head": "26738d4247000f2aea7679a87277a6b30985a2f7",
+    "ahead": 0,
+    "behind": 0,
+    "dirty": 1,
+    "unpushed": 0,
+    "last_commit": {
+      "sha": "26738d4247000f2aea7679a87277a6b30985a2f7",
+      "summary": "Fixture with failing addition test",
+      "author": "Pod E2E",
+      "time_ms": 1794185663000
+    }
+  },
+  "status": {
+    "state": "working",
+    "terminal": "t1",
+    "badge": "working",
+    "terminals": 1
+  }
+}

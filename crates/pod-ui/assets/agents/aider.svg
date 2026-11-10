@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">
+  <!-- Pod original agent mark (Apache-2.0): triangle as an "A", crossbar cut out. Not a vendor logo. -->
+  <mask id="cut"><rect width="24" height="24" fill="#fff"/><path d="M8.6 16h6.8" fill="none" stroke="#000" stroke-width="2.6" stroke-linecap="round"/></mask>
+  <path d="M12 2.8l9.6 17.4H2.4z" fill="#000" stroke="#000" stroke-width="1.8" stroke-linejoin="round" mask="url(#cut)"/>
+</svg>

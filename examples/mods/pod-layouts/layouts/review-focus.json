@@ -1,0 +1,12 @@
+{
+  "id": "review-focus",
+  "title": "리뷰 집중",
+  "description": "왼쪽에 변경 검토, 오른쪽 위에 작업의 첫 터미널, 아래에 승인 요청함",
+  "center": {
+    "split": "h",
+    "children": [
+      { "panel": "review", "size": 0.62 },
+      { "split": "v", "children": [{ "panel": "terminal", "index": 0 }, { "panel": "gates" }] }
+    ]
+  }
+}

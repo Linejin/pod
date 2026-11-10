@@ -1,0 +1,26 @@
+App=pod-app (pid 57292)
+Window: "", App: pod-app.
+
+0 영역
+	1 title bar TitleBar
+		2 menu bar 시스템 메뉴 모음
+			3 menu item 시스템
+		4 button 최소화
+		5 button 복원
+		6 button 닫기
+	7 단추 Search commands / terminals Ctrl+K
+	8 단추 Settings
+	9 단추
+	10 단추 Status
+	11 단추 Notifications 1
+	12 단추 Close
+	13 대화 상자
+		14 단추 Shell
+		15 단추 Claude
+		16 단추 Codex
+		17 단추 Custom
+		18 편집 working directory, Value: C:\Users\User, Secondary Actions: SetValue
+		19 편집 optional, e.g. review-bot, Secondary Actions: SetValue
+		20 단추 Cancel
+		21 단추 Run
+		22 단추 Close

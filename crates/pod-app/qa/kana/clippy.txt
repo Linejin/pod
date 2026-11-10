@@ -1,0 +1,57 @@
+﻿cargo :     Blocking waiting for file lock on build directory
+At line:1 char:633
++ ... MaxCargo 1; cargo clippy -p pod-terminal-view -p pod-app --all-target ...
++                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (    Blocking wa...build directory:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+    Checking windows-sys v0.61.2
+    Checking hashbrown v0.17.1
+   Compiling libc v0.2.191
+    Checking indexmap v2.14.2
+   Compiling vswhom-sys v0.1.3
+   Compiling vswhom v0.1.0
+   Compiling embed-resource v3.0.12
+    Checking serde_json v1.0.154
+    Checking gpui-pre-collections v0.3.11
+    Checking tempfile v3.27.0
+    Checking winapi-util v0.1.11
+    Checking rusty-fork v0.3.1
+    Checking same-file v1.0.6
+    Checking polling v3.11.0
+   Compiling gpui-pre v0.3.11
+    Checking errno v0.3.14
+    Checking walkdir v2.5.0
+    Checking schemars v1.2.3
+    Checking rustix v1.1.6
+    Checking gpui-pre-http-client v0.3.11
+    Checking proptest v1.12.0
+    Checking async-io v2.6.0
+    Checking gpui-pre-shared-string v0.3.11
+    Checking async-process v2.5.0
+    Checking async-net v2.0.0
+    Checking rust-embed-utils v8.13.0
+    Checking lsp-types v0.97.0
+    Checking smol v2.0.2
+    Checking rust-embed v8.13.0
+    Checking notify v8.2.1
+    Checking miow v0.6.1
+    Checking home v0.5.12
+    Checking pod-status v0.1.0 (C:\Users\User\orca\workspaces\ide\kana\crates\pod-status)
+    Checking alacritty_terminal v0.26.0
+   Compiling podd v0.1.0 (C:\Users\User\orca\workspaces\ide\kana\crates\podd)
+    Checking pod-mods v0.1.0 (C:\Users\User\orca\workspaces\ide\kana\crates\pod-mods)
+    Checking pod-forge v0.1.0 (C:\Users\User\orca\workspaces\ide\kana\crates\pod-forge)
+    Checking ignore v0.4.34
+   Compiling pod-app v0.1.0 (C:\Users\User\orca\workspaces\ide\kana\crates\pod-app)
+    Checking gpui-kit-assets v0.9.0
+    Checking gpui-base v0.9.0
+    Checking gpui-pre-windows v0.3.11
+    Checking gpui-pre-platform v0.3.11
+    Checking gpui-component v0.9.0 (C:\Users\User\orca\workspaces\ide\kana\vendor\gpui-component)
+    Checking gpui-kit v0.9.0
+    Checking pod-ui v0.1.0 (C:\Users\User\orca\workspaces\ide\kana\crates\pod-ui)
+    Checking pod-diff v0.1.0 (C:\Users\User\orca\workspaces\ide\kana\crates\pod-diff)
+    Checking pod-terminal-view v0.1.0 (C:\Users\User\orca\workspaces\ide\kana\crates\pod-terminal-view)
+    Checking pod-editor v0.1.0 (C:\Users\User\orca\workspaces\ide\kana\crates\pod-editor)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 40.41s

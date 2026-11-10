@@ -1,0 +1,4 @@
+﻿r1  OSC 133 prompt marks for podd's default task shell (powershell -NoLogo), with a unit test  (coordinator t1, depth 0, 0 unread)
+ITEM  STATE      ATTEMPT  DEPS  TITLE
+i1    completed  a1             podd shell OSC 133 marks
+i2    completed  a2             test + review podd shell marks

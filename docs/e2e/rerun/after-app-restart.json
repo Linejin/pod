@@ -1,0 +1,150 @@
+﻿{
+  "terminals": [
+    {
+      "id": "t1",
+      "name": "sample/app-rerun",
+      "argv": [
+        "codex",
+        "--no-daemon",
+        "-c",
+        "check_for_update_on_startup=false",
+        "-c",
+        "projects={'C:\\ai\\pod-e2e\\rerun-c9cf81\\worktrees\\sample\\app-rerun'={trust_level='trusted'}}"
+      ],
+      "cwd": "C:\\ai\\pod-e2e\\rerun-c9cf81\\worktrees\\sample\\app-rerun",
+      "state": "running",
+      "pid": 72504,
+      "holder_pid": 62488,
+      "cols": 117,
+      "rows": 38,
+      "created_ms": 1794185909024,
+      "killed": false,
+      "lost": false,
+      "attached": 1,
+      "conpty": "bundled:C:\\Users\\User\\dev\\workspaces\\ide\\e2e-reverify\\target\\release\\conpty.dll",
+      "status": {
+        "state": "done",
+        "source": "hook",
+        "confidence": 0.95,
+        "since": 1794186330410,
+        "turn": 7,
+        "agent": "codex",
+        "outcome": "completed",
+        "badge": "done",
+        "records": 0,
+        "running_children": 0,
+        "blocked_children": 0,
+        "hooks_accepted": 10,
+        "hooks_rejected": 0
+      }
+    },
+    {
+      "id": "t2",
+      "name": "sample/duel-codex-1",
+      "argv": [
+        "codex",
+        "--no-daemon",
+        "-c",
+        "check_for_update_on_startup=false",
+        "-c",
+        "projects={'C:\\ai\\pod-e2e\\rerun-c9cf81\\worktrees\\sample\\duel-codex-1'={trust_level='trusted'}}",
+        "echo PASS > result.txt"
+      ],
+      "cwd": "C:\\ai\\pod-e2e\\rerun-c9cf81\\worktrees\\sample\\duel-codex-1",
+      "state": "running",
+      "pid": 56640,
+      "holder_pid": 52920,
+      "cols": 120,
+      "rows": 30,
+      "created_ms": 1794186153459,
+      "killed": false,
+      "lost": false,
+      "attached": 0,
+      "conpty": "bundled:C:\\Users\\User\\dev\\workspaces\\ide\\e2e-reverify\\target\\release\\conpty.dll",
+      "status": {
+        "state": "done",
+        "source": "hook",
+        "confidence": 0.475,
+        "since": 1794186171380,
+        "turn": 2,
+        "agent": "codex",
+        "outcome": "completed",
+        "badge": "done",
+        "records": 0,
+        "running_children": 0,
+        "blocked_children": 0,
+        "hooks_accepted": 0,
+        "hooks_rejected": 0
+      }
+    },
+    {
+      "id": "t3",
+      "name": "sample/duel-shell-1",
+      "argv": [
+        "powershell",
+        "-NoLogo"
+      ],
+      "cwd": "C:\\ai\\pod-e2e\\rerun-c9cf81\\worktrees\\sample\\duel-shell-1",
+      "state": "running",
+      "pid": 68004,
+      "holder_pid": 59636,
+      "cols": 120,
+      "rows": 30,
+      "created_ms": 1794186154270,
+      "killed": false,
+      "lost": false,
+      "attached": 0,
+      "conpty": "bundled:C:\\Users\\User\\dev\\workspaces\\ide\\e2e-reverify\\target\\release\\conpty.dll",
+      "status": {
+        "state": "unknown",
+        "confidence": 0.0,
+        "since": 1794186205084,
+        "turn": 0,
+        "badge": "unknown",
+        "records": 0,
+        "running_children": 0,
+        "blocked_children": 0,
+        "hooks_accepted": 0,
+        "hooks_rejected": 0
+      }
+    },
+    {
+      "id": "t4",
+      "name": "rerun-child",
+      "argv": [
+        "powershell",
+        "-NoProfile",
+        "-ExecutionPolicy",
+        "Bypass",
+        "-File",
+        "C:\\ai\\pod-e2e\\rerun-c9cf81\\child.ps1"
+      ],
+      "cwd": "C:\\ai\\pod-e2e\\rerun-c9cf81\\worktrees\\sample\\app-rerun",
+      "state": "running",
+      "pid": 58820,
+      "holder_pid": 47144,
+      "cols": 120,
+      "rows": 30,
+      "created_ms": 1794186177113,
+      "killed": false,
+      "lost": false,
+      "attached": 0,
+      "conpty": "bundled:C:\\Users\\User\\dev\\workspaces\\ide\\e2e-reverify\\target\\release\\conpty.dll",
+      "status": {
+        "state": "unknown",
+        "confidence": 0.0,
+        "since": 1794186205085,
+        "turn": 0,
+        "badge": "unknown",
+        "records": 0,
+        "running_children": 0,
+        "blocked_children": 0,
+        "hooks_accepted": 0,
+        "hooks_rejected": 0
+      },
+      "parent_terminal": "t1",
+      "parent_task": "sample/app-rerun"
+    }
+  ],
+  "retention_ms": 86400000
+}

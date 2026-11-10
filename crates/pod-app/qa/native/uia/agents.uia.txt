@@ -1,0 +1,943 @@
+﻿Window [영역] ""
+	Button [단추] "명령·터미널 검색" {focusable; desc=명령·터미널 검색 (Ctrl+K)}
+	Button [단추] "설정" {focusable; desc=설정 (Ctrl+,)}
+	Tree [트리] "저장소와 작업 탐색" {focusable}
+		Button [단추] "격자" {focusable; desc=패널 격자 정렬 (Ctrl+Shift+G)}
+		Button [단추] "+ 작업" {focusable; desc=새 작업: Git 작업 폴더와 에이전트 터미널}
+		Button [단추] "+ 터미널" {focusable; desc=새 터미널 (Ctrl+Shift+T)}
+		Button [단추] "+ 그룹" {focusable; desc=여러 에이전트에 같은 요청 보내기 (Ctrl+Shift+N)}
+		Button [단추] "에이전트" {focusable; desc=에이전트 트리 (Ctrl+Shift+E)}
+		Edit [편집] "저장소, 작업, 터미널 검색" {focusable}
+		TreeItem [콘솔 트리] "sample · 작업 100"
+		TreeItem [콘솔 트리] "Task 000 - 한글 작업과 레이아웃 🔎"
+		TreeItem [콘솔 트리] "Worker 0 | 작업 중 · 출처: osc · 신뢰도: 100% · 상위: 작업 중 · 마지막: — | 보고 없음"
+			StatusBar [상태] "작업 중 · 출처: osc · 신뢰도: 100% · 상위: 작업 중 · 마지막: —"
+		TreeItem [콘솔 트리] "Worker 1 | 승인 필요 · 출처: osc · 신뢰도: 100% · 상위: 승인 필요 · 마지막: — | 보고 없음"
+			StatusBar [상태] "승인 필요 · 출처: osc · 신뢰도: 100% · 상위: 승인 필요 · 마지막: —"
+		TreeItem [콘솔 트리] "Worker 2 | 완료 · 출처: osc · 신뢰도: 100% · 상위: 완료 · 마지막: — | 보고 없음"
+			StatusBar [상태] "완료 · 출처: osc · 신뢰도: 100% · 상위: 완료 · 마지막: —"
+		TreeItem [콘솔 트리] "Task 001 - 한글 작업과 레이아웃 🔎"
+		TreeItem [콘솔 트리] "Worker 3 | 승인 필요 · 출처: osc · 신뢰도: 100% · 상위: 승인 필요 · 마지막: — | 보고 없음"
+			StatusBar [상태] "승인 필요 · 출처: osc · 신뢰도: 100% · 상위: 승인 필요 · 마지막: —"
+		TreeItem [콘솔 트리] "Worker 4 | 완료 · 출처: osc · 신뢰도: 100% · 상위: 완료 · 마지막: — | 보고 없음"
+			StatusBar [상태] "완료 · 출처: osc · 신뢰도: 100% · 상위: 완료 · 마지막: —"
+		TreeItem [콘솔 트리] "Worker 5 | 대기 · 출처: osc · 신뢰도: 100% · 상위: 대기 · 마지막: — | 보고 없음"
+			StatusBar [상태] "대기 · 출처: osc · 신뢰도: 100% · 상위: 대기 · 마지막: —"
+		TreeItem [콘솔 트리] "Task 002 - 한글 작업과 레이아웃 🔎"
+		TreeItem [콘솔 트리] "Worker 6 | 완료 · 출처: osc · 신뢰도: 100% · 상위: 완료 · 마지막: — | 보고 없음"
+			StatusBar [상태] "완료 · 출처: osc · 신뢰도: 100% · 상위: 완료 · 마지막: —"
+		TreeItem [콘솔 트리] "Worker 7 | 대기 · 출처: osc · 신뢰도: 100% · 상위: 대기 · 마지막: — | 보고 없음"
+			StatusBar [상태] "대기 · 출처: osc · 신뢰도: 100% · 상위: 대기 · 마지막: —"
+		TreeItem [콘솔 트리] "Worker 8 | 상태 미확인 · 추정 · 출처: heuristic · 신뢰도: 40% · 상위: 상태 미확인 · 마지막: — | 보고 없음"
+			StatusBar [상태] "상태 미확인 · 추정 · 출처: heuristic · 신뢰도: 40% · 상위: 상태 미확인 · 마지막: —"
+		TreeItem [콘솔 트리] "Task 003 - 한글 작업과 레이아웃 🔎"
+		TreeItem [콘솔 트리] "Worker 9 | 대기 · 출처: osc · 신뢰도: 100% · 상위: 대기 · 마지막: — | 보고 없음"
+			StatusBar [상태] "대기 · 출처: osc · 신뢰도: 100% · 상위: 대기 · 마지막: —"
+		TreeItem [콘솔 트리] "Worker 10 | 상태 미확인 · 추정 · 출처: heuristic · 신뢰도: 40% · 상위: 상태 미확인 · 마지막: — | 보고 없음"
+			StatusBar [상태] "상태 미확인 · 추정 · 출처: heuristic · 신뢰도: 40% · 상위: 상태 미확인 · 마지막: —"
+	List [LIST] "최근 알림" {focusable}
+	TabItem [탭 항목] "에이전트" {focusable}
+	Button [단추] "패널 메뉴" {focusable}
+	Tree [트리] "에이전트 트리" {focusable}
+		Button [단추] "작업 sample/task-000 · powershell.exe · pod/task-000 · 작업 1 · 응답 1 · 완료 1 접기" {focusable}
+		TreeItem [콘솔 트리] "작업 sample/task-000 · powershell.exe · pod/task-000 · 작업 1 · 응답 1 · 완료 1" {focusable}
+			StatusBar [상태] "확인 필요 · 출처: unknown · 신뢰도: 100% · 상위: 확인 필요 · 마지막: —"
+		TreeItem [콘솔 트리] "터미널 Worker 0 · powershell · fixture-0" {focusable}
+			StatusBar [상태] "작업 중 · 출처: osc · 신뢰도: 100% · 상위: 작업 중 · 마지막: —"
+		TreeItem [콘솔 트리] "터미널 Worker 1 · powershell · fixture-1" {focusable}
+			StatusBar [상태] "승인 필요 · 출처: osc · 신뢰도: 100% · 상위: 승인 필요 · 마지막: —"
+		TreeItem [콘솔 트리] "터미널 Worker 2 · powershell · fixture-2" {focusable}
+			StatusBar [상태] "완료 · 출처: osc · 신뢰도: 100% · 상위: 완료 · 마지막: —"
+		Button [단추] "작업 sample/task-001 · powershell.exe · pod/task-001 · 응답 1 · 대기 1 · 완료 1 접기" {focusable}
+		TreeItem [콘솔 트리] "작업 sample/task-001 · powershell.exe · pod/task-001 · 응답 1 · 대기 1 · 완료 1" {focusable}
+			StatusBar [상태] "확인 필요 · 출처: unknown · 신뢰도: 100% · 상위: 확인 필요 · 마지막: —"
+		TreeItem [콘솔 트리] "터미널 Worker 3 · powershell · fixture-3" {focusable}
+			StatusBar [상태] "승인 필요 · 출처: osc · 신뢰도: 100% · 상위: 승인 필요 · 마지막: —"
+		TreeItem [콘솔 트리] "터미널 Worker 4 · powershell · fixture-4" {focusable}
+			StatusBar [상태] "완료 · 출처: osc · 신뢰도: 100% · 상위: 완료 · 마지막: —"
+		TreeItem [콘솔 트리] "터미널 Worker 5 · powershell · fixture-5" {focusable}
+			StatusBar [상태] "대기 · 출처: osc · 신뢰도: 100% · 상위: 대기 · 마지막: —"
+		Button [단추] "작업 sample/task-002 · powershell.exe · pod/task-002 · 미확인 1 · 대기 1 · 완료 1 접기" {focusable}
+		TreeItem [콘솔 트리] "작업 sample/task-002 · powershell.exe · pod/task-002 · 미확인 1 · 대기 1 · 완료 1" {focusable}
+			StatusBar [상태] "상태 미확인 · 출처: unknown · 신뢰도: 100% · 상위: 상태 미확인 · 마지막: —"
+		TreeItem [콘솔 트리] "터미널 Worker 6 · powershell · fixture-6" {focusable}
+			StatusBar [상태] "완료 · 출처: osc · 신뢰도: 100% · 상위: 완료 · 마지막: —"
+		TreeItem [콘솔 트리] "터미널 Worker 7 · powershell · fixture-7" {focusable}
+			StatusBar [상태] "대기 · 출처: osc · 신뢰도: 100% · 상위: 대기 · 마지막: —"
+		TreeItem [콘솔 트리] "터미널 Worker 8 · powershell · fixture-8" {focusable}
+			StatusBar [상태] "상태 미확인 · 추정 · 출처: heuristic · 신뢰도: 40% · 상위: 상태 미확인 · 마지막: —"
+		Button [단추] "작업 sample/task-003 · powershell.exe · pod/task-003 · 오류 1 · 미확인 1 · 대기 1 접기" {focusable}
+		TreeItem [콘솔 트리] "작업 sample/task-003 · powershell.exe · pod/task-003 · 오류 1 · 미확인 1 · 대기 1" {focusable}
+			StatusBar [상태] "오류 · 출처: unknown · 신뢰도: 100% · 상위: 오류 · 마지막: —"
+		TreeItem [콘솔 트리] "터미널 Worker 9 · powershell · fixture-9" {focusable}
+			StatusBar [상태] "대기 · 출처: osc · 신뢰도: 100% · 상위: 대기 · 마지막: —"
+		TreeItem [콘솔 트리] "터미널 Worker 10 · powershell · fixture-10" {focusable}
+			StatusBar [상태] "상태 미확인 · 추정 · 출처: heuristic · 신뢰도: 40% · 상위: 상태 미확인 · 마지막: —"
+		TreeItem [콘솔 트리] "터미널 Worker 11 · powershell · fixture-11" {focusable}
+			StatusBar [상태] "오류 · 출처: osc · 신뢰도: 100% · 상위: 오류 · 마지막: —"
+		Button [단추] "작업 sample/task-004 · powershell.exe · pod/task-004 · 작업 1 · 오류 1 · 미확인 1 접기" {focusable}
+		TreeItem [콘솔 트리] "작업 sample/task-004 · powershell.exe · pod/task-004 · 작업 1 · 오류 1 · 미확인 1" {focusable}
+			StatusBar [상태] "오류 · 출처: unknown · 신뢰도: 100% · 상위: 오류 · 마지막: —"
+		TreeItem [콘솔 트리] "터미널 Worker 12 · powershell · fixture-12" {focusable}
+			StatusBar [상태] "상태 미확인 · 추정 · 출처: heuristic · 신뢰도: 40% · 상위: 상태 미확인 · 마지막: —"
+		TreeItem [콘솔 트리] "터미널 Worker 13 · powershell · fixture-13" {focusable}
+			StatusBar [상태] "오류 · 출처: osc · 신뢰도: 100% · 상위: 오류 · 마지막: —"
+		TreeItem [콘솔 트리] "터미널 Worker 14 · powershell · fixture-14" {focusable}
+			StatusBar [상태] "작업 중 · 출처: osc · 신뢰도: 100% · 상위: 작업 중 · 마지막: —"
+		Button [단추] "작업 sample/task-005 · powershell.exe · pod/task-005 · 작업 1 · 응답 1 · 오류 1 접기" {focusable}
+		TreeItem [콘솔 트리] "작업 sample/task-005 · powershell.exe · pod/task-005 · 작업 1 · 응답 1 · 오류 1" {focusable}
+			StatusBar [상태] "오류 · 출처: unknown · 신뢰도: 100% · 상위: 오류 · 마지막: —"
+		TreeItem [콘솔 트리] "터미널 Worker 15 · powershell · fixture-15" {focusable}
+			StatusBar [상태] "오류 · 출처: osc · 신뢰도: 100% · 상위: 오류 · 마지막: —"
+		TreeItem [콘솔 트리] "터미널 Worker 16 · powershell · fixture-16" {focusable}
+			StatusBar [상태] "작업 중 · 출처: osc · 신뢰도: 100% · 상위: 작업 중 · 마지막: —"
+		TreeItem [콘솔 트리] "터미널 Worker 17 · powershell · fixture-17" {focusable}
+			StatusBar [상태] "승인 필요 · 출처: osc · 신뢰도: 100% · 상위: 승인 필요 · 마지막: —"
+		Button [단추] "작업 sample/task-006 · powershell.exe · pod/task-006 · 작업 1 · 응답 1 · 완료 1 접기" {focusable}
+		TreeItem [콘솔 트리] "작업 sample/task-006 · powershell.exe · pod/task-006 · 작업 1 · 응답 1 · 완료 1" {focusable}
+			StatusBar [상태] "확인 필요 · 출처: unknown · 신뢰도: 100% · 상위: 확인 필요 · 마지막: —"
+		TreeItem [콘솔 트리] "터미널 Worker 18 · powershell · fixture-18" {focusable}
+			StatusBar [상태] "작업 중 · 출처: osc · 신뢰도: 100% · 상위: 작업 중 · 마지막: —"
+		TreeItem [콘솔 트리] "터미널 Worker 19 · powershell · fixture-19" {focusable}
+			StatusBar [상태] "승인 필요 · 출처: osc · 신뢰도: 100% · 상위: 승인 필요 · 마지막: —"
+		TreeItem [콘솔 트리] "터미널 Worker 20 · powershell · fixture-20" {focusable}
+			StatusBar [상태] "완료 · 출처: osc · 신뢰도: 100% · 상위: 완료 · 마지막: —"
+		Button [단추] "작업 sample/task-007 · powershell.exe · pod/task-007 · 응답 1 · 대기 1 · 완료 1 접기" {focusable}
+		TreeItem [콘솔 트리] "작업 sample/task-007 · powershell.exe · pod/task-007 · 응답 1 · 대기 1 · 완료 1" {focusable}
+			StatusBar [상태] "확인 필요 · 출처: unknown · 신뢰도: 100% · 상위: 확인 필요 · 마지막: —"
+		TreeItem [콘솔 트리] "터미널 Worker 21 · powershell · fixture-21" {focusable}
+			StatusBar [상태] "승인 필요 · 출처: osc · 신뢰도: 100% · 상위: 승인 필요 · 마지막: —"
+		TreeItem [콘솔 트리] "터미널 Worker 22 · powershell · fixture-22" {focusable}
+			StatusBar [상태] "완료 · 출처: osc · 신뢰도: 100% · 상위: 완료 · 마지막: —"
+		TreeItem [콘솔 트리] "터미널 Worker 23 · powershell · fixture-23" {focusable}
+			StatusBar [상태] "대기 · 출처: osc · 신뢰도: 100% · 상위: 대기 · 마지막: —"
+		Button [단추] "작업 sample/task-008 · powershell.exe · pod/task-008 · 미확인 1 · 대기 1 · 완료 1 접기" {focusable}
+		TreeItem [콘솔 트리] "작업 sample/task-008 · powershell.exe · pod/task-008 · 미확인 1 · 대기 1 · 완료 1" {focusable}
+			StatusBar [상태] "상태 미확인 · 출처: unknown · 신뢰도: 100% · 상위: 상태 미확인 · 마지막: —"
+		TreeItem [콘솔 트리] "터미널 Worker 24 · powershell · fixture-24" {focusable}
+			StatusBar [상태] "완료 · 출처: osc · 신뢰도: 100% · 상위: 완료 · 마지막: —"
+		TreeItem [콘솔 트리] "터미널 Worker 25 · powershell · fixture-25" {focusable}
+			StatusBar [상태] "대기 · 출처: osc · 신뢰도: 100% · 상위: 대기 · 마지막: —"
+		TreeItem [콘솔 트리] "터미널 Worker 26 · powershell · fixture-26" {focusable}
+			StatusBar [상태] "상태 미확인 · 추정 · 출처: heuristic · 신뢰도: 40% · 상위: 상태 미확인 · 마지막: —"
+		Button [단추] "작업 sample/task-009 · powershell.exe · pod/task-009 · 오류 1 · 미확인 1 · 대기 1 접기" {focusable}
+		TreeItem [콘솔 트리] "작업 sample/task-009 · powershell.exe · pod/task-009 · 오류 1 · 미확인 1 · 대기 1" {focusable}
+			StatusBar [상태] "오류 · 출처: unknown · 신뢰도: 100% · 상위: 오류 · 마지막: —"
+		TreeItem [콘솔 트리] "터미널 Worker 27 · powershell · fixture-27" {focusable}
+			StatusBar [상태] "대기 · 출처: osc · 신뢰도: 100% · 상위: 대기 · 마지막: —"
+		TreeItem [콘솔 트리] "터미널 Worker 28 · powershell · fixture-28" {focusable}
+			StatusBar [상태] "상태 미확인 · 추정 · 출처: heuristic · 신뢰도: 40% · 상위: 상태 미확인 · 마지막: —"
+		TreeItem [콘솔 트리] "터미널 Worker 29 · powershell · fixture-29" {focusable}
+			StatusBar [상태] "오류 · 출처: osc · 신뢰도: 100% · 상위: 오류 · 마지막: —"
+		Button [단추] "작업 sample/task-010 · powershell.exe · pod/task-010 · 작업 1 · 오류 1 · 미확인 1 접기" {focusable}
+		TreeItem [콘솔 트리] "작업 sample/task-010 · powershell.exe · pod/task-010 · 작업 1 · 오류 1 · 미확인 1" {focusable}
+			StatusBar [상태] "오류 · 출처: unknown · 신뢰도: 100% · 상위: 오류 · 마지막: —"
+		TreeItem [콘솔 트리] "터미널 Worker 30 · powershell · fixture-30" {focusable}
+			StatusBar [상태] "상태 미확인 · 추정 · 출처: heuristic · 신뢰도: 40% · 상위: 상태 미확인 · 마지막: —"
+		TreeItem [콘솔 트리] "터미널 Worker 31 · powershell · fixture-31" {focusable}
+			StatusBar [상태] "오류 · 출처: osc · 신뢰도: 100% · 상위: 오류 · 마지막: —"
+		TreeItem [콘솔 트리] "터미널 Worker 32 · powershell · fixture-32" {focusable}
+			StatusBar [상태] "작업 중 · 출처: osc · 신뢰도: 100% · 상위: 작업 중 · 마지막: —"
+		Button [단추] "작업 sample/task-011 · powershell.exe · pod/task-011 · 작업 1 · 응답 1 · 오류 1 접기" {focusable}
+		TreeItem [콘솔 트리] "작업 sample/task-011 · powershell.exe · pod/task-011 · 작업 1 · 응답 1 · 오류 1" {focusable}
+			StatusBar [상태] "오류 · 출처: unknown · 신뢰도: 100% · 상위: 오류 · 마지막: —"
+		TreeItem [콘솔 트리] "터미널 Worker 33 · powershell · fixture-33" {focusable}
+			StatusBar [상태] "오류 · 출처: osc · 신뢰도: 100% · 상위: 오류 · 마지막: —"
+		TreeItem [콘솔 트리] "터미널 Worker 34 · powershell · fixture-34" {focusable}
+			StatusBar [상태] "작업 중 · 출처: osc · 신뢰도: 100% · 상위: 작업 중 · 마지막: —"
+		TreeItem [콘솔 트리] "터미널 Worker 35 · powershell · fixture-35" {focusable}
+			StatusBar [상태] "승인 필요 · 출처: osc · 신뢰도: 100% · 상위: 승인 필요 · 마지막: —"
+		Button [단추] "작업 sample/task-012 · powershell.exe · pod/task-012 · 작업 1 · 응답 1 · 완료 1 접기" {focusable}
+		TreeItem [콘솔 트리] "작업 sample/task-012 · powershell.exe · pod/task-012 · 작업 1 · 응답 1 · 완료 1" {focusable}
+			StatusBar [상태] "확인 필요 · 출처: unknown · 신뢰도: 100% · 상위: 확인 필요 · 마지막: —"
+		TreeItem [콘솔 트리] "터미널 Worker 36 · powershell · fixture-36" {focusable}
+			StatusBar [상태] "작업 중 · 출처: osc · 신뢰도: 100% · 상위: 작업 중 · 마지막: —"
+		TreeItem [콘솔 트리] "터미널 Worker 37 · powershell · fixture-37" {focusable}
+			StatusBar [상태] "승인 필요 · 출처: osc · 신뢰도: 100% · 상위: 승인 필요 · 마지막: —"
+		TreeItem [콘솔 트리] "터미널 Worker 38 · powershell · fixture-38" {focusable}
+			StatusBar [상태] "완료 · 출처: osc · 신뢰도: 100% · 상위: 완료 · 마지막: —"
+		Button [단추] "작업 sample/task-013 · powershell.exe · pod/task-013 · 응답 1 · 대기 1 · 완료 1 접기" {focusable}
+		TreeItem [콘솔 트리] "작업 sample/task-013 · powershell.exe · pod/task-013 · 응답 1 · 대기 1 · 완료 1" {focusable}
+			StatusBar [상태] "확인 필요 · 출처: unknown · 신뢰도: 100% · 상위: 확인 필요 · 마지막: —"
+		TreeItem [콘솔 트리] "터미널 Worker 39 · powershell · fixture-39" {focusable}
+			StatusBar [상태] "승인 필요 · 출처: osc · 신뢰도: 100% · 상위: 승인 필요 · 마지막: —"
+		TreeItem [콘솔 트리] "터미널 Worker 40 · powershell · fixture-40" {focusable}
+			StatusBar [상태] "완료 · 출처: osc · 신뢰도: 100% · 상위: 완료 · 마지막: —"
+		TreeItem [콘솔 트리] "터미널 Worker 41 · powershell · fixture-41" {focusable}
+			StatusBar [상태] "대기 · 출처: osc · 신뢰도: 100% · 상위: 대기 · 마지막: —"
+		Button [단추] "작업 sample/task-014 · powershell.exe · pod/task-014 · 미확인 1 · 대기 1 · 완료 1 접기" {focusable}
+		TreeItem [콘솔 트리] "작업 sample/task-014 · powershell.exe · pod/task-014 · 미확인 1 · 대기 1 · 완료 1" {focusable}
+			StatusBar [상태] "상태 미확인 · 출처: unknown · 신뢰도: 100% · 상위: 상태 미확인 · 마지막: —"
+		TreeItem [콘솔 트리] "터미널 Worker 42 · powershell · fixture-42" {focusable}
+			StatusBar [상태] "완료 · 출처: osc · 신뢰도: 100% · 상위: 완료 · 마지막: —"
+		TreeItem [콘솔 트리] "터미널 Worker 43 · powershell · fixture-43" {focusable}
+			StatusBar [상태] "대기 · 출처: osc · 신뢰도: 100% · 상위: 대기 · 마지막: —"
+		TreeItem [콘솔 트리] "터미널 Worker 44 · powershell · fixture-44" {focusable}
+			StatusBar [상태] "상태 미확인 · 추정 · 출처: heuristic · 신뢰도: 40% · 상위: 상태 미확인 · 마지막: —"
+		Button [단추] "작업 sample/task-015 · powershell.exe · pod/task-015 · 오류 1 · 미확인 1 · 대기 1 접기" {focusable}
+		TreeItem [콘솔 트리] "작업 sample/task-015 · powershell.exe · pod/task-015 · 오류 1 · 미확인 1 · 대기 1" {focusable}
+			StatusBar [상태] "오류 · 출처: unknown · 신뢰도: 100% · 상위: 오류 · 마지막: —"
+		TreeItem [콘솔 트리] "터미널 Worker 45 · powershell · fixture-45" {focusable}
+			StatusBar [상태] "대기 · 출처: osc · 신뢰도: 100% · 상위: 대기 · 마지막: —"
+		TreeItem [콘솔 트리] "터미널 Worker 46 · powershell · fixture-46" {focusable}
+			StatusBar [상태] "상태 미확인 · 추정 · 출처: heuristic · 신뢰도: 40% · 상위: 상태 미확인 · 마지막: —"
+		TreeItem [콘솔 트리] "터미널 Worker 47 · powershell · fixture-47" {focusable}
+			StatusBar [상태] "오류 · 출처: osc · 신뢰도: 100% · 상위: 오류 · 마지막: —"
+		Button [단추] "작업 sample/task-016 · powershell.exe · pod/task-016 · 작업 1 · 오류 1 · 미확인 1 접기" {focusable}
+		TreeItem [콘솔 트리] "작업 sample/task-016 · powershell.exe · pod/task-016 · 작업 1 · 오류 1 · 미확인 1" {focusable}
+			StatusBar [상태] "오류 · 출처: unknown · 신뢰도: 100% · 상위: 오류 · 마지막: —"
+		TreeItem [콘솔 트리] "터미널 Worker 48 · powershell · fixture-48" {focusable}
+			StatusBar [상태] "상태 미확인 · 추정 · 출처: heuristic · 신뢰도: 40% · 상위: 상태 미확인 · 마지막: —"
+		TreeItem [콘솔 트리] "터미널 Worker 49 · powershell · fixture-49" {focusable}
+			StatusBar [상태] "오류 · 출처: osc · 신뢰도: 100% · 상위: 오류 · 마지막: —"
+		TreeItem [콘솔 트리] "터미널 Worker 50 · powershell · fixture-50" {focusable}
+			StatusBar [상태] "작업 중 · 출처: osc · 신뢰도: 100% · 상위: 작업 중 · 마지막: —"
+		Button [단추] "작업 sample/task-017 · powershell.exe · pod/task-017 · 작업 1 · 응답 1 · 오류 1 접기" {focusable}
+		TreeItem [콘솔 트리] "작업 sample/task-017 · powershell.exe · pod/task-017 · 작업 1 · 응답 1 · 오류 1" {focusable}
+			StatusBar [상태] "오류 · 출처: unknown · 신뢰도: 100% · 상위: 오류 · 마지막: —"
+		TreeItem [콘솔 트리] "터미널 Worker 51 · powershell · fixture-51" {focusable}
+			StatusBar [상태] "오류 · 출처: osc · 신뢰도: 100% · 상위: 오류 · 마지막: —"
+		TreeItem [콘솔 트리] "터미널 Worker 52 · powershell · fixture-52" {focusable}
+			StatusBar [상태] "작업 중 · 출처: osc · 신뢰도: 100% · 상위: 작업 중 · 마지막: —"
+		TreeItem [콘솔 트리] "터미널 Worker 53 · powershell · fixture-53" {focusable}
+			StatusBar [상태] "승인 필요 · 출처: osc · 신뢰도: 100% · 상위: 승인 필요 · 마지막: —"
+		Button [단추] "작업 sample/task-018 · powershell.exe · pod/task-018 · 작업 1 · 응답 1 · 완료 1 접기" {focusable}
+		TreeItem [콘솔 트리] "작업 sample/task-018 · powershell.exe · pod/task-018 · 작업 1 · 응답 1 · 완료 1" {focusable}
+			StatusBar [상태] "확인 필요 · 출처: unknown · 신뢰도: 100% · 상위: 확인 필요 · 마지막: —"
+		TreeItem [콘솔 트리] "터미널 Worker 54 · powershell · fixture-54" {focusable}
+			StatusBar [상태] "작업 중 · 출처: osc · 신뢰도: 100% · 상위: 작업 중 · 마지막: —"
+		TreeItem [콘솔 트리] "터미널 Worker 55 · powershell · fixture-55" {focusable}
+			StatusBar [상태] "승인 필요 · 출처: osc · 신뢰도: 100% · 상위: 승인 필요 · 마지막: —"
+		TreeItem [콘솔 트리] "터미널 Worker 56 · powershell · fixture-56" {focusable}
+			StatusBar [상태] "완료 · 출처: osc · 신뢰도: 100% · 상위: 완료 · 마지막: —"
+		Button [단추] "작업 sample/task-019 · powershell.exe · pod/task-019 · 응답 1 · 대기 1 · 완료 1 접기" {focusable}
+		TreeItem [콘솔 트리] "작업 sample/task-019 · powershell.exe · pod/task-019 · 응답 1 · 대기 1 · 완료 1" {focusable}
+			StatusBar [상태] "확인 필요 · 출처: unknown · 신뢰도: 100% · 상위: 확인 필요 · 마지막: —"
+		TreeItem [콘솔 트리] "터미널 Worker 57 · powershell · fixture-57" {focusable}
+			StatusBar [상태] "승인 필요 · 출처: osc · 신뢰도: 100% · 상위: 승인 필요 · 마지막: —"
+		TreeItem [콘솔 트리] "터미널 Worker 58 · powershell · fixture-58" {focusable}
+			StatusBar [상태] "완료 · 출처: osc · 신뢰도: 100% · 상위: 완료 · 마지막: —"
+		TreeItem [콘솔 트리] "터미널 Worker 59 · powershell · fixture-59" {focusable}
+			StatusBar [상태] "대기 · 출처: osc · 신뢰도: 100% · 상위: 대기 · 마지막: —"
+		Button [단추] "작업 sample/task-020 · powershell.exe · pod/task-020 · 미확인 1 · 대기 1 · 완료 1 접기" {focusable}
+		TreeItem [콘솔 트리] "작업 sample/task-020 · powershell.exe · pod/task-020 · 미확인 1 · 대기 1 · 완료 1" {focusable}
+			StatusBar [상태] "상태 미확인 · 출처: unknown · 신뢰도: 100% · 상위: 상태 미확인 · 마지막: —"
+		TreeItem [콘솔 트리] "터미널 Worker 60 · powershell · fixture-60" {focusable}
+			StatusBar [상태] "완료 · 출처: osc · 신뢰도: 100% · 상위: 완료 · 마지막: —"
+		TreeItem [콘솔 트리] "터미널 Worker 61 · powershell · fixture-61" {focusable}
+			StatusBar [상태] "대기 · 출처: osc · 신뢰도: 100% · 상위: 대기 · 마지막: —"
+		TreeItem [콘솔 트리] "터미널 Worker 62 · powershell · fixture-62" {focusable}
+			StatusBar [상태] "상태 미확인 · 추정 · 출처: heuristic · 신뢰도: 40% · 상위: 상태 미확인 · 마지막: —"
+		Button [단추] "작업 sample/task-021 · powershell.exe · pod/task-021 · 오류 1 · 미확인 1 · 대기 1 접기" {focusable}
+		TreeItem [콘솔 트리] "작업 sample/task-021 · powershell.exe · pod/task-021 · 오류 1 · 미확인 1 · 대기 1" {focusable}
+			StatusBar [상태] "오류 · 출처: unknown · 신뢰도: 100% · 상위: 오류 · 마지막: —"
+		TreeItem [콘솔 트리] "터미널 Worker 63 · powershell · fixture-63" {focusable}
+			StatusBar [상태] "대기 · 출처: osc · 신뢰도: 100% · 상위: 대기 · 마지막: —"
+		TreeItem [콘솔 트리] "터미널 Worker 64 · powershell · fixture-64" {focusable}
+			StatusBar [상태] "상태 미확인 · 추정 · 출처: heuristic · 신뢰도: 40% · 상위: 상태 미확인 · 마지막: —"
+		TreeItem [콘솔 트리] "터미널 Worker 65 · powershell · fixture-65" {focusable}
+			StatusBar [상태] "오류 · 출처: osc · 신뢰도: 100% · 상위: 오류 · 마지막: —"
+		Button [단추] "작업 sample/task-022 · powershell.exe · pod/task-022 · 작업 1 · 오류 1 · 미확인 1 접기" {focusable}
+		TreeItem [콘솔 트리] "작업 sample/task-022 · powershell.exe · pod/task-022 · 작업 1 · 오류 1 · 미확인 1" {focusable}
+			StatusBar [상태] "오류 · 출처: unknown · 신뢰도: 100% · 상위: 오류 · 마지막: —"
+		TreeItem [콘솔 트리] "터미널 Worker 66 · powershell · fixture-66" {focusable}
+			StatusBar [상태] "상태 미확인 · 추정 · 출처: heuristic · 신뢰도: 40% · 상위: 상태 미확인 · 마지막: —"
+		TreeItem [콘솔 트리] "터미널 Worker 67 · powershell · fixture-67" {focusable}
+			StatusBar [상태] "오류 · 출처: osc · 신뢰도: 100% · 상위: 오류 · 마지막: —"
+		TreeItem [콘솔 트리] "터미널 Worker 68 · powershell · fixture-68" {focusable}
+			StatusBar [상태] "작업 중 · 출처: osc · 신뢰도: 100% · 상위: 작업 중 · 마지막: —"
+		Button [단추] "작업 sample/task-023 · powershell.exe · pod/task-023 · 작업 1 · 응답 1 · 오류 1 접기" {focusable}
+		TreeItem [콘솔 트리] "작업 sample/task-023 · powershell.exe · pod/task-023 · 작업 1 · 응답 1 · 오류 1" {focusable}
+			StatusBar [상태] "오류 · 출처: unknown · 신뢰도: 100% · 상위: 오류 · 마지막: —"
+		TreeItem [콘솔 트리] "터미널 Worker 69 · powershell · fixture-69" {focusable}
+			StatusBar [상태] "오류 · 출처: osc · 신뢰도: 100% · 상위: 오류 · 마지막: —"
+		TreeItem [콘솔 트리] "터미널 Worker 70 · powershell · fixture-70" {focusable}
+			StatusBar [상태] "작업 중 · 출처: osc · 신뢰도: 100% · 상위: 작업 중 · 마지막: —"
+		TreeItem [콘솔 트리] "터미널 Worker 71 · powershell · fixture-71" {focusable}
+			StatusBar [상태] "승인 필요 · 출처: osc · 신뢰도: 100% · 상위: 승인 필요 · 마지막: —"
+		Button [단추] "작업 sample/task-024 · powershell.exe · pod/task-024 · 작업 1 · 응답 1 · 완료 1 접기" {focusable}
+		TreeItem [콘솔 트리] "작업 sample/task-024 · powershell.exe · pod/task-024 · 작업 1 · 응답 1 · 완료 1" {focusable}
+			StatusBar [상태] "확인 필요 · 출처: unknown · 신뢰도: 100% · 상위: 확인 필요 · 마지막: —"
+		TreeItem [콘솔 트리] "터미널 Worker 72 · powershell · fixture-72" {focusable}
+			StatusBar [상태] "작업 중 · 출처: osc · 신뢰도: 100% · 상위: 작업 중 · 마지막: —"
+		TreeItem [콘솔 트리] "터미널 Worker 73 · powershell · fixture-73" {focusable}
+			StatusBar [상태] "승인 필요 · 출처: osc · 신뢰도: 100% · 상위: 승인 필요 · 마지막: —"
+		TreeItem [콘솔 트리] "터미널 Worker 74 · powershell · fixture-74" {focusable}
+			StatusBar [상태] "완료 · 출처: osc · 신뢰도: 100% · 상위: 완료 · 마지막: —"
+		Button [단추] "작업 sample/task-025 · powershell.exe · pod/task-025 · 응답 1 · 대기 1 · 완료 1 접기" {focusable}
+		TreeItem [콘솔 트리] "작업 sample/task-025 · powershell.exe · pod/task-025 · 응답 1 · 대기 1 · 완료 1" {focusable}
+			StatusBar [상태] "확인 필요 · 출처: unknown · 신뢰도: 100% · 상위: 확인 필요 · 마지막: —"
+		TreeItem [콘솔 트리] "터미널 Worker 75 · powershell · fixture-75" {focusable}
+			StatusBar [상태] "승인 필요 · 출처: osc · 신뢰도: 100% · 상위: 승인 필요 · 마지막: —"
+		TreeItem [콘솔 트리] "터미널 Worker 76 · powershell · fixture-76" {focusable}
+			StatusBar [상태] "완료 · 출처: osc · 신뢰도: 100% · 상위: 완료 · 마지막: —"
+		TreeItem [콘솔 트리] "터미널 Worker 77 · powershell · fixture-77" {focusable}
+			StatusBar [상태] "대기 · 출처: osc · 신뢰도: 100% · 상위: 대기 · 마지막: —"
+		Button [단추] "작업 sample/task-026 · powershell.exe · pod/task-026 · 미확인 1 · 대기 1 · 완료 1 접기" {focusable}
+		TreeItem [콘솔 트리] "작업 sample/task-026 · powershell.exe · pod/task-026 · 미확인 1 · 대기 1 · 완료 1" {focusable}
+			StatusBar [상태] "상태 미확인 · 출처: unknown · 신뢰도: 100% · 상위: 상태 미확인 · 마지막: —"
+		TreeItem [콘솔 트리] "터미널 Worker 78 · powershell · fixture-78" {focusable}
+			StatusBar [상태] "완료 · 출처: osc · 신뢰도: 100% · 상위: 완료 · 마지막: —"
+		TreeItem [콘솔 트리] "터미널 Worker 79 · powershell · fixture-79" {focusable}
+			StatusBar [상태] "대기 · 출처: osc · 신뢰도: 100% · 상위: 대기 · 마지막: —"
+		TreeItem [콘솔 트리] "터미널 Worker 80 · powershell · fixture-80" {focusable}
+			StatusBar [상태] "상태 미확인 · 추정 · 출처: heuristic · 신뢰도: 40% · 상위: 상태 미확인 · 마지막: —"
+		Button [단추] "작업 sample/task-027 · powershell.exe · pod/task-027 · 오류 1 · 미확인 1 · 대기 1 접기" {focusable}
+		TreeItem [콘솔 트리] "작업 sample/task-027 · powershell.exe · pod/task-027 · 오류 1 · 미확인 1 · 대기 1" {focusable}
+			StatusBar [상태] "오류 · 출처: unknown · 신뢰도: 100% · 상위: 오류 · 마지막: —"
+		TreeItem [콘솔 트리] "터미널 Worker 81 · powershell · fixture-81" {focusable}
+			StatusBar [상태] "대기 · 출처: osc · 신뢰도: 100% · 상위: 대기 · 마지막: —"
+		TreeItem [콘솔 트리] "터미널 Worker 82 · powershell · fixture-82" {focusable}
+			StatusBar [상태] "상태 미확인 · 추정 · 출처: heuristic · 신뢰도: 40% · 상위: 상태 미확인 · 마지막: —"
+		TreeItem [콘솔 트리] "터미널 Worker 83 · powershell · fixture-83" {focusable}
+			StatusBar [상태] "오류 · 출처: osc · 신뢰도: 100% · 상위: 오류 · 마지막: —"
+		Button [단추] "작업 sample/task-028 · powershell.exe · pod/task-028 · 작업 1 · 오류 1 · 미확인 1 접기" {focusable}
+		TreeItem [콘솔 트리] "작업 sample/task-028 · powershell.exe · pod/task-028 · 작업 1 · 오류 1 · 미확인 1" {focusable}
+			StatusBar [상태] "오류 · 출처: unknown · 신뢰도: 100% · 상위: 오류 · 마지막: —"
+		TreeItem [콘솔 트리] "터미널 Worker 84 · powershell · fixture-84" {focusable}
+			StatusBar [상태] "상태 미확인 · 추정 · 출처: heuristic · 신뢰도: 40% · 상위: 상태 미확인 · 마지막: —"
+		TreeItem [콘솔 트리] "터미널 Worker 85 · powershell · fixture-85" {focusable}
+			StatusBar [상태] "오류 · 출처: osc · 신뢰도: 100% · 상위: 오류 · 마지막: —"
+		TreeItem [콘솔 트리] "터미널 Worker 86 · powershell · fixture-86" {focusable}
+			StatusBar [상태] "작업 중 · 출처: osc · 신뢰도: 100% · 상위: 작업 중 · 마지막: —"
+		Button [단추] "작업 sample/task-029 · powershell.exe · pod/task-029 · 작업 1 · 응답 1 · 오류 1 접기" {focusable}
+		TreeItem [콘솔 트리] "작업 sample/task-029 · powershell.exe · pod/task-029 · 작업 1 · 응답 1 · 오류 1" {focusable}
+			StatusBar [상태] "오류 · 출처: unknown · 신뢰도: 100% · 상위: 오류 · 마지막: —"
+		TreeItem [콘솔 트리] "터미널 Worker 87 · powershell · fixture-87" {focusable}
+			StatusBar [상태] "오류 · 출처: osc · 신뢰도: 100% · 상위: 오류 · 마지막: —"
+		TreeItem [콘솔 트리] "터미널 Worker 88 · powershell · fixture-88" {focusable}
+			StatusBar [상태] "작업 중 · 출처: osc · 신뢰도: 100% · 상위: 작업 중 · 마지막: —"
+		TreeItem [콘솔 트리] "터미널 Worker 89 · powershell · fixture-89" {focusable}
+			StatusBar [상태] "승인 필요 · 출처: osc · 신뢰도: 100% · 상위: 승인 필요 · 마지막: —"
+		Button [단추] "작업 sample/task-030 · powershell.exe · pod/task-030 · 작업 1 · 응답 1 · 완료 1 접기" {focusable}
+		TreeItem [콘솔 트리] "작업 sample/task-030 · powershell.exe · pod/task-030 · 작업 1 · 응답 1 · 완료 1" {focusable}
+			StatusBar [상태] "확인 필요 · 출처: unknown · 신뢰도: 100% · 상위: 확인 필요 · 마지막: —"
+		TreeItem [콘솔 트리] "터미널 Worker 90 · powershell · fixture-90" {focusable}
+			StatusBar [상태] "작업 중 · 출처: osc · 신뢰도: 100% · 상위: 작업 중 · 마지막: —"
+		TreeItem [콘솔 트리] "터미널 Worker 91 · powershell · fixture-91" {focusable}
+			StatusBar [상태] "승인 필요 · 출처: osc · 신뢰도: 100% · 상위: 승인 필요 · 마지막: —"
+		TreeItem [콘솔 트리] "터미널 Worker 92 · powershell · fixture-92" {focusable}
+			StatusBar [상태] "완료 · 출처: osc · 신뢰도: 100% · 상위: 완료 · 마지막: —"
+		Button [단추] "작업 sample/task-031 · powershell.exe · pod/task-031 · 응답 1 · 대기 1 · 완료 1 접기" {focusable}
+		TreeItem [콘솔 트리] "작업 sample/task-031 · powershell.exe · pod/task-031 · 응답 1 · 대기 1 · 완료 1" {focusable}
+			StatusBar [상태] "확인 필요 · 출처: unknown · 신뢰도: 100% · 상위: 확인 필요 · 마지막: —"
+		TreeItem [콘솔 트리] "터미널 Worker 93 · powershell · fixture-93" {focusable}
+			StatusBar [상태] "승인 필요 · 출처: osc · 신뢰도: 100% · 상위: 승인 필요 · 마지막: —"
+		TreeItem [콘솔 트리] "터미널 Worker 94 · powershell · fixture-94" {focusable}
+			StatusBar [상태] "완료 · 출처: osc · 신뢰도: 100% · 상위: 완료 · 마지막: —"
+		TreeItem [콘솔 트리] "터미널 Worker 95 · powershell · fixture-95" {focusable}
+			StatusBar [상태] "대기 · 출처: osc · 신뢰도: 100% · 상위: 대기 · 마지막: —"
+		Button [단추] "작업 sample/task-032 · powershell.exe · pod/task-032 · 미확인 1 · 대기 1 · 완료 1 접기" {focusable}
+		TreeItem [콘솔 트리] "작업 sample/task-032 · powershell.exe · pod/task-032 · 미확인 1 · 대기 1 · 완료 1" {focusable}
+			StatusBar [상태] "상태 미확인 · 출처: unknown · 신뢰도: 100% · 상위: 상태 미확인 · 마지막: —"
+		TreeItem [콘솔 트리] "터미널 Worker 96 · powershell · fixture-96" {focusable}
+			StatusBar [상태] "완료 · 출처: osc · 신뢰도: 100% · 상위: 완료 · 마지막: —"
+		TreeItem [콘솔 트리] "터미널 Worker 97 · powershell · fixture-97" {focusable}
+			StatusBar [상태] "대기 · 출처: osc · 신뢰도: 100% · 상위: 대기 · 마지막: —"
+		TreeItem [콘솔 트리] "터미널 Worker 98 · powershell · fixture-98" {focusable}
+			StatusBar [상태] "상태 미확인 · 추정 · 출처: heuristic · 신뢰도: 40% · 상위: 상태 미확인 · 마지막: —"
+		Button [단추] "작업 sample/task-033 · powershell.exe · pod/task-033 · 오류 1 · 미확인 1 · 대기 1 접기" {focusable}
+		TreeItem [콘솔 트리] "작업 sample/task-033 · powershell.exe · pod/task-033 · 오류 1 · 미확인 1 · 대기 1" {focusable}
+			StatusBar [상태] "오류 · 출처: unknown · 신뢰도: 100% · 상위: 오류 · 마지막: —"
+		TreeItem [콘솔 트리] "터미널 Worker 99 · powershell · fixture-99" {focusable}
+			StatusBar [상태] "대기 · 출처: osc · 신뢰도: 100% · 상위: 대기 · 마지막: —"
+		TreeItem [콘솔 트리] "터미널 Worker 100 · powershell · fixture-100" {focusable}
+			StatusBar [상태] "상태 미확인 · 추정 · 출처: heuristic · 신뢰도: 40% · 상위: 상태 미확인 · 마지막: —"
+		TreeItem [콘솔 트리] "터미널 Worker 101 · powershell · fixture-101" {focusable}
+			StatusBar [상태] "오류 · 출처: osc · 신뢰도: 100% · 상위: 오류 · 마지막: —"
+		Button [단추] "작업 sample/task-034 · powershell.exe · pod/task-034 · 작업 1 · 오류 1 · 미확인 1 접기" {focusable}
+		TreeItem [콘솔 트리] "작업 sample/task-034 · powershell.exe · pod/task-034 · 작업 1 · 오류 1 · 미확인 1" {focusable}
+			StatusBar [상태] "오류 · 출처: unknown · 신뢰도: 100% · 상위: 오류 · 마지막: —"
+		TreeItem [콘솔 트리] "터미널 Worker 102 · powershell · fixture-102" {focusable}
+			StatusBar [상태] "상태 미확인 · 추정 · 출처: heuristic · 신뢰도: 40% · 상위: 상태 미확인 · 마지막: —"
+		TreeItem [콘솔 트리] "터미널 Worker 103 · powershell · fixture-103" {focusable}
+			StatusBar [상태] "오류 · 출처: osc · 신뢰도: 100% · 상위: 오류 · 마지막: —"
+		TreeItem [콘솔 트리] "터미널 Worker 104 · powershell · fixture-104" {focusable}
+			StatusBar [상태] "작업 중 · 출처: osc · 신뢰도: 100% · 상위: 작업 중 · 마지막: —"
+		Button [단추] "작업 sample/task-035 · powershell.exe · pod/task-035 · 작업 1 · 응답 1 · 오류 1 접기" {focusable}
+		TreeItem [콘솔 트리] "작업 sample/task-035 · powershell.exe · pod/task-035 · 작업 1 · 응답 1 · 오류 1" {focusable}
+			StatusBar [상태] "오류 · 출처: unknown · 신뢰도: 100% · 상위: 오류 · 마지막: —"
+		TreeItem [콘솔 트리] "터미널 Worker 105 · powershell · fixture-105" {focusable}
+			StatusBar [상태] "오류 · 출처: osc · 신뢰도: 100% · 상위: 오류 · 마지막: —"
+		TreeItem [콘솔 트리] "터미널 Worker 106 · powershell · fixture-106" {focusable}
+			StatusBar [상태] "작업 중 · 출처: osc · 신뢰도: 100% · 상위: 작업 중 · 마지막: —"
+		TreeItem [콘솔 트리] "터미널 Worker 107 · powershell · fixture-107" {focusable}
+			StatusBar [상태] "승인 필요 · 출처: osc · 신뢰도: 100% · 상위: 승인 필요 · 마지막: —"
+		Button [단추] "작업 sample/task-036 · powershell.exe · pod/task-036 · 작업 1 · 응답 1 · 완료 1 접기" {focusable}
+		TreeItem [콘솔 트리] "작업 sample/task-036 · powershell.exe · pod/task-036 · 작업 1 · 응답 1 · 완료 1" {focusable}
+			StatusBar [상태] "확인 필요 · 출처: unknown · 신뢰도: 100% · 상위: 확인 필요 · 마지막: —"
+		TreeItem [콘솔 트리] "터미널 Worker 108 · powershell · fixture-108" {focusable}
+			StatusBar [상태] "작업 중 · 출처: osc · 신뢰도: 100% · 상위: 작업 중 · 마지막: —"
+		TreeItem [콘솔 트리] "터미널 Worker 109 · powershell · fixture-109" {focusable}
+			StatusBar [상태] "승인 필요 · 출처: osc · 신뢰도: 100% · 상위: 승인 필요 · 마지막: —"
+		TreeItem [콘솔 트리] "터미널 Worker 110 · powershell · fixture-110" {focusable}
+			StatusBar [상태] "완료 · 출처: osc · 신뢰도: 100% · 상위: 완료 · 마지막: —"
+		Button [단추] "작업 sample/task-037 · powershell.exe · pod/task-037 · 응답 1 · 대기 1 · 완료 1 접기" {focusable}
+		TreeItem [콘솔 트리] "작업 sample/task-037 · powershell.exe · pod/task-037 · 응답 1 · 대기 1 · 완료 1" {focusable}
+			StatusBar [상태] "확인 필요 · 출처: unknown · 신뢰도: 100% · 상위: 확인 필요 · 마지막: —"
+		TreeItem [콘솔 트리] "터미널 Worker 111 · powershell · fixture-111" {focusable}
+			StatusBar [상태] "승인 필요 · 출처: osc · 신뢰도: 100% · 상위: 승인 필요 · 마지막: —"
+		TreeItem [콘솔 트리] "터미널 Worker 112 · powershell · fixture-112" {focusable}
+			StatusBar [상태] "완료 · 출처: osc · 신뢰도: 100% · 상위: 완료 · 마지막: —"
+		TreeItem [콘솔 트리] "터미널 Worker 113 · powershell · fixture-113" {focusable}
+			StatusBar [상태] "대기 · 출처: osc · 신뢰도: 100% · 상위: 대기 · 마지막: —"
+		Button [단추] "작업 sample/task-038 · powershell.exe · pod/task-038 · 미확인 1 · 대기 1 · 완료 1 접기" {focusable}
+		TreeItem [콘솔 트리] "작업 sample/task-038 · powershell.exe · pod/task-038 · 미확인 1 · 대기 1 · 완료 1" {focusable}
+			StatusBar [상태] "상태 미확인 · 출처: unknown · 신뢰도: 100% · 상위: 상태 미확인 · 마지막: —"
+		TreeItem [콘솔 트리] "터미널 Worker 114 · powershell · fixture-114" {focusable}
+			StatusBar [상태] "완료 · 출처: osc · 신뢰도: 100% · 상위: 완료 · 마지막: —"
+		TreeItem [콘솔 트리] "터미널 Worker 115 · powershell · fixture-115" {focusable}
+			StatusBar [상태] "대기 · 출처: osc · 신뢰도: 100% · 상위: 대기 · 마지막: —"
+		TreeItem [콘솔 트리] "터미널 Worker 116 · powershell · fixture-116" {focusable}
+			StatusBar [상태] "상태 미확인 · 추정 · 출처: heuristic · 신뢰도: 40% · 상위: 상태 미확인 · 마지막: —"
+		Button [단추] "작업 sample/task-039 · powershell.exe · pod/task-039 · 오류 1 · 미확인 1 · 대기 1 접기" {focusable}
+		TreeItem [콘솔 트리] "작업 sample/task-039 · powershell.exe · pod/task-039 · 오류 1 · 미확인 1 · 대기 1" {focusable}
+			StatusBar [상태] "오류 · 출처: unknown · 신뢰도: 100% · 상위: 오류 · 마지막: —"
+		TreeItem [콘솔 트리] "터미널 Worker 117 · powershell · fixture-117" {focusable}
+			StatusBar [상태] "대기 · 출처: osc · 신뢰도: 100% · 상위: 대기 · 마지막: —"
+		TreeItem [콘솔 트리] "터미널 Worker 118 · powershell · fixture-118" {focusable}
+			StatusBar [상태] "상태 미확인 · 추정 · 출처: heuristic · 신뢰도: 40% · 상위: 상태 미확인 · 마지막: —"
+		TreeItem [콘솔 트리] "터미널 Worker 119 · powershell · fixture-119" {focusable}
+			StatusBar [상태] "오류 · 출처: osc · 신뢰도: 100% · 상위: 오류 · 마지막: —"
+		Button [단추] "작업 sample/task-040 · powershell.exe · pod/task-040 · 작업 1 · 오류 1 · 미확인 1 접기" {focusable}
+		TreeItem [콘솔 트리] "작업 sample/task-040 · powershell.exe · pod/task-040 · 작업 1 · 오류 1 · 미확인 1" {focusable}
+			StatusBar [상태] "오류 · 출처: unknown · 신뢰도: 100% · 상위: 오류 · 마지막: —"
+		TreeItem [콘솔 트리] "터미널 Worker 120 · powershell · fixture-120" {focusable}
+			StatusBar [상태] "상태 미확인 · 추정 · 출처: heuristic · 신뢰도: 40% · 상위: 상태 미확인 · 마지막: —"
+		TreeItem [콘솔 트리] "터미널 Worker 121 · powershell · fixture-121" {focusable}
+			StatusBar [상태] "오류 · 출처: osc · 신뢰도: 100% · 상위: 오류 · 마지막: —"
+		TreeItem [콘솔 트리] "터미널 Worker 122 · powershell · fixture-122" {focusable}
+			StatusBar [상태] "작업 중 · 출처: osc · 신뢰도: 100% · 상위: 작업 중 · 마지막: —"
+		Button [단추] "작업 sample/task-041 · powershell.exe · pod/task-041 · 작업 1 · 응답 1 · 오류 1 접기" {focusable}
+		TreeItem [콘솔 트리] "작업 sample/task-041 · powershell.exe · pod/task-041 · 작업 1 · 응답 1 · 오류 1" {focusable}
+			StatusBar [상태] "오류 · 출처: unknown · 신뢰도: 100% · 상위: 오류 · 마지막: —"
+		TreeItem [콘솔 트리] "터미널 Worker 123 · powershell · fixture-123" {focusable}
+			StatusBar [상태] "오류 · 출처: osc · 신뢰도: 100% · 상위: 오류 · 마지막: —"
+		TreeItem [콘솔 트리] "터미널 Worker 124 · powershell · fixture-124" {focusable}
+			StatusBar [상태] "작업 중 · 출처: osc · 신뢰도: 100% · 상위: 작업 중 · 마지막: —"
+		TreeItem [콘솔 트리] "터미널 Worker 125 · powershell · fixture-125" {focusable}
+			StatusBar [상태] "승인 필요 · 출처: osc · 신뢰도: 100% · 상위: 승인 필요 · 마지막: —"
+		Button [단추] "작업 sample/task-042 · powershell.exe · pod/task-042 · 작업 1 · 응답 1 · 완료 1 접기" {focusable}
+		TreeItem [콘솔 트리] "작업 sample/task-042 · powershell.exe · pod/task-042 · 작업 1 · 응답 1 · 완료 1" {focusable}
+			StatusBar [상태] "확인 필요 · 출처: unknown · 신뢰도: 100% · 상위: 확인 필요 · 마지막: —"
+		TreeItem [콘솔 트리] "터미널 Worker 126 · powershell · fixture-126" {focusable}
+			StatusBar [상태] "작업 중 · 출처: osc · 신뢰도: 100% · 상위: 작업 중 · 마지막: —"
+		TreeItem [콘솔 트리] "터미널 Worker 127 · powershell · fixture-127" {focusable}
+			StatusBar [상태] "승인 필요 · 출처: osc · 신뢰도: 100% · 상위: 승인 필요 · 마지막: —"
+		TreeItem [콘솔 트리] "터미널 Worker 128 · powershell · fixture-128" {focusable}
+			StatusBar [상태] "완료 · 출처: osc · 신뢰도: 100% · 상위: 완료 · 마지막: —"
+		Button [단추] "작업 sample/task-043 · powershell.exe · pod/task-043 · 응답 1 · 대기 1 · 완료 1 접기" {focusable}
+		TreeItem [콘솔 트리] "작업 sample/task-043 · powershell.exe · pod/task-043 · 응답 1 · 대기 1 · 완료 1" {focusable}
+			StatusBar [상태] "확인 필요 · 출처: unknown · 신뢰도: 100% · 상위: 확인 필요 · 마지막: —"
+		TreeItem [콘솔 트리] "터미널 Worker 129 · powershell · fixture-129" {focusable}
+			StatusBar [상태] "승인 필요 · 출처: osc · 신뢰도: 100% · 상위: 승인 필요 · 마지막: —"
+		TreeItem [콘솔 트리] "터미널 Worker 130 · powershell · fixture-130" {focusable}
+			StatusBar [상태] "완료 · 출처: osc · 신뢰도: 100% · 상위: 완료 · 마지막: —"
+		TreeItem [콘솔 트리] "터미널 Worker 131 · powershell · fixture-131" {focusable}
+			StatusBar [상태] "대기 · 출처: osc · 신뢰도: 100% · 상위: 대기 · 마지막: —"
+		Button [단추] "작업 sample/task-044 · powershell.exe · pod/task-044 · 미확인 1 · 대기 1 · 완료 1 접기" {focusable}
+		TreeItem [콘솔 트리] "작업 sample/task-044 · powershell.exe · pod/task-044 · 미확인 1 · 대기 1 · 완료 1" {focusable}
+			StatusBar [상태] "상태 미확인 · 출처: unknown · 신뢰도: 100% · 상위: 상태 미확인 · 마지막: —"
+		TreeItem [콘솔 트리] "터미널 Worker 132 · powershell · fixture-132" {focusable}
+			StatusBar [상태] "완료 · 출처: osc · 신뢰도: 100% · 상위: 완료 · 마지막: —"
+		TreeItem [콘솔 트리] "터미널 Worker 133 · powershell · fixture-133" {focusable}
+			StatusBar [상태] "대기 · 출처: osc · 신뢰도: 100% · 상위: 대기 · 마지막: —"
+		TreeItem [콘솔 트리] "터미널 Worker 134 · powershell · fixture-134" {focusable}
+			StatusBar [상태] "상태 미확인 · 추정 · 출처: heuristic · 신뢰도: 40% · 상위: 상태 미확인 · 마지막: —"
+		Button [단추] "작업 sample/task-045 · powershell.exe · pod/task-045 · 오류 1 · 미확인 1 · 대기 1 접기" {focusable}
+		TreeItem [콘솔 트리] "작업 sample/task-045 · powershell.exe · pod/task-045 · 오류 1 · 미확인 1 · 대기 1" {focusable}
+			StatusBar [상태] "오류 · 출처: unknown · 신뢰도: 100% · 상위: 오류 · 마지막: —"
+		TreeItem [콘솔 트리] "터미널 Worker 135 · powershell · fixture-135" {focusable}
+			StatusBar [상태] "대기 · 출처: osc · 신뢰도: 100% · 상위: 대기 · 마지막: —"
+		TreeItem [콘솔 트리] "터미널 Worker 136 · powershell · fixture-136" {focusable}
+			StatusBar [상태] "상태 미확인 · 추정 · 출처: heuristic · 신뢰도: 40% · 상위: 상태 미확인 · 마지막: —"
+		TreeItem [콘솔 트리] "터미널 Worker 137 · powershell · fixture-137" {focusable}
+			StatusBar [상태] "오류 · 출처: osc · 신뢰도: 100% · 상위: 오류 · 마지막: —"
+		Button [단추] "작업 sample/task-046 · powershell.exe · pod/task-046 · 작업 1 · 오류 1 · 미확인 1 접기" {focusable}
+		TreeItem [콘솔 트리] "작업 sample/task-046 · powershell.exe · pod/task-046 · 작업 1 · 오류 1 · 미확인 1" {focusable}
+			StatusBar [상태] "오류 · 출처: unknown · 신뢰도: 100% · 상위: 오류 · 마지막: —"
+		TreeItem [콘솔 트리] "터미널 Worker 138 · powershell · fixture-138" {focusable}
+			StatusBar [상태] "상태 미확인 · 추정 · 출처: heuristic · 신뢰도: 40% · 상위: 상태 미확인 · 마지막: —"
+		TreeItem [콘솔 트리] "터미널 Worker 139 · powershell · fixture-139" {focusable}
+			StatusBar [상태] "오류 · 출처: osc · 신뢰도: 100% · 상위: 오류 · 마지막: —"
+		TreeItem [콘솔 트리] "터미널 Worker 140 · powershell · fixture-140" {focusable}
+			StatusBar [상태] "작업 중 · 출처: osc · 신뢰도: 100% · 상위: 작업 중 · 마지막: —"
+		Button [단추] "작업 sample/task-047 · powershell.exe · pod/task-047 · 작업 1 · 응답 1 · 오류 1 접기" {focusable}
+		TreeItem [콘솔 트리] "작업 sample/task-047 · powershell.exe · pod/task-047 · 작업 1 · 응답 1 · 오류 1" {focusable}
+			StatusBar [상태] "오류 · 출처: unknown · 신뢰도: 100% · 상위: 오류 · 마지막: —"
+		TreeItem [콘솔 트리] "터미널 Worker 141 · powershell · fixture-141" {focusable}
+			StatusBar [상태] "오류 · 출처: osc · 신뢰도: 100% · 상위: 오류 · 마지막: —"
+		TreeItem [콘솔 트리] "터미널 Worker 142 · powershell · fixture-142" {focusable}
+			StatusBar [상태] "작업 중 · 출처: osc · 신뢰도: 100% · 상위: 작업 중 · 마지막: —"
+		TreeItem [콘솔 트리] "터미널 Worker 143 · powershell · fixture-143" {focusable}
+			StatusBar [상태] "승인 필요 · 출처: osc · 신뢰도: 100% · 상위: 승인 필요 · 마지막: —"
+		Button [단추] "작업 sample/task-048 · powershell.exe · pod/task-048 · 작업 1 · 응답 1 · 완료 1 접기" {focusable}
+		TreeItem [콘솔 트리] "작업 sample/task-048 · powershell.exe · pod/task-048 · 작업 1 · 응답 1 · 완료 1" {focusable}
+			StatusBar [상태] "확인 필요 · 출처: unknown · 신뢰도: 100% · 상위: 확인 필요 · 마지막: —"
+		TreeItem [콘솔 트리] "터미널 Worker 144 · powershell · fixture-144" {focusable}
+			StatusBar [상태] "작업 중 · 출처: osc · 신뢰도: 100% · 상위: 작업 중 · 마지막: —"
+		TreeItem [콘솔 트리] "터미널 Worker 145 · powershell · fixture-145" {focusable}
+			StatusBar [상태] "승인 필요 · 출처: osc · 신뢰도: 100% · 상위: 승인 필요 · 마지막: —"
+		TreeItem [콘솔 트리] "터미널 Worker 146 · powershell · fixture-146" {focusable}
+			StatusBar [상태] "완료 · 출처: osc · 신뢰도: 100% · 상위: 완료 · 마지막: —"
+		Button [단추] "작업 sample/task-049 · powershell.exe · pod/task-049 · 응답 1 · 대기 1 · 완료 1 접기" {focusable}
+		TreeItem [콘솔 트리] "작업 sample/task-049 · powershell.exe · pod/task-049 · 응답 1 · 대기 1 · 완료 1" {focusable}
+			StatusBar [상태] "확인 필요 · 출처: unknown · 신뢰도: 100% · 상위: 확인 필요 · 마지막: —"
+		TreeItem [콘솔 트리] "터미널 Worker 147 · powershell · fixture-147" {focusable}
+			StatusBar [상태] "승인 필요 · 출처: osc · 신뢰도: 100% · 상위: 승인 필요 · 마지막: —"
+		TreeItem [콘솔 트리] "터미널 Worker 148 · powershell · fixture-148" {focusable}
+			StatusBar [상태] "완료 · 출처: osc · 신뢰도: 100% · 상위: 완료 · 마지막: —"
+		TreeItem [콘솔 트리] "터미널 Worker 149 · powershell · fixture-149" {focusable}
+			StatusBar [상태] "대기 · 출처: osc · 신뢰도: 100% · 상위: 대기 · 마지막: —"
+		Button [단추] "작업 sample/task-050 · powershell.exe · pod/task-050 · 미확인 1 · 대기 1 · 완료 1 접기" {focusable}
+		TreeItem [콘솔 트리] "작업 sample/task-050 · powershell.exe · pod/task-050 · 미확인 1 · 대기 1 · 완료 1" {focusable}
+			StatusBar [상태] "상태 미확인 · 출처: unknown · 신뢰도: 100% · 상위: 상태 미확인 · 마지막: —"
+		TreeItem [콘솔 트리] "터미널 Worker 150 · powershell · fixture-150" {focusable}
+			StatusBar [상태] "완료 · 출처: osc · 신뢰도: 100% · 상위: 완료 · 마지막: —"
+		TreeItem [콘솔 트리] "터미널 Worker 151 · powershell · fixture-151" {focusable}
+			StatusBar [상태] "대기 · 출처: osc · 신뢰도: 100% · 상위: 대기 · 마지막: —"
+		TreeItem [콘솔 트리] "터미널 Worker 152 · powershell · fixture-152" {focusable}
+			StatusBar [상태] "상태 미확인 · 추정 · 출처: heuristic · 신뢰도: 40% · 상위: 상태 미확인 · 마지막: —"
+		Button [단추] "작업 sample/task-051 · powershell.exe · pod/task-051 · 오류 1 · 미확인 1 · 대기 1 접기" {focusable}
+		TreeItem [콘솔 트리] "작업 sample/task-051 · powershell.exe · pod/task-051 · 오류 1 · 미확인 1 · 대기 1" {focusable}
+			StatusBar [상태] "오류 · 출처: unknown · 신뢰도: 100% · 상위: 오류 · 마지막: —"
+		TreeItem [콘솔 트리] "터미널 Worker 153 · powershell · fixture-153" {focusable}
+			StatusBar [상태] "대기 · 출처: osc · 신뢰도: 100% · 상위: 대기 · 마지막: —"
+		TreeItem [콘솔 트리] "터미널 Worker 154 · powershell · fixture-154" {focusable}
+			StatusBar [상태] "상태 미확인 · 추정 · 출처: heuristic · 신뢰도: 40% · 상위: 상태 미확인 · 마지막: —"
+		TreeItem [콘솔 트리] "터미널 Worker 155 · powershell · fixture-155" {focusable}
+			StatusBar [상태] "오류 · 출처: osc · 신뢰도: 100% · 상위: 오류 · 마지막: —"
+		Button [단추] "작업 sample/task-052 · powershell.exe · pod/task-052 · 작업 1 · 오류 1 · 미확인 1 접기" {focusable}
+		TreeItem [콘솔 트리] "작업 sample/task-052 · powershell.exe · pod/task-052 · 작업 1 · 오류 1 · 미확인 1" {focusable}
+			StatusBar [상태] "오류 · 출처: unknown · 신뢰도: 100% · 상위: 오류 · 마지막: —"
+		TreeItem [콘솔 트리] "터미널 Worker 156 · powershell · fixture-156" {focusable}
+			StatusBar [상태] "상태 미확인 · 추정 · 출처: heuristic · 신뢰도: 40% · 상위: 상태 미확인 · 마지막: —"
+		TreeItem [콘솔 트리] "터미널 Worker 157 · powershell · fixture-157" {focusable}
+			StatusBar [상태] "오류 · 출처: osc · 신뢰도: 100% · 상위: 오류 · 마지막: —"
+		TreeItem [콘솔 트리] "터미널 Worker 158 · powershell · fixture-158" {focusable}
+			StatusBar [상태] "작업 중 · 출처: osc · 신뢰도: 100% · 상위: 작업 중 · 마지막: —"
+		Button [단추] "작업 sample/task-053 · powershell.exe · pod/task-053 · 작업 1 · 응답 1 · 오류 1 접기" {focusable}
+		TreeItem [콘솔 트리] "작업 sample/task-053 · powershell.exe · pod/task-053 · 작업 1 · 응답 1 · 오류 1" {focusable}
+			StatusBar [상태] "오류 · 출처: unknown · 신뢰도: 100% · 상위: 오류 · 마지막: —"
+		TreeItem [콘솔 트리] "터미널 Worker 159 · powershell · fixture-159" {focusable}
+			StatusBar [상태] "오류 · 출처: osc · 신뢰도: 100% · 상위: 오류 · 마지막: —"
+		TreeItem [콘솔 트리] "터미널 Worker 160 · powershell · fixture-160" {focusable}
+			StatusBar [상태] "작업 중 · 출처: osc · 신뢰도: 100% · 상위: 작업 중 · 마지막: —"
+		TreeItem [콘솔 트리] "터미널 Worker 161 · powershell · fixture-161" {focusable}
+			StatusBar [상태] "승인 필요 · 출처: osc · 신뢰도: 100% · 상위: 승인 필요 · 마지막: —"
+		Button [단추] "작업 sample/task-054 · powershell.exe · pod/task-054 · 작업 1 · 응답 1 · 완료 1 접기" {focusable}
+		TreeItem [콘솔 트리] "작업 sample/task-054 · powershell.exe · pod/task-054 · 작업 1 · 응답 1 · 완료 1" {focusable}
+			StatusBar [상태] "확인 필요 · 출처: unknown · 신뢰도: 100% · 상위: 확인 필요 · 마지막: —"
+		TreeItem [콘솔 트리] "터미널 Worker 162 · powershell · fixture-162" {focusable}
+			StatusBar [상태] "작업 중 · 출처: osc · 신뢰도: 100% · 상위: 작업 중 · 마지막: —"
+		TreeItem [콘솔 트리] "터미널 Worker 163 · powershell · fixture-163" {focusable}
+			StatusBar [상태] "승인 필요 · 출처: osc · 신뢰도: 100% · 상위: 승인 필요 · 마지막: —"
+		TreeItem [콘솔 트리] "터미널 Worker 164 · powershell · fixture-164" {focusable}
+			StatusBar [상태] "완료 · 출처: osc · 신뢰도: 100% · 상위: 완료 · 마지막: —"
+		Button [단추] "작업 sample/task-055 · powershell.exe · pod/task-055 · 응답 1 · 대기 1 · 완료 1 접기" {focusable}
+		TreeItem [콘솔 트리] "작업 sample/task-055 · powershell.exe · pod/task-055 · 응답 1 · 대기 1 · 완료 1" {focusable}
+			StatusBar [상태] "확인 필요 · 출처: unknown · 신뢰도: 100% · 상위: 확인 필요 · 마지막: —"
+		TreeItem [콘솔 트리] "터미널 Worker 165 · powershell · fixture-165" {focusable}
+			StatusBar [상태] "승인 필요 · 출처: osc · 신뢰도: 100% · 상위: 승인 필요 · 마지막: —"
+		TreeItem [콘솔 트리] "터미널 Worker 166 · powershell · fixture-166" {focusable}
+			StatusBar [상태] "완료 · 출처: osc · 신뢰도: 100% · 상위: 완료 · 마지막: —"
+		TreeItem [콘솔 트리] "터미널 Worker 167 · powershell · fixture-167" {focusable}
+			StatusBar [상태] "대기 · 출처: osc · 신뢰도: 100% · 상위: 대기 · 마지막: —"
+		Button [단추] "작업 sample/task-056 · powershell.exe · pod/task-056 · 미확인 1 · 대기 1 · 완료 1 접기" {focusable}
+		TreeItem [콘솔 트리] "작업 sample/task-056 · powershell.exe · pod/task-056 · 미확인 1 · 대기 1 · 완료 1" {focusable}
+			StatusBar [상태] "상태 미확인 · 출처: unknown · 신뢰도: 100% · 상위: 상태 미확인 · 마지막: —"
+		TreeItem [콘솔 트리] "터미널 Worker 168 · powershell · fixture-168" {focusable}
+			StatusBar [상태] "완료 · 출처: osc · 신뢰도: 100% · 상위: 완료 · 마지막: —"
+		TreeItem [콘솔 트리] "터미널 Worker 169 · powershell · fixture-169" {focusable}
+			StatusBar [상태] "대기 · 출처: osc · 신뢰도: 100% · 상위: 대기 · 마지막: —"
+		TreeItem [콘솔 트리] "터미널 Worker 170 · powershell · fixture-170" {focusable}
+			StatusBar [상태] "상태 미확인 · 추정 · 출처: heuristic · 신뢰도: 40% · 상위: 상태 미확인 · 마지막: —"
+		Button [단추] "작업 sample/task-057 · powershell.exe · pod/task-057 · 오류 1 · 미확인 1 · 대기 1 접기" {focusable}
+		TreeItem [콘솔 트리] "작업 sample/task-057 · powershell.exe · pod/task-057 · 오류 1 · 미확인 1 · 대기 1" {focusable}
+			StatusBar [상태] "오류 · 출처: unknown · 신뢰도: 100% · 상위: 오류 · 마지막: —"
+		TreeItem [콘솔 트리] "터미널 Worker 171 · powershell · fixture-171" {focusable}
+			StatusBar [상태] "대기 · 출처: osc · 신뢰도: 100% · 상위: 대기 · 마지막: —"
+		TreeItem [콘솔 트리] "터미널 Worker 172 · powershell · fixture-172" {focusable}
+			StatusBar [상태] "상태 미확인 · 추정 · 출처: heuristic · 신뢰도: 40% · 상위: 상태 미확인 · 마지막: —"
+		TreeItem [콘솔 트리] "터미널 Worker 173 · powershell · fixture-173" {focusable}
+			StatusBar [상태] "오류 · 출처: osc · 신뢰도: 100% · 상위: 오류 · 마지막: —"
+		Button [단추] "작업 sample/task-058 · powershell.exe · pod/task-058 · 작업 1 · 오류 1 · 미확인 1 접기" {focusable}
+		TreeItem [콘솔 트리] "작업 sample/task-058 · powershell.exe · pod/task-058 · 작업 1 · 오류 1 · 미확인 1" {focusable}
+			StatusBar [상태] "오류 · 출처: unknown · 신뢰도: 100% · 상위: 오류 · 마지막: —"
+		TreeItem [콘솔 트리] "터미널 Worker 174 · powershell · fixture-174" {focusable}
+			StatusBar [상태] "상태 미확인 · 추정 · 출처: heuristic · 신뢰도: 40% · 상위: 상태 미확인 · 마지막: —"
+		TreeItem [콘솔 트리] "터미널 Worker 175 · powershell · fixture-175" {focusable}
+			StatusBar [상태] "오류 · 출처: osc · 신뢰도: 100% · 상위: 오류 · 마지막: —"
+		TreeItem [콘솔 트리] "터미널 Worker 176 · powershell · fixture-176" {focusable}
+			StatusBar [상태] "작업 중 · 출처: osc · 신뢰도: 100% · 상위: 작업 중 · 마지막: —"
+		Button [단추] "작업 sample/task-059 · powershell.exe · pod/task-059 · 작업 1 · 응답 1 · 오류 1 접기" {focusable}
+		TreeItem [콘솔 트리] "작업 sample/task-059 · powershell.exe · pod/task-059 · 작업 1 · 응답 1 · 오류 1" {focusable}
+			StatusBar [상태] "오류 · 출처: unknown · 신뢰도: 100% · 상위: 오류 · 마지막: —"
+		TreeItem [콘솔 트리] "터미널 Worker 177 · powershell · fixture-177" {focusable}
+			StatusBar [상태] "오류 · 출처: osc · 신뢰도: 100% · 상위: 오류 · 마지막: —"
+		TreeItem [콘솔 트리] "터미널 Worker 178 · powershell · fixture-178" {focusable}
+			StatusBar [상태] "작업 중 · 출처: osc · 신뢰도: 100% · 상위: 작업 중 · 마지막: —"
+		TreeItem [콘솔 트리] "터미널 Worker 179 · powershell · fixture-179" {focusable}
+			StatusBar [상태] "승인 필요 · 출처: osc · 신뢰도: 100% · 상위: 승인 필요 · 마지막: —"
+		Button [단추] "작업 sample/task-060 · powershell.exe · pod/task-060 · 작업 1 · 응답 1 · 완료 1 접기" {focusable}
+		TreeItem [콘솔 트리] "작업 sample/task-060 · powershell.exe · pod/task-060 · 작업 1 · 응답 1 · 완료 1" {focusable}
+			StatusBar [상태] "확인 필요 · 출처: unknown · 신뢰도: 100% · 상위: 확인 필요 · 마지막: —"
+		TreeItem [콘솔 트리] "터미널 Worker 180 · powershell · fixture-180" {focusable}
+			StatusBar [상태] "작업 중 · 출처: osc · 신뢰도: 100% · 상위: 작업 중 · 마지막: —"
+		TreeItem [콘솔 트리] "터미널 Worker 181 · powershell · fixture-181" {focusable}
+			StatusBar [상태] "승인 필요 · 출처: osc · 신뢰도: 100% · 상위: 승인 필요 · 마지막: —"
+		TreeItem [콘솔 트리] "터미널 Worker 182 · powershell · fixture-182" {focusable}
+			StatusBar [상태] "완료 · 출처: osc · 신뢰도: 100% · 상위: 완료 · 마지막: —"
+		Button [단추] "작업 sample/task-061 · powershell.exe · pod/task-061 · 응답 1 · 대기 1 · 완료 1 접기" {focusable}
+		TreeItem [콘솔 트리] "작업 sample/task-061 · powershell.exe · pod/task-061 · 응답 1 · 대기 1 · 완료 1" {focusable}
+			StatusBar [상태] "확인 필요 · 출처: unknown · 신뢰도: 100% · 상위: 확인 필요 · 마지막: —"
+		TreeItem [콘솔 트리] "터미널 Worker 183 · powershell · fixture-183" {focusable}
+			StatusBar [상태] "승인 필요 · 출처: osc · 신뢰도: 100% · 상위: 승인 필요 · 마지막: —"
+		TreeItem [콘솔 트리] "터미널 Worker 184 · powershell · fixture-184" {focusable}
+			StatusBar [상태] "완료 · 출처: osc · 신뢰도: 100% · 상위: 완료 · 마지막: —"
+		TreeItem [콘솔 트리] "터미널 Worker 185 · powershell · fixture-185" {focusable}
+			StatusBar [상태] "대기 · 출처: osc · 신뢰도: 100% · 상위: 대기 · 마지막: —"
+		Button [단추] "작업 sample/task-062 · powershell.exe · pod/task-062 · 미확인 1 · 대기 1 · 완료 1 접기" {focusable}
+		TreeItem [콘솔 트리] "작업 sample/task-062 · powershell.exe · pod/task-062 · 미확인 1 · 대기 1 · 완료 1" {focusable}
+			StatusBar [상태] "상태 미확인 · 출처: unknown · 신뢰도: 100% · 상위: 상태 미확인 · 마지막: —"
+		TreeItem [콘솔 트리] "터미널 Worker 186 · powershell · fixture-186" {focusable}
+			StatusBar [상태] "완료 · 출처: osc · 신뢰도: 100% · 상위: 완료 · 마지막: —"
+		TreeItem [콘솔 트리] "터미널 Worker 187 · powershell · fixture-187" {focusable}
+			StatusBar [상태] "대기 · 출처: osc · 신뢰도: 100% · 상위: 대기 · 마지막: —"
+		TreeItem [콘솔 트리] "터미널 Worker 188 · powershell · fixture-188" {focusable}
+			StatusBar [상태] "상태 미확인 · 추정 · 출처: heuristic · 신뢰도: 40% · 상위: 상태 미확인 · 마지막: —"
+		Button [단추] "작업 sample/task-063 · powershell.exe · pod/task-063 · 오류 1 · 미확인 1 · 대기 1 접기" {focusable}
+		TreeItem [콘솔 트리] "작업 sample/task-063 · powershell.exe · pod/task-063 · 오류 1 · 미확인 1 · 대기 1" {focusable}
+			StatusBar [상태] "오류 · 출처: unknown · 신뢰도: 100% · 상위: 오류 · 마지막: —"
+		TreeItem [콘솔 트리] "터미널 Worker 189 · powershell · fixture-189" {focusable}
+			StatusBar [상태] "대기 · 출처: osc · 신뢰도: 100% · 상위: 대기 · 마지막: —"
+		TreeItem [콘솔 트리] "터미널 Worker 190 · powershell · fixture-190" {focusable}
+			StatusBar [상태] "상태 미확인 · 추정 · 출처: heuristic · 신뢰도: 40% · 상위: 상태 미확인 · 마지막: —"
+		TreeItem [콘솔 트리] "터미널 Worker 191 · powershell · fixture-191" {focusable}
+			StatusBar [상태] "오류 · 출처: osc · 신뢰도: 100% · 상위: 오류 · 마지막: —"
+		Button [단추] "작업 sample/task-064 · powershell.exe · pod/task-064 · 작업 1 · 오류 1 · 미확인 1 접기" {focusable}
+		TreeItem [콘솔 트리] "작업 sample/task-064 · powershell.exe · pod/task-064 · 작업 1 · 오류 1 · 미확인 1" {focusable}
+			StatusBar [상태] "오류 · 출처: unknown · 신뢰도: 100% · 상위: 오류 · 마지막: —"
+		TreeItem [콘솔 트리] "터미널 Worker 192 · powershell · fixture-192" {focusable}
+			StatusBar [상태] "상태 미확인 · 추정 · 출처: heuristic · 신뢰도: 40% · 상위: 상태 미확인 · 마지막: —"
+		TreeItem [콘솔 트리] "터미널 Worker 193 · powershell · fixture-193" {focusable}
+			StatusBar [상태] "오류 · 출처: osc · 신뢰도: 100% · 상위: 오류 · 마지막: —"
+		TreeItem [콘솔 트리] "터미널 Worker 194 · powershell · fixture-194" {focusable}
+			StatusBar [상태] "작업 중 · 출처: osc · 신뢰도: 100% · 상위: 작업 중 · 마지막: —"
+		Button [단추] "작업 sample/task-065 · powershell.exe · pod/task-065 · 작업 1 · 응답 1 · 오류 1 접기" {focusable}
+		TreeItem [콘솔 트리] "작업 sample/task-065 · powershell.exe · pod/task-065 · 작업 1 · 응답 1 · 오류 1" {focusable}
+			StatusBar [상태] "오류 · 출처: unknown · 신뢰도: 100% · 상위: 오류 · 마지막: —"
+		TreeItem [콘솔 트리] "터미널 Worker 195 · powershell · fixture-195" {focusable}
+			StatusBar [상태] "오류 · 출처: osc · 신뢰도: 100% · 상위: 오류 · 마지막: —"
+		TreeItem [콘솔 트리] "터미널 Worker 196 · powershell · fixture-196" {focusable}
+			StatusBar [상태] "작업 중 · 출처: osc · 신뢰도: 100% · 상위: 작업 중 · 마지막: —"
+		TreeItem [콘솔 트리] "터미널 Worker 197 · powershell · fixture-197" {focusable}
+			StatusBar [상태] "승인 필요 · 출처: osc · 신뢰도: 100% · 상위: 승인 필요 · 마지막: —"
+		Button [단추] "작업 sample/task-066 · powershell.exe · pod/task-066 · 작업 1 · 응답 1 · 완료 1 접기" {focusable}
+		TreeItem [콘솔 트리] "작업 sample/task-066 · powershell.exe · pod/task-066 · 작업 1 · 응답 1 · 완료 1" {focusable}
+			StatusBar [상태] "확인 필요 · 출처: unknown · 신뢰도: 100% · 상위: 확인 필요 · 마지막: —"
+		TreeItem [콘솔 트리] "터미널 Worker 198 · powershell · fixture-198" {focusable}
+			StatusBar [상태] "작업 중 · 출처: osc · 신뢰도: 100% · 상위: 작업 중 · 마지막: —"
+		TreeItem [콘솔 트리] "터미널 Worker 199 · powershell · fixture-199" {focusable}
+			StatusBar [상태] "승인 필요 · 출처: osc · 신뢰도: 100% · 상위: 승인 필요 · 마지막: —"
+		TreeItem [콘솔 트리] "터미널 Worker 200 · powershell · fixture-200" {focusable}
+			StatusBar [상태] "완료 · 출처: osc · 신뢰도: 100% · 상위: 완료 · 마지막: —"
+		Button [단추] "작업 sample/task-067 · powershell.exe · pod/task-067 · 응답 1 · 대기 1 · 완료 1 접기" {focusable}
+		TreeItem [콘솔 트리] "작업 sample/task-067 · powershell.exe · pod/task-067 · 응답 1 · 대기 1 · 완료 1" {focusable}
+			StatusBar [상태] "확인 필요 · 출처: unknown · 신뢰도: 100% · 상위: 확인 필요 · 마지막: —"
+		TreeItem [콘솔 트리] "터미널 Worker 201 · powershell · fixture-201" {focusable}
+			StatusBar [상태] "승인 필요 · 출처: osc · 신뢰도: 100% · 상위: 승인 필요 · 마지막: —"
+		TreeItem [콘솔 트리] "터미널 Worker 202 · powershell · fixture-202" {focusable}
+			StatusBar [상태] "완료 · 출처: osc · 신뢰도: 100% · 상위: 완료 · 마지막: —"
+		TreeItem [콘솔 트리] "터미널 Worker 203 · powershell · fixture-203" {focusable}
+			StatusBar [상태] "대기 · 출처: osc · 신뢰도: 100% · 상위: 대기 · 마지막: —"
+		Button [단추] "작업 sample/task-068 · powershell.exe · pod/task-068 · 미확인 1 · 대기 1 · 완료 1 접기" {focusable}
+		TreeItem [콘솔 트리] "작업 sample/task-068 · powershell.exe · pod/task-068 · 미확인 1 · 대기 1 · 완료 1" {focusable}
+			StatusBar [상태] "상태 미확인 · 출처: unknown · 신뢰도: 100% · 상위: 상태 미확인 · 마지막: —"
+		TreeItem [콘솔 트리] "터미널 Worker 204 · powershell · fixture-204" {focusable}
+			StatusBar [상태] "완료 · 출처: osc · 신뢰도: 100% · 상위: 완료 · 마지막: —"
+		TreeItem [콘솔 트리] "터미널 Worker 205 · powershell · fixture-205" {focusable}
+			StatusBar [상태] "대기 · 출처: osc · 신뢰도: 100% · 상위: 대기 · 마지막: —"
+		TreeItem [콘솔 트리] "터미널 Worker 206 · powershell · fixture-206" {focusable}
+			StatusBar [상태] "상태 미확인 · 추정 · 출처: heuristic · 신뢰도: 40% · 상위: 상태 미확인 · 마지막: —"
+		Button [단추] "작업 sample/task-069 · powershell.exe · pod/task-069 · 오류 1 · 미확인 1 · 대기 1 접기" {focusable}
+		TreeItem [콘솔 트리] "작업 sample/task-069 · powershell.exe · pod/task-069 · 오류 1 · 미확인 1 · 대기 1" {focusable}
+			StatusBar [상태] "오류 · 출처: unknown · 신뢰도: 100% · 상위: 오류 · 마지막: —"
+		TreeItem [콘솔 트리] "터미널 Worker 207 · powershell · fixture-207" {focusable}
+			StatusBar [상태] "대기 · 출처: osc · 신뢰도: 100% · 상위: 대기 · 마지막: —"
+		TreeItem [콘솔 트리] "터미널 Worker 208 · powershell · fixture-208" {focusable}
+			StatusBar [상태] "상태 미확인 · 추정 · 출처: heuristic · 신뢰도: 40% · 상위: 상태 미확인 · 마지막: —"
+		TreeItem [콘솔 트리] "터미널 Worker 209 · powershell · fixture-209" {focusable}
+			StatusBar [상태] "오류 · 출처: osc · 신뢰도: 100% · 상위: 오류 · 마지막: —"
+		Button [단추] "작업 sample/task-070 · powershell.exe · pod/task-070 · 작업 1 · 오류 1 · 미확인 1 접기" {focusable}
+		TreeItem [콘솔 트리] "작업 sample/task-070 · powershell.exe · pod/task-070 · 작업 1 · 오류 1 · 미확인 1" {focusable}
+			StatusBar [상태] "오류 · 출처: unknown · 신뢰도: 100% · 상위: 오류 · 마지막: —"
+		TreeItem [콘솔 트리] "터미널 Worker 210 · powershell · fixture-210" {focusable}
+			StatusBar [상태] "상태 미확인 · 추정 · 출처: heuristic · 신뢰도: 40% · 상위: 상태 미확인 · 마지막: —"
+		TreeItem [콘솔 트리] "터미널 Worker 211 · powershell · fixture-211" {focusable}
+			StatusBar [상태] "오류 · 출처: osc · 신뢰도: 100% · 상위: 오류 · 마지막: —"
+		TreeItem [콘솔 트리] "터미널 Worker 212 · powershell · fixture-212" {focusable}
+			StatusBar [상태] "작업 중 · 출처: osc · 신뢰도: 100% · 상위: 작업 중 · 마지막: —"
+		Button [단추] "작업 sample/task-071 · powershell.exe · pod/task-071 · 작업 1 · 응답 1 · 오류 1 접기" {focusable}
+		TreeItem [콘솔 트리] "작업 sample/task-071 · powershell.exe · pod/task-071 · 작업 1 · 응답 1 · 오류 1" {focusable}
+			StatusBar [상태] "오류 · 출처: unknown · 신뢰도: 100% · 상위: 오류 · 마지막: —"
+		TreeItem [콘솔 트리] "터미널 Worker 213 · powershell · fixture-213" {focusable}
+			StatusBar [상태] "오류 · 출처: osc · 신뢰도: 100% · 상위: 오류 · 마지막: —"
+		TreeItem [콘솔 트리] "터미널 Worker 214 · powershell · fixture-214" {focusable}
+			StatusBar [상태] "작업 중 · 출처: osc · 신뢰도: 100% · 상위: 작업 중 · 마지막: —"
+		TreeItem [콘솔 트리] "터미널 Worker 215 · powershell · fixture-215" {focusable}
+			StatusBar [상태] "승인 필요 · 출처: osc · 신뢰도: 100% · 상위: 승인 필요 · 마지막: —"
+		Button [단추] "작업 sample/task-072 · powershell.exe · pod/task-072 · 작업 1 · 응답 1 · 완료 1 접기" {focusable}
+		TreeItem [콘솔 트리] "작업 sample/task-072 · powershell.exe · pod/task-072 · 작업 1 · 응답 1 · 완료 1" {focusable}
+			StatusBar [상태] "확인 필요 · 출처: unknown · 신뢰도: 100% · 상위: 확인 필요 · 마지막: —"
+		TreeItem [콘솔 트리] "터미널 Worker 216 · powershell · fixture-216" {focusable}
+			StatusBar [상태] "작업 중 · 출처: osc · 신뢰도: 100% · 상위: 작업 중 · 마지막: —"
+		TreeItem [콘솔 트리] "터미널 Worker 217 · powershell · fixture-217" {focusable}
+			StatusBar [상태] "승인 필요 · 출처: osc · 신뢰도: 100% · 상위: 승인 필요 · 마지막: —"
+		TreeItem [콘솔 트리] "터미널 Worker 218 · powershell · fixture-218" {focusable}
+			StatusBar [상태] "완료 · 출처: osc · 신뢰도: 100% · 상위: 완료 · 마지막: —"
+		Button [단추] "작업 sample/task-073 · powershell.exe · pod/task-073 · 응답 1 · 대기 1 · 완료 1 접기" {focusable}
+		TreeItem [콘솔 트리] "작업 sample/task-073 · powershell.exe · pod/task-073 · 응답 1 · 대기 1 · 완료 1" {focusable}
+			StatusBar [상태] "확인 필요 · 출처: unknown · 신뢰도: 100% · 상위: 확인 필요 · 마지막: —"
+		TreeItem [콘솔 트리] "터미널 Worker 219 · powershell · fixture-219" {focusable}
+			StatusBar [상태] "승인 필요 · 출처: osc · 신뢰도: 100% · 상위: 승인 필요 · 마지막: —"
+		TreeItem [콘솔 트리] "터미널 Worker 220 · powershell · fixture-220" {focusable}
+			StatusBar [상태] "완료 · 출처: osc · 신뢰도: 100% · 상위: 완료 · 마지막: —"
+		TreeItem [콘솔 트리] "터미널 Worker 221 · powershell · fixture-221" {focusable}
+			StatusBar [상태] "대기 · 출처: osc · 신뢰도: 100% · 상위: 대기 · 마지막: —"
+		Button [단추] "작업 sample/task-074 · powershell.exe · pod/task-074 · 미확인 1 · 대기 1 · 완료 1 접기" {focusable}
+		TreeItem [콘솔 트리] "작업 sample/task-074 · powershell.exe · pod/task-074 · 미확인 1 · 대기 1 · 완료 1" {focusable}
+			StatusBar [상태] "상태 미확인 · 출처: unknown · 신뢰도: 100% · 상위: 상태 미확인 · 마지막: —"
+		TreeItem [콘솔 트리] "터미널 Worker 222 · powershell · fixture-222" {focusable}
+			StatusBar [상태] "완료 · 출처: osc · 신뢰도: 100% · 상위: 완료 · 마지막: —"
+		TreeItem [콘솔 트리] "터미널 Worker 223 · powershell · fixture-223" {focusable}
+			StatusBar [상태] "대기 · 출처: osc · 신뢰도: 100% · 상위: 대기 · 마지막: —"
+		TreeItem [콘솔 트리] "터미널 Worker 224 · powershell · fixture-224" {focusable}
+			StatusBar [상태] "상태 미확인 · 추정 · 출처: heuristic · 신뢰도: 40% · 상위: 상태 미확인 · 마지막: —"
+		Button [단추] "작업 sample/task-075 · powershell.exe · pod/task-075 · 오류 1 · 미확인 1 · 대기 1 접기" {focusable}
+		TreeItem [콘솔 트리] "작업 sample/task-075 · powershell.exe · pod/task-075 · 오류 1 · 미확인 1 · 대기 1" {focusable}
+			StatusBar [상태] "오류 · 출처: unknown · 신뢰도: 100% · 상위: 오류 · 마지막: —"
+		TreeItem [콘솔 트리] "터미널 Worker 225 · powershell · fixture-225" {focusable}
+			StatusBar [상태] "대기 · 출처: osc · 신뢰도: 100% · 상위: 대기 · 마지막: —"
+		TreeItem [콘솔 트리] "터미널 Worker 226 · powershell · fixture-226" {focusable}
+			StatusBar [상태] "상태 미확인 · 추정 · 출처: heuristic · 신뢰도: 40% · 상위: 상태 미확인 · 마지막: —"
+		TreeItem [콘솔 트리] "터미널 Worker 227 · powershell · fixture-227" {focusable}
+			StatusBar [상태] "오류 · 출처: osc · 신뢰도: 100% · 상위: 오류 · 마지막: —"
+		Button [단추] "작업 sample/task-076 · powershell.exe · pod/task-076 · 작업 1 · 오류 1 · 미확인 1 접기" {focusable}
+		TreeItem [콘솔 트리] "작업 sample/task-076 · powershell.exe · pod/task-076 · 작업 1 · 오류 1 · 미확인 1" {focusable}
+			StatusBar [상태] "오류 · 출처: unknown · 신뢰도: 100% · 상위: 오류 · 마지막: —"
+		TreeItem [콘솔 트리] "터미널 Worker 228 · powershell · fixture-228" {focusable}
+			StatusBar [상태] "상태 미확인 · 추정 · 출처: heuristic · 신뢰도: 40% · 상위: 상태 미확인 · 마지막: —"
+		TreeItem [콘솔 트리] "터미널 Worker 229 · powershell · fixture-229" {focusable}
+			StatusBar [상태] "오류 · 출처: osc · 신뢰도: 100% · 상위: 오류 · 마지막: —"
+		TreeItem [콘솔 트리] "터미널 Worker 230 · powershell · fixture-230" {focusable}
+			StatusBar [상태] "작업 중 · 출처: osc · 신뢰도: 100% · 상위: 작업 중 · 마지막: —"
+		Button [단추] "작업 sample/task-077 · powershell.exe · pod/task-077 · 작업 1 · 응답 1 · 오류 1 접기" {focusable}
+		TreeItem [콘솔 트리] "작업 sample/task-077 · powershell.exe · pod/task-077 · 작업 1 · 응답 1 · 오류 1" {focusable}
+			StatusBar [상태] "오류 · 출처: unknown · 신뢰도: 100% · 상위: 오류 · 마지막: —"
+		TreeItem [콘솔 트리] "터미널 Worker 231 · powershell · fixture-231" {focusable}
+			StatusBar [상태] "오류 · 출처: osc · 신뢰도: 100% · 상위: 오류 · 마지막: —"
+		TreeItem [콘솔 트리] "터미널 Worker 232 · powershell · fixture-232" {focusable}
+			StatusBar [상태] "작업 중 · 출처: osc · 신뢰도: 100% · 상위: 작업 중 · 마지막: —"
+		TreeItem [콘솔 트리] "터미널 Worker 233 · powershell · fixture-233" {focusable}
+			StatusBar [상태] "승인 필요 · 출처: osc · 신뢰도: 100% · 상위: 승인 필요 · 마지막: —"
+		Button [단추] "작업 sample/task-078 · powershell.exe · pod/task-078 · 작업 1 · 응답 1 · 완료 1 접기" {focusable}
+		TreeItem [콘솔 트리] "작업 sample/task-078 · powershell.exe · pod/task-078 · 작업 1 · 응답 1 · 완료 1" {focusable}
+			StatusBar [상태] "확인 필요 · 출처: unknown · 신뢰도: 100% · 상위: 확인 필요 · 마지막: —"
+		TreeItem [콘솔 트리] "터미널 Worker 234 · powershell · fixture-234" {focusable}
+			StatusBar [상태] "작업 중 · 출처: osc · 신뢰도: 100% · 상위: 작업 중 · 마지막: —"
+		TreeItem [콘솔 트리] "터미널 Worker 235 · powershell · fixture-235" {focusable}
+			StatusBar [상태] "승인 필요 · 출처: osc · 신뢰도: 100% · 상위: 승인 필요 · 마지막: —"
+		TreeItem [콘솔 트리] "터미널 Worker 236 · powershell · fixture-236" {focusable}
+			StatusBar [상태] "완료 · 출처: osc · 신뢰도: 100% · 상위: 완료 · 마지막: —"
+		Button [단추] "작업 sample/task-079 · powershell.exe · pod/task-079 · 응답 1 · 대기 1 · 완료 1 접기" {focusable}
+		TreeItem [콘솔 트리] "작업 sample/task-079 · powershell.exe · pod/task-079 · 응답 1 · 대기 1 · 완료 1" {focusable}
+			StatusBar [상태] "확인 필요 · 출처: unknown · 신뢰도: 100% · 상위: 확인 필요 · 마지막: —"
+		TreeItem [콘솔 트리] "터미널 Worker 237 · powershell · fixture-237" {focusable}
+			StatusBar [상태] "승인 필요 · 출처: osc · 신뢰도: 100% · 상위: 승인 필요 · 마지막: —"
+		TreeItem [콘솔 트리] "터미널 Worker 238 · powershell · fixture-238" {focusable}
+			StatusBar [상태] "완료 · 출처: osc · 신뢰도: 100% · 상위: 완료 · 마지막: —"
+		TreeItem [콘솔 트리] "터미널 Worker 239 · powershell · fixture-239" {focusable}
+			StatusBar [상태] "대기 · 출처: osc · 신뢰도: 100% · 상위: 대기 · 마지막: —"
+		Button [단추] "작업 sample/task-080 · powershell.exe · pod/task-080 · 미확인 1 · 대기 1 · 완료 1 접기" {focusable}
+		TreeItem [콘솔 트리] "작업 sample/task-080 · powershell.exe · pod/task-080 · 미확인 1 · 대기 1 · 완료 1" {focusable}
+			StatusBar [상태] "상태 미확인 · 출처: unknown · 신뢰도: 100% · 상위: 상태 미확인 · 마지막: —"
+		TreeItem [콘솔 트리] "터미널 Worker 240 · powershell · fixture-240" {focusable}
+			StatusBar [상태] "완료 · 출처: osc · 신뢰도: 100% · 상위: 완료 · 마지막: —"
+		TreeItem [콘솔 트리] "터미널 Worker 241 · powershell · fixture-241" {focusable}
+			StatusBar [상태] "대기 · 출처: osc · 신뢰도: 100% · 상위: 대기 · 마지막: —"
+		TreeItem [콘솔 트리] "터미널 Worker 242 · powershell · fixture-242" {focusable}
+			StatusBar [상태] "상태 미확인 · 추정 · 출처: heuristic · 신뢰도: 40% · 상위: 상태 미확인 · 마지막: —"
+		Button [단추] "작업 sample/task-081 · powershell.exe · pod/task-081 · 오류 1 · 미확인 1 · 대기 1 접기" {focusable}
+		TreeItem [콘솔 트리] "작업 sample/task-081 · powershell.exe · pod/task-081 · 오류 1 · 미확인 1 · 대기 1" {focusable}
+			StatusBar [상태] "오류 · 출처: unknown · 신뢰도: 100% · 상위: 오류 · 마지막: —"
+		TreeItem [콘솔 트리] "터미널 Worker 243 · powershell · fixture-243" {focusable}
+			StatusBar [상태] "대기 · 출처: osc · 신뢰도: 100% · 상위: 대기 · 마지막: —"
+		TreeItem [콘솔 트리] "터미널 Worker 244 · powershell · fixture-244" {focusable}
+			StatusBar [상태] "상태 미확인 · 추정 · 출처: heuristic · 신뢰도: 40% · 상위: 상태 미확인 · 마지막: —"
+		TreeItem [콘솔 트리] "터미널 Worker 245 · powershell · fixture-245" {focusable}
+			StatusBar [상태] "오류 · 출처: osc · 신뢰도: 100% · 상위: 오류 · 마지막: —"
+		Button [단추] "작업 sample/task-082 · powershell.exe · pod/task-082 · 작업 1 · 오류 1 · 미확인 1 접기" {focusable}
+		TreeItem [콘솔 트리] "작업 sample/task-082 · powershell.exe · pod/task-082 · 작업 1 · 오류 1 · 미확인 1" {focusable}
+			StatusBar [상태] "오류 · 출처: unknown · 신뢰도: 100% · 상위: 오류 · 마지막: —"
+		TreeItem [콘솔 트리] "터미널 Worker 246 · powershell · fixture-246" {focusable}
+			StatusBar [상태] "상태 미확인 · 추정 · 출처: heuristic · 신뢰도: 40% · 상위: 상태 미확인 · 마지막: —"
+		TreeItem [콘솔 트리] "터미널 Worker 247 · powershell · fixture-247" {focusable}
+			StatusBar [상태] "오류 · 출처: osc · 신뢰도: 100% · 상위: 오류 · 마지막: —"
+		TreeItem [콘솔 트리] "터미널 Worker 248 · powershell · fixture-248" {focusable}
+			StatusBar [상태] "작업 중 · 출처: osc · 신뢰도: 100% · 상위: 작업 중 · 마지막: —"
+		Button [단추] "작업 sample/task-083 · powershell.exe · pod/task-083 · 작업 1 · 응답 1 · 오류 1 접기" {focusable}
+		TreeItem [콘솔 트리] "작업 sample/task-083 · powershell.exe · pod/task-083 · 작업 1 · 응답 1 · 오류 1" {focusable}
+			StatusBar [상태] "오류 · 출처: unknown · 신뢰도: 100% · 상위: 오류 · 마지막: —"
+		TreeItem [콘솔 트리] "터미널 Worker 249 · powershell · fixture-249" {focusable}
+			StatusBar [상태] "오류 · 출처: osc · 신뢰도: 100% · 상위: 오류 · 마지막: —"
+		TreeItem [콘솔 트리] "터미널 Worker 250 · powershell · fixture-250" {focusable}
+			StatusBar [상태] "작업 중 · 출처: osc · 신뢰도: 100% · 상위: 작업 중 · 마지막: —"
+		TreeItem [콘솔 트리] "터미널 Worker 251 · powershell · fixture-251" {focusable}
+			StatusBar [상태] "승인 필요 · 출처: osc · 신뢰도: 100% · 상위: 승인 필요 · 마지막: —"
+		Button [단추] "작업 sample/task-084 · powershell.exe · pod/task-084 · 작업 1 · 응답 1 · 완료 1 접기" {focusable}
+		TreeItem [콘솔 트리] "작업 sample/task-084 · powershell.exe · pod/task-084 · 작업 1 · 응답 1 · 완료 1" {focusable}
+			StatusBar [상태] "확인 필요 · 출처: unknown · 신뢰도: 100% · 상위: 확인 필요 · 마지막: —"
+		TreeItem [콘솔 트리] "터미널 Worker 252 · powershell · fixture-252" {focusable}
+			StatusBar [상태] "작업 중 · 출처: osc · 신뢰도: 100% · 상위: 작업 중 · 마지막: —"
+		TreeItem [콘솔 트리] "터미널 Worker 253 · powershell · fixture-253" {focusable}
+			StatusBar [상태] "승인 필요 · 출처: osc · 신뢰도: 100% · 상위: 승인 필요 · 마지막: —"
+		TreeItem [콘솔 트리] "터미널 Worker 254 · powershell · fixture-254" {focusable}
+			StatusBar [상태] "완료 · 출처: osc · 신뢰도: 100% · 상위: 완료 · 마지막: —"
+		Button [단추] "작업 sample/task-085 · powershell.exe · pod/task-085 · 응답 1 · 대기 1 · 완료 1 접기" {focusable}
+		TreeItem [콘솔 트리] "작업 sample/task-085 · powershell.exe · pod/task-085 · 응답 1 · 대기 1 · 완료 1" {focusable}
+			StatusBar [상태] "확인 필요 · 출처: unknown · 신뢰도: 100% · 상위: 확인 필요 · 마지막: —"
+		TreeItem [콘솔 트리] "터미널 Worker 255 · powershell · fixture-255" {focusable}
+			StatusBar [상태] "승인 필요 · 출처: osc · 신뢰도: 100% · 상위: 승인 필요 · 마지막: —"
+		TreeItem [콘솔 트리] "터미널 Worker 256 · powershell · fixture-256" {focusable}
+			StatusBar [상태] "완료 · 출처: osc · 신뢰도: 100% · 상위: 완료 · 마지막: —"
+		TreeItem [콘솔 트리] "터미널 Worker 257 · powershell · fixture-257" {focusable}
+			StatusBar [상태] "대기 · 출처: osc · 신뢰도: 100% · 상위: 대기 · 마지막: —"
+		Button [단추] "작업 sample/task-086 · powershell.exe · pod/task-086 · 미확인 1 · 대기 1 · 완료 1 접기" {focusable}
+		TreeItem [콘솔 트리] "작업 sample/task-086 · powershell.exe · pod/task-086 · 미확인 1 · 대기 1 · 완료 1" {focusable}
+			StatusBar [상태] "상태 미확인 · 출처: unknown · 신뢰도: 100% · 상위: 상태 미확인 · 마지막: —"
+		TreeItem [콘솔 트리] "터미널 Worker 258 · powershell · fixture-258" {focusable}
+			StatusBar [상태] "완료 · 출처: osc · 신뢰도: 100% · 상위: 완료 · 마지막: —"
+		TreeItem [콘솔 트리] "터미널 Worker 259 · powershell · fixture-259" {focusable}
+			StatusBar [상태] "대기 · 출처: osc · 신뢰도: 100% · 상위: 대기 · 마지막: —"
+		TreeItem [콘솔 트리] "터미널 Worker 260 · powershell · fixture-260" {focusable}
+			StatusBar [상태] "상태 미확인 · 추정 · 출처: heuristic · 신뢰도: 40% · 상위: 상태 미확인 · 마지막: —"
+		Button [단추] "작업 sample/task-087 · powershell.exe · pod/task-087 · 오류 1 · 미확인 1 · 대기 1 접기" {focusable}
+		TreeItem [콘솔 트리] "작업 sample/task-087 · powershell.exe · pod/task-087 · 오류 1 · 미확인 1 · 대기 1" {focusable}
+			StatusBar [상태] "오류 · 출처: unknown · 신뢰도: 100% · 상위: 오류 · 마지막: —"
+		TreeItem [콘솔 트리] "터미널 Worker 261 · powershell · fixture-261" {focusable}
+			StatusBar [상태] "대기 · 출처: osc · 신뢰도: 100% · 상위: 대기 · 마지막: —"
+		TreeItem [콘솔 트리] "터미널 Worker 262 · powershell · fixture-262" {focusable}
+			StatusBar [상태] "상태 미확인 · 추정 · 출처: heuristic · 신뢰도: 40% · 상위: 상태 미확인 · 마지막: —"
+		TreeItem [콘솔 트리] "터미널 Worker 263 · powershell · fixture-263" {focusable}
+			StatusBar [상태] "오류 · 출처: osc · 신뢰도: 100% · 상위: 오류 · 마지막: —"
+		Button [단추] "작업 sample/task-088 · powershell.exe · pod/task-088 · 작업 1 · 오류 1 · 미확인 1 접기" {focusable}
+		TreeItem [콘솔 트리] "작업 sample/task-088 · powershell.exe · pod/task-088 · 작업 1 · 오류 1 · 미확인 1" {focusable}
+			StatusBar [상태] "오류 · 출처: unknown · 신뢰도: 100% · 상위: 오류 · 마지막: —"
+		TreeItem [콘솔 트리] "터미널 Worker 264 · powershell · fixture-264" {focusable}
+			StatusBar [상태] "상태 미확인 · 추정 · 출처: heuristic · 신뢰도: 40% · 상위: 상태 미확인 · 마지막: —"
+		TreeItem [콘솔 트리] "터미널 Worker 265 · powershell · fixture-265" {focusable}
+			StatusBar [상태] "오류 · 출처: osc · 신뢰도: 100% · 상위: 오류 · 마지막: —"
+		TreeItem [콘솔 트리] "터미널 Worker 266 · powershell · fixture-266" {focusable}
+			StatusBar [상태] "작업 중 · 출처: osc · 신뢰도: 100% · 상위: 작업 중 · 마지막: —"
+		Button [단추] "작업 sample/task-089 · powershell.exe · pod/task-089 · 작업 1 · 응답 1 · 오류 1 접기" {focusable}
+		TreeItem [콘솔 트리] "작업 sample/task-089 · powershell.exe · pod/task-089 · 작업 1 · 응답 1 · 오류 1" {focusable}
+			StatusBar [상태] "오류 · 출처: unknown · 신뢰도: 100% · 상위: 오류 · 마지막: —"
+		TreeItem [콘솔 트리] "터미널 Worker 267 · powershell · fixture-267" {focusable}
+			StatusBar [상태] "오류 · 출처: osc · 신뢰도: 100% · 상위: 오류 · 마지막: —"
+		TreeItem [콘솔 트리] "터미널 Worker 268 · powershell · fixture-268" {focusable}
+			StatusBar [상태] "작업 중 · 출처: osc · 신뢰도: 100% · 상위: 작업 중 · 마지막: —"
+		TreeItem [콘솔 트리] "터미널 Worker 269 · powershell · fixture-269" {focusable}
+			StatusBar [상태] "승인 필요 · 출처: osc · 신뢰도: 100% · 상위: 승인 필요 · 마지막: —"
+		Button [단추] "작업 sample/task-090 · powershell.exe · pod/task-090 · 작업 1 · 응답 1 · 완료 1 접기" {focusable}
+		TreeItem [콘솔 트리] "작업 sample/task-090 · powershell.exe · pod/task-090 · 작업 1 · 응답 1 · 완료 1" {focusable}
+			StatusBar [상태] "확인 필요 · 출처: unknown · 신뢰도: 100% · 상위: 확인 필요 · 마지막: —"
+		TreeItem [콘솔 트리] "터미널 Worker 270 · powershell · fixture-270" {focusable}
+			StatusBar [상태] "작업 중 · 출처: osc · 신뢰도: 100% · 상위: 작업 중 · 마지막: —"
+		TreeItem [콘솔 트리] "터미널 Worker 271 · powershell · fixture-271" {focusable}
+			StatusBar [상태] "승인 필요 · 출처: osc · 신뢰도: 100% · 상위: 승인 필요 · 마지막: —"
+		TreeItem [콘솔 트리] "터미널 Worker 272 · powershell · fixture-272" {focusable}
+			StatusBar [상태] "완료 · 출처: osc · 신뢰도: 100% · 상위: 완료 · 마지막: —"
+		Button [단추] "작업 sample/task-091 · powershell.exe · pod/task-091 · 응답 1 · 대기 1 · 완료 1 접기" {focusable}
+		TreeItem [콘솔 트리] "작업 sample/task-091 · powershell.exe · pod/task-091 · 응답 1 · 대기 1 · 완료 1" {focusable}
+			StatusBar [상태] "확인 필요 · 출처: unknown · 신뢰도: 100% · 상위: 확인 필요 · 마지막: —"
+		TreeItem [콘솔 트리] "터미널 Worker 273 · powershell · fixture-273" {focusable}
+			StatusBar [상태] "승인 필요 · 출처: osc · 신뢰도: 100% · 상위: 승인 필요 · 마지막: —"
+		TreeItem [콘솔 트리] "터미널 Worker 274 · powershell · fixture-274" {focusable}
+			StatusBar [상태] "완료 · 출처: osc · 신뢰도: 100% · 상위: 완료 · 마지막: —"
+		TreeItem [콘솔 트리] "터미널 Worker 275 · powershell · fixture-275" {focusable}
+			StatusBar [상태] "대기 · 출처: osc · 신뢰도: 100% · 상위: 대기 · 마지막: —"
+		Button [단추] "작업 sample/task-092 · powershell.exe · pod/task-092 · 미확인 1 · 대기 1 · 완료 1 접기" {focusable}
+		TreeItem [콘솔 트리] "작업 sample/task-092 · powershell.exe · pod/task-092 · 미확인 1 · 대기 1 · 완료 1" {focusable}
+			StatusBar [상태] "상태 미확인 · 출처: unknown · 신뢰도: 100% · 상위: 상태 미확인 · 마지막: —"
+		TreeItem [콘솔 트리] "터미널 Worker 276 · powershell · fixture-276" {focusable}
+			StatusBar [상태] "완료 · 출처: osc · 신뢰도: 100% · 상위: 완료 · 마지막: —"
+		TreeItem [콘솔 트리] "터미널 Worker 277 · powershell · fixture-277" {focusable}
+			StatusBar [상태] "대기 · 출처: osc · 신뢰도: 100% · 상위: 대기 · 마지막: —"
+		TreeItem [콘솔 트리] "터미널 Worker 278 · powershell · fixture-278" {focusable}
+			StatusBar [상태] "상태 미확인 · 추정 · 출처: heuristic · 신뢰도: 40% · 상위: 상태 미확인 · 마지막: —"
+		Button [단추] "작업 sample/task-093 · powershell.exe · pod/task-093 · 오류 1 · 미확인 1 · 대기 1 접기" {focusable}
+		TreeItem [콘솔 트리] "작업 sample/task-093 · powershell.exe · pod/task-093 · 오류 1 · 미확인 1 · 대기 1" {focusable}
+			StatusBar [상태] "오류 · 출처: unknown · 신뢰도: 100% · 상위: 오류 · 마지막: —"
+		TreeItem [콘솔 트리] "터미널 Worker 279 · powershell · fixture-279" {focusable}
+			StatusBar [상태] "대기 · 출처: osc · 신뢰도: 100% · 상위: 대기 · 마지막: —"
+		TreeItem [콘솔 트리] "터미널 Worker 280 · powershell · fixture-280" {focusable}
+			StatusBar [상태] "상태 미확인 · 추정 · 출처: heuristic · 신뢰도: 40% · 상위: 상태 미확인 · 마지막: —"
+		TreeItem [콘솔 트리] "터미널 Worker 281 · powershell · fixture-281" {focusable}
+			StatusBar [상태] "오류 · 출처: osc · 신뢰도: 100% · 상위: 오류 · 마지막: —"
+		Button [단추] "작업 sample/task-094 · powershell.exe · pod/task-094 · 작업 1 · 오류 1 · 미확인 1 접기" {focusable}
+		TreeItem [콘솔 트리] "작업 sample/task-094 · powershell.exe · pod/task-094 · 작업 1 · 오류 1 · 미확인 1" {focusable}
+			StatusBar [상태] "오류 · 출처: unknown · 신뢰도: 100% · 상위: 오류 · 마지막: —"
+		TreeItem [콘솔 트리] "터미널 Worker 282 · powershell · fixture-282" {focusable}
+			StatusBar [상태] "상태 미확인 · 추정 · 출처: heuristic · 신뢰도: 40% · 상위: 상태 미확인 · 마지막: —"
+		TreeItem [콘솔 트리] "터미널 Worker 283 · powershell · fixture-283" {focusable}
+			StatusBar [상태] "오류 · 출처: osc · 신뢰도: 100% · 상위: 오류 · 마지막: —"
+		TreeItem [콘솔 트리] "터미널 Worker 284 · powershell · fixture-284" {focusable}
+			StatusBar [상태] "작업 중 · 출처: osc · 신뢰도: 100% · 상위: 작업 중 · 마지막: —"
+		Button [단추] "작업 sample/task-095 · powershell.exe · pod/task-095 · 작업 1 · 응답 1 · 오류 1 접기" {focusable}
+		TreeItem [콘솔 트리] "작업 sample/task-095 · powershell.exe · pod/task-095 · 작업 1 · 응답 1 · 오류 1" {focusable}
+			StatusBar [상태] "오류 · 출처: unknown · 신뢰도: 100% · 상위: 오류 · 마지막: —"
+		TreeItem [콘솔 트리] "터미널 Worker 285 · powershell · fixture-285" {focusable}
+			StatusBar [상태] "오류 · 출처: osc · 신뢰도: 100% · 상위: 오류 · 마지막: —"
+		TreeItem [콘솔 트리] "터미널 Worker 286 · powershell · fixture-286" {focusable}
+			StatusBar [상태] "작업 중 · 출처: osc · 신뢰도: 100% · 상위: 작업 중 · 마지막: —"
+		TreeItem [콘솔 트리] "터미널 Worker 287 · powershell · fixture-287" {focusable}
+			StatusBar [상태] "승인 필요 · 출처: osc · 신뢰도: 100% · 상위: 승인 필요 · 마지막: —"
+		Button [단추] "작업 sample/task-096 · powershell.exe · pod/task-096 · 작업 1 · 응답 1 · 완료 1 접기" {focusable}
+		TreeItem [콘솔 트리] "작업 sample/task-096 · powershell.exe · pod/task-096 · 작업 1 · 응답 1 · 완료 1" {focusable}
+			StatusBar [상태] "확인 필요 · 출처: unknown · 신뢰도: 100% · 상위: 확인 필요 · 마지막: —"
+		TreeItem [콘솔 트리] "터미널 Worker 288 · powershell · fixture-288" {focusable}
+			StatusBar [상태] "작업 중 · 출처: osc · 신뢰도: 100% · 상위: 작업 중 · 마지막: —"
+		TreeItem [콘솔 트리] "터미널 Worker 289 · powershell · fixture-289" {focusable}
+			StatusBar [상태] "승인 필요 · 출처: osc · 신뢰도: 100% · 상위: 승인 필요 · 마지막: —"
+		TreeItem [콘솔 트리] "터미널 Worker 290 · powershell · fixture-290" {focusable}
+			StatusBar [상태] "완료 · 출처: osc · 신뢰도: 100% · 상위: 완료 · 마지막: —"
+		Button [단추] "작업 sample/task-097 · powershell.exe · pod/task-097 · 응답 1 · 대기 1 · 완료 1 접기" {focusable}
+		TreeItem [콘솔 트리] "작업 sample/task-097 · powershell.exe · pod/task-097 · 응답 1 · 대기 1 · 완료 1" {focusable}
+			StatusBar [상태] "확인 필요 · 출처: unknown · 신뢰도: 100% · 상위: 확인 필요 · 마지막: —"
+		TreeItem [콘솔 트리] "터미널 Worker 291 · powershell · fixture-291" {focusable}
+			StatusBar [상태] "승인 필요 · 출처: osc · 신뢰도: 100% · 상위: 승인 필요 · 마지막: —"
+		TreeItem [콘솔 트리] "터미널 Worker 292 · powershell · fixture-292" {focusable}
+			StatusBar [상태] "완료 · 출처: osc · 신뢰도: 100% · 상위: 완료 · 마지막: —"
+		TreeItem [콘솔 트리] "터미널 Worker 293 · powershell · fixture-293" {focusable}
+			StatusBar [상태] "대기 · 출처: osc · 신뢰도: 100% · 상위: 대기 · 마지막: —"
+		Button [단추] "작업 sample/task-098 · powershell.exe · pod/task-098 · 미확인 1 · 대기 1 · 완료 1 접기" {focusable}
+		TreeItem [콘솔 트리] "작업 sample/task-098 · powershell.exe · pod/task-098 · 미확인 1 · 대기 1 · 완료 1" {focusable}
+			StatusBar [상태] "상태 미확인 · 출처: unknown · 신뢰도: 100% · 상위: 상태 미확인 · 마지막: —"
+		TreeItem [콘솔 트리] "터미널 Worker 294 · powershell · fixture-294" {focusable}
+			StatusBar [상태] "완료 · 출처: osc · 신뢰도: 100% · 상위: 완료 · 마지막: —"
+		TreeItem [콘솔 트리] "터미널 Worker 295 · powershell · fixture-295" {focusable}
+			StatusBar [상태] "대기 · 출처: osc · 신뢰도: 100% · 상위: 대기 · 마지막: —"
+		TreeItem [콘솔 트리] "터미널 Worker 296 · powershell · fixture-296" {focusable}
+			StatusBar [상태] "상태 미확인 · 추정 · 출처: heuristic · 신뢰도: 40% · 상위: 상태 미확인 · 마지막: —"
+		Button [단추] "작업 sample/task-099 · powershell.exe · pod/task-099 · 오류 1 · 미확인 1 · 대기 1 접기" {focusable}
+		TreeItem [콘솔 트리] "작업 sample/task-099 · powershell.exe · pod/task-099 · 오류 1 · 미확인 1 · 대기 1" {focusable}
+			StatusBar [상태] "오류 · 출처: unknown · 신뢰도: 100% · 상위: 오류 · 마지막: —"
+		TreeItem [콘솔 트리] "터미널 Worker 297 · powershell · fixture-297" {focusable}
+			StatusBar [상태] "대기 · 출처: osc · 신뢰도: 100% · 상위: 대기 · 마지막: —"
+		TreeItem [콘솔 트리] "터미널 Worker 298 · powershell · fixture-298" {focusable}
+			StatusBar [상태] "상태 미확인 · 추정 · 출처: heuristic · 신뢰도: 40% · 상위: 상태 미확인 · 마지막: —"
+		TreeItem [콘솔 트리] "터미널 Worker 299 · powershell · fixture-299" {focusable}
+			StatusBar [상태] "오류 · 출처: osc · 신뢰도: 100% · 상위: 오류 · 마지막: —"
+	Button [단추] "상태" {focusable; desc=상태 인스펙터 (Ctrl+Shift+S)}
+	Button [단추] "알림 0" {focusable; desc=알림 (Ctrl+Shift+B)}

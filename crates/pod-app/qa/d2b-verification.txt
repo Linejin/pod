@@ -1,0 +1,27 @@
+Final source: 8d0f633; branch SJin-Choi/d2b-polish; master a35648d merged as 7a63fdb.
+Private target directory; sccache; CARGO_BUILD_JOBS=4; RUST_TEST_THREADS=4.
+CPU gate -MaxPct 70 -MaxCargo 1 used before every cargo invocation and app launch.
+
+cargo check -p pod-app: exit 0
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 1.95s
+cargo build --workspace --release: exit 0
+    Finished `release` profile [optimized + debuginfo] target(s) in 23.03s
+cargo test --workspace --release: exit 0
+Aggregate: 270 passed; 0 failed; 1 ignored (existing terminal-view doctest).
+pod-app 46 passed; pod-ui 10 passed; pod-terminal-view 28 passed.
+Known flaky slow_attach_client_is_dropped_and_can_reattach passed in this full run.
+Initial English-copy assertion failures are preserved in d2b-tests-initial.txt; only obsolete expected text was corrected before the passing full run.
+
+cargo clippy -p pod-app -p pod-ui -p pod-terminal-view --all-targets -- -D warnings: exit 0
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 3.80s
+cargo deny check: exit 0 (run on e4476b3; subsequent change only hides empty file list, no dependency change)
+warning[license-not-encountered]: license was not encountered
+   ┌─ C:\Users\User\dev\workspaces\ide\d2b-polish\deny.toml:22:6
+   │
+22 │     "ISC",
+   │      ━━━ unmatched license allowance
+
+advisories ok, bans ok, licenses ok, sources ok
+
+Native keyboard gate: NOT PASSED. Final Tab attempt on integrated release returned window_not_focused; see d2b-native-keyboard-final.json.
+Visual navigation uses semantic UIA and targeted window messages, not a native keyboard claim.

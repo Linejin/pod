@@ -1,0 +1,41 @@
+﻿
+test layouts::rail::tests::attention_drawer_by_keyboard_reaches_another_tasks_request ... [native-qa] rail-attention | keys ctrl-alt-a | focus: workspace control [Root > PodRail]
+[native-qa] rail-attention | keys escape | focus: terminal w1
+[native-qa] rail-attention | keys ctrl-alt-a | focus: workspace control [Root > PodRail]
+[native-qa] rail-attention | keys enter | focus: terminal b1
+ok
+test layouts::rail::tests::attention_lists_other_tasks_requests_before_failures ... ok
+test layouts::rail::tests::closing_a_rail_tab_closes_the_panel_and_a_switch_does_not ... ok
+test layouts::rail::tests::default_shape_is_one_wide_group_and_a_stack ... ok
+test layouts::rail::tests::korean_titles_are_measured_as_full_width ... ok
+test layouts::rail::tests::layout_switch_keeps_terminals_and_restores_the_workbench_dock ... [native-qa] rail-switch | keys ctrl-alt-pageup | focus: terminal w1
+ok
+test layouts::rail::tests::long_korean_titles_fit_at_175_percent_in_a_small_window ... ok
+test layouts::rail::tests::per_task_arrangement_survives_task_switches ... [native-qa] rail-shapes | keys ctrl-shift-g | focus: terminal w3
+[native-qa] rail-shapes | keys ctrl-alt-pageup | focus: terminal w1
+ok
+test layouts::rail::tests::plan_keeps_the_users_arrangement_drops_closed_and_shows_new_panels ... ok
+test layouts::rail::tests::shape_shown_and_retain ... ok
+test layouts::rail::tests::step_wraps_through_the_tabs ... ok
+test layouts::rail::tests::tab_order_reaches_the_rail_tabs_and_switcher ... [native-qa] rail-tab-order | press tab | focus: workspace control [Root]
+[native-qa] rail-tab-order | press tab | focus: workspace control [Root]
+[native-qa] rail-tab-order | press tab | focus: workspace control [Root > PodRail]
+[native-qa] rail-tab-order | press tab | focus: workspace control [Root > PodRail]
+[native-qa] rail-tab-order | press tab | focus: workspace control [Root > PodRail]
+[native-qa] rail-tab-order | press tab | focus: workspace control [Root > PodRail]
+[native-qa] rail-tab-order | press tab | focus: workspace control [Root > PodRail]
+[native-qa] rail-tab-order | press tab | focus: workspace control [Root > PodRail]
+[native-qa] rail-tab-order | press tab | focus: workspace control [Root > PodRail]
+[native-qa] rail-tab-order | press tab | focus: workspace control [Root > PodRail]
+ok
+test layouts::rail::tests::tabs_are_open_recent_and_current_tasks_in_task_order ... ok
+test layouts::rail::tests::tabs_fit_and_the_current_one_is_always_visible ... ok
+test layouts::rail::tests::task_switcher_and_tab_strip_by_keyboard ... [native-qa] rail-switcher | keys ctrl-alt-t | focus: workspace control [Root > PodRail]
+[native-qa] rail-switcher | keys down | focus: workspace control [Root > PodRail]
+[native-qa] rail-switcher | keys down | focus: workspace control [Root > PodRail]
+[native-qa] rail-switcher | keys enter | focus: workspace control [Root > PodRail]
+[native-qa] rail-switcher | keys left | focus: workspace control [Root > PodRail]
+[native-qa] rail-switcher | keys enter | focus: workspace control [Root > PodRail]
+ok
+
+

@@ -1,0 +1,12 @@
+{
+  "id": "agents-quad",
+  "title": "4분할 에이전트",
+  "description": "현재 작업(없으면 열린 패널)의 터미널 네 개를 2×2로",
+  "center": {
+    "split": "v",
+    "children": [
+      { "split": "h", "children": [{ "panel": "terminal", "index": 0 }, { "panel": "terminal", "index": 1 }] },
+      { "split": "h", "children": [{ "panel": "terminal", "index": 2 }, { "panel": "terminal", "index": 3 }] }
+    ]
+  }
+}

@@ -1,0 +1,71 @@
+# cargo-deny policy for the Pod workspace (Apache-2.0 project).
+#   cargo deny check
+#
+# Licenses: only permissive licenses compatible with Apache-2.0/MIT
+# distribution. No GPL / AGPL / LGPL (not listed => denied). Copyleft of any
+# strength needs an explicit, reviewed per-crate exception below.
+
+[graph]
+targets = [{ triple = "x86_64-pc-windows-msvc" }]
+all-features = false
+# The UI/diff spikes are not shipped and not default members (Cargo.toml).
+exclude = ["pod-spike", "diff-spike"]
+
+[licenses]
+version = 2
+confidence-threshold = 0.9
+allow = [
+    "Apache-2.0",
+    "Apache-2.0 WITH LLVM-exception",
+    "MIT",
+    "MIT-0",
+    "BSD-2-Clause",
+    "BSD-3-Clause",
+    "ISC",
+    "Zlib",
+    "0BSD",
+    "BSL-1.0",
+    "CC0-1.0",
+    "Unlicense",
+    "Unicode-3.0",
+]
+exceptions = [
+    # Weak copyleft (file-level). Shipped: the GPUI stack of pod-app
+    # (gpui-kit -> gpui-kit-assets -> rust-embed -> shellexpand -> dirs ->
+    # dirs-sys -> option-ext; also via pod-ui, pod-editor, pod-diff,
+    # pod-terminal-view). Used unmodified, which MPL-2.0 permits in an
+    # Apache-2.0 work; tools/installer/notices.ps1 ships its license text and
+    # repository URL (source availability). Re-checked 2026-11-10.
+    { crate = "option-ext", allow = ["MPL-2.0"] },
+]
+
+[licenses.private]
+# Our own crates are `publish = false`; they are Apache-2.0 via the workspace.
+ignore = true
+
+[bans]
+multiple-versions = "allow"
+wildcards = "deny"
+allow-wildcard-paths = true
+
+[advisories]
+version = 2
+yanked = "warn"
+# Vulnerabilities fail at any depth, and so do "unmaintained" notices for any
+# crate in the graph: a new notice fails the check. The known ones below are
+# all transitive through the GPUI stack (gpui-kit 0.9 / gpui-pre 0.3.11) that
+# the shipped pod-app uses; podd, pod-cli, pod-hook do not reach them. None
+# has a safe upgrade; they go away when gpui-kit moves on. Re-check each by
+# 2027-02-10 or when gpui-kit is upgraded, whichever comes first.
+unmaintained = "all"
+ignore = [
+    { id = "RUSTSEC-2024-0384", reason = "instant: via gpui-base / gpui-component (pod-app); no upgrade, review 2027-02-10" },
+    { id = "RUSTSEC-2024-0436", reason = "paste: proc-macro via gpui-component (pod-app); no upgrade, review 2027-02-10" },
+    { id = "RUSTSEC-2026-0206", reason = "rustybuzz: text shaping via gpui-pre (pod-app); no upgrade, review 2027-02-10" },
+    { id = "RUSTSEC-2026-0192", reason = "ttf-parser: font parsing via gpui-pre / resvg (pod-app); no upgrade, review 2027-02-10" },
+]
+
+[sources]
+unknown-registry = "deny"
+unknown-git = "deny"
+allow-registry = ["https://github.com/rust-lang/crates.io-index"]

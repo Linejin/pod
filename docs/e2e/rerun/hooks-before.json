@@ -1,0 +1,57 @@
+﻿{
+  "bin": "C:\\Users\\User\\AppData\\Local\\Pod\\bin\\pod-hook.exe",
+  "bin_exists": true,
+  "bin_current": false,
+  "agents": [
+    {
+      "agent": "claude",
+      "path": "C:\\Users\\User\\.claude\\settings.json",
+      "exists": true,
+      "pod_events": [
+        "SessionStart",
+        "UserPromptSubmit",
+        "Stop",
+        "StopFailure",
+        "SubagentStart",
+        "SubagentStop",
+        "PreToolUse",
+        "PostToolUse",
+        "PostToolUseFailure",
+        "PermissionRequest",
+        "Elicitation",
+        "ElicitationResult",
+        "SessionEnd"
+      ],
+      "foreign_groups": 16,
+      "hook_exes": [
+        [
+          "C:/Users/User/AppData/Local/Pod/bin/pod-hook.exe",
+          true
+        ]
+      ]
+    },
+    {
+      "agent": "codex",
+      "path": "C:\\Users\\User\\.codex\\hooks.json",
+      "exists": true,
+      "pod_events": [
+        "SessionStart",
+        "UserPromptSubmit",
+        "PreToolUse",
+        "PermissionRequest",
+        "PostToolUse",
+        "SubagentStart",
+        "SubagentStop",
+        "Stop",
+        "Interrupt"
+      ],
+      "foreign_groups": 9,
+      "hook_exes": [
+        [
+          "C:/Users/User/AppData/Local/Pod/bin/pod-hook.exe",
+          true
+        ]
+      ]
+    }
+  ]
+}

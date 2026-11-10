@@ -1,0 +1,227 @@
+﻿{
+  "id": "sample/duel",
+  "repo": "sample",
+  "name": "duel",
+  "base": "main",
+  "base_commit": "26738d4247000f2aea7679a87277a6b30985a2f7",
+  "prompt": "echo PASS > result.txt",
+  "check": [
+    "powershell",
+    "-NoProfile",
+    "-Command",
+    "if ((Get-Content result.txt) -eq 'PASS') { exit 0 } else { exit 1 }"
+  ],
+  "created_ms": 1794186155839,
+  "members": [
+    {
+      "task": "sample/duel-codex-1",
+      "agent": "codex",
+      "info": {
+        "id": "sample/duel-codex-1",
+        "repo": "sample",
+        "name": "duel-codex-1",
+        "branch": "pod/duel-codex-1",
+        "base": "main",
+        "base_commit": "26738d4247000f2aea7679a87277a6b30985a2f7",
+        "worktree": "C:\\ai\\pod-e2e\\rerun-c9cf81\\worktrees\\sample\\duel-codex-1",
+        "agent": "codex",
+        "prompt": "echo PASS > result.txt",
+        "created_ms": 1794186153533,
+        "terminals": [
+          {
+            "id": "t2",
+            "info": {
+              "id": "t2",
+              "name": "sample/duel-codex-1",
+              "argv": [
+                "codex",
+                "--no-daemon",
+                "-c",
+                "check_for_update_on_startup=false",
+                "-c",
+                "projects={'C:\\ai\\pod-e2e\\rerun-c9cf81\\worktrees\\sample\\duel-codex-1'={trust_level='trusted'}}",
+                "echo PASS > result.txt"
+              ],
+              "cwd": "C:\\ai\\pod-e2e\\rerun-c9cf81\\worktrees\\sample\\duel-codex-1",
+              "state": "running",
+              "pid": 56640,
+              "holder_pid": 52920,
+              "cols": 120,
+              "rows": 30,
+              "created_ms": 1794186153459,
+              "killed": false,
+              "lost": false,
+              "attached": 0,
+              "conpty": "bundled:C:\\Users\\User\\dev\\workspaces\\ide\\e2e-reverify\\target\\release\\conpty.dll",
+              "status": {
+                "state": "done",
+                "source": "hook",
+                "confidence": 0.475,
+                "since": 1794186171380,
+                "turn": 2,
+                "agent": "codex",
+                "outcome": "completed",
+                "badge": "done",
+                "records": 0,
+                "running_children": 0,
+                "blocked_children": 0,
+                "hooks_accepted": 0,
+                "hooks_rejected": 0
+              }
+            }
+          }
+        ],
+        "worktree_exists": true,
+        "git": {
+          "branch": "pod/duel-codex-1",
+          "head": "26738d4247000f2aea7679a87277a6b30985a2f7",
+          "ahead": 0,
+          "behind": 0,
+          "dirty": 1,
+          "unpushed": 0,
+          "last_commit": {
+            "sha": "26738d4247000f2aea7679a87277a6b30985a2f7",
+            "summary": "Fixture with failing addition test",
+            "author": "Pod E2E",
+            "time_ms": 1794185663000
+          }
+        },
+        "status": {
+          "state": "done",
+          "terminal": "t2",
+          "badge": "done",
+          "terminals": 1
+        },
+        "group": "sample/duel"
+      },
+      "removed": false,
+      "picked": false,
+      "check": {
+        "argv": [
+          "powershell",
+          "-NoProfile",
+          "-Command",
+          "if ((Get-Content result.txt) -eq 'PASS') { exit 0 } else { exit 1 }"
+        ],
+        "passed": true,
+        "exit_code": 0,
+        "timed_out": false,
+        "duration_ms": 432,
+        "finished_ms": 1794186288223,
+        "output_tail": ""
+      }
+    },
+    {
+      "task": "sample/duel-shell-1",
+      "agent": "shell",
+      "info": {
+        "id": "sample/duel-shell-1",
+        "repo": "sample",
+        "name": "duel-shell-1",
+        "branch": "pod/duel-shell-1",
+        "base": "main",
+        "base_commit": "26738d4247000f2aea7679a87277a6b30985a2f7",
+        "worktree": "C:\\ai\\pod-e2e\\rerun-c9cf81\\worktrees\\sample\\duel-shell-1",
+        "agent": "shell",
+        "prompt": "echo PASS > result.txt",
+        "created_ms": 1794186154355,
+        "terminals": [
+          {
+            "id": "t3",
+            "info": {
+              "id": "t3",
+              "name": "sample/duel-shell-1",
+              "argv": [
+                "powershell",
+                "-NoLogo"
+              ],
+              "cwd": "C:\\ai\\pod-e2e\\rerun-c9cf81\\worktrees\\sample\\duel-shell-1",
+              "state": "running",
+              "pid": 68004,
+              "holder_pid": 59636,
+              "cols": 120,
+              "rows": 30,
+              "created_ms": 1794186154270,
+              "killed": false,
+              "lost": false,
+              "attached": 0,
+              "conpty": "bundled:C:\\Users\\User\\dev\\workspaces\\ide\\e2e-reverify\\target\\release\\conpty.dll",
+              "status": {
+                "state": "unknown",
+                "confidence": 0.0,
+                "since": 1794186205084,
+                "turn": 0,
+                "badge": "unknown",
+                "records": 0,
+                "running_children": 0,
+                "blocked_children": 0,
+                "hooks_accepted": 0,
+                "hooks_rejected": 0
+              }
+            }
+          }
+        ],
+        "worktree_exists": true,
+        "git": {
+          "branch": "pod/duel-shell-1",
+          "head": "26738d4247000f2aea7679a87277a6b30985a2f7",
+          "ahead": 0,
+          "behind": 0,
+          "dirty": 1,
+          "unpushed": 0,
+          "last_commit": {
+            "sha": "26738d4247000f2aea7679a87277a6b30985a2f7",
+            "summary": "Fixture with failing addition test",
+            "author": "Pod E2E",
+            "time_ms": 1794185663000
+          }
+        },
+        "status": {
+          "state": "unknown",
+          "terminal": "t3",
+          "badge": "unknown",
+          "terminals": 1
+        },
+        "group": "sample/duel"
+      },
+      "removed": false,
+      "picked": false,
+      "check": {
+        "argv": [
+          "powershell",
+          "-NoProfile",
+          "-Command",
+          "if ((Get-Content result.txt) -eq 'PASS') { exit 0 } else { exit 1 }"
+        ],
+        "passed": true,
+        "exit_code": 0,
+        "timed_out": false,
+        "duration_ms": 451,
+        "finished_ms": 1794186288242,
+        "output_tail": ""
+      }
+    }
+  ],
+  "check_job": {
+    "id": "k1",
+    "state": "finished",
+    "argv": [
+      "powershell",
+      "-NoProfile",
+      "-Command",
+      "if ((Get-Content result.txt) -eq 'PASS') { exit 0 } else { exit 1 }"
+    ],
+    "tasks": [
+      "sample/duel-codex-1",
+      "sample/duel-shell-1"
+    ],
+    "done": [
+      "sample/duel-codex-1",
+      "sample/duel-shell-1"
+    ],
+    "timeout_ms": 600000,
+    "started_ms": 1794186287787,
+    "finished_ms": 1794186288247,
+    "all_passed": true
+  }
+}

@@ -1,0 +1,57 @@
+App=pod-app (pid 65388)
+Window: "", App: pod-app.
+
+0 영역
+	1 title bar TitleBar
+		2 menu bar 시스템 메뉴 모음
+			3 menu item 시스템
+		4 button 최소화
+		5 button 복원
+		6 button 닫기
+	7 단추 명령·터미널 검색
+	8 단추 설정
+	9 단추 격자
+	10 단추 + 작업
+	11 단추 + 터미널
+	12 단추 + 그룹
+	13 단추 에이전트
+	14 편집 저장소, 작업, 터미널 검색, Secondary Actions: SetValue
+	15 콘솔 트리 sample/auth | 승인 필요 · 출처: osc · 신뢰도: 90% · 상위: 승인 필요 · 마지막: — | 1973초 전
+		16 상태 승인 필요 · 출처: osc · 신뢰도: 90% · 상위: 승인 필요 · 마지막: —
+	17 콘솔 트리 sample/compare-shell-1 | 상태 미확인 · 추정 · 출처: unknown · 신뢰도: 0% · 상위: 상태 미확인 · 마지막: — | 1972초 전
+		18 상태 상태 미확인 · 추정 · 출처: unknown · 신뢰도: 0% · 상위: 상태 미확인 · 마지막: —
+	19 콘솔 트리 sample/compare-shell-2 | 상태 미확인 · 추정 · 출처: unknown · 신뢰도: 0% · 상위: 상태 미확인 · 마지막: — | 1970초 전
+		20 상태 상태 미확인 · 추정 · 출처: unknown · 신뢰도: 0% · 상위: 상태 미확인 · 마지막: —
+	21 콘솔 트리 exit-seven | 실패 종료 (7) · 출처: unknown · 신뢰도: 0% · 상위: 종료 · 마지막: — | 1965초 전
+		22 상태 실패 종료 (7) · 출처: unknown · 신뢰도: 0% · 상위: 종료 · 마지막: —
+	23 단추 닫기
+	24 Tab
+		25 탭 항목, Secondary Actions: Select
+			26 단추
+		27 탭 항목, Secondary Actions: Select
+			28 단추
+		29 단추
+	30 단추 상태
+	31 단추 알림 1
+	32 대화 상자
+		33 편집 작업, 터미널 검색 · > 명령만, Secondary Actions: SetValue
+		34 옵션 sample/auth - sample/auth / 승인 필요, Secondary Actions: Select
+		35 옵션 sample/compare-shell-1 - sample/compare-shell-1 / 상태 미확인 · 추정, Secondary Actions: Select
+		36 옵션 sample/compare-shell-2 - sample/compare-shell-2 / 상태 미확인 · 추정, Secondary Actions: Select
+		37 옵션 exit-seven - 터미널 / 실패 종료 (7), Secondary Actions: Select
+		38 옵션 sample/auth - sample/auth, Secondary Actions: Select
+		39 옵션 sample/compare-shell-1 - sample/compare-shell-1, Secondary Actions: Select
+		40 옵션 sample/compare-shell-2 - sample/compare-shell-2, Secondary Actions: Select
+		41 옵션 새 작업 - Ctrl+N, Secondary Actions: Select
+		42 옵션 저장소 열기 - 로컬 Git 저장소 추가, Secondary Actions: Select
+		43 옵션 새 터미널 - Ctrl+Shift+T, Secondary Actions: Select
+		44 옵션 설정 - Ctrl+,, Secondary Actions: Select
+		45 옵션 응답할 요청 찾기 - 응답이 필요한 터미널 열기, Secondary Actions: Select
+		46 옵션 현재 터미널 상태 - 출처와 확인 시간, Secondary Actions: Select
+		47 옵션 알림 - 응답할 요청과 최근 알림, Secondary Actions: Select
+		48 옵션 현재 터미널에 Ctrl+K 보내기 - 터미널 단축키 보내기, Secondary Actions: Select
+		49 옵션 패널 격자 정렬 - Ctrl+Shift+G, Secondary Actions: Select
+		50 옵션 새 비교 그룹 - 병렬 작업 비교, Secondary Actions: Select
+		51 옵션 승인 요청 열기 - 승인 대기, Secondary Actions: Select
+		52 옵션 에이전트 트리 열기 - 작업, 그룹과 상위 관계, Secondary Actions: Select
+		53 단추 Close

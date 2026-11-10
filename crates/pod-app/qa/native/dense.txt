@@ -1,0 +1,33 @@
+# cargo test -p pod-app layouts::dense -- --nocapture --test-threads=1 (2026-11-10, headless GPUI, native_qa::Harness: real key bindings, focus after each step)
+test layouts::dense::tests::a_gate_with_options_is_approved_by_picking_one
+[native-qa] dense-choice | keys ctrl-shift-d | focus: workspace control [Root > PodDense]
+[native-qa] dense-choice | press tab | focus: workspace control [Root > PodDense]
+[native-qa] dense-choice | press tab | focus: workspace control [Root > PodDense]
+[native-qa] dense-choice | press enter | focus: workspace control [Root > PodDense]
+test layouts::dense::tests::clock_offsets_selection_keys_and_preset ... ok
+test layouts::dense::tests::first_observation_seeds_only_what_needs_attention ... ok
+test layouts::dense::tests::fixture_scene_runs_inside_a_workspace_update ... ok
+test layouts::dense::tests::keyboard_regions_log_and_inline_gate
+[native-qa] dense-keys | keys f6 | focus: workspace control [Root > PodDense]
+[native-qa] dense-keys | keys f6 | focus: workspace control [Root > PodDense]
+[native-qa] dense-keys | keys f6 | focus: sidebar tree
+[native-qa] dense-keys | keys f6 | focus: terminal w1
+[native-qa] dense-keys | keys shift-f6 | focus: sidebar tree
+[native-qa] dense-keys | keys ctrl-shift-u | focus: workspace control [Root > PodDense]
+[native-qa] dense-keys | keys home | focus: workspace control [Root > PodDense]
+[native-qa] dense-keys | keys down | focus: workspace control [Root > PodDense]
+[native-qa] dense-keys | keys enter | focus: terminal b1
+[native-qa] dense-keys | keys ctrl-shift-d | focus: workspace control [Root > PodDense]
+[native-qa] dense-keys | press tab | focus: workspace control [Root > PodDense]
+[native-qa] dense-keys | press enter | focus: workspace control [Root > PodDense]
+test layouts::dense::tests::korean_text_fits_at_100_to_175_percent_and_large_fonts ... ok
+test layouts::dense::tests::later_observations_record_every_change_once ... ok
+test layouts::dense::tests::log_and_seed_are_capped ... ok
+test layouts::dense::tests::log_lines_and_details_carry_the_agent_mark ... ok
+test layouts::dense::tests::log_records_live_changes_and_details_follow_the_tree
+[native-qa] dense-log | keys down | focus: sidebar tree
+[native-qa] dense-log | keys down | focus: sidebar tree
+test layouts::dense::tests::no_seed_before_the_terminal_list_and_first_reports_are_quiet ... ok
+test layouts::dense::tests::rows_grow_with_the_font_and_keep_the_style_minimum ... ok
+test layouts::dense::tests::switching_layouts_live_keeps_panels_dock_and_view_state ... ok
+test result: ok. 13 passed; 0 failed; 0 ignored; 0 measured; 203 filtered out; finished in 2.18s

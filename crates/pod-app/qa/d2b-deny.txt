@@ -1,0 +1,7 @@
+warning[license-not-encountered]: license was not encountered
+   ┌─ C:\Users\User\dev\workspaces\ide\d2b-polish\deny.toml:22:6
+   │
+22 │     "ISC",
+   │      ━━━ unmatched license allowance
+
+advisories ok, bans ok, licenses ok, sources ok

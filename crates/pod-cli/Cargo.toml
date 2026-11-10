@@ -1,0 +1,37 @@
+[package]
+name = "pod-cli"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+publish = false
+description = "`pod` CLI: drives the podd daemon (auto-starts it)"
+
+[[bin]]
+name = "pod"
+path = "src/main.rs"
+
+# Test double of ssh.exe for tests/remote_ssh.rs (docs/17 R3); not shipped.
+[[bin]]
+name = "pod-fake-ssh"
+path = "src/bin/pod-fake-ssh.rs"
+
+[dependencies]
+podd = { path = "../podd", default-features = false }
+pod-status = { path = "../pod-status" }
+pod-remote = { path = "../pod-remote" }
+anyhow = "1"
+base64 = "0.22"
+clap = { version = "4", features = ["derive"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+# Codex config.toml edits that keep comments and layout (MIT OR Apache-2.0).
+toml_edit = "0.22"
+windows-sys = { version = "0.61", features = ["Win32_Foundation", "Win32_Storage_FileSystem", "Win32_System_Console", "Win32_System_IO"] }
+
+[lints]
+workspace = true
+
+[build-dependencies]
+# MIT: compiles per-binary Windows resources without leaking through rlibs.
+embed-resource = "3.0.12"

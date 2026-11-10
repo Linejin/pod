@@ -1,0 +1,44 @@
+﻿App=pod-app (pid 42656)
+Window: "", App: pod-app.
+
+0 영역
+	1 title bar TitleBar
+		2 menu bar 시스템 메뉴 모음
+			3 menu item 시스템
+		4 button 최소화
+		5 button 최대화
+		6 button 닫기
+	7 단추 명령·터미널 검색
+	8 단추 설정
+	9 단추 저장소: 모든 저장소
+	10 단추 에이전트: 모든 에이전트
+	11 LIST 작업 중, 카드 99개
+		12 목록 항목 Powershell · Worker 0, 작업 중: 작업 중, 작업: Task 000 - 한글 작업과 레이아웃 🔎, 마지막 줄: 셀 경계 테스트 추가 중 · 42초, Secondary Actions: Select
+			13 단추 로그
+		14 목록 항목 Powershell · Worker 8, 작업 중: 상태 미확인 · 추정, 작업: Task 002 - 한글 작업과 레이아웃 🔎, 마지막 줄: 작업 완료 · 1분 12초 · 토큰 18.2k, Secondary Actions: Select
+			15 단추 로그
+		16 목록 항목 Powershell · Worker 10, 작업 중: 상태 미확인 · 추정, 작업: Task 003 - 한글 작업과 레이아웃 🔎, 마지막 줄: • 수정 crates/pod-app/src/notify.rs, Secondary Actions: Select
+			17 단추 로그
+	18 LIST 응답 필요, 카드 99개
+		19 목록 항목 Powershell · Worker 1, 응답 필요: 승인 필요, 작업: Task 000 - 한글 작업과 레이아웃 🔎, 마지막 줄: $ cargo clippy -p pod-ui -- -D warnings, Secondary Actions: Select
+			20 단추 응답하기
+		21 목록 항목 Powershell · Worker 3, 응답 필요: 승인 필요, 작업: Task 001 - 한글 작업과 레이아웃 🔎, 마지막 줄: PS C:\src\pod> 종료 0, Secondary Actions: Select
+			22 단추 응답하기
+		23 목록 항목 Powershell · Worker 11, 응답 필요: 오류, 작업: Task 003 - 한글 작업과 레이아웃 🔎, 마지막 줄: error[E0599]: no method `spawn_lazy`, Secondary Actions: Select
+			24 단추 로그
+	25 LIST 완료, 카드 102개
+		26 목록 항목 Powershell · Worker 2, 완료: 완료, 작업: Task 000 - 한글 작업과 레이아웃 🔎, 마지막 줄: 작업 완료 · 1분 12초 · 토큰 18.2k, Secondary Actions: Select
+			27 단추 로그
+		28 목록 항목 Powershell · Worker 4, 완료: 완료, 작업: Task 001 - 한글 작업과 레이아웃 🔎, 마지막 줄: • 수정 crates/pod-app/src/notify.rs, Secondary Actions: Select
+			29 단추 로그
+		30 목록 항목 Powershell · Worker 5, 완료: 대기, 작업: Task 001 - 한글 작업과 레이아웃 🔎, 마지막 줄: error[E0599]: no method `spawn_lazy`, Secondary Actions: Select
+			31 단추 로그
+	32 영역 터미널 서랍
+		33 Tab
+			34 탭 항목 터미널, Secondary Actions: Select
+			35 탭 항목 패널, Secondary Actions: Select
+		36 단추 서랍 크게
+		37 단추 서랍 닫기
+	38 LIST 최근 알림
+	39 단추 상태
+	40 단추 알림 0

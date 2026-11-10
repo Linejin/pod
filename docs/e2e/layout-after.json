@@ -1,0 +1,48 @@
+{
+  "version": 1,
+  "dock": {
+    "version": 1,
+    "center": {
+      "panel_name": "StackPanel",
+      "children": [
+        {
+          "panel_name": "TabPanel",
+          "children": [
+            {
+              "panel_name": "PodTerminal",
+              "children": [],
+              "info": {
+                "panel": {
+                  "terminal": "t1"
+                }
+              }
+            },
+            {
+              "panel_name": "PodTerminal",
+              "children": [],
+              "info": {
+                "panel": {
+                  "terminal": "t2"
+                }
+              }
+            }
+          ],
+          "info": {
+            "tabs": {
+              "active_index": 0
+            }
+          }
+        }
+      ],
+      "info": {
+        "stack": {
+          "sizes": [
+            753.3333
+          ],
+          "axis": 1
+        }
+      }
+    }
+  },
+  "labels": {}
+}

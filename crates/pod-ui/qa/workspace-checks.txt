@@ -1,0 +1,27 @@
+Earlier workspace-wide validation (before the final modal binding fix):
+
+build-release.log
+
+warning: podd@0.2.0: vendor/conpty missing: pod-holder will use the inbox ConPTY (run tools/fetch-conpty.ps1)
+   Compiling pod-ui v0.1.0 (C:\Users\User\dev\workspaces\ide\pod-ui\crates\pod-ui)
+   Compiling pod-cli v0.2.0 (C:\Users\User\dev\workspaces\ide\pod-ui\crates\pod-cli)
+    Finished `release` profile [optimized + debuginfo] target(s) in 25.78s
+
+workspace-tests.log
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests podd
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+deny.log
+
+   ┌─ C:\Users\User\dev\workspaces\ide\pod-ui\deny.toml:22:6
+   │
+22 │     "ISC",
+   │      ━━━ unmatched license allowance
+
+advisories ok, bans ok, licenses ok, sources ok

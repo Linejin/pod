@@ -1,0 +1,8 @@
+﻿
+test shell_integration::tests::encoded_command_is_utf16le_base64 ... ok
+test server::tasks::tests::default_shell_is_integrated ... ok
+test server::tasks::tests::agent_command_lines ... ok
+test shell_integration::tests::only_bare_shells_get_marks ... ok
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 123 filtered out; finished in 0.00s
+
+

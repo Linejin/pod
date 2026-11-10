@@ -1,0 +1,20 @@
+Native-input attempt, 2026-11-09, secondary-monitor fixture pod-app PID 54808.
+Target HWND 120392716. Native capture: 144 DPI, rect 2552,231,4488,1439.
+
+1. Helper creates its thread message queue with PeekMessage.
+2. AttachThreadInput(helper thread, target UI thread, true) returned true.
+3. GetForegroundWindow returned 0; its thread ID therefore returned 0.
+4. BringWindowToTop / SetForegroundWindow did not establish foreground ownership.
+5. UIAutomation AutomationElement.FromHandle(target).SetFocus also did not establish it.
+6. OpenInputDesktop(0, false, DESKTOP_READOBJECTS) failed with error 5 (access denied).
+7. UI-automation press-key Tab --restore-window refused with window_not_focused:
+   "restoreWindow was requested but the target window is still not focused".
+
+SendInput was refused by the helper before injecting any key into an unverified HWND.
+No native keyboard-only, focus-return, IME or Narrator pass is claimed.
+Coordinator instruction msg_52673df74e09: do not wait or take over input;
+mark native keyboard, IME and Narrator MANUAL and provide user steps.
+No further foreground/input attempt was made after that instruction.
+
+Installed-font inventory: Malgun Gothic (맑은 고딕), Cascadia Mono present;
+D2Coding absent. No fonts or Windows accessibility/scaling settings were installed/changed.

@@ -1,0 +1,20 @@
+﻿cargo :    Compiling pod-editor v0.1.0 (C:\Users\User\orca\workspaces\ide\small-fixes\crates\pod-editor)
+At line:1 char:603
++ ... cratchpad'; cargo test -p pod-editor --test lsp_lifecycle rust_analyz ...
++                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (   Compiling po...tes\pod-editor):String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 4.20s
+     Running tests\lsp_lifecycle.rs (target\debug\deps\lsp_lifecycle-e82003a1b6518414.exe)
+
+running 1 test
+diagnostics: ["Syntax Error: expected SEMICOLON", "Syntax Error: expected SEMICOLON"]
+code action: "Import `std::collections::HashMap`" (edit inline: false)
+completion: "BTreeSet" additional inline: false
+snippet: "word_count(${1:text})$0" format Some(Snippet)
+snippet text "word_count(text)" stops [11..15, 16..16]
+test rust_analyzer_code_actions ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 6 filtered out; finished in 6.08s
+

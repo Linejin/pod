@@ -1,0 +1,36 @@
+codex-allowance probe 2026-11-10T13:03:06
+codex: C:\Users\User\AppData\Local\Programs\OpenAI\Codex\bin\codex.exe codex-cli 0.159.0
+PASS  control: pod ls is denied in the sandbox
+PASS  control: git add is denied (index.lock)
+PASS  rules file hidden from git
+PASS  the worker identity reaches commands Codex runs
+PASS  pod --version runs
+PASS  pod orch queue reaches the pipe
+PASS  pod orch commit reaches podd (allowed)
+PASS  pod ls stays in the sandbox (no terminal listing)
+PASS  pod read stays in the sandbox (no terminal reading)
+PASS  git status runs (sandbox)
+PASS  git add stays in the sandbox (index.lock denied)
+PASS  git commit stays in the sandbox
+PASS  git log runs (sandbox)
+PASS  git diff runs (sandbox)
+PASS  writing outside the worktree is still denied
+PASS  pod orch limits (not allowed) stays sandboxed
+exec mode never asks: a command outside the rules fails in the sandbox instead of asking.
+PASS  (a) the worktree .git file cannot be rewritten
+PASS  (a) the worktree .git file cannot be deleted
+PASS  nested repos with hooks were set up in the sandbox
+PASS  nested repo payloads cannot fire inside the sandbox
+PASS  control: the payloads fire when git runs unsandboxed
+PASS  (b/c) commit in a nested repo (workdir) [as is]: no hook/fsmonitor outside the sandbox
+PASS  (b/c) add in a nested repo (workdir) [as is]: no hook/fsmonitor outside the sandbox
+PASS  (b/c) cd into a nested repo, commit [as is]: no hook/fsmonitor outside the sandbox
+PASS  (b/c) GIT_DIR=<nested> git commit [as is]: no hook/fsmonitor outside the sandbox
+PASS  (b/c) git --git-dir=<nested> commit [as is]: no hook/fsmonitor outside the sandbox
+PASS  (b/c) commit in a nested repo (workdir) [safe.directory=*]: no hook/fsmonitor outside the sandbox
+PASS  (b/c) add in a nested repo (workdir) [safe.directory=*]: no hook/fsmonitor outside the sandbox
+PASS  (b/c) cd into a nested repo, commit [safe.directory=*]: no hook/fsmonitor outside the sandbox
+PASS  (b/c) GIT_DIR=<nested> git commit [safe.directory=*]: no hook/fsmonitor outside the sandbox
+PASS  (b/c) git --git-dir=<nested> commit [safe.directory=*]: no hook/fsmonitor outside the sandbox
+PASS  (c) git add of a path outside the worktree is refused
+RESULT: PASS

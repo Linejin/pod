@@ -1,0 +1,216 @@
+﻿[
+    {
+        "scene":  "workspace",
+        "elements":  42,
+        "interactive":  30,
+        "focusable":  14,
+        "unnamed":  0,
+        "non_korean":  0,
+        "shortcut_described":  8,
+        "types":  "Button=11, Tree=1, Edit=1, TreeItem=16, List=1"
+    },
+    {
+        "scene":  "palette",
+        "elements":  461,
+        "interactive":  448,
+        "focusable":  16,
+        "unnamed":  0,
+        "non_korean":  0,
+        "shortcut_described":  8,
+        "types":  "Button=12, Tree=1, Edit=2, TreeItem=16, List=1, ListItem=416"
+    },
+    {
+        "scene":  "settings",
+        "elements":  67,
+        "interactive":  55,
+        "focusable":  39,
+        "unnamed":  0,
+        "non_korean":  0,
+        "shortcut_described":  8,
+        "types":  "Button=35, Tree=1, Edit=1, TreeItem=16, List=1, TabItem=1"
+    },
+    {
+        "scene":  "agents",
+        "elements":  943,
+        "interactive":  531,
+        "focusable":  515,
+        "unnamed":  0,
+        "non_korean":  0,
+        "shortcut_described":  8,
+        "types":  "Button=110, Tree=2, Edit=1, TreeItem=416, List=1, TabItem=1"
+    },
+    {
+        "scene":  "inspect",
+        "elements":  43,
+        "interactive":  30,
+        "focusable":  14,
+        "unnamed":  0,
+        "non_korean":  0,
+        "shortcut_described":  8,
+        "types":  "Button=10, Tree=1, Edit=1, TreeItem=16, List=1, TabItem=1"
+    },
+    {
+        "scene":  "open-repo",
+        "elements":  46,
+        "interactive":  33,
+        "focusable":  17,
+        "unnamed":  0,
+        "non_korean":  0,
+        "shortcut_described":  8,
+        "types":  "Button=13, Tree=1, Edit=2, TreeItem=16, List=1"
+    },
+    {
+        "scene":  "new-task",
+        "elements":  53,
+        "interactive":  40,
+        "focusable":  24,
+        "unnamed":  0,
+        "non_korean":  0,
+        "shortcut_described":  8,
+        "types":  "Button=19, Tree=1, Edit=3, TreeItem=16, List=1"
+    },
+    {
+        "scene":  "terminal",
+        "elements":  52,
+        "interactive":  39,
+        "focusable":  23,
+        "unnamed":  0,
+        "non_korean":  0,
+        "shortcut_described":  8,
+        "types":  "Button=18, Tree=1, Edit=3, TreeItem=16, List=1"
+    },
+    {
+        "scene":  "new-group",
+        "elements":  60,
+        "interactive":  47,
+        "focusable":  29,
+        "unnamed":  0,
+        "non_korean":  0,
+        "shortcut_described":  8,
+        "types":  "Button=24, Tree=1, Edit=5, TreeItem=16, List=1"
+    },
+    {
+        "scene":  "gates",
+        "elements":  43,
+        "interactive":  31,
+        "focusable":  15,
+        "unnamed":  0,
+        "non_korean":  0,
+        "shortcut_described":  8,
+        "types":  "Button=11, Tree=1, Edit=1, TreeItem=16, List=1, TabItem=1"
+    },
+    {
+        "scene":  "notifications",
+        "elements":  94,
+        "interactive":  81,
+        "focusable":  65,
+        "unnamed":  0,
+        "non_korean":  0,
+        "shortcut_described":  8,
+        "types":  "Button=62, Tree=1, Edit=1, TreeItem=16, List=1"
+    },
+    {
+        "scene":  "review",
+        "elements":  55,
+        "interactive":  43,
+        "focusable":  27,
+        "unnamed":  0,
+        "non_korean":  0,
+        "shortcut_described":  9,
+        "types":  "Button=23, Tree=1, Edit=2, TreeItem=15, List=1, TabItem=1"
+    },
+    {
+        "scene":  "shortcuts",
+        "elements":  44,
+        "interactive":  31,
+        "focusable":  15,
+        "unnamed":  0,
+        "non_korean":  0,
+        "shortcut_described":  8,
+        "types":  "Button=12, Tree=1, Edit=1, TreeItem=16, List=1"
+    },
+    {
+        "scene":  "workspace",
+        "expect":  "Button \"명령·터미널 검색\"",
+        "found":  1,
+        "focusable":  true
+    },
+    {
+        "scene":  "workspace",
+        "expect":  "Button \"설정\"",
+        "found":  1,
+        "focusable":  true
+    },
+    {
+        "scene":  "workspace",
+        "expect":  "Tree \"저장소와 작업 탐색\"",
+        "found":  1,
+        "focusable":  true
+    },
+    {
+        "scene":  "workspace",
+        "expect":  "Edit \"저장소, 작업, 터미널 검색\"",
+        "found":  1,
+        "focusable":  true
+    },
+    {
+        "scene":  "workspace",
+        "expect":  "TreeItem \"Task 000 - 한글 작업과 레이아웃 🔎\"",
+        "found":  1,
+        "focusable":  false
+    },
+    {
+        "scene":  "workspace",
+        "expect":  "List \"최근 알림\"",
+        "found":  1,
+        "focusable":  true
+    },
+    {
+        "scene":  "workspace",
+        "expect":  "Button \"상태\"",
+        "found":  1,
+        "focusable":  true
+    },
+    {
+        "scene":  "palette",
+        "expect":  "Edit \"작업, 터미널 검색 · \u003e 명령만\"",
+        "found":  1,
+        "focusable":  true
+    },
+    {
+        "scene":  "palette",
+        "expect":  "ListItem \"*\"",
+        "found":  416,
+        "focusable":  false
+    },
+    {
+        "scene":  "settings",
+        "expect":  "TabItem \"설정\"",
+        "found":  1,
+        "focusable":  true
+    },
+    {
+        "scene":  "inspect",
+        "expect":  "TabItem \"상태\"",
+        "found":  1,
+        "focusable":  true
+    },
+    {
+        "scene":  "new-task",
+        "expect":  "Button \"만들기\"",
+        "found":  1,
+        "focusable":  true
+    },
+    {
+        "scene":  "new-task",
+        "expect":  "Button \"닫기\"",
+        "found":  1,
+        "focusable":  true
+    },
+    {
+        "scene":  "agents",
+        "expect":  "Tree \"에이전트 트리\"",
+        "found":  1,
+        "focusable":  true
+    }
+]

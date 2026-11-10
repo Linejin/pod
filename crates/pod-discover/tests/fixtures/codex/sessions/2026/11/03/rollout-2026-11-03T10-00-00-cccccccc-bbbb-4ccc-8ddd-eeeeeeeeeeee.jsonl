@@ -1,0 +1,2 @@
+{"timestamp":"2026-11-03T01:00:00.000Z","type":"session_meta","payload":{"id":"cccccccc-bbbb-4ccc-8ddd-eeeeeeeeeeee","cwd":"C:\\src\\other","source":{"subagent":{"thread_spawn":{"parent_thread_id":"bbbbbbbb-bbbb-4ccc-8ddd-eeeeeeeeeeee"}}}}}
+{"timestamp":"2026-11-03T01:00:01.000Z","type":"event_msg","payload":{"type":"user_message","message":"sub task"}}

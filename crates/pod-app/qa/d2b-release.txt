@@ -1,0 +1,4 @@
+   Compiling pod-cli v0.2.0 (C:\Users\User\dev\workspaces\ide\d2b-polish\crates\pod-cli)
+   Compiling pod-app v0.1.0 (C:\Users\User\dev\workspaces\ide\d2b-polish\crates\pod-app)
+   Compiling pod-hook v0.1.0 (C:\Users\User\dev\workspaces\ide\d2b-polish\crates\pod-hook)
+    Finished `release` profile [optimized + debuginfo] target(s) in 23.03s

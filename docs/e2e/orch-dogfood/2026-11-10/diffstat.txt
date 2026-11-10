@@ -1,0 +1,26 @@
+﻿coordinator branch log:
+*   c0726c0 Merge branch 'pod/r1-a1' into pod/r1-a2
+|\  
+| * aae84a5 fix(podd): integrate default task shell prompt marks
+* | 9bb800e test(podd): default task shell carries OSC 133 prompt marks
+|/  
+* ce6d224 dogfood setup: agent permissions in this clone (not part of the change)
+*   a15663c Merge branch 'SJin-Choi/agent-icons': agent marks (Claude/Codex/...) on every agent surface
+|\  
+| * c366e56 qa: agent marks dark/light captures in quiet, islands, mono, access (secondary monitor)
+| * 55fc583 pod-app: clippy (then_some, strings before the test module)
+| *   e58a86f Merge master (blocks layout, S7); agent marks on block headers, docs §D5.11 after §D5.8
+| |\  
+| * | 2fc974d docs/10 §D5.11: agent marks (identity, marks, tokens, placements, overrides)
+| * | 47aec88 pod-app: show which agent runs in each terminal
+| * | 40798d5 pod-ui: original agent marks with per-theme tokens and user overrides
+* | |   fa659db Merge branch 'SJin-Choi/orch-s8': orchestration guide, integrations, Korean daemon texts, dogfood dry run
+|\ \ \  
+
+diff --stat ce6d2245a9e4bf48a8a1954f89c86702b907b416..HEAD:
+ crates/pod-app/src/layouts/shell_integration.rs | 103 +--------------------
+ crates/podd/src/lib.rs                          |   1 +
+ crates/podd/src/server/tasks.rs                 |  55 +++++++++++-
+ crates/podd/src/shell_integration.rs            | 114 ++++++++++++++++++++++++
+ 4 files changed, 169 insertions(+), 104 deletions(-)
+

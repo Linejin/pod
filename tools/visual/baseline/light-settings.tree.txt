@@ -1,0 +1,119 @@
+﻿App=pod-app (pid 55292)
+Window: "Pod", App: pod-app.
+
+0 영역 Pod
+	1 title bar Pod
+		2 menu bar 시스템 메뉴 모음
+			3 menu item 시스템
+		4 button 최소화
+		5 button 최대화
+		6 button 닫기
+	7 단추 명령·터미널 검색
+	8 단추 설정
+	9 트리 저장소와 작업 탐색
+		10 단추 격자
+		11 단추 + 작업
+		12 단추 + 터미널
+		13 단추 + 그룹
+		14 단추 에이전트
+		15 편집 저장소, 작업, 터미널 검색, Secondary Actions: SetValue
+		16 콘솔 트리 sample · 작업 100개, Secondary Actions: Select
+		17 콘솔 트리 Task 000 - 한글 작업과 레이아웃 🔎 · Claude 에이전트, Codex 에이전트 · 작업 중 1 · 응답 1 · 완료 1, Secondary Actions: Select
+			18 이미지 에이전트: Claude, Codex
+		19 콘솔 트리 Worker 0 · Claude 에이전트 | 작업 중 · 출처: osc · 신뢰도: 100% · 상위: 작업 중 · 마지막: — | 보고 없음
+			20 이미지 Claude 에이전트
+			21 상태 작업 중 · 출처: osc · 신뢰도: 100% · 상위: 작업 중 · 마지막: —
+		22 콘솔 트리 Worker 1 · Codex 에이전트 | 승인 필요 · 출처: osc · 신뢰도: 100% · 상위: 승인 필요 · 마지막: — | 보고 없음
+			23 이미지 Codex 에이전트
+			24 상태 승인 필요 · 출처: osc · 신뢰도: 100% · 상위: 승인 필요 · 마지막: —
+		25 콘솔 트리 Worker 2 · 셸 터미널 | 완료 · 출처: osc · 신뢰도: 100% · 상위: 완료 · 마지막: — | 보고 없음
+			26 이미지 셸 터미널
+			27 상태 완료 · 출처: osc · 신뢰도: 100% · 상위: 완료 · 마지막: —
+		28 콘솔 트리 Task 001 - 한글 작업과 레이아웃 🔎 · Claude 에이전트, Codex 에이전트 · 응답 1 · 대기 1 · 완료 1, Secondary Actions: Select
+			29 이미지 에이전트: Claude, Codex
+		30 콘솔 트리 Worker 3 · Claude 에이전트 | 승인 필요 · 출처: osc · 신뢰도: 100% · 상위: 승인 필요 · 마지막: — | 보고 없음
+			31 이미지 Claude 에이전트
+			32 상태 승인 필요 · 출처: osc · 신뢰도: 100% · 상위: 승인 필요 · 마지막: —
+		33 콘솔 트리 Worker 4 · Codex 에이전트 | 완료 · 출처: osc · 신뢰도: 100% · 상위: 완료 · 마지막: — | 보고 없음
+			34 이미지 Codex 에이전트
+			35 상태 완료 · 출처: osc · 신뢰도: 100% · 상위: 완료 · 마지막: —
+		36 콘솔 트리 Worker 5 · 셸 터미널 | 대기 · 출처: osc · 신뢰도: 100% · 상위: 대기 · 마지막: — | 보고 없음
+			37 이미지 셸 터미널
+			38 상태 대기 · 출처: osc · 신뢰도: 100% · 상위: 대기 · 마지막: —
+		39 콘솔 트리 Task 002 - 한글 작업과 레이아웃 🔎 · Claude 에이전트, Codex 에이전트 · 미확인 1 · 대기 1 · 완료 1, Secondary Actions: Select
+			40 이미지 에이전트: Claude, Codex
+		41 콘솔 트리 Worker 6 · Claude 에이전트 | 완료 · 출처: osc · 신뢰도: 100% · 상위: 완료 · 마지막: — | 보고 없음
+			42 이미지 Claude 에이전트
+			43 상태 완료 · 출처: osc · 신뢰도: 100% · 상위: 완료 · 마지막: —
+		44 콘솔 트리 Worker 7 · Codex 에이전트 | 대기 · 출처: osc · 신뢰도: 100% · 상위: 대기 · 마지막: — | 보고 없음
+			45 이미지 Codex 에이전트
+			46 상태 대기 · 출처: osc · 신뢰도: 100% · 상위: 대기 · 마지막: —
+		47 콘솔 트리 Worker 8 · 셸 터미널 | 상태 미확인 · 추정 · 출처: heuristic · 신뢰도: 40% · 상위: 상태 미확인 · 마지막: — | 보고 없음
+			48 이미지 셸 터미널
+			49 상태 상태 미확인 · 추정 · 출처: heuristic · 신뢰도: 40% · 상위: 상태 미확인 · 마지막: —
+		50 콘솔 트리 Task 003 - 한글 작업과 레이아웃 🔎 · Claude 에이전트, Codex 에이전트 · 오류 1 · 미확인 1 · 대기 1, Secondary Actions: Select
+			51 이미지 에이전트: Claude, Codex
+		52 콘솔 트리 Worker 9 · Claude 에이전트 | 대기 · 출처: osc · 신뢰도: 100% · 상위: 대기 · 마지막: — | 보고 없음
+			53 이미지 Claude 에이전트
+			54 상태 대기 · 출처: osc · 신뢰도: 100% · 상위: 대기 · 마지막: —
+		55 콘솔 트리 Worker 10 · Codex 에이전트 | 상태 미확인 · 추정 · 출처: heuristic · 신뢰도: 40% · 상위: 상태 미확인 · 마지막: — | 보고 없음
+			56 이미지 Codex 에이전트
+			57 상태 상태 미확인 · 추정 · 출처: heuristic · 신뢰도: 40% · 상위: 상태 미확인 · 마지막: —
+		58 콘솔 트리 Worker 11 · 셸 터미널 | 오류 · 출처: osc · 신뢰도: 100% · 상위: 오류 · 마지막: — | 보고 없음
+			59 이미지 셸 터미널
+			60 상태 오류 · 출처: osc · 신뢰도: 100% · 상위: 오류 · 마지막: —
+		61 콘솔 트리 Task 004 - 한글 작업과 레이아웃 🔎 · Claude 에이전트, Codex 에이전트 · 작업 중 1 · 오류 1 · 미확인 1, Secondary Actions: Select
+			62 이미지 에이전트: Claude, Codex
+		63 콘솔 트리 Worker 12 · Claude 에이전트 | 상태 미확인 · 추정 · 출처: heuristic · 신뢰도: 40% · 상위: 상태 미확인 · 마지막: — | 보고 없음
+			64 이미지 Claude 에이전트
+			65 상태 상태 미확인 · 추정 · 출처: heuristic · 신뢰도: 40% · 상위: 상태 미확인 · 마지막: —
+	66 LIST 최근 알림
+	67 탭 항목 설정, Secondary Actions: Select
+	68 단추 패널 메뉴
+	69 Tab 설정 분류
+		70 탭 항목 모양, Secondary Actions: Select
+		71 탭 항목 글꼴, Secondary Actions: Select
+		72 탭 항목 일반, Secondary Actions: Select
+	73 탭 패널 모양
+		74 라디오 그룹 프리셋
+			75 라디오 단추 프리셋: 01 정밀한 작업대, Secondary Actions: Select
+			76 라디오 단추 프리셋: 02 한 작업에 집중, Secondary Actions: Select
+			77 라디오 단추 프리셋: 03 응답 중심 관제, Secondary Actions: Select
+			78 라디오 단추 프리셋: 04 조용한 편집기, Secondary Actions: Select
+			79 라디오 단추 프리셋: 05 레이어형, Secondary Actions: Select
+			80 라디오 단추 프리셋: 06 관제형, Secondary Actions: Select
+			81 라디오 단추 프리셋: 07 고밀도 편집기, Secondary Actions: Select
+			82 라디오 단추 프리셋: 08 섬형, Secondary Actions: Select
+			83 라디오 단추 프리셋: 09 미니멀 단색, Secondary Actions: Select
+			84 라디오 단추 프리셋: 10 따뜻한 중성색, Secondary Actions: Select
+			85 라디오 단추 프리셋: 11 블록 터미널, Secondary Actions: Select
+			86 라디오 단추 프리셋: 12 칸반 보드, Secondary Actions: Select
+			87 라디오 단추 프리셋: 13 분할 리뷰 중심, Secondary Actions: Select
+			88 라디오 단추 프리셋: 14 고대비·접근성 우선, Secondary Actions: Select
+			89 라디오 단추 프리셋: 15 조용한 편집기 · 청록, Secondary Actions: Select
+			90 라디오 단추 프리셋: 16 조용한 편집기 · 보라, Secondary Actions: Select
+			91 라디오 단추 프리셋: 17 정밀한 작업대 · 중립 회색, Secondary Actions: Select
+			92 라디오 단추 프리셋: 18 정밀한 작업대 · 녹청, Secondary Actions: Select
+		93 콤보 상자 스타일, Value: 조용한 편집기, Secondary Actions: SetValue
+		94 라디오 그룹 테마
+			95 라디오 단추 테마: 시스템, Secondary Actions: Select
+			96 라디오 단추 테마: 다크, Secondary Actions: Select
+			97 라디오 단추 테마: 라이트, Secondary Actions: Select
+		98 라디오 그룹 밀도
+			99 라디오 단추 밀도: 테마 기본, Secondary Actions: Select
+			100 라디오 단추 밀도: 고밀도, Secondary Actions: Select
+			101 라디오 단추 밀도: 기본, Secondary Actions: Select
+			102 라디오 단추 밀도: 여유롭게, Secondary Actions: Select
+			103 라디오 단추 밀도: 접근성, Secondary Actions: Select
+		104 라디오 그룹 강조색
+			105 라디오 단추 강조색: 테마 기본, Secondary Actions: Select
+			106 라디오 단추 강조색: 파랑, Secondary Actions: Select
+			107 라디오 단추 강조색: 청록, Secondary Actions: Select
+			108 라디오 단추 강조색: 보라, Secondary Actions: Select
+			109 라디오 단추 강조색: 녹청, Secondary Actions: Select
+			110 라디오 단추 강조색: 인디고, Secondary Actions: Select
+		111 콤보 상자 레이아웃, Value: 작업대, Secondary Actions: SetValue
+		112 단추 고대비 미리보기, Secondary Actions: Toggle
+	113 상태 podd 연결됨 (podd UI fixture (read only) · pid 0) · 터미널 300 · 실행 300 · 패널 0 · 작업 중 49 · 응답 50 · 완료 51 · 작업 100개
+	114 단추 상태
+	115 단추 알림 0

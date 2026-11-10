@@ -1,0 +1,9 @@
+[package]
+name = "demo-app"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+
+# Own workspace root so the fixture works even inside another workspace.
+[workspace]

@@ -1,0 +1,349 @@
+<!doctype html><html lang="ko"><head><meta charset="utf-8"><style>:root{--app:#16181C;--sidebar:#16181C;--panel:#1B1D22;--raised:#22252B;--overlay:#272A31;--hover:#25282E;--active:#2D3138;--selected:#1F2C42;--selected_quiet:#272B33;--hairline:#2A2D34;--strong:#3A3F48;--control:#6F7783;--focus:#6A9BFF;--text:#E6E8EC;--text2:#AEB3BD;--muted:#8E949F;--disabled:#5C626C;--accent:#3D6FD6;--accent_hover:#3463C4;--on_accent:#FFFFFF;--accent_fg:#8DB5FF;--working:#62B3E6;--attention:#E5B565;--done:#62BF8F;--failed:#F28B82;--idle:#8E949F;--working_bg:#1A2C38;--attention_bg:#352A17;--done_bg:#183126;--failed_bg:#3A2022;--add_bg:#18291F;--del_bg:#33191C;--add_fg:#7DCB9B;--del_fg:#F29A92;--term_bg:#1B1D22;--term_fg:#DADDE3}
+:root{--shadow:rgba(0,0,0,.45)}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{width:960px;height:640px;overflow:hidden}
+body{background:var(--app);color:var(--text);font:400 13px/20px "Segoe UI Variable Text","Segoe UI","Malgun Gothic",sans-serif;
+ -webkit-font-smoothing:antialiased;letter-spacing:0}
+.mono{font-family:"Cascadia Mono",Consolas,"Malgun Gothic",monospace}
+.ic{flex:none;display:block}
+.tb,.top,.crumb,.sbh,.sec,.tr,.wr,.ph,.tab,.wt,.stb,.rvh,.cph,.agc,.agh,.th,.ch,.qh,.ql,.r,.btn,.seg,.kbd,.k,.pillst,.chip,.cnt{white-space:nowrap}
+.row{display:flex;align-items:center}
+.col{display:flex;flex-direction:column}
+.grow{flex:1;min-width:0}
+.ell{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.t2{color:var(--text2)} .mu{color:var(--muted)} .acc{color:var(--accent_fg)}
+.s-working{color:var(--working)} .s-attention{color:var(--attention)} .s-done{color:var(--done)}
+.s-failed{color:var(--failed)} .s-idle{color:var(--idle)}
+.dot{width:8px;height:8px;border-radius:50%;flex:none}
+.d-working{background:var(--working)} .d-attention{background:var(--attention)} .d-done{background:var(--done)}
+.d-failed{background:var(--failed)} .d-idle{background:transparent;box-shadow:inset 0 0 0 1.5px var(--idle)}
+pre{font:12px/18px "Cascadia Mono",Consolas,"Malgun Gothic",monospace;color:var(--term_fg);white-space:pre}
+pre .dim{color:var(--muted)} pre .ok{color:var(--done)} pre .warn{color:var(--attention)} pre .info{color:var(--working)}
+pre .add{color:var(--add_fg)} pre .del{color:var(--del_fg)} pre .hl{color:var(--text);font-weight:600}
+pre .cursor{background:var(--text);display:inline-block;width:7px;height:15px;vertical-align:-3px}
+.kbd{font:11px/16px "Segoe UI","Malgun Gothic";color:var(--muted);border:1px solid var(--hairline);border-radius:3px;padding:0 4px}
+.caption{display:flex;height:100%}
+.caption div{width:46px;display:flex;align-items:center;justify-content:center;color:var(--text2)}
+.tip{position:absolute;background:var(--overlay);color:var(--text);border:1px solid var(--strong);border-radius:4px;padding:2px 8px;font-size:12px;line-height:18px;
+ box-shadow:0 4px 12px rgba(0,0,0,.25);white-space:nowrap;z-index:9}
+
+.tb{height:36px;display:flex;align-items:center;background:var(--app);border-bottom:1px solid var(--hairline);padding-left:12px;gap:8px}
+.logo{width:18px;height:18px;border-radius:5px;background:var(--accent);color:#fff;font:700 11px/18px "Segoe UI";text-align:center}
+.crumb{display:flex;align-items:center;gap:6px;color:var(--text2);font-size:13px}
+.crumb b{color:var(--text);font-weight:600}
+.pill{margin:0 auto;width:340px;height:26px;border-radius:6px;background:var(--panel);border:1px solid var(--hairline);display:flex;align-items:center;gap:8px;padding:0 6px 0 10px;color:var(--muted)}
+.ib{width:28px;height:28px;border-radius:4px;display:flex;align-items:center;justify-content:center;color:var(--text2);position:relative}
+.ib.on{background:var(--active);color:var(--text)}
+.ib .badge{position:absolute;top:4px;right:4px;width:7px;height:7px;border-radius:50%;background:var(--attention);box-shadow:0 0 0 2px var(--app)}
+.main{display:flex;height:580px}
+.sb{width:248px;background:var(--sidebar);border-right:1px solid var(--hairline);display:flex;flex-direction:column}
+.sbh{height:36px;display:flex;align-items:center;padding:0 6px 0 12px;gap:2px}
+.sbh .ib{width:26px;height:26px}
+.sec{height:26px;display:flex;align-items:center;gap:6px;padding:0 8px 0 10px;font-size:12px;color:var(--muted);font-weight:600}
+.tr{height:28px;margin:0 6px;border-radius:4px;display:flex;align-items:center;gap:8px;padding:0 8px 0 4px}
+.tr .chev{color:var(--muted);width:14px}
+.tr .ttl{flex:1;min-width:0;font-weight:500}
+.tr .meta{color:var(--muted);font-size:12px}
+.tr.cur{background:var(--selected_quiet)}
+.wr{height:28px;margin:0 6px;border-radius:4px;display:flex;align-items:center;gap:8px;padding:0 8px 0 30px;color:var(--text2)}
+.wr.sel{background:var(--selected);color:var(--text)}
+.wr.hov{background:var(--hover)}
+.wr .st{font-size:12px}
+.cnt{font-size:11px;line-height:16px;padding:0 5px;border-radius:8px;font-weight:600}
+.cnt.attention{background:var(--attention_bg);color:var(--attention)}
+.cnt.failed{background:var(--failed_bg);color:var(--failed)}
+.content{flex:1;min-width:0;display:flex;flex-direction:column;background:var(--panel);overflow:hidden}
+.tabs{height:32px;display:flex;align-items:stretch;overflow:hidden;background:var(--app);border-bottom:1px solid var(--hairline)}
+.tab{display:flex;align-items:center;gap:6px;padding:0 10px 0 12px;color:var(--text2);border-right:1px solid var(--hairline);font-size:13px;position:relative}
+.tab.on{background:var(--panel);color:var(--text);margin-bottom:-1px}
+.tab.on:before{content:"";position:absolute;left:0;right:0;top:0;height:2px;background:var(--accent)}
+.tab .x{color:var(--muted);opacity:0}
+.tab.on .x{opacity:1}
+.grid{flex:1;display:grid;grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr;gap:1px;background:var(--hairline);min-height:0}
+.pane{background:var(--term_bg);display:flex;flex-direction:column;min-width:0;min-height:0;position:relative}
+.ph{height:30px;display:flex;align-items:center;gap:8px;padding:0 6px 0 10px;border-bottom:1px solid var(--hairline);color:var(--text2);font-size:12px}
+.ph .nm{color:var(--text);font-size:13px;font-weight:500}
+.pane.focus{box-shadow:inset 0 0 0 1px var(--focus)}
+.pane pre{padding:8px 12px;overflow:hidden;flex:1}
+.ph .tools{display:flex;margin-left:auto;gap:0}
+.ph .tools .ib{width:24px;height:24px}
+.stb{height:24px;display:flex;align-items:center;background:var(--app);border-top:1px solid var(--hairline);padding:0 6px;font-size:12px;color:var(--text2);gap:0}
+.stb .g{display:flex;align-items:center;gap:6px;padding:0 8px;height:100%}
+.stb .sep{width:1px;height:12px;background:var(--strong)}
+.stb .g b{font-weight:600;color:var(--text)}
+.btn{height:28px;padding:0 12px;border-radius:4px;display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:500;color:var(--text);background:transparent;border:1px solid var(--strong)}
+.btn.pri{background:var(--accent);color:var(--on_accent);border-color:var(--accent)}
+.btn.ghost{border-color:transparent;color:var(--text2)}
+.btn.sm{height:24px;padding:0 8px;font-size:12px}
+.seg{display:inline-flex;height:26px;border-radius:5px;background:var(--app);border:1px solid var(--hairline);padding:2px;gap:2px}
+.seg div{display:flex;align-items:center;gap:5px;padding:0 8px;border-radius:3px;color:var(--text2);font-size:12px}
+.seg div.on{background:var(--raised);color:var(--text);box-shadow:0 0 0 1px var(--strong)}
+.banner{display:flex;align-items:flex-start;gap:8px;padding:8px 10px;border-radius:6px;font-size:12px;line-height:18px}
+.banner.info{background:var(--working_bg);color:var(--text)} .banner.info .ic{color:var(--working)}
+.banner.err{background:var(--failed_bg);color:var(--text)} .banner.err .ic{color:var(--failed)}
+.banner.warn{background:var(--attention_bg);color:var(--text)} .banner.warn .ic{color:var(--attention)}
+.banner .act{margin-left:auto;font-weight:600;color:var(--accent_fg);white-space:nowrap}
+
+body{padding:20px;display:grid;grid-template-columns:1fr 1fr;gap:20px;background:var(--app)}
+.blk{background:var(--panel);border:1px solid var(--hairline);border-radius:8px;padding:14px;display:flex;flex-direction:column;gap:10px}
+.lbl{font-size:11px;color:var(--muted);font-weight:600}
+.dlg{background:var(--overlay);border:1px solid var(--strong);border-radius:8px;box-shadow:0 12px 32px var(--shadow);padding:16px;display:flex;flex-direction:column;gap:12px}
+.field{height:30px;border:1px solid var(--control);border-radius:4px;padding:0 10px;display:flex;align-items:center;background:var(--panel)}
+.field.f{border-color:var(--focus);box-shadow:0 0 0 1px var(--focus)}
+.toast{background:var(--overlay);border:1px solid var(--strong);border-radius:8px;box-shadow:0 4px 12px var(--shadow);padding:10px 12px;display:flex;gap:10px;align-items:flex-start}
+.empty{align-items:center;text-align:center;padding:22px}
+</style></head><body class="A dark"><div class="col" style="gap:20px">
+<div class="dlg"><div class="row"><b style="font-size:15px;line-height:22px;font-weight:600">새 터미널</b><span class="grow"></span><svg class="ic mu" width="16" height="16" style="" xmlns="http://www.w3.org/2000/svg"
+ 
+ 
+  viewBox="0 0 24 24"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="1.75"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <path d="M18 6 6 18" />
+  <path d="m6 6 12 12" />
+</svg></div>
+<div class="col" style="gap:6px"><span class="lbl">프로그램</span><div class="seg" style="height:30px;align-self:flex-start"><div class="on"><svg class="ic " width="14" height="14" style="" xmlns="http://www.w3.org/2000/svg"
+ 
+ 
+  viewBox="0 0 24 24"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="1.75"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <path d="m7 11 2-2-2-2" />
+  <path d="M11 13h4" />
+  <rect width="18" height="18" x="3" y="3" rx="2" ry="2" />
+</svg>셸</div><div><svg class="ic " width="14" height="14" style="" xmlns="http://www.w3.org/2000/svg"
+ 
+ 
+  viewBox="0 0 24 24"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="1.75"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <path d="M12 8V4H8" />
+  <rect width="16" height="12" x="4" y="8" rx="2" />
+  <path d="M2 14h2" />
+  <path d="M20 14h2" />
+  <path d="M15 13v2" />
+  <path d="M9 13v2" />
+</svg>Claude</div><div><svg class="ic " width="14" height="14" style="" xmlns="http://www.w3.org/2000/svg"
+ 
+ 
+  viewBox="0 0 24 24"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="1.75"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <path d="M12 8V4H8" />
+  <rect width="16" height="12" x="4" y="8" rx="2" />
+  <path d="M2 14h2" />
+  <path d="M20 14h2" />
+  <path d="M15 13v2" />
+  <path d="M9 13v2" />
+</svg>Codex</div><div>사용자 지정</div></div></div>
+<div class="col" style="gap:6px"><span class="lbl">작업 폴더</span><div class="field mono" style="font-size:12px">C:\src\pod</div></div>
+<div class="col" style="gap:6px"><span class="lbl">이름 (선택)</span><div class="field f mu">예: review-bot</div></div>
+<div class="row" style="gap:8px;justify-content:flex-end"><span class="btn">취소</span><span class="btn pri">실행 <span class="kbd" style="color:inherit;border-color:rgba(255,255,255,.4)">Enter</span></span></div></div>
+<div class="blk"><span class="lbl">배너 · 인라인 (아이콘 + 문장 + 동작)</span>
+<div class="banner err"><svg class="ic " width="14" height="14" style="" xmlns="http://www.w3.org/2000/svg"
+ 
+ 
+  viewBox="0 0 24 24"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="1.75"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3" />
+  <path d="M12 9v4" />
+  <path d="M12 17h.01" />
+</svg><span>변경 사항을 읽지 못했습니다. 작업 폴더가 없습니다.</span><span class="act">다시 시도</span></div>
+<div class="banner warn"><svg class="ic " width="14" height="14" style="" xmlns="http://www.w3.org/2000/svg"
+ 
+ 
+  viewBox="0 0 24 24"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="1.75"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z" />
+  <path d="M9.1 9a3 3 0 0 1 5.82 1c0 2-3 3-3 3" />
+  <path d="M12 17h.01" />
+</svg><span>Codex · 리뷰가 명령 실행 승인을 기다립니다.</span><span class="act">열기</span></div>
+<div class="banner info"><svg class="ic " width="14" height="14" style="" xmlns="http://www.w3.org/2000/svg"
+ 
+ 
+  viewBox="0 0 24 24"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="1.75"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <path d="M12 22v-5" />
+  <path d="M9 8V2" />
+  <path d="M15 8V2" />
+  <path d="M18 8v5a4 4 0 0 1-4 4h-4a4 4 0 0 1-4-4V8Z" />
+</svg><span>podd에 다시 연결하는 중입니다… 터미널은 계속 실행됩니다.</span></div></div>
+</div>
+<div class="col" style="gap:20px">
+<div class="blk"><span class="lbl">버튼 · 아이콘 버튼 (툴팁) · 분할 제어</span>
+<div class="row" style="gap:8px"><span class="btn pri"><svg class="ic " width="14" height="14" style="" xmlns="http://www.w3.org/2000/svg"
+ 
+ 
+  viewBox="0 0 24 24"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="1.75"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <path d="M5 12h14" />
+  <path d="M12 5v14" />
+</svg>새 작업</span><span class="btn">저장소 열기</span><span class="btn ghost">취소</span></div>
+<div class="row" style="gap:4px;position:relative;height:56px;align-items:flex-start"><div class="ib"><svg class="ic " width="16" height="16" style="" xmlns="http://www.w3.org/2000/svg"
+ 
+ 
+  viewBox="0 0 24 24"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="1.75"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <path d="M5 12h14" />
+  <path d="M12 5v14" />
+</svg></div><div class="ib on"><svg class="ic " width="16" height="16" style="" xmlns="http://www.w3.org/2000/svg"
+ 
+ 
+  viewBox="0 0 24 24"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="1.75"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <rect width="7" height="7" x="3" y="3" rx="1" />
+  <rect width="7" height="7" x="14" y="3" rx="1" />
+  <rect width="7" height="7" x="14" y="14" rx="1" />
+  <rect width="7" height="7" x="3" y="14" rx="1" />
+</svg></div><div class="ib"><svg class="ic " width="16" height="16" style="" xmlns="http://www.w3.org/2000/svg"
+ 
+ 
+  viewBox="0 0 24 24"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="1.75"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <rect width="18" height="18" x="3" y="3" rx="2" />
+  <path d="M12 3v18" />
+</svg></div><div class="ib"><svg class="ic " width="16" height="16" style="" xmlns="http://www.w3.org/2000/svg"
+ 
+ 
+  viewBox="0 0 24 24"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="1.75"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8" />
+  <path d="M21 3v5h-5" />
+</svg></div>
+<div class="tip" style="left:20px;top:32px">격자 보기 <span class="kbd">Ctrl Alt G</span></div></div>
+<div class="seg" style="align-self:flex-start"><div class="on"><svg class="ic " width="14" height="14" style="" xmlns="http://www.w3.org/2000/svg"
+ 
+ 
+  viewBox="0 0 24 24"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="1.75"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <rect width="18" height="18" x="3" y="3" rx="2" />
+  <path d="M12 3v18" />
+</svg>나란히</div><div><svg class="ic " width="14" height="14" style="" xmlns="http://www.w3.org/2000/svg"
+ 
+ 
+  viewBox="0 0 24 24"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="1.75"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <rect width="18" height="18" x="3" y="3" rx="2" />
+  <path d="M3 12h18" />
+</svg>한 줄로</div></div></div>
+<div class="toast"><svg class="ic s-done" width="16" height="16" style="" xmlns="http://www.w3.org/2000/svg"
+ 
+ 
+  viewBox="0 0 24 24"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="1.75"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <circle cx="12" cy="12" r="10" />
+  <path d="m9 12 2 2 4-4" />
+</svg><div class="grow"><b style="font-weight:600">Claude · 문서 완료</b><div class="t2" style="font-size:12px;line-height:18px">터미널 넓은 글자 정렬 · 1분 12초</div></div><span class="act acc" style="font-weight:600;font-size:12px">열기</span><svg class="ic mu" width="14" height="14" style="" xmlns="http://www.w3.org/2000/svg"
+ 
+ 
+  viewBox="0 0 24 24"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="1.75"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <path d="M18 6 6 18" />
+  <path d="m6 6 12 12" />
+</svg></div>
+<div class="blk empty"><div style="width:40px;height:40px;border-radius:8px;background:var(--app);display:flex;align-items:center;justify-content:center;color:var(--text2)"><svg class="ic " width="20" height="20" style="" xmlns="http://www.w3.org/2000/svg"
+ 
+ 
+  viewBox="0 0 24 24"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="1.75"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <path d="M12.83 2.18a2 2 0 0 0-1.66 0L2.6 6.08a1 1 0 0 0 0 1.83l8.58 3.91a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.83z" />
+  <path d="M2 12a1 1 0 0 0 .58.91l8.6 3.91a2 2 0 0 0 1.65 0l8.58-3.9A1 1 0 0 0 22 12" />
+  <path d="M2 17a1 1 0 0 0 .58.91l8.6 3.91a2 2 0 0 0 1.65 0l8.58-3.9A1 1 0 0 0 22 17" />
+</svg></div>
+<b style="font-size:15px;line-height:22px;font-weight:600">이 저장소에 아직 작업이 없습니다</b>
+<span class="t2" style="max-width:300px">작업을 만들면 전용 브랜치와 작업 폴더가 준비되고, 그 안에서 에이전트 터미널을 시작합니다.</span>
+<div class="row" style="gap:8px"><span class="btn pri"><svg class="ic " width="14" height="14" style="" xmlns="http://www.w3.org/2000/svg"
+ 
+ 
+  viewBox="0 0 24 24"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="1.75"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <path d="M5 12h14" />
+  <path d="M12 5v14" />
+</svg>새 작업</span><span class="btn ghost">터미널만 열기 <span class="kbd">Ctrl Shift T</span></span></div></div>
+</div></body></html>

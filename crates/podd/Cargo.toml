@@ -1,0 +1,77 @@
+[package]
+name = "podd"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+publish = false
+description = "Pod core daemon: terminals owned by holder processes (ConPTY + Job Object), JSON-RPC over a named pipe"
+
+[lib]
+name = "podd"
+path = "src/lib.rs"
+
+[[bin]]
+name = "podd"
+path = "src/main.rs"
+required-features = ["server"]
+
+[[bin]]
+name = "pod-holder"
+path = "src/bin/pod-holder.rs"
+required-features = ["server"]
+
+[features]
+# `server` pulls in the PTY/VT stack and tokio. Clients (the `pod` CLI) only need
+# the protocol types and the blocking client, so they build with
+# `default-features = false`.
+default = ["server"]
+server = ["dep:tokio", "dep:alacritty_terminal", "dep:pod-status", "dep:sha2", "dep:toml", "pod-mods/runtime"]
+
+[dependencies]
+anyhow = "1"
+base64 = "0.22"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+schemars = "1"
+tokio = { version = "1", features = ["rt-multi-thread", "rt", "net", "io-util", "sync", "time", "macros"], optional = true }
+alacritty_terminal = { version = "0.26.0", optional = true }
+pod-status = { path = "../pod-status", optional = true }
+# Apache-2.0 OR MIT, already in the lockfile: mobile message digests (docs/17 M1)
+# and the `.pod/config.toml` command hash (docs/19 §3.2).
+sha2 = { version = "0.10", optional = true }
+# `.pod/config.toml` (docs/19 §3.2); MIT OR Apache-2.0, already in the lockfile.
+toml = { version = "0.8", optional = true }
+# Forge (GitHub) types for the protocol; the gh-backed provider runs in the daemon.
+pod-forge = { path = "../pod-forge" }
+# Orchestration records (docs/19): wire types always, the engine in the daemon.
+pod-orch = { path = "../pod-orch" }
+# Extensions (docs/16): wire types always, the QuickJS runtime with `server`.
+pod-mods = { path = "../pod-mods", default-features = false }
+# Session discovery (docs/18): wire types always, scanning in the daemon.
+pod-discover = { path = "../pod-discover" }
+# Also used by the client side (`detach.rs`: spawning podd / pod-holder with no
+# inherited handles), so not optional.
+windows-sys = { version = "0.61", features = [
+    "Win32_Foundation",
+    "Win32_Security",
+    "Win32_Security_Authorization",
+    "Win32_Security_Cryptography",
+    "Win32_Storage_FileSystem",
+    "Win32_System_Console",
+    "Win32_System_Environment",
+    "Win32_System_IO",
+    "Win32_System_JobObjects",
+    "Win32_System_LibraryLoader",
+    "Win32_System_Memory",
+    "Win32_System_Pipes",
+    "Win32_System_SystemInformation",
+    "Win32_System_Threading",
+] }
+
+[lints]
+workspace = true
+
+[build-dependencies]
+# MIT: compiles per-binary Windows resources without leaking through rlibs.
+embed-resource = "3.0.12"

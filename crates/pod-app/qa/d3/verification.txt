@@ -1,0 +1,19 @@
+﻿D3 final verification, 2026-11-09
+cargo check -p pod-app
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 6.88s
+cargo build --workspace --release
+    Finished `release` profile [optimized + debuginfo] target(s) in 13.28s
+cargo clippy -p pod-app -p pod-ui -p pod-terminal-view --all-targets -- -D warnings
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 2.80s
+cargo test --workspace --release -- --test-threads=4
+Exit 0; aggregate 321 passed, 0 failed, 2 existing ignored
+   Doc-tests podd
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+cargo deny check
+advisories ok, bans ok, licenses ok, sources ok
+Visual compare: 26 passed, zero changed pixels above tolerance 8
+Contrast: dark 36/36 and light 36/36

@@ -1,0 +1,18 @@
+﻿{
+    "Image":  "dark-review-review.png",
+    "DPI":  144,
+    "Rect":  [
+                 2584,
+                 259,
+                 3800,
+                 1219
+             ],
+    "Scene":  "review",
+    "Theme":  "dark",
+    "Style":  "",
+    "Layout":  "review",
+    "Fixture":  true,
+    "Font":  "Malgun Gothic",
+    "TerminalFont":  "Cascadia Mono",
+    "HighContrast":  false
+}

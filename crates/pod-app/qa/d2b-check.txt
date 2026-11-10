@@ -1,0 +1,2 @@
+    Checking pod-app v0.1.0 (C:\Users\User\dev\workspaces\ide\d2b-polish\crates\pod-app)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 1.95s

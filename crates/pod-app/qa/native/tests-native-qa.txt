@@ -1,0 +1,543 @@
+﻿   Compiling podd v0.1.0 (C:\Users\User\dev\workspaces\ide\native-qa\crates\podd)
+   Compiling pod-terminal-view v0.1.0 (C:\Users\User\dev\workspaces\ide\native-qa\crates\pod-terminal-view)
+   Compiling pod-app v0.1.0 (C:\Users\User\dev\workspaces\ide\native-qa\crates\pod-app)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 23.97s
+     Running unittests src\main.rs (target\debug\deps\pod_app-194a5f6f3ba8fcbc.exe)
+
+running 63 tests
+test gates::tests::durations ... ok
+test gates::tests::expiry_lines ... ok
+test attach::tests::outputs_merge_and_reset_clears ... ok
+test chrome::palette_tests::fuzzy_unicode_ranges_and_order ... ok
+test attach::tests::lag_flag ... ok
+test groups::tests::error_names ... ok
+test groups::tests::check_command_round_trip ... ok
+test groups::tests::validation_messages ... ok
+test groups::tests::check_summaries_report_failure_as_failure ... ok
+test groups::tests::specs_and_member_names_follow_podd_rules ... ok
+test editor_panel::tests::state_roundtrip_keeps_tabs_and_cursor ... ok
+test layout::tests::chrome_panels_survive_without_daemon_targets ... ok
+test layout::tests::grid ... ok
+test layout::tests::editor_panels_need_an_existing_worktree ... ok
+test layout::tests::active_tab_falls_back_to_first ... ok
+test layout::tests::prune_drops_dead_terminals_and_empty_containers ... ok
+test layout::tests::review_and_group_need_their_target ... ok
+test layout::tests::unknown_leaves_are_dropped ... ok
+test layout::tests::saved_roundtrip ... ok
+test layout::tests::restores_review_group_gates_agents_and_right_dock ... ok
+test chrome::palette_tests::documented_shortcuts_match_in_app_help ... ok
+test orch::tests::badges_follow_status_and_lifecycle ... ok
+test orch::tests::pending_sorts_numerically_and_resolved_newest_first ... ok
+test orch::tests::snapshot_merge_reports_new_and_drops_vanished_pending ... ok
+test panel::tests::persisted_state_roundtrip ... ok
+test panel::tests::reply_filter ... ok
+test review::editor_tests::first_change_line_for_open_in_editor ... ok
+test review::tests::queued_to_delivered_is_reported_once ... ok
+test review::tests::refusal_messages ... ok
+test review::tests::selection_or_all_open ... ok
+test review::tests::submit_check_lines_and_unconfirmed_toast_once ... ok
+test review::tests::turn_end_detection ... ok
+test source::tests::command_line_quotes ... ok
+test source::tests::color_reply_filter_drops_stale_and_duplicate_replies ... ok
+test source::tests::presets ... ok
+test source::tests::transport_vs_rpc_errors ... ok
+test source::tests::orchestration_stream_events ... ok
+test strings::toolkit_tests::host_catalog_reaches_dock_and_diff ... ok
+test theme::tests::old_settings_get_independent_font_defaults ... ok
+test theme::tests::os_contrast_theme_forces_high_contrast_tokens ... ok
+test tree::tests::collapse_hides_children_but_keeps_aggregate ... ok
+test tree::tests::loose_terminal_chain_and_self_parent ... ok
+test tree::tests::group_started_from_a_terminal_nests_under_it_with_aggregate ... ok
+test tree::tests::unknown_parents_and_cycles_fall_back_to_roots ... ok
+test vm::tests::program_labels ... ok
+test tree::tests::pod_run_child_terminal_nests_under_parent_terminal_and_survives_exit ... ok
+test vm::tests::task_from_protocol_v3 ... ok
+test vm::tests::task_parse_and_counts ... ok
+test vm::tests::terminal_from_p0_info ... ok
+test vm::tests::terminal_parent_fields_v7 ... ok
+test vm::tests::terminal_with_future_fields ... ok
+test workspace::tests::needs_you_toast_suppressed_only_for_the_terminal_in_view ... ok
+test theme::tests::app_switches_tokens_when_the_os_reports_high_contrast ... ok
+[native-qa] e-dpi | scale 1 viewport Size { 1920px × 1032px }
+[native-qa] e-dpi | scale 1 title-actions Bounds { origin: Point { x: 1670px, y: 4px }, size: Size { 148px × 26px } }
+[native-qa] e-dpi | scale 1 sidebar Bounds { origin: Point { x: 0px, y: 36px }, size: Size { 304px × 972px } }
+[native-qa] e-dpi | scale 1 sidebar-actions Bounds { origin: Point { x: 142px, y: 42px }, size: Size { 151px × 26px } }
+[native-qa] e-dpi | scale 1 row-w1 Bounds { origin: Point { x: 0px, y: 224px }, size: Size { 303px × 40px } }
+[native-qa] e-dpi | scale 1 row-b1 Bounds { origin: Point { x: 0px, y: 304px }, size: Size { 303px × 40px } }
+[native-qa] e-dpi | scale 1 status-bar Bounds { origin: Point { x: 0px, y: 1008px }, size: Size { 1920px × 24px } }
+[native-qa] e-dpi | scale 1 status-inspect Bounds { origin: Point { x: 1836px, y: 1012px }, size: Size { 28px × 16px } }
+[native-qa] e-dpi | scale 1 status-notifications Bounds { origin: Point { x: 1877px, y: 1012px }, size: Size { 37px × 16px } }
+[native-qa] a-flow | launch | focus: workspace root
+[native-qa] workspace | tab 0 → workspace control [Root]
+[native-qa] workspace | tab 1 → workspace control [Root]
+[native-qa] a-dialog-enter | keys ctrl-n | focus: dialog text input (value "") [Root > Dialog > Input]
+[native-qa] a-flow | keys ctrl-k | focus: dialog text input (value "") [Root > Dialog > Input]
+[native-qa] d-ime-inputs | keys ctrl-k | focus: dialog text input (value "") [Root > Dialog > Input]
+[native-qa] b-focus-return | keys ctrl-k | focus: dialog text input (value "") [Root > Dialog > Input]
+[native-qa] e-dpi | keys ctrl-k | focus: dialog text input (value "") [Root > Dialog > Input]
+[native-qa] e-dpi | scale 1 dialog-0 Bounds { origin: Point { x: 640px, y: 103px }, size: Size { 640px × 472px } }
+[native-qa] e-dpi | scale 1 dialog palette Bounds { origin: Point { x: 640px, y: 103px }, size: Size { 640px × 472px } }
+[native-qa] d-ime-terminal | keys ctrl-k | focus: dialog text input (value "") [Root > Dialog > Input]
+[native-qa] workspace | tab 2 → sidebar tree
+[native-qa] a-launch | keys ctrl-k | focus: dialog text input (value "") [Root > Dialog > Input]
+[native-qa] e-dpi | keys escape | focus: workspace root
+[native-qa] a-dialog-enter | press enter | focus: dialog text input (value "") [Root > Dialog > Input]
+[native-qa] workspace | tab 3 → workspace control [Root]
+[native-qa] a-launch | keys escape | focus: workspace root
+[native-qa] a-flow | IME commit "저장소 열기" | focus: dialog text input (value "저장소 열기") [Root > Dialog > Input]
+[native-qa] b-focus-return | IME commit "로그인 작업" | focus: dialog text input (value "로그인 작업") [Root > Dialog > Input]
+[native-qa] d-ime-inputs | IME compose "ㄹ" | focus: dialog text input (value "ㄹ") [Root > Dialog > Input]
+[native-qa] workspace | tab 4 → workspace control [Root]
+[native-qa] d-ime-terminal | IME commit "로그인 작업" | focus: dialog text input (value "로그인 작업") [Root > Dialog > Input]
+[native-qa] a-dialog-enter | press tab | focus: dialog text input (value "") [Root > Dialog > Input]
+[native-qa] workspace | tab 5 → workspace control [Root]
+[native-qa] d-ime-inputs | IME compose "리" | focus: dialog text input (value "리") [Root > Dialog > Input]
+[native-qa] e-dpi | keys ctrl-n | focus: dialog text input (value "") [Root > Dialog > Input]
+[native-qa] e-dpi | scale 1 dialog-0 Bounds { origin: Point { x: 680px, y: 103px }, size: Size { 560px × 339px } }
+[native-qa] e-dpi | scale 1 dialog new task Bounds { origin: Point { x: 680px, y: 103px }, size: Size { 560px × 339px } }
+[native-qa] a-flow | keys enter | focus: dialog text input (value "") [Root > Dialog > Input]
+[native-qa] a-launch | keys ctrl-k | focus: dialog text input (value "") [Root > Dialog > Input]
+[native-qa] d-ime-inputs | keys enter | focus: dialog text input (value "리") [Root > Dialog > Input]
+[native-qa] workspace | tab 6 → workspace control [Root]
+[native-qa] e-dpi | keys escape | focus: workspace root
+[native-qa] a-dialog-enter | press tab | focus: dialog control [Root > Dialog]
+[native-qa] workspace | tab 7 → workspace control [Root]
+[native-qa] a-launch | IME commit "로그인 작업" | focus: dialog text input (value "로그인 작업") [Root > Dialog > Input]
+[native-qa] d-ime-inputs | IME commit "리" | focus: dialog text input (value "리") [Root > Dialog > Input]
+[native-qa] a-dialog-enter | press enter | focus: dialog control [Root > Dialog]
+[native-qa] workspace | tab 8 → sidebar filter input
+[native-qa] e-dpi | keys ctrl-shift-t | focus: dialog text input (value "") [Root > Dialog > Input]
+[native-qa] e-dpi | scale 1 dialog-0 Bounds { origin: Point { x: 700px, y: 103px }, size: Size { 520px × 253px } }
+[native-qa] e-dpi | scale 1 dialog new terminal Bounds { origin: Point { x: 700px, y: 103px }, size: Size { 520px × 253px } }
+[native-qa] workspace | tab 9 → workspace control [Root]
+[native-qa] d-ime-inputs | IME compose "뷰" | focus: dialog text input (value "리뷰") [Root > Dialog > Input]
+[native-qa] a-dialog-enter | press tab | focus: dialog control [Root > Dialog]
+[native-qa] e-dpi | keys escape | focus: workspace root
+[native-qa] workspace | tab 10 → workspace control [Root]
+[native-qa] e-dpi | keys ctrl-shift-b | focus: dialog control [Root > Dialog]
+[native-qa] e-dpi | scale 1 dialog-0 Bounds { origin: Point { x: 680px, y: 103px }, size: Size { 560px × 82px } }
+[native-qa] e-dpi | scale 1 dialog notifications Bounds { origin: Point { x: 680px, y: 103px }, size: Size { 560px × 82px } }
+[native-qa] d-ime-inputs | IME commit "뷰" | focus: dialog text input (value "리뷰") [Root > Dialog > Input]
+[native-qa] workspace | tab 11 → workspace control [Root]
+[native-qa] a-dialog-enter | press enter | focus: dialog control [Root > Dialog]
+[native-qa] e-dpi | keys escape | focus: workspace root
+[native-qa] workspace | tab 12 → workspace control [Root]
+[native-qa] a-launch | keys enter | focus: terminal w1
+[native-qa] d-ime-inputs | IME commit " 봇" | focus: dialog text input (value "리뷰 봇") [Root > Dialog > Input]
+[native-qa] a-dialog-enter | press shift-tab | focus: dialog control [Root > Dialog]
+[native-qa] workspace | tab 13 → workspace control [Root]
+[native-qa] workspace | tab 14 → workspace control [Root]
+[native-qa] a-launch | closed w1 panel | focus: workspace root
+[native-qa] a-flow | type "C:/fixtures/sample" | focus: dialog text input (value "C:/fixtures/sample") [Root > Dialog > Input]
+[native-qa] d-ime-inputs | IME compose "ㅋ" | focus: dialog text input (value "리뷰 봇ㅋ") [Root > Dialog > Input]
+[native-qa] a-dialog-enter | press shift-tab | focus: dialog text input (value "") [Root > Dialog > Input]
+[native-qa] e-dpi | keys ctrl-shift-n | focus: dialog text input (value "") [Root > Dialog > Input]
+[native-qa] e-dpi | scale 1 dialog-0 Bounds { origin: Point { x: 640px, y: 103px }, size: Size { 640px × 516px } }
+[native-qa] e-dpi | scale 1 dialog new group Bounds { origin: Point { x: 640px, y: 103px }, size: Size { 640px × 516px } }
+[native-qa] e-dpi | keys escape | focus: workspace root
+[native-qa] a-launch | keys ctrl-n | focus: dialog text input (value "") [Root > Dialog > Input]
+test native_qa::a_shortcuts_work_at_launch_and_after_the_focused_panel_closes ... ok
+[native-qa] d-ime-inputs | IME compose "" | focus: dialog text input (value "리뷰 봇") [Root > Dialog > Input]
+[native-qa] a-dialog-enter | press shift-tab | focus: dialog text input (value "") [Root > Dialog > Input]
+[native-qa] a-flow | keys enter | focus: workspace root
+[native-qa] a-flow | keys ctrl-n | focus: dialog text input (value "") [Root > Dialog > Input]
+[native-qa] e-dpi | scale 1.25 viewport Size { 1536px × 825.6px }
+[native-qa] e-dpi | scale 1.25 title-actions Bounds { origin: Point { x: 1286.4px, y: 4.8px }, size: Size { 148.8px × 25.6px } }
+[native-qa] e-dpi | scale 1.25 sidebar Bounds { origin: Point { x: 0px, y: 36px }, size: Size { 304px × 765.6px } }
+[native-qa] e-dpi | scale 1.25 sidebar-actions Bounds { origin: Point { x: 140px, y: 42.4px }, size: Size { 153.6px × 25.6px } }
+[native-qa] e-dpi | scale 1.25 row-w1 Bounds { origin: Point { x: 0px, y: 224.8px }, size: Size { 303.2px × 40px } }
+[native-qa] e-dpi | scale 1.25 row-b1 Bounds { origin: Point { x: 0px, y: 304.8px }, size: Size { 303.2px × 40px } }
+[native-qa] e-dpi | scale 1.25 status-bar Bounds { origin: Point { x: 0px, y: 801.6px }, size: Size { 1536px × 24px } }
+[native-qa] e-dpi | scale 1.25 status-inspect Bounds { origin: Point { x: 1451.2px, y: 805.6px }, size: Size { 28px × 16px } }
+[native-qa] e-dpi | scale 1.25 status-notifications Bounds { origin: Point { x: 1492px, y: 805.6px }, size: Size { 37.6px × 16px } }
+[native-qa] d-ime-inputs | keys enter | focus: terminal b1
+[native-qa] a-dialog-enter | type "enter-fix" | focus: dialog text input (value "enter-fix") [Root > Dialog > Input]
+[native-qa] e-dpi | keys ctrl-k | focus: dialog text input (value "") [Root > Dialog > Input]
+[native-qa] e-dpi | scale 1.25 dialog-0 Bounds { origin: Point { x: 448px, y: 83.2px }, size: Size { 640px × 472.8px } }
+[native-qa] e-dpi | scale 1.25 dialog palette Bounds { origin: Point { x: 448px, y: 83.2px }, size: Size { 640px × 472.8px } }
+[native-qa] e-dpi | keys escape | focus: workspace root
+[native-qa] a-flow | type "login-fix" | focus: dialog text input (value "login-fix") [Root > Dialog > Input]
+[native-qa] e-dpi | keys ctrl-n | focus: dialog text input (value "") [Root > Dialog > Input]
+[native-qa] e-dpi | scale 1.25 dialog-0 Bounds { origin: Point { x: 488px, y: 83.2px }, size: Size { 560px × 336px } }
+[native-qa] e-dpi | scale 1.25 dialog new task Bounds { origin: Point { x: 488px, y: 83.2px }, size: Size { 560px × 336px } }
+[native-qa] e-dpi | keys escape | focus: workspace root
+[native-qa] workspace | 14 tab stops, Shift+Tab mismatches: 0
+[native-qa] e-dpi | keys ctrl-shift-t | focus: dialog text input (value "") [Root > Dialog > Input]
+[native-qa] e-dpi | scale 1.25 dialog-0 Bounds { origin: Point { x: 508px, y: 82.40001px }, size: Size { 520px × 251.2px } }
+[native-qa] e-dpi | scale 1.25 dialog new terminal Bounds { origin: Point { x: 508px, y: 82.40001px }, size: Size { 520px × 251.2px } }
+[native-qa] e-dpi | keys escape | focus: workspace root
+[native-qa] c-tab | keys ctrl-, | focus: settings panel control [Root]
+[native-qa] e-dpi | keys ctrl-shift-b | focus: dialog control [Root > Dialog]
+[native-qa] e-dpi | scale 1.25 dialog-0 Bounds { origin: Point { x: 488px, y: 83.20001px }, size: Size { 560px × 81.6px } }
+[native-qa] e-dpi | scale 1.25 dialog notifications Bounds { origin: Point { x: 488px, y: 83.20001px }, size: Size { 560px × 81.6px } }
+[native-qa] e-dpi | keys escape | focus: workspace root
+[native-qa] settings | tab 0 → settings panel control [Root]
+[native-qa] settings | tab 1 → settings panel control [Root]
+[native-qa] e-dpi | keys ctrl-shift-n | focus: dialog text input (value "") [Root > Dialog > Input]
+[native-qa] e-dpi | scale 1.25 dialog-0 Bounds { origin: Point { x: 448px, y: 83.200005px }, size: Size { 640px × 512px } }
+[native-qa] e-dpi | scale 1.25 dialog new group Bounds { origin: Point { x: 448px, y: 83.200005px }, size: Size { 640px × 512px } }
+[native-qa] e-dpi | keys escape | focus: workspace root
+[native-qa] settings | tab 2 → settings panel control [Root]
+[native-qa] settings | tab 3 → settings panel control [Root]
+[native-qa] settings | tab 4 → settings panel control [Root]
+[native-qa] e-dpi | scale 1.5 viewport Size { 1280px × 688px }
+[native-qa] e-dpi | scale 1.5 title-actions Bounds { origin: Point { x: 1028px, y: 4.6666665px }, size: Size { 150px × 26px } }
+[native-qa] e-dpi | scale 1.5 sidebar Bounds { origin: Point { x: 0px, y: 36px }, size: Size { 304px × 628px } }
+[native-qa] e-dpi | scale 1.5 sidebar-actions Bounds { origin: Point { x: 138px, y: 42.666668px }, size: Size { 155.33333px × 26px } }
+[native-qa] e-dpi | scale 1.5 row-w1 Bounds { origin: Point { x: 0px, y: 227.33333px }, size: Size { 303.33334px × 40px } }
+[native-qa] e-dpi | scale 1.5 row-b1 Bounds { origin: Point { x: 0px, y: 307.33334px }, size: Size { 303.33334px × 40px } }
+[native-qa] e-dpi | scale 1.5 status-bar Bounds { origin: Point { x: 0px, y: 664px }, size: Size { 1280px × 24px } }
+[native-qa] e-dpi | scale 1.5 status-inspect Bounds { origin: Point { x: 1195.3334px, y: 668px }, size: Size { 28px × 16px } }
+[native-qa] e-dpi | scale 1.5 status-notifications Bounds { origin: Point { x: 1236px, y: 668px }, size: Size { 37.333332px × 16px } }
+[native-qa] settings | tab 5 → settings panel control [Root]
+[native-qa] e-dpi | keys ctrl-k | focus: dialog text input (value "") [Root > Dialog > Input]
+[native-qa] e-dpi | scale 1.5 dialog-0 Bounds { origin: Point { x: 320px, y: 68.666664px }, size: Size { 640px × 474px } }
+[native-qa] e-dpi | scale 1.5 dialog palette Bounds { origin: Point { x: 320px, y: 68.666664px }, size: Size { 640px × 474px } }
+[native-qa] settings | tab 6 → settings panel control [Root]
+[native-qa] e-dpi | keys escape | focus: workspace root
+[native-qa] settings | tab 7 → settings panel control [Root]
+[native-qa] e-dpi | keys ctrl-n | focus: dialog text input (value "") [Root > Dialog > Input]
+[native-qa] e-dpi | scale 1.5 dialog-0 Bounds { origin: Point { x: 360px, y: 68.666664px }, size: Size { 560px × 340.66666px } }
+[native-qa] e-dpi | scale 1.5 dialog new task Bounds { origin: Point { x: 360px, y: 68.666664px }, size: Size { 560px × 340.66666px } }
+[native-qa] e-dpi | keys escape | focus: workspace root
+[native-qa] settings | tab 8 → settings panel control [Root]
+[native-qa] e-dpi | keys ctrl-shift-t | focus: dialog text input (value "") [Root > Dialog > Input]
+[native-qa] e-dpi | scale 1.5 dialog-0 Bounds { origin: Point { x: 380px, y: 68.66667px }, size: Size { 520px × 254px } }
+[native-qa] e-dpi | scale 1.5 dialog new terminal Bounds { origin: Point { x: 380px, y: 68.66667px }, size: Size { 520px × 254px } }
+[native-qa] settings | tab 9 → settings panel control [Root]
+[native-qa] e-dpi | keys escape | focus: workspace root
+[native-qa] settings | tab 10 → settings panel control [Root]
+[native-qa] e-dpi | keys ctrl-shift-b | focus: dialog control [Root > Dialog]
+[native-qa] e-dpi | scale 1.5 dialog-0 Bounds { origin: Point { x: 360px, y: 68.66666px }, size: Size { 560px × 82px } }
+[native-qa] e-dpi | scale 1.5 dialog notifications Bounds { origin: Point { x: 360px, y: 68.66666px }, size: Size { 560px × 82px } }
+[native-qa] e-dpi | keys escape | focus: workspace root
+[native-qa] settings | tab 11 → settings panel control [Root]
+[native-qa] settings | tab 12 → settings panel control [Root]
+[native-qa] e-dpi | keys ctrl-shift-n | focus: dialog text input (value "") [Root > Dialog > Input]
+[native-qa] e-dpi | scale 1.5 dialog-0 Bounds { origin: Point { x: 320px, y: 68.666664px }, size: Size { 640px × 518px } }
+[native-qa] e-dpi | scale 1.5 dialog new group Bounds { origin: Point { x: 320px, y: 68.666664px }, size: Size { 640px × 518px } }
+[native-qa] e-dpi | keys escape | focus: workspace root
+[native-qa] settings | tab 13 → settings panel control [Root]
+[native-qa] settings | tab 14 → settings panel control [Root]
+[native-qa] settings | tab 15 → settings panel control [Root]
+[native-qa] e-dpi | scale 1.75 viewport Size { 1097px × 589.5714px }
+[native-qa] e-dpi | scale 1.75 title-actions Bounds { origin: Point { x: 845.7143px, y: 4.571429px }, size: Size { 150.28572px × 25.714285px } }
+[native-qa] e-dpi | scale 1.75 sidebar Bounds { origin: Point { x: 0px, y: 36px }, size: Size { 304px × 529.7143px } }
+[native-qa] e-dpi | scale 1.75 sidebar-actions Bounds { origin: Point { x: 137.71428px, y: 42.285713px }, size: Size { 155.42857px × 25.714285px } }
+[native-qa] e-dpi | scale 1.75 row-w1 Bounds { origin: Point { x: 0px, y: 224.57143px }, size: Size { 302.85715px × 40px } }
+[native-qa] e-dpi | scale 1.75 row-b1 Bounds { origin: Point { x: 0px, y: 304.57144px }, size: Size { 302.85715px × 40px } }
+[native-qa] e-dpi | scale 1.75 status-bar Bounds { origin: Point { x: 0px, y: 565.7143px }, size: Size { 1097.1428px × 24px } }
+[native-qa] e-dpi | scale 1.75 status-inspect Bounds { origin: Point { x: 1010.2857px, y: 570.2857px }, size: Size { 29.142857px × 16px } }
+[native-qa] e-dpi | scale 1.75 status-notifications Bounds { origin: Point { x: 1052.5714px, y: 570.2857px }, size: Size { 38.285713px × 16px } }
+[native-qa] settings | tab 16 → settings panel control [Root]
+[native-qa] settings | tab 17 → settings panel control [Root]
+[native-qa] e-dpi | keys ctrl-k | focus: dialog text input (value "") [Root > Dialog > Input]
+[native-qa] e-dpi | scale 1.75 dialog-0 Bounds { origin: Point { x: 228.57143px, y: 59.42857px }, size: Size { 640px × 473.14285px } }
+[native-qa] e-dpi | scale 1.75 dialog palette Bounds { origin: Point { x: 228.57143px, y: 59.42857px }, size: Size { 640px × 473.14285px } }
+[native-qa] e-dpi | keys escape | focus: workspace root
+[native-qa] settings | tab 18 → settings panel control [Root]
+[native-qa] e-dpi | keys ctrl-n | focus: dialog text input (value "") [Root > Dialog > Input]
+[native-qa] e-dpi | scale 1.75 dialog-0 Bounds { origin: Point { x: 268.57144px, y: 59.428574px }, size: Size { 560px × 338.85715px } }
+[native-qa] e-dpi | scale 1.75 dialog new task Bounds { origin: Point { x: 268.57144px, y: 59.428574px }, size: Size { 560px × 338.85715px } }
+[native-qa] settings | tab 19 → settings panel control [Root]
+[native-qa] e-dpi | keys escape | focus: workspace root
+[native-qa] settings | tab 20 → settings panel control [Root]
+[native-qa] e-dpi | keys ctrl-shift-t | focus: dialog text input (value "") [Root > Dialog > Input]
+[native-qa] e-dpi | scale 1.75 dialog-0 Bounds { origin: Point { x: 288.57144px, y: 58.85714px }, size: Size { 520px × 253.14285px } }
+[native-qa] e-dpi | scale 1.75 dialog new terminal Bounds { origin: Point { x: 288.57144px, y: 58.85714px }, size: Size { 520px × 253.14285px } }
+[native-qa] e-dpi | keys escape | focus: workspace root
+[native-qa] e-dpi | keys ctrl-shift-b | focus: dialog control [Root > Dialog]
+[native-qa] e-dpi | scale 1.75 dialog-0 Bounds { origin: Point { x: 268.57144px, y: 58.857132px }, size: Size { 560px × 82.28571px } }
+[native-qa] e-dpi | scale 1.75 dialog notifications Bounds { origin: Point { x: 268.57144px, y: 58.857132px }, size: Size { 560px × 82.28571px } }
+[native-qa] settings | tab 21 → settings panel control [Root]
+[native-qa] e-dpi | keys escape | focus: workspace root
+[native-qa] settings | tab 22 → settings panel control [Root]
+[native-qa] e-dpi | keys ctrl-shift-n | focus: dialog text input (value "") [Root > Dialog > Input]
+[native-qa] e-dpi | scale 1.75 dialog-0 Bounds { origin: Point { x: 228.57143px, y: 56.57143px }, size: Size { 640px × 516.5714px } }
+[native-qa] e-dpi | scale 1.75 dialog new group Bounds { origin: Point { x: 228.57143px, y: 56.57143px }, size: Size { 640px × 516.5714px } }
+[native-qa] settings | tab 23 → settings panel control [Root]
+[native-qa] e-dpi | keys escape | focus: workspace root
+test native_qa::e_dpi_scales_keep_chrome_rows_dialogs_inside_the_window ... ok
+[native-qa] d-ime-terminal | keys enter | focus: terminal w1
+[native-qa] settings | tab 24 → settings panel control [Root]
+[native-qa] b-focus-return | keys enter | focus: terminal w1
+[native-qa] a-flow | keys enter | focus: terminal t1
+[native-qa] a-dialog-enter | press enter | focus: terminal t1
+[native-qa] a-dialog-enter | Some("task.create sample/enter-fix Claude")
+test native_qa::a_enter_in_dialogs_goes_to_the_focused_control ... ok
+[native-qa] settings | tab 25 → workspace control [Root]
+[native-qa] d-ime-terminal | IME compose "ㅎ" | focus: terminal w1
+[native-qa] d-ime-inputs | keys tab | focus: workspace control [Root]
+[native-qa] settings | tab 26 → workspace control [Root]
+[native-qa] b-focus-return | keys ctrl-k | focus: dialog text input (value "") [Root > Dialog > Input]
+[native-qa] d-ime-terminal | IME compose "하" | focus: terminal w1
+[native-qa] d-ime-inputs | keys tab | focus: workspace control [Root]
+[native-qa] settings | tab 27 → sidebar tree
+[native-qa] d-ime-terminal | IME compose "한" | focus: terminal w1
+[native-qa] d-ime-terminal | IME anchor Bounds { origin: Point { x: 310px, y: 72px }, size: Size { 8.203125px × 18px } }
+[native-qa] d-ime-inputs | keys tab | focus: workspace control [Root]
+[native-qa] a-flow | type "echo hi" | focus: terminal t1
+[native-qa] b-focus-return | keys escape | focus: terminal w1
+[native-qa] settings | tab 28 → workspace control [Root]
+[native-qa] d-ime-terminal | IME commit "한" | focus: terminal w1
+[native-qa] a-flow | keys enter | focus: terminal t1
+[native-qa] d-ime-inputs | keys tab | focus: workspace control [Root]
+[native-qa] settings | tab 29 → workspace control [Root]
+[native-qa] d-ime-terminal | IME compose "ㄱ" | focus: terminal w1
+[native-qa] a-flow | keys ctrl-shift-b | focus: dialog control [Root > Dialog]
+[native-qa] d-ime-inputs | keys tab | focus: workspace control [Root]
+[native-qa] b-focus-return | keys ctrl-n | focus: dialog text input (value "") [Root > Dialog > Input]
+[native-qa] settings | tab 30 → workspace control [Root]
+[native-qa] d-ime-terminal | IME compose "그" | focus: terminal w1
+[native-qa] a-flow | press tab | focus: dialog control [Root > Dialog]
+[native-qa] d-ime-inputs | keys tab | focus: sidebar filter input
+[native-qa] settings | tab 31 → workspace control [Root]
+[native-qa] d-ime-terminal | IME compose "글" | focus: terminal w1
+[native-qa] b-focus-return | keys escape | focus: terminal w1
+[native-qa] d-ime-inputs | IME compose "로" | focus: sidebar filter input
+[native-qa] settings | tab 32 → workspace control [Root]
+[native-qa] a-flow | press enter | focus: terminal b1
+[native-qa] d-ime-inputs | IME compose "로그" | focus: sidebar filter input
+[native-qa] d-ime-terminal | IME commit "글" | focus: terminal w1
+[native-qa] settings | tab 33 → sidebar filter input
+[native-qa] b-focus-return | keys ctrl-shift-t | focus: dialog text input (value "") [Root > Dialog > Input]
+[native-qa] d-ime-inputs | IME commit "로그" | focus: sidebar filter input
+[native-qa] d-ime-terminal | IME compose "ㅁ" | focus: terminal w1
+[native-qa] d-ime-terminal | keys escape | focus: terminal w1
+[native-qa] settings | tab 34 → workspace control [Root]
+[native-qa] d-ime-inputs | IME commit "인" | focus: sidebar filter input
+[native-qa] a-flow | keys ctrl-k | focus: dialog text input (value "") [Root > Dialog > Input]
+[native-qa] b-focus-return | keys escape | focus: terminal w1
+[native-qa] d-ime-terminal | IME compose "" | focus: terminal w1
+[native-qa] settings | tab 35 → workspace control [Root]
+test native_qa::d_ime_terminal_sends_bytes_only_on_commit ... ok
+[native-qa] d-ime-inputs | keys ctrl-n | focus: dialog text input (value "") [Root > Dialog > Input]
+[native-qa] b-focus-return | keys ctrl-shift-b | focus: dialog control [Root > Dialog]
+[native-qa] a-flow | IME commit "login-fix" | focus: dialog text input (value "login-fix") [Root > Dialog > Input]
+[native-qa] settings | tab 36 → workspace control [Root]
+[native-qa] settings | tab 37 → workspace control [Root]
+[native-qa] d-ime-inputs | IME commit "로그인" | focus: dialog text input (value "로그인") [Root > Dialog > Input]
+[native-qa] b-focus-return | keys escape | focus: terminal w1
+[native-qa] settings | tab 38 → workspace control [Root > Popover]
+[native-qa] settings | tab 39 → settings panel control [Root]
+[native-qa] a-flow | keys enter | focus: terminal t1
+[native-qa] d-ime-inputs | IME compose "ㅅ" | focus: dialog text input (value "로그인ㅅ") [Root > Dialog > Input]
+[native-qa] d-ime-inputs | IME compose "" | focus: dialog text input (value "로그인") [Root > Dialog > Input]
+[native-qa] a-flow | keys ctrl-k | focus: dialog text input (value "") [Root > Dialog > Input]
+[native-qa] b-focus-return | keys ctrl-shift-n | focus: dialog text input (value "") [Root > Dialog > Input]
+[native-qa] d-ime-inputs | IME compose "수" | focus: dialog text input (value "로그인수") [Root > Dialog > Input]
+[native-qa] a-flow | IME commit "응답할 요청 찾기" | focus: dialog text input (value "응답할 요청 찾기") [Root > Dialog > Input]
+[native-qa] c-review | keys ctrl-k | focus: dialog text input (value "") [Root > Dialog > Input]
+[native-qa] b-focus-return | keys escape | focus: terminal w1
+[native-qa] d-ime-inputs | IME compose "수정" | focus: dialog text input (value "로그인수정") [Root > Dialog > Input]
+[native-qa] d-ime-review | keys ctrl-k | focus: dialog text input (value "") [Root > Dialog > Input]
+[native-qa] c-review | IME commit "로그인 작업" | focus: dialog text input (value "로그인 작업") [Root > Dialog > Input]
+[native-qa] d-ime-review | IME commit "로그인 작업" | focus: dialog text input (value "로그인 작업") [Root > Dialog > Input]
+[native-qa] d-ime-inputs | IME commit "수정" | focus: dialog text input (value "로그인수정") [Root > Dialog > Input]
+[native-qa] b-focus-return | keys ctrl-k | focus: dialog text input (value "") [Root > Dialog > Input]
+[native-qa] a-flow | keys enter | focus: terminal b1
+[native-qa] b-focus-return | IME commit "키보드 단축키 도움말" | focus: dialog text input (value "키보드 단축키 도움말") [Root > Dialog > Input]
+[native-qa] c-review | keys enter | focus: terminal w1
+[native-qa] d-ime-review | keys enter | focus: terminal w1
+[native-qa] a-flow | keys ctrl-k | focus: dialog text input (value "") [Root > Dialog > Input]
+[native-qa] b-focus-return | keys enter | focus: dialog control [Root > Dialog]
+[native-qa] a-flow | IME commit "login-fix" | focus: dialog text input (value "login-fix") [Root > Dialog > Input]
+[native-qa] d-ime-inputs | keys enter | focus: terminal t1
+test native_qa::d_ime_palette_sidebar_filter_new_task_name ... ok
+[native-qa] b-focus-return | keys escape | focus: terminal w1
+[native-qa] a-flow | keys enter | focus: terminal t1
+[native-qa] b-focus-return | keys ctrl-k | focus: dialog text input (value "") [Root > Dialog > Input]
+[native-qa] b-focus-return | IME commit "저장소 열기" | focus: dialog text input (value "저장소 열기") [Root > Dialog > Input]
+[native-qa] a-flow | keys ctrl-k | focus: dialog text input (value "") [Root > Dialog > Input]
+[native-qa] a-flow | IME commit "리뷰 봇" | focus: dialog text input (value "리뷰 봇") [Root > Dialog > Input]
+[native-qa] b-focus-return | keys enter | focus: dialog text input (value "") [Root > Dialog > Input]
+[native-qa] a-flow | keys enter | focus: terminal b1
+test native_qa::a_keyboard_only_repo_task_terminal_blocked_work_done ... ok
+[native-qa] b-focus-return | keys escape | focus: terminal w1
+[native-qa] b-focus-return | keys ctrl-k | focus: dialog text input (value "") [Root > Dialog > Input]
+[native-qa] b-focus-return | IME commit "review-bot" | focus: dialog text input (value "review-bot") [Root > Dialog > Input]
+[native-qa] b-focus-return | keys down | focus: dialog text input (value "review-bot") [Root > Dialog > Input]
+[native-qa] b-focus-return | keys enter | focus: dialog control [Root > Dialog]
+[native-qa] b-focus-return | keys escape | focus: terminal w1
+[native-qa] b-focus-return | type "ok" | focus: terminal w1
+[native-qa] b-focus-return | sidebar focused | focus: sidebar tree
+[native-qa] b-focus-return | keys ctrl-n | focus: dialog text input (value "") [Root > Dialog > Input]
+[native-qa] b-focus-return | keys escape | focus: sidebar tree
+[native-qa] b-focus-return | keys ctrl-k | focus: dialog text input (value "") [Root > Dialog > Input]
+[native-qa] b-focus-return | keys escape | focus: sidebar tree
+[native-qa] b-focus-return | keys ctrl-shift-b | focus: dialog control [Root > Dialog]
+[native-qa] settings | 39 tab stops, Shift+Tab mismatches: 0
+[native-qa] b-focus-return | keys escape | focus: sidebar tree
+[native-qa] c-tab | keys ctrl-shift-e | focus: agents panel control [Root]
+[native-qa] b-focus-return | keys ctrl-, | focus: settings panel control [Root]
+[native-qa] agents | tab 0 → agents panel control [Root]
+[native-qa] b-focus-return | keys ctrl-k | focus: dialog text input (value "") [Root > Dialog > Input]
+[native-qa] agents | tab 1 → agents panel control [Root]
+[native-qa] b-focus-return | IME commit "로그인 작업" | focus: dialog text input (value "로그인 작업") [Root > Dialog > Input]
+[native-qa] agents | tab 2 → agents panel control [Root]
+[native-qa] agents | tab 3 → agents panel control [Root]
+[native-qa] b-focus-return | keys enter | focus: terminal w1
+[native-qa] agents | tab 4 → agents panel control [Root]
+[native-qa] b-focus-return | keys ctrl-shift-s | focus: inspector panel control [Root]
+test native_qa::b_escape_returns_focus_to_the_opener ... ok
+[native-qa] agents | tab 5 → agents panel control [Root]
+[native-qa] agents | tab 6 → workspace control [Root]
+[native-qa] agents | tab 7 → workspace control [Root]
+[native-qa] agents | tab 8 → sidebar tree
+[native-qa] agents | tab 9 → workspace control [Root]
+[native-qa] agents | tab 10 → workspace control [Root]
+[review] sample/로그인-수정 loaded: task.diff 230ms, load 64ms, patch+parse 0ms, 3 files, 34 lines · ready 300ms after open
+[native-qa] agents | tab 11 → workspace control [Root]
+[native-qa] agents | tab 12 → workspace control [Root]
+[review] sample/로그인-수정 loaded: task.diff 240ms, load 66ms, patch+parse 0ms, 3 files, 34 lines · ready 313ms after open
+[native-qa] agents | tab 13 → workspace control [Root]
+[native-qa] agents | tab 14 → sidebar filter input
+[native-qa] agents | tab 15 → workspace control [Root]
+[native-qa] agents | tab 16 → workspace control [Root]
+[native-qa] agents | tab 17 → workspace control [Root]
+[native-qa] agents | tab 18 → workspace control [Root]
+[native-qa] c-review | keys ctrl-shift-r | focus: review panel control [Root > PodReview]
+[native-qa] d-ime-review | keys ctrl-shift-r | focus: review panel control [Root > PodReview]
+[native-qa] agents | tab 19 → workspace control [Root > Popover]
+[native-qa] review | tab 0 → review panel control [Root > PodReview]
+[native-qa] agents | tab 20 → workspace control [Root]
+[native-qa] d-ime-review | keys ctrl-shift-c | focus: review panel text input (value "") [Root > PodReview > Diff > Input]
+[native-qa] agents | tab 21 → settings panel control [Root]
+[native-qa] review | tab 1 → review panel control [Root > PodReview]
+[native-qa] agents | tab 22 → settings panel control [Root]
+[native-qa] d-ime-review | IME compose "좋" | focus: review panel text input (value "좋") [Root > PodReview > Diff > Input]
+[native-qa] review | tab 2 → review panel control [Root > PodReview]
+[native-qa] agents | tab 23 → settings panel control [Root]
+[native-qa] agents | tab 24 → settings panel control [Root]
+[native-qa] d-ime-review | IME commit "좋" | focus: review panel text input (value "좋") [Root > PodReview > Diff > Input]
+[native-qa] review | tab 3 → review panel control [Root > PodReview]
+[native-qa] agents | tab 25 → settings panel control [Root]
+[native-qa] review | tab 4 → review panel control [Root > PodReview]
+[native-qa] agents | tab 26 → settings panel control [Root]
+[native-qa] d-ime-review | IME compose "아" | focus: review panel text input (value "좋아") [Root > PodReview > Diff > Input]
+[native-qa] agents | tab 27 → settings panel control [Root]
+[native-qa] agents | tab 28 → settings panel control [Root]
+[native-qa] review | tab 5 → review panel control [Root > PodReview]
+[native-qa] d-ime-review | IME commit "아" | focus: review panel text input (value "좋아") [Root > PodReview > Diff > Input]
+[native-qa] agents | tab 29 → settings panel control [Root]
+[native-qa] d-ime-review | IME compose "요" | focus: review panel text input (value "좋아요") [Root > PodReview > Diff > Input]
+[native-qa] review | tab 6 → review panel control [Root > PodReview]
+[native-qa] agents | tab 30 → settings panel control [Root]
+[native-qa] agents | tab 31 → settings panel control [Root]
+[native-qa] review | tab 7 → review panel control [Root > PodReview]
+[native-qa] d-ime-review | IME commit "요" | focus: review panel text input (value "좋아요") [Root > PodReview > Diff > Input]
+[native-qa] agents | tab 32 → settings panel control [Root]
+[native-qa] agents | tab 33 → settings panel control [Root]
+[native-qa] review | tab 8 → review panel control [Root > PodReview]
+[native-qa] agents | tab 34 → settings panel control [Root]
+[native-qa] d-ime-review | keys enter | focus: workspace root
+test native_qa::d_ime_review_comment_editor ... ok
+[native-qa] review | tab 9 → review panel control [Root > PodReview]
+[native-qa] agents | tab 35 → settings panel control [Root]
+[native-qa] agents | tab 36 → settings panel control [Root]
+[native-qa] review | tab 10 → review panel control [Root > PodReview]
+[native-qa] agents | tab 37 → settings panel control [Root]
+[native-qa] agents | tab 38 → settings panel control [Root]
+[native-qa] review | tab 11 → review panel control [Root > PodReview > Diff]
+[native-qa] agents | tab 39 → settings panel control [Root]
+[native-qa] agents | tab 40 → settings panel control [Root]
+[native-qa] review | tab 12 → review panel control [Root > PodReview > Diff]
+[native-qa] agents | tab 41 → settings panel control [Root]
+[native-qa] review | tab 13 → review panel control [Root > PodReview > Diff]
+[native-qa] agents | tab 42 → settings panel control [Root]
+[native-qa] agents | tab 43 → settings panel control [Root]
+[native-qa] review | tab 14 → review panel control [Root > PodReview > Diff]
+[native-qa] agents | tab 44 → settings panel control [Root]
+[native-qa] review | tab 15 → review panel control [Root > PodReview > Diff]
+[native-qa] agents | tab 45 → settings panel control [Root]
+[native-qa] agents | tab 46 → agents panel control [Root]
+[native-qa] review | tab 16 → review panel control [Root > PodReview > Diff]
+[native-qa] agents | tab 47 → agents panel control [Root]
+[native-qa] review | tab 17 → review panel control [Root > PodReview > Diff]
+[native-qa] agents | MISMATCH Shift+Tab 1: expected settings panel control [Root], got workspace control [Root > Popover]
+[native-qa] review | tab 18 → review panel control [Root > PodReview > Diff]
+[native-qa] review | tab 19 → review panel control [Root > PodReview > Diff]
+[native-qa] review | tab 20 → review panel text input (value "") [Root > PodReview > Input]
+[native-qa] review | tab 21 → workspace control [Root]
+[native-qa] review | tab 22 → workspace control [Root]
+[native-qa] review | tab 23 → sidebar tree
+[native-qa] review | tab 24 → workspace control [Root]
+[native-qa] review | tab 25 → workspace control [Root]
+[native-qa] review | tab 26 → workspace control [Root]
+[native-qa] review | tab 27 → workspace control [Root]
+[native-qa] review | tab 28 → workspace control [Root]
+[native-qa] review | tab 29 → sidebar filter input
+[native-qa] review | tab 30 → workspace control [Root]
+[native-qa] review | tab 31 → workspace control [Root]
+[native-qa] review | tab 32 → workspace control [Root]
+[native-qa] review | tab 33 → workspace control [Root]
+[native-qa] review | tab 34 → workspace control [Root]
+[native-qa] review | tab 35 → workspace control [Root]
+[native-qa] review | tab 36 → workspace control [Root > Popover]
+[native-qa] review | tab 37 → review panel control [Root > PodReview]
+[native-qa] agents | 47 tab stops, Shift+Tab mismatches: 1
+[native-qa] c-tab | keys ctrl-shift-i | focus: gates panel control [Root]
+[native-qa] c-tab | keys ctrl-n | focus: dialog text input (value "") [Root > Dialog > Input]
+[native-qa] new-task dialog | tab 0 → dialog text input (value "") [Root > Dialog > Input]
+[native-qa] new-task dialog | tab 1 → dialog control [Root > Dialog]
+[native-qa] new-task dialog | tab 2 → dialog control [Root > Dialog]
+[native-qa] new-task dialog | tab 3 → dialog control [Root > Dialog]
+[native-qa] new-task dialog | tab 4 → dialog control [Root > Dialog]
+[native-qa] new-task dialog | tab 5 → dialog control [Root > Dialog]
+[native-qa] new-task dialog | tab 6 → dialog control [Root > Dialog]
+[native-qa] new-task dialog | tab 7 → dialog control [Root > Dialog]
+[native-qa] new-task dialog | tab 8 → dialog control [Root > Dialog]
+[native-qa] new-task dialog | tab 9 → dialog text input (value "") [Root > Dialog > Input]
+[native-qa] new-task dialog | tab 10 → dialog text input (value "") [Root > Dialog > Input]
+[native-qa] new-task dialog | 10 tab stops, Shift+Tab mismatches: 0
+[native-qa] c-tab | keys escape | focus: gates panel control [Root]
+test native_qa::c_tab_order_cycles_and_reverses_on_main_screens ... ok
+[native-qa] review | 37 tab stops, Shift+Tab mismatches: 0
+[native-qa] c-review | keys alt-pagedown | focus: review panel control [Root > PodReview]
+[native-qa] c-review | keys ctrl-shift-c | focus: review panel text input (value "") [Root > PodReview > Diff > Input]
+test native_qa::c_review_controls_are_reachable_by_keyboard ... ok
+
+test result: ok. 63 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 2.23s
+
+     Running unittests src\lib.rs (target\debug\deps\pod_terminal_view-481af758759a7457.exe)
+
+running 28 tests
+test keys::tests::alt_combos ... ok
+test keys::tests::control_keys ... ok
+test keys::tests::ctrl_combos ... ok
+test keys::tests::cursor_keys_and_modes ... ok
+test keys::tests::editing_keys ... ok
+test keys::tests::focus ... ok
+test keys::tests::function_keys ... ok
+test keys::tests::paste ... ok
+test keys::tests::plain_text_goes_to_text_path ... ok
+test keys::tests::windows_key_is_not_sent ... ok
+test mouse::tests::legacy_encoding ... ok
+test mouse::tests::motion_by_mode ... ok
+test mouse::tests::off_reports_nothing ... ok
+test mouse::tests::sgr_modifiers_and_wheel ... ok
+test mouse::tests::sgr_press_release ... ok
+test mouse::tests::utf8_encoding ... ok
+test selection::tests::line_selection_follows_wraps ... ok
+test selection::tests::row_spans ... ok
+test selection::tests::simple_multi_line_trims_trailing_blanks ... ok
+test selection::tests::simple_single_line ... ok
+test selection::tests::soft_wrap_joins_without_newline ... ok
+test selection::tests::wide_chars ... ok
+test selection::tests::word_bounds_korean ... ok
+test selection::tests::word_selection ... ok
+test vt::alacritty::tests::host_defaults_and_program_precedence ... ok
+test vt::alacritty::tests::modes_and_replies ... ok
+test vt::alacritty::tests::soft_wrap_flag ... ok
+test vt::alacritty::tests::feed_and_read_rows ... ok
+
+test result: ok. 28 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests pod_terminal_view
+
+running 1 test
+test crates\pod-terminal-view\src\lib.rs - (line 9) ... ignored
+
+test result: ok. 0 passed; 0 failed; 1 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+all doctests ran in 0.82s; merged doctests compilation took 0.36s

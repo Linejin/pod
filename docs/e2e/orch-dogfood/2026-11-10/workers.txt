@@ -1,0 +1,3 @@
+﻿ATTEMPT  ITEM  STATE      WORKER    AGENT   STATUS  TASK       NEXT
+a1       i1    succeeded  finished  codex   done    pod/r1-a1  finished
+a2       i2    succeeded  finished  claude  done    pod/r1-a2  finished

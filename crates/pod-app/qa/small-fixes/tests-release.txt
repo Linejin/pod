@@ -1,0 +1,81 @@
+     Running unittests src\main.rs (target\release\deps\diff_spike-b6a42909738e3055.exe)
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+     Running unittests src\main.rs (target\release\deps\pod_app-41de5fffcaab1828.exe)
+test result: ok. 89 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 2.06s
+     Running unittests src\main.rs (target\release\deps\pod-f6edc9ea14fce6b1.exe)
+test result: ok. 14 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+     Running tests\hooks.rs (target\release\deps\hooks-2fabd42e48e7ddff.exe)
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.38s
+     Running unittests src\lib.rs (target\release\deps\pod_diff-99188772f0647419.exe)
+test result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.78s
+     Running unittests src\lib.rs (target\release\deps\pod_editor-f06d5b6767fad425.exe)
+test result: ok. 53 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.65s
+     Running unittests src\bin\pod-editor-demo.rs (target\release\deps\pod_editor_demo-86f784bfb951f1c8.exe)
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+     Running unittests src\bin\fake_lsp.rs (target\release\deps\pod_editor_fake_lsp-a6dd1498d9be9a58.exe)
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+     Running tests\lsp_lifecycle.rs (target\release\deps\lsp_lifecycle-7717e138e828e606.exe)
+test result: ok. 5 passed; 0 failed; 2 ignored; 0 measured; 0 filtered out; finished in 0.72s
+     Running unittests src\lib.rs (target\release\deps\pod_forge-3c9c0ec95ab468f6.exe)
+test result: ok. 25 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.35s
+     Running unittests src\main.rs (target\release\deps\pod_hook-f7ab33c65a711e03.exe)
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+     Running tests\cli.rs (target\release\deps\cli-d1b34d3e493cd83e.exe)
+test result: ok. 11 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.74s
+     Running unittests src\main.rs (target\release\deps\pod_spike-41e7c347f7875f15.exe)
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+     Running unittests src\lib.rs (target\release\deps\pod_status-5a146f1e989c2a62.exe)
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+     Running tests\heuristics.rs (target\release\deps\heuristics-d44676ecd9d772c9.exe)
+test result: ok. 9 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+     Running tests\hooks.rs (target\release\deps\hooks-4c9d070a90ec140e.exe)
+test result: ok. 10 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.02s
+     Running tests\osc_parser.rs (target\release\deps\osc_parser-71745118d24242bf.exe)
+test result: ok. 15 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.03s
+     Running tests\state_machine.rs (target\release\deps\state_machine-5c4462d079f316d2.exe)
+test result: ok. 29 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+     Running unittests src\lib.rs (target\release\deps\pod_terminal_view-9702ee1716207671.exe)
+test result: ok. 38 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+     Running unittests src\lib.rs (target\release\deps\pod_ui-d3c820a824809a8b.exe)
+test result: ok. 10 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+     Running unittests src\lib.rs (target\release\deps\podd-7d18942c4fdc1faa.exe)
+test result: ok. 64 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.66s
+     Running unittests src\bin\pod-holder.rs (target\release\deps\pod_holder-de7876c977861c80.exe)
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+     Running unittests src\main.rs (target\release\deps\podd-2117f7fb515b96b1.exe)
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+     Running tests\daemon.rs (target\release\deps\daemon-76d2cb13548096f5.exe)
+test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 2.93s
+     Running tests\detach.rs (target\release\deps\detach-937b045df05e5d89.exe)
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 23.53s
+     Running tests\gaps.rs (target\release\deps\gaps-e654f0bb30766236.exe)
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 33.39s
+     Running tests\lifecycle.rs (target\release\deps\lifecycle-e2aefe518a538f86.exe)
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 17.17s
+     Running tests\orchestration.rs (target\release\deps\orchestration-48a5ab8619058fa5.exe)
+test result: ok. 10 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 25.43s
+     Running tests\pr.rs (target\release\deps\pr-d5f76aea60a51e5b.exe)
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 11.96s
+     Running tests\retention.rs (target\release\deps\retention-924d215966ea2098.exe)
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 16.09s
+     Running tests\status.rs (target\release\deps\status-efa2698a25b19f83.exe)
+test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 5.50s
+     Running tests\submit.rs (target\release\deps\submit-597720f61bf5bb3f.exe)
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 16.26s
+     Running tests\tasks.rs (target\release\deps\tasks-27693ac8c2b62bc4.exe)
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 10.24s
+   Doc-tests pod_diff
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+   Doc-tests pod_editor
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+   Doc-tests pod_forge
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+   Doc-tests pod_status
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+   Doc-tests pod_terminal_view
+test result: ok. 0 passed; 0 failed; 1 ignored; 0 measured; 0 filtered out; finished in 0.00s
+   Doc-tests pod_ui
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+   Doc-tests podd
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+EXIT 0 seconds 253

@@ -1,0 +1,466 @@
+﻿App=pod-app (pid 60600)
+Window: "", App: pod-app.
+
+0 영역
+	1 title bar TitleBar
+		2 menu bar 시스템 메뉴 모음
+			3 menu item 시스템
+		4 button 최소화
+		5 button 최대화
+		6 button 닫기
+	7 단추 명령·터미널 검색
+	8 단추 설정
+	9 트리 저장소와 작업 탐색
+		10 단추 격자
+		11 단추 + 작업
+		12 단추 + 터미널
+		13 단추 + 그룹
+		14 단추 에이전트
+		15 편집 저장소, 작업, 터미널 검색, Secondary Actions: SetValue
+		16 콘솔 트리 sample · 작업 100, Secondary Actions: Select
+		17 콘솔 트리 Task 000 - 한글 작업과 레이아웃 🔎, Secondary Actions: Select
+		18 콘솔 트리 Worker 0 | 작업 중 · 출처: osc · 신뢰도: 100% · 상위: 작업 중 · 마지막: — | 보고 없음
+			19 상태 작업 중 · 출처: osc · 신뢰도: 100% · 상위: 작업 중 · 마지막: —
+		20 콘솔 트리 Worker 1 | 승인 필요 · 출처: osc · 신뢰도: 100% · 상위: 승인 필요 · 마지막: — | 보고 없음
+			21 상태 승인 필요 · 출처: osc · 신뢰도: 100% · 상위: 승인 필요 · 마지막: —
+		22 콘솔 트리 Worker 2 | 완료 · 출처: osc · 신뢰도: 100% · 상위: 완료 · 마지막: — | 보고 없음
+			23 상태 완료 · 출처: osc · 신뢰도: 100% · 상위: 완료 · 마지막: —
+		24 콘솔 트리 Task 001 - 한글 작업과 레이아웃 🔎, Secondary Actions: Select
+		25 콘솔 트리 Worker 3 | 승인 필요 · 출처: osc · 신뢰도: 100% · 상위: 승인 필요 · 마지막: — | 보고 없음
+			26 상태 승인 필요 · 출처: osc · 신뢰도: 100% · 상위: 승인 필요 · 마지막: —
+		27 콘솔 트리 Worker 4 | 완료 · 출처: osc · 신뢰도: 100% · 상위: 완료 · 마지막: — | 보고 없음
+			28 상태 완료 · 출처: osc · 신뢰도: 100% · 상위: 완료 · 마지막: —
+		29 콘솔 트리 Worker 5 | 대기 · 출처: osc · 신뢰도: 100% · 상위: 대기 · 마지막: — | 보고 없음
+			30 상태 대기 · 출처: osc · 신뢰도: 100% · 상위: 대기 · 마지막: —
+		31 콘솔 트리 Task 002 - 한글 작업과 레이아웃 🔎, Secondary Actions: Select
+		32 콘솔 트리 Worker 6 | 완료 · 출처: osc · 신뢰도: 100% · 상위: 완료 · 마지막: — | 보고 없음
+			33 상태 완료 · 출처: osc · 신뢰도: 100% · 상위: 완료 · 마지막: —
+		34 콘솔 트리 Worker 7 | 대기 · 출처: osc · 신뢰도: 100% · 상위: 대기 · 마지막: — | 보고 없음
+			35 상태 대기 · 출처: osc · 신뢰도: 100% · 상위: 대기 · 마지막: —
+	36 LIST 최근 알림
+	37 단추 저장소 열기
+	38 단추 새 작업
+	39 단추 상태
+	40 단추 알림 0
+	41 대화 상자
+		42 편집 작업, 터미널 검색 · > 명령만, Secondary Actions: SetValue
+		43 옵션 Worker 0 - sample/task-000 / 작업 중, Secondary Actions: Select
+		44 옵션 Worker 1 - sample/task-000 / 승인 필요, Secondary Actions: Select
+		45 옵션 Worker 2 - sample/task-000 / 완료, Secondary Actions: Select
+		46 옵션 Worker 3 - sample/task-001 / 승인 필요, Secondary Actions: Select
+		47 옵션 Worker 4 - sample/task-001 / 완료, Secondary Actions: Select
+		48 옵션 Worker 5 - sample/task-001 / 대기, Secondary Actions: Select
+		49 옵션 Worker 6 - sample/task-002 / 완료, Secondary Actions: Select
+		50 옵션 Worker 7 - sample/task-002 / 대기, Secondary Actions: Select
+		51 옵션 Worker 8 - sample/task-002 / 상태 미확인 · 추정, Secondary Actions: Select
+		52 옵션 Worker 9 - sample/task-003 / 대기, Secondary Actions: Select
+		53 옵션 Worker 10 - sample/task-003 / 상태 미확인 · 추정, Secondary Actions: Select
+		54 옵션 Worker 11 - sample/task-003 / 오류, Secondary Actions: Select
+		55 옵션 Worker 12 - sample/task-004 / 상태 미확인 · 추정, Secondary Actions: Select
+		56 옵션 Worker 13 - sample/task-004 / 오류, Secondary Actions: Select
+		57 옵션 Worker 14 - sample/task-004 / 작업 중, Secondary Actions: Select
+		58 옵션 Worker 15 - sample/task-005 / 오류, Secondary Actions: Select
+		59 옵션 Worker 16 - sample/task-005 / 작업 중, Secondary Actions: Select
+		60 옵션 Worker 17 - sample/task-005 / 승인 필요, Secondary Actions: Select
+		61 옵션 Worker 18 - sample/task-006 / 작업 중, Secondary Actions: Select
+		62 옵션 Worker 19 - sample/task-006 / 승인 필요, Secondary Actions: Select
+		63 옵션 Worker 20 - sample/task-006 / 완료, Secondary Actions: Select
+		64 옵션 Worker 21 - sample/task-007 / 승인 필요, Secondary Actions: Select
+		65 옵션 Worker 22 - sample/task-007 / 완료, Secondary Actions: Select
+		66 옵션 Worker 23 - sample/task-007 / 대기, Secondary Actions: Select
+		67 옵션 Worker 24 - sample/task-008 / 완료, Secondary Actions: Select
+		68 옵션 Worker 25 - sample/task-008 / 대기, Secondary Actions: Select
+		69 옵션 Worker 26 - sample/task-008 / 상태 미확인 · 추정, Secondary Actions: Select
+		70 옵션 Worker 27 - sample/task-009 / 대기, Secondary Actions: Select
+		71 옵션 Worker 28 - sample/task-009 / 상태 미확인 · 추정, Secondary Actions: Select
+		72 옵션 Worker 29 - sample/task-009 / 오류, Secondary Actions: Select
+		73 옵션 Worker 30 - sample/task-010 / 상태 미확인 · 추정, Secondary Actions: Select
+		74 옵션 Worker 31 - sample/task-010 / 오류, Secondary Actions: Select
+		75 옵션 Worker 32 - sample/task-010 / 작업 중, Secondary Actions: Select
+		76 옵션 Worker 33 - sample/task-011 / 오류, Secondary Actions: Select
+		77 옵션 Worker 34 - sample/task-011 / 작업 중, Secondary Actions: Select
+		78 옵션 Worker 35 - sample/task-011 / 승인 필요, Secondary Actions: Select
+		79 옵션 Worker 36 - sample/task-012 / 작업 중, Secondary Actions: Select
+		80 옵션 Worker 37 - sample/task-012 / 승인 필요, Secondary Actions: Select
+		81 옵션 Worker 38 - sample/task-012 / 완료, Secondary Actions: Select
+		82 옵션 Worker 39 - sample/task-013 / 승인 필요, Secondary Actions: Select
+		83 옵션 Worker 40 - sample/task-013 / 완료, Secondary Actions: Select
+		84 옵션 Worker 41 - sample/task-013 / 대기, Secondary Actions: Select
+		85 옵션 Worker 42 - sample/task-014 / 완료, Secondary Actions: Select
+		86 옵션 Worker 43 - sample/task-014 / 대기, Secondary Actions: Select
+		87 옵션 Worker 44 - sample/task-014 / 상태 미확인 · 추정, Secondary Actions: Select
+		88 옵션 Worker 45 - sample/task-015 / 대기, Secondary Actions: Select
+		89 옵션 Worker 46 - sample/task-015 / 상태 미확인 · 추정, Secondary Actions: Select
+		90 옵션 Worker 47 - sample/task-015 / 오류, Secondary Actions: Select
+		91 옵션 Worker 48 - sample/task-016 / 상태 미확인 · 추정, Secondary Actions: Select
+		92 옵션 Worker 49 - sample/task-016 / 오류, Secondary Actions: Select
+		93 옵션 Worker 50 - sample/task-016 / 작업 중, Secondary Actions: Select
+		94 옵션 Worker 51 - sample/task-017 / 오류, Secondary Actions: Select
+		95 옵션 Worker 52 - sample/task-017 / 작업 중, Secondary Actions: Select
+		96 옵션 Worker 53 - sample/task-017 / 승인 필요, Secondary Actions: Select
+		97 옵션 Worker 54 - sample/task-018 / 작업 중, Secondary Actions: Select
+		98 옵션 Worker 55 - sample/task-018 / 승인 필요, Secondary Actions: Select
+		99 옵션 Worker 56 - sample/task-018 / 완료, Secondary Actions: Select
+		100 옵션 Worker 57 - sample/task-019 / 승인 필요, Secondary Actions: Select
+		101 옵션 Worker 58 - sample/task-019 / 완료, Secondary Actions: Select
+		102 옵션 Worker 59 - sample/task-019 / 대기, Secondary Actions: Select
+		103 옵션 Worker 60 - sample/task-020 / 완료, Secondary Actions: Select
+		104 옵션 Worker 61 - sample/task-020 / 대기, Secondary Actions: Select
+		105 옵션 Worker 62 - sample/task-020 / 상태 미확인 · 추정, Secondary Actions: Select
+		106 옵션 Worker 63 - sample/task-021 / 대기, Secondary Actions: Select
+		107 옵션 Worker 64 - sample/task-021 / 상태 미확인 · 추정, Secondary Actions: Select
+		108 옵션 Worker 65 - sample/task-021 / 오류, Secondary Actions: Select
+		109 옵션 Worker 66 - sample/task-022 / 상태 미확인 · 추정, Secondary Actions: Select
+		110 옵션 Worker 67 - sample/task-022 / 오류, Secondary Actions: Select
+		111 옵션 Worker 68 - sample/task-022 / 작업 중, Secondary Actions: Select
+		112 옵션 Worker 69 - sample/task-023 / 오류, Secondary Actions: Select
+		113 옵션 Worker 70 - sample/task-023 / 작업 중, Secondary Actions: Select
+		114 옵션 Worker 71 - sample/task-023 / 승인 필요, Secondary Actions: Select
+		115 옵션 Worker 72 - sample/task-024 / 작업 중, Secondary Actions: Select
+		116 옵션 Worker 73 - sample/task-024 / 승인 필요, Secondary Actions: Select
+		117 옵션 Worker 74 - sample/task-024 / 완료, Secondary Actions: Select
+		118 옵션 Worker 75 - sample/task-025 / 승인 필요, Secondary Actions: Select
+		119 옵션 Worker 76 - sample/task-025 / 완료, Secondary Actions: Select
+		120 옵션 Worker 77 - sample/task-025 / 대기, Secondary Actions: Select
+		121 옵션 Worker 78 - sample/task-026 / 완료, Secondary Actions: Select
+		122 옵션 Worker 79 - sample/task-026 / 대기, Secondary Actions: Select
+		123 옵션 Worker 80 - sample/task-026 / 상태 미확인 · 추정, Secondary Actions: Select
+		124 옵션 Worker 81 - sample/task-027 / 대기, Secondary Actions: Select
+		125 옵션 Worker 82 - sample/task-027 / 상태 미확인 · 추정, Secondary Actions: Select
+		126 옵션 Worker 83 - sample/task-027 / 오류, Secondary Actions: Select
+		127 옵션 Worker 84 - sample/task-028 / 상태 미확인 · 추정, Secondary Actions: Select
+		128 옵션 Worker 85 - sample/task-028 / 오류, Secondary Actions: Select
+		129 옵션 Worker 86 - sample/task-028 / 작업 중, Secondary Actions: Select
+		130 옵션 Worker 87 - sample/task-029 / 오류, Secondary Actions: Select
+		131 옵션 Worker 88 - sample/task-029 / 작업 중, Secondary Actions: Select
+		132 옵션 Worker 89 - sample/task-029 / 승인 필요, Secondary Actions: Select
+		133 옵션 Worker 90 - sample/task-030 / 작업 중, Secondary Actions: Select
+		134 옵션 Worker 91 - sample/task-030 / 승인 필요, Secondary Actions: Select
+		135 옵션 Worker 92 - sample/task-030 / 완료, Secondary Actions: Select
+		136 옵션 Worker 93 - sample/task-031 / 승인 필요, Secondary Actions: Select
+		137 옵션 Worker 94 - sample/task-031 / 완료, Secondary Actions: Select
+		138 옵션 Worker 95 - sample/task-031 / 대기, Secondary Actions: Select
+		139 옵션 Worker 96 - sample/task-032 / 완료, Secondary Actions: Select
+		140 옵션 Worker 97 - sample/task-032 / 대기, Secondary Actions: Select
+		141 옵션 Worker 98 - sample/task-032 / 상태 미확인 · 추정, Secondary Actions: Select
+		142 옵션 Worker 99 - sample/task-033 / 대기, Secondary Actions: Select
+		143 옵션 Worker 100 - sample/task-033 / 상태 미확인 · 추정, Secondary Actions: Select
+		144 옵션 Worker 101 - sample/task-033 / 오류, Secondary Actions: Select
+		145 옵션 Worker 102 - sample/task-034 / 상태 미확인 · 추정, Secondary Actions: Select
+		146 옵션 Worker 103 - sample/task-034 / 오류, Secondary Actions: Select
+		147 옵션 Worker 104 - sample/task-034 / 작업 중, Secondary Actions: Select
+		148 옵션 Worker 105 - sample/task-035 / 오류, Secondary Actions: Select
+		149 옵션 Worker 106 - sample/task-035 / 작업 중, Secondary Actions: Select
+		150 옵션 Worker 107 - sample/task-035 / 승인 필요, Secondary Actions: Select
+		151 옵션 Worker 108 - sample/task-036 / 작업 중, Secondary Actions: Select
+		152 옵션 Worker 109 - sample/task-036 / 승인 필요, Secondary Actions: Select
+		153 옵션 Worker 110 - sample/task-036 / 완료, Secondary Actions: Select
+		154 옵션 Worker 111 - sample/task-037 / 승인 필요, Secondary Actions: Select
+		155 옵션 Worker 112 - sample/task-037 / 완료, Secondary Actions: Select
+		156 옵션 Worker 113 - sample/task-037 / 대기, Secondary Actions: Select
+		157 옵션 Worker 114 - sample/task-038 / 완료, Secondary Actions: Select
+		158 옵션 Worker 115 - sample/task-038 / 대기, Secondary Actions: Select
+		159 옵션 Worker 116 - sample/task-038 / 상태 미확인 · 추정, Secondary Actions: Select
+		160 옵션 Worker 117 - sample/task-039 / 대기, Secondary Actions: Select
+		161 옵션 Worker 118 - sample/task-039 / 상태 미확인 · 추정, Secondary Actions: Select
+		162 옵션 Worker 119 - sample/task-039 / 오류, Secondary Actions: Select
+		163 옵션 Worker 120 - sample/task-040 / 상태 미확인 · 추정, Secondary Actions: Select
+		164 옵션 Worker 121 - sample/task-040 / 오류, Secondary Actions: Select
+		165 옵션 Worker 122 - sample/task-040 / 작업 중, Secondary Actions: Select
+		166 옵션 Worker 123 - sample/task-041 / 오류, Secondary Actions: Select
+		167 옵션 Worker 124 - sample/task-041 / 작업 중, Secondary Actions: Select
+		168 옵션 Worker 125 - sample/task-041 / 승인 필요, Secondary Actions: Select
+		169 옵션 Worker 126 - sample/task-042 / 작업 중, Secondary Actions: Select
+		170 옵션 Worker 127 - sample/task-042 / 승인 필요, Secondary Actions: Select
+		171 옵션 Worker 128 - sample/task-042 / 완료, Secondary Actions: Select
+		172 옵션 Worker 129 - sample/task-043 / 승인 필요, Secondary Actions: Select
+		173 옵션 Worker 130 - sample/task-043 / 완료, Secondary Actions: Select
+		174 옵션 Worker 131 - sample/task-043 / 대기, Secondary Actions: Select
+		175 옵션 Worker 132 - sample/task-044 / 완료, Secondary Actions: Select
+		176 옵션 Worker 133 - sample/task-044 / 대기, Secondary Actions: Select
+		177 옵션 Worker 134 - sample/task-044 / 상태 미확인 · 추정, Secondary Actions: Select
+		178 옵션 Worker 135 - sample/task-045 / 대기, Secondary Actions: Select
+		179 옵션 Worker 136 - sample/task-045 / 상태 미확인 · 추정, Secondary Actions: Select
+		180 옵션 Worker 137 - sample/task-045 / 오류, Secondary Actions: Select
+		181 옵션 Worker 138 - sample/task-046 / 상태 미확인 · 추정, Secondary Actions: Select
+		182 옵션 Worker 139 - sample/task-046 / 오류, Secondary Actions: Select
+		183 옵션 Worker 140 - sample/task-046 / 작업 중, Secondary Actions: Select
+		184 옵션 Worker 141 - sample/task-047 / 오류, Secondary Actions: Select
+		185 옵션 Worker 142 - sample/task-047 / 작업 중, Secondary Actions: Select
+		186 옵션 Worker 143 - sample/task-047 / 승인 필요, Secondary Actions: Select
+		187 옵션 Worker 144 - sample/task-048 / 작업 중, Secondary Actions: Select
+		188 옵션 Worker 145 - sample/task-048 / 승인 필요, Secondary Actions: Select
+		189 옵션 Worker 146 - sample/task-048 / 완료, Secondary Actions: Select
+		190 옵션 Worker 147 - sample/task-049 / 승인 필요, Secondary Actions: Select
+		191 옵션 Worker 148 - sample/task-049 / 완료, Secondary Actions: Select
+		192 옵션 Worker 149 - sample/task-049 / 대기, Secondary Actions: Select
+		193 옵션 Worker 150 - sample/task-050 / 완료, Secondary Actions: Select
+		194 옵션 Worker 151 - sample/task-050 / 대기, Secondary Actions: Select
+		195 옵션 Worker 152 - sample/task-050 / 상태 미확인 · 추정, Secondary Actions: Select
+		196 옵션 Worker 153 - sample/task-051 / 대기, Secondary Actions: Select
+		197 옵션 Worker 154 - sample/task-051 / 상태 미확인 · 추정, Secondary Actions: Select
+		198 옵션 Worker 155 - sample/task-051 / 오류, Secondary Actions: Select
+		199 옵션 Worker 156 - sample/task-052 / 상태 미확인 · 추정, Secondary Actions: Select
+		200 옵션 Worker 157 - sample/task-052 / 오류, Secondary Actions: Select
+		201 옵션 Worker 158 - sample/task-052 / 작업 중, Secondary Actions: Select
+		202 옵션 Worker 159 - sample/task-053 / 오류, Secondary Actions: Select
+		203 옵션 Worker 160 - sample/task-053 / 작업 중, Secondary Actions: Select
+		204 옵션 Worker 161 - sample/task-053 / 승인 필요, Secondary Actions: Select
+		205 옵션 Worker 162 - sample/task-054 / 작업 중, Secondary Actions: Select
+		206 옵션 Worker 163 - sample/task-054 / 승인 필요, Secondary Actions: Select
+		207 옵션 Worker 164 - sample/task-054 / 완료, Secondary Actions: Select
+		208 옵션 Worker 165 - sample/task-055 / 승인 필요, Secondary Actions: Select
+		209 옵션 Worker 166 - sample/task-055 / 완료, Secondary Actions: Select
+		210 옵션 Worker 167 - sample/task-055 / 대기, Secondary Actions: Select
+		211 옵션 Worker 168 - sample/task-056 / 완료, Secondary Actions: Select
+		212 옵션 Worker 169 - sample/task-056 / 대기, Secondary Actions: Select
+		213 옵션 Worker 170 - sample/task-056 / 상태 미확인 · 추정, Secondary Actions: Select
+		214 옵션 Worker 171 - sample/task-057 / 대기, Secondary Actions: Select
+		215 옵션 Worker 172 - sample/task-057 / 상태 미확인 · 추정, Secondary Actions: Select
+		216 옵션 Worker 173 - sample/task-057 / 오류, Secondary Actions: Select
+		217 옵션 Worker 174 - sample/task-058 / 상태 미확인 · 추정, Secondary Actions: Select
+		218 옵션 Worker 175 - sample/task-058 / 오류, Secondary Actions: Select
+		219 옵션 Worker 176 - sample/task-058 / 작업 중, Secondary Actions: Select
+		220 옵션 Worker 177 - sample/task-059 / 오류, Secondary Actions: Select
+		221 옵션 Worker 178 - sample/task-059 / 작업 중, Secondary Actions: Select
+		222 옵션 Worker 179 - sample/task-059 / 승인 필요, Secondary Actions: Select
+		223 옵션 Worker 180 - sample/task-060 / 작업 중, Secondary Actions: Select
+		224 옵션 Worker 181 - sample/task-060 / 승인 필요, Secondary Actions: Select
+		225 옵션 Worker 182 - sample/task-060 / 완료, Secondary Actions: Select
+		226 옵션 Worker 183 - sample/task-061 / 승인 필요, Secondary Actions: Select
+		227 옵션 Worker 184 - sample/task-061 / 완료, Secondary Actions: Select
+		228 옵션 Worker 185 - sample/task-061 / 대기, Secondary Actions: Select
+		229 옵션 Worker 186 - sample/task-062 / 완료, Secondary Actions: Select
+		230 옵션 Worker 187 - sample/task-062 / 대기, Secondary Actions: Select
+		231 옵션 Worker 188 - sample/task-062 / 상태 미확인 · 추정, Secondary Actions: Select
+		232 옵션 Worker 189 - sample/task-063 / 대기, Secondary Actions: Select
+		233 옵션 Worker 190 - sample/task-063 / 상태 미확인 · 추정, Secondary Actions: Select
+		234 옵션 Worker 191 - sample/task-063 / 오류, Secondary Actions: Select
+		235 옵션 Worker 192 - sample/task-064 / 상태 미확인 · 추정, Secondary Actions: Select
+		236 옵션 Worker 193 - sample/task-064 / 오류, Secondary Actions: Select
+		237 옵션 Worker 194 - sample/task-064 / 작업 중, Secondary Actions: Select
+		238 옵션 Worker 195 - sample/task-065 / 오류, Secondary Actions: Select
+		239 옵션 Worker 196 - sample/task-065 / 작업 중, Secondary Actions: Select
+		240 옵션 Worker 197 - sample/task-065 / 승인 필요, Secondary Actions: Select
+		241 옵션 Worker 198 - sample/task-066 / 작업 중, Secondary Actions: Select
+		242 옵션 Worker 199 - sample/task-066 / 승인 필요, Secondary Actions: Select
+		243 옵션 Worker 200 - sample/task-066 / 완료, Secondary Actions: Select
+		244 옵션 Worker 201 - sample/task-067 / 승인 필요, Secondary Actions: Select
+		245 옵션 Worker 202 - sample/task-067 / 완료, Secondary Actions: Select
+		246 옵션 Worker 203 - sample/task-067 / 대기, Secondary Actions: Select
+		247 옵션 Worker 204 - sample/task-068 / 완료, Secondary Actions: Select
+		248 옵션 Worker 205 - sample/task-068 / 대기, Secondary Actions: Select
+		249 옵션 Worker 206 - sample/task-068 / 상태 미확인 · 추정, Secondary Actions: Select
+		250 옵션 Worker 207 - sample/task-069 / 대기, Secondary Actions: Select
+		251 옵션 Worker 208 - sample/task-069 / 상태 미확인 · 추정, Secondary Actions: Select
+		252 옵션 Worker 209 - sample/task-069 / 오류, Secondary Actions: Select
+		253 옵션 Worker 210 - sample/task-070 / 상태 미확인 · 추정, Secondary Actions: Select
+		254 옵션 Worker 211 - sample/task-070 / 오류, Secondary Actions: Select
+		255 옵션 Worker 212 - sample/task-070 / 작업 중, Secondary Actions: Select
+		256 옵션 Worker 213 - sample/task-071 / 오류, Secondary Actions: Select
+		257 옵션 Worker 214 - sample/task-071 / 작업 중, Secondary Actions: Select
+		258 옵션 Worker 215 - sample/task-071 / 승인 필요, Secondary Actions: Select
+		259 옵션 Worker 216 - sample/task-072 / 작업 중, Secondary Actions: Select
+		260 옵션 Worker 217 - sample/task-072 / 승인 필요, Secondary Actions: Select
+		261 옵션 Worker 218 - sample/task-072 / 완료, Secondary Actions: Select
+		262 옵션 Worker 219 - sample/task-073 / 승인 필요, Secondary Actions: Select
+		263 옵션 Worker 220 - sample/task-073 / 완료, Secondary Actions: Select
+		264 옵션 Worker 221 - sample/task-073 / 대기, Secondary Actions: Select
+		265 옵션 Worker 222 - sample/task-074 / 완료, Secondary Actions: Select
+		266 옵션 Worker 223 - sample/task-074 / 대기, Secondary Actions: Select
+		267 옵션 Worker 224 - sample/task-074 / 상태 미확인 · 추정, Secondary Actions: Select
+		268 옵션 Worker 225 - sample/task-075 / 대기, Secondary Actions: Select
+		269 옵션 Worker 226 - sample/task-075 / 상태 미확인 · 추정, Secondary Actions: Select
+		270 옵션 Worker 227 - sample/task-075 / 오류, Secondary Actions: Select
+		271 옵션 Worker 228 - sample/task-076 / 상태 미확인 · 추정, Secondary Actions: Select
+		272 옵션 Worker 229 - sample/task-076 / 오류, Secondary Actions: Select
+		273 옵션 Worker 230 - sample/task-076 / 작업 중, Secondary Actions: Select
+		274 옵션 Worker 231 - sample/task-077 / 오류, Secondary Actions: Select
+		275 옵션 Worker 232 - sample/task-077 / 작업 중, Secondary Actions: Select
+		276 옵션 Worker 233 - sample/task-077 / 승인 필요, Secondary Actions: Select
+		277 옵션 Worker 234 - sample/task-078 / 작업 중, Secondary Actions: Select
+		278 옵션 Worker 235 - sample/task-078 / 승인 필요, Secondary Actions: Select
+		279 옵션 Worker 236 - sample/task-078 / 완료, Secondary Actions: Select
+		280 옵션 Worker 237 - sample/task-079 / 승인 필요, Secondary Actions: Select
+		281 옵션 Worker 238 - sample/task-079 / 완료, Secondary Actions: Select
+		282 옵션 Worker 239 - sample/task-079 / 대기, Secondary Actions: Select
+		283 옵션 Worker 240 - sample/task-080 / 완료, Secondary Actions: Select
+		284 옵션 Worker 241 - sample/task-080 / 대기, Secondary Actions: Select
+		285 옵션 Worker 242 - sample/task-080 / 상태 미확인 · 추정, Secondary Actions: Select
+		286 옵션 Worker 243 - sample/task-081 / 대기, Secondary Actions: Select
+		287 옵션 Worker 244 - sample/task-081 / 상태 미확인 · 추정, Secondary Actions: Select
+		288 옵션 Worker 245 - sample/task-081 / 오류, Secondary Actions: Select
+		289 옵션 Worker 246 - sample/task-082 / 상태 미확인 · 추정, Secondary Actions: Select
+		290 옵션 Worker 247 - sample/task-082 / 오류, Secondary Actions: Select
+		291 옵션 Worker 248 - sample/task-082 / 작업 중, Secondary Actions: Select
+		292 옵션 Worker 249 - sample/task-083 / 오류, Secondary Actions: Select
+		293 옵션 Worker 250 - sample/task-083 / 작업 중, Secondary Actions: Select
+		294 옵션 Worker 251 - sample/task-083 / 승인 필요, Secondary Actions: Select
+		295 옵션 Worker 252 - sample/task-084 / 작업 중, Secondary Actions: Select
+		296 옵션 Worker 253 - sample/task-084 / 승인 필요, Secondary Actions: Select
+		297 옵션 Worker 254 - sample/task-084 / 완료, Secondary Actions: Select
+		298 옵션 Worker 255 - sample/task-085 / 승인 필요, Secondary Actions: Select
+		299 옵션 Worker 256 - sample/task-085 / 완료, Secondary Actions: Select
+		300 옵션 Worker 257 - sample/task-085 / 대기, Secondary Actions: Select
+		301 옵션 Worker 258 - sample/task-086 / 완료, Secondary Actions: Select
+		302 옵션 Worker 259 - sample/task-086 / 대기, Secondary Actions: Select
+		303 옵션 Worker 260 - sample/task-086 / 상태 미확인 · 추정, Secondary Actions: Select
+		304 옵션 Worker 261 - sample/task-087 / 대기, Secondary Actions: Select
+		305 옵션 Worker 262 - sample/task-087 / 상태 미확인 · 추정, Secondary Actions: Select
+		306 옵션 Worker 263 - sample/task-087 / 오류, Secondary Actions: Select
+		307 옵션 Worker 264 - sample/task-088 / 상태 미확인 · 추정, Secondary Actions: Select
+		308 옵션 Worker 265 - sample/task-088 / 오류, Secondary Actions: Select
+		309 옵션 Worker 266 - sample/task-088 / 작업 중, Secondary Actions: Select
+		310 옵션 Worker 267 - sample/task-089 / 오류, Secondary Actions: Select
+		311 옵션 Worker 268 - sample/task-089 / 작업 중, Secondary Actions: Select
+		312 옵션 Worker 269 - sample/task-089 / 승인 필요, Secondary Actions: Select
+		313 옵션 Worker 270 - sample/task-090 / 작업 중, Secondary Actions: Select
+		314 옵션 Worker 271 - sample/task-090 / 승인 필요, Secondary Actions: Select
+		315 옵션 Worker 272 - sample/task-090 / 완료, Secondary Actions: Select
+		316 옵션 Worker 273 - sample/task-091 / 승인 필요, Secondary Actions: Select
+		317 옵션 Worker 274 - sample/task-091 / 완료, Secondary Actions: Select
+		318 옵션 Worker 275 - sample/task-091 / 대기, Secondary Actions: Select
+		319 옵션 Worker 276 - sample/task-092 / 완료, Secondary Actions: Select
+		320 옵션 Worker 277 - sample/task-092 / 대기, Secondary Actions: Select
+		321 옵션 Worker 278 - sample/task-092 / 상태 미확인 · 추정, Secondary Actions: Select
+		322 옵션 Worker 279 - sample/task-093 / 대기, Secondary Actions: Select
+		323 옵션 Worker 280 - sample/task-093 / 상태 미확인 · 추정, Secondary Actions: Select
+		324 옵션 Worker 281 - sample/task-093 / 오류, Secondary Actions: Select
+		325 옵션 Worker 282 - sample/task-094 / 상태 미확인 · 추정, Secondary Actions: Select
+		326 옵션 Worker 283 - sample/task-094 / 오류, Secondary Actions: Select
+		327 옵션 Worker 284 - sample/task-094 / 작업 중, Secondary Actions: Select
+		328 옵션 Worker 285 - sample/task-095 / 오류, Secondary Actions: Select
+		329 옵션 Worker 286 - sample/task-095 / 작업 중, Secondary Actions: Select
+		330 옵션 Worker 287 - sample/task-095 / 승인 필요, Secondary Actions: Select
+		331 옵션 Worker 288 - sample/task-096 / 작업 중, Secondary Actions: Select
+		332 옵션 Worker 289 - sample/task-096 / 승인 필요, Secondary Actions: Select
+		333 옵션 Worker 290 - sample/task-096 / 완료, Secondary Actions: Select
+		334 옵션 Worker 291 - sample/task-097 / 승인 필요, Secondary Actions: Select
+		335 옵션 Worker 292 - sample/task-097 / 완료, Secondary Actions: Select
+		336 옵션 Worker 293 - sample/task-097 / 대기, Secondary Actions: Select
+		337 옵션 Worker 294 - sample/task-098 / 완료, Secondary Actions: Select
+		338 옵션 Worker 295 - sample/task-098 / 대기, Secondary Actions: Select
+		339 옵션 Worker 296 - sample/task-098 / 상태 미확인 · 추정, Secondary Actions: Select
+		340 옵션 Worker 297 - sample/task-099 / 대기, Secondary Actions: Select
+		341 옵션 Worker 298 - sample/task-099 / 상태 미확인 · 추정, Secondary Actions: Select
+		342 옵션 Worker 299 - sample/task-099 / 오류, Secondary Actions: Select
+		343 옵션 Task 000 - 한글 작업과 레이아웃 🔎 - sample/task-000, Secondary Actions: Select
+		344 옵션 Task 001 - 한글 작업과 레이아웃 🔎 - sample/task-001, Secondary Actions: Select
+		345 옵션 Task 002 - 한글 작업과 레이아웃 🔎 - sample/task-002, Secondary Actions: Select
+		346 옵션 Task 003 - 한글 작업과 레이아웃 🔎 - sample/task-003, Secondary Actions: Select
+		347 옵션 Task 004 - 한글 작업과 레이아웃 🔎 - sample/task-004, Secondary Actions: Select
+		348 옵션 Task 005 - 한글 작업과 레이아웃 🔎 - sample/task-005, Secondary Actions: Select
+		349 옵션 Task 006 - 한글 작업과 레이아웃 🔎 - sample/task-006, Secondary Actions: Select
+		350 옵션 Task 007 - 한글 작업과 레이아웃 🔎 - sample/task-007, Secondary Actions: Select
+		351 옵션 Task 008 - 한글 작업과 레이아웃 🔎 - sample/task-008, Secondary Actions: Select
+		352 옵션 Task 009 - 한글 작업과 레이아웃 🔎 - sample/task-009, Secondary Actions: Select
+		353 옵션 Task 010 - 한글 작업과 레이아웃 🔎 - sample/task-010, Secondary Actions: Select
+		354 옵션 Task 011 - 한글 작업과 레이아웃 🔎 - sample/task-011, Secondary Actions: Select
+		355 옵션 Task 012 - 한글 작업과 레이아웃 🔎 - sample/task-012, Secondary Actions: Select
+		356 옵션 Task 013 - 한글 작업과 레이아웃 🔎 - sample/task-013, Secondary Actions: Select
+		357 옵션 Task 014 - 한글 작업과 레이아웃 🔎 - sample/task-014, Secondary Actions: Select
+		358 옵션 Task 015 - 한글 작업과 레이아웃 🔎 - sample/task-015, Secondary Actions: Select
+		359 옵션 Task 016 - 한글 작업과 레이아웃 🔎 - sample/task-016, Secondary Actions: Select
+		360 옵션 Task 017 - 한글 작업과 레이아웃 🔎 - sample/task-017, Secondary Actions: Select
+		361 옵션 Task 018 - 한글 작업과 레이아웃 🔎 - sample/task-018, Secondary Actions: Select
+		362 옵션 Task 019 - 한글 작업과 레이아웃 🔎 - sample/task-019, Secondary Actions: Select
+		363 옵션 Task 020 - 한글 작업과 레이아웃 🔎 - sample/task-020, Secondary Actions: Select
+		364 옵션 Task 021 - 한글 작업과 레이아웃 🔎 - sample/task-021, Secondary Actions: Select
+		365 옵션 Task 022 - 한글 작업과 레이아웃 🔎 - sample/task-022, Secondary Actions: Select
+		366 옵션 Task 023 - 한글 작업과 레이아웃 🔎 - sample/task-023, Secondary Actions: Select
+		367 옵션 Task 024 - 한글 작업과 레이아웃 🔎 - sample/task-024, Secondary Actions: Select
+		368 옵션 Task 025 - 한글 작업과 레이아웃 🔎 - sample/task-025, Secondary Actions: Select
+		369 옵션 Task 026 - 한글 작업과 레이아웃 🔎 - sample/task-026, Secondary Actions: Select
+		370 옵션 Task 027 - 한글 작업과 레이아웃 🔎 - sample/task-027, Secondary Actions: Select
+		371 옵션 Task 028 - 한글 작업과 레이아웃 🔎 - sample/task-028, Secondary Actions: Select
+		372 옵션 Task 029 - 한글 작업과 레이아웃 🔎 - sample/task-029, Secondary Actions: Select
+		373 옵션 Task 030 - 한글 작업과 레이아웃 🔎 - sample/task-030, Secondary Actions: Select
+		374 옵션 Task 031 - 한글 작업과 레이아웃 🔎 - sample/task-031, Secondary Actions: Select
+		375 옵션 Task 032 - 한글 작업과 레이아웃 🔎 - sample/task-032, Secondary Actions: Select
+		376 옵션 Task 033 - 한글 작업과 레이아웃 🔎 - sample/task-033, Secondary Actions: Select
+		377 옵션 Task 034 - 한글 작업과 레이아웃 🔎 - sample/task-034, Secondary Actions: Select
+		378 옵션 Task 035 - 한글 작업과 레이아웃 🔎 - sample/task-035, Secondary Actions: Select
+		379 옵션 Task 036 - 한글 작업과 레이아웃 🔎 - sample/task-036, Secondary Actions: Select
+		380 옵션 Task 037 - 한글 작업과 레이아웃 🔎 - sample/task-037, Secondary Actions: Select
+		381 옵션 Task 038 - 한글 작업과 레이아웃 🔎 - sample/task-038, Secondary Actions: Select
+		382 옵션 Task 039 - 한글 작업과 레이아웃 🔎 - sample/task-039, Secondary Actions: Select
+		383 옵션 Task 040 - 한글 작업과 레이아웃 🔎 - sample/task-040, Secondary Actions: Select
+		384 옵션 Task 041 - 한글 작업과 레이아웃 🔎 - sample/task-041, Secondary Actions: Select
+		385 옵션 Task 042 - 한글 작업과 레이아웃 🔎 - sample/task-042, Secondary Actions: Select
+		386 옵션 Task 043 - 한글 작업과 레이아웃 🔎 - sample/task-043, Secondary Actions: Select
+		387 옵션 Task 044 - 한글 작업과 레이아웃 🔎 - sample/task-044, Secondary Actions: Select
+		388 옵션 Task 045 - 한글 작업과 레이아웃 🔎 - sample/task-045, Secondary Actions: Select
+		389 옵션 Task 046 - 한글 작업과 레이아웃 🔎 - sample/task-046, Secondary Actions: Select
+		390 옵션 Task 047 - 한글 작업과 레이아웃 🔎 - sample/task-047, Secondary Actions: Select
+		391 옵션 Task 048 - 한글 작업과 레이아웃 🔎 - sample/task-048, Secondary Actions: Select
+		392 옵션 Task 049 - 한글 작업과 레이아웃 🔎 - sample/task-049, Secondary Actions: Select
+		393 옵션 Task 050 - 한글 작업과 레이아웃 🔎 - sample/task-050, Secondary Actions: Select
+		394 옵션 Task 051 - 한글 작업과 레이아웃 🔎 - sample/task-051, Secondary Actions: Select
+		395 옵션 Task 052 - 한글 작업과 레이아웃 🔎 - sample/task-052, Secondary Actions: Select
+		396 옵션 Task 053 - 한글 작업과 레이아웃 🔎 - sample/task-053, Secondary Actions: Select
+		397 옵션 Task 054 - 한글 작업과 레이아웃 🔎 - sample/task-054, Secondary Actions: Select
+		398 옵션 Task 055 - 한글 작업과 레이아웃 🔎 - sample/task-055, Secondary Actions: Select
+		399 옵션 Task 056 - 한글 작업과 레이아웃 🔎 - sample/task-056, Secondary Actions: Select
+		400 옵션 Task 057 - 한글 작업과 레이아웃 🔎 - sample/task-057, Secondary Actions: Select
+		401 옵션 Task 058 - 한글 작업과 레이아웃 🔎 - sample/task-058, Secondary Actions: Select
+		402 옵션 Task 059 - 한글 작업과 레이아웃 🔎 - sample/task-059, Secondary Actions: Select
+		403 옵션 Task 060 - 한글 작업과 레이아웃 🔎 - sample/task-060, Secondary Actions: Select
+		404 옵션 Task 061 - 한글 작업과 레이아웃 🔎 - sample/task-061, Secondary Actions: Select
+		405 옵션 Task 062 - 한글 작업과 레이아웃 🔎 - sample/task-062, Secondary Actions: Select
+		406 옵션 Task 063 - 한글 작업과 레이아웃 🔎 - sample/task-063, Secondary Actions: Select
+		407 옵션 Task 064 - 한글 작업과 레이아웃 🔎 - sample/task-064, Secondary Actions: Select
+		408 옵션 Task 065 - 한글 작업과 레이아웃 🔎 - sample/task-065, Secondary Actions: Select
+		409 옵션 Task 066 - 한글 작업과 레이아웃 🔎 - sample/task-066, Secondary Actions: Select
+		410 옵션 Task 067 - 한글 작업과 레이아웃 🔎 - sample/task-067, Secondary Actions: Select
+		411 옵션 Task 068 - 한글 작업과 레이아웃 🔎 - sample/task-068, Secondary Actions: Select
+		412 옵션 Task 069 - 한글 작업과 레이아웃 🔎 - sample/task-069, Secondary Actions: Select
+		413 옵션 Task 070 - 한글 작업과 레이아웃 🔎 - sample/task-070, Secondary Actions: Select
+		414 옵션 Task 071 - 한글 작업과 레이아웃 🔎 - sample/task-071, Secondary Actions: Select
+		415 옵션 Task 072 - 한글 작업과 레이아웃 🔎 - sample/task-072, Secondary Actions: Select
+		416 옵션 Task 073 - 한글 작업과 레이아웃 🔎 - sample/task-073, Secondary Actions: Select
+		417 옵션 Task 074 - 한글 작업과 레이아웃 🔎 - sample/task-074, Secondary Actions: Select
+		418 옵션 Task 075 - 한글 작업과 레이아웃 🔎 - sample/task-075, Secondary Actions: Select
+		419 옵션 Task 076 - 한글 작업과 레이아웃 🔎 - sample/task-076, Secondary Actions: Select
+		420 옵션 Task 077 - 한글 작업과 레이아웃 🔎 - sample/task-077, Secondary Actions: Select
+		421 옵션 Task 078 - 한글 작업과 레이아웃 🔎 - sample/task-078, Secondary Actions: Select
+		422 옵션 Task 079 - 한글 작업과 레이아웃 🔎 - sample/task-079, Secondary Actions: Select
+		423 옵션 Task 080 - 한글 작업과 레이아웃 🔎 - sample/task-080, Secondary Actions: Select
+		424 옵션 Task 081 - 한글 작업과 레이아웃 🔎 - sample/task-081, Secondary Actions: Select
+		425 옵션 Task 082 - 한글 작업과 레이아웃 🔎 - sample/task-082, Secondary Actions: Select
+		426 옵션 Task 083 - 한글 작업과 레이아웃 🔎 - sample/task-083, Secondary Actions: Select
+		427 옵션 Task 084 - 한글 작업과 레이아웃 🔎 - sample/task-084, Secondary Actions: Select
+		428 옵션 Task 085 - 한글 작업과 레이아웃 🔎 - sample/task-085, Secondary Actions: Select
+		429 옵션 Task 086 - 한글 작업과 레이아웃 🔎 - sample/task-086, Secondary Actions: Select
+		430 옵션 Task 087 - 한글 작업과 레이아웃 🔎 - sample/task-087, Secondary Actions: Select
+		431 옵션 Task 088 - 한글 작업과 레이아웃 🔎 - sample/task-088, Secondary Actions: Select
+		432 옵션 Task 089 - 한글 작업과 레이아웃 🔎 - sample/task-089, Secondary Actions: Select
+		433 옵션 Task 090 - 한글 작업과 레이아웃 🔎 - sample/task-090, Secondary Actions: Select
+		434 옵션 Task 091 - 한글 작업과 레이아웃 🔎 - sample/task-091, Secondary Actions: Select
+		435 옵션 Task 092 - 한글 작업과 레이아웃 🔎 - sample/task-092, Secondary Actions: Select
+		436 옵션 Task 093 - 한글 작업과 레이아웃 🔎 - sample/task-093, Secondary Actions: Select
+		437 옵션 Task 094 - 한글 작업과 레이아웃 🔎 - sample/task-094, Secondary Actions: Select
+		438 옵션 Task 095 - 한글 작업과 레이아웃 🔎 - sample/task-095, Secondary Actions: Select
+		439 옵션 Task 096 - 한글 작업과 레이아웃 🔎 - sample/task-096, Secondary Actions: Select
+		440 옵션 Task 097 - 한글 작업과 레이아웃 🔎 - sample/task-097, Secondary Actions: Select
+		441 옵션 Task 098 - 한글 작업과 레이아웃 🔎 - sample/task-098, Secondary Actions: Select
+		442 옵션 Task 099 - 한글 작업과 레이아웃 🔎 - sample/task-099, Secondary Actions: Select
+		443 옵션 키보드 단축키 도움말 - 단축키 · Keyboard shortcuts, Secondary Actions: Select
+		444 옵션 새 작업 - Ctrl+N, Secondary Actions: Select
+		445 옵션 파일 열기 - Ctrl+P · 현재 작업 폴더에서 파일 이름 찾기, Secondary Actions: Select
+		446 옵션 파일 탐색기 열기 - 현재 작업의 파일 트리와 편집기, Secondary Actions: Select
+		447 옵션 모든 파일 저장 - 열린 편집기의 저장하지 않은 파일, Secondary Actions: Select
+		448 옵션 저장소 열기 - 로컬 Git 저장소 추가, Secondary Actions: Select
+		449 옵션 새 터미널 - Ctrl+Shift+T, Secondary Actions: Select
+		450 옵션 설정 - Ctrl+,, Secondary Actions: Select
+		451 옵션 응답할 요청 찾기 - 응답이 필요한 터미널 열기, Secondary Actions: Select
+		452 옵션 현재 터미널 상태 - 출처와 확인 시간, Secondary Actions: Select
+		453 옵션 알림 - 응답할 요청과 최근 알림, Secondary Actions: Select
+		454 옵션 현재 터미널에 Ctrl+K 보내기 - 터미널 단축키 보내기, Secondary Actions: Select
+		455 옵션 현재 터미널에 Ctrl+P 보내기 - 터미널 단축키 보내기, Secondary Actions: Select
+		456 옵션 터미널에서 링크 열기 - 화면의 파일:줄 · 주소 (Ctrl+클릭과 같음), Secondary Actions: Select
+		457 옵션 에이전트 훅 설치 - 바뀔 파일 확인 후 pod hooks install, Secondary Actions: Select
+		458 옵션 패널 격자 정렬 - Ctrl+Shift+G, Secondary Actions: Select
+		459 옵션 새 비교 그룹 - 병렬 작업 비교, Secondary Actions: Select
+		460 옵션 승인 요청 열기 - 승인 대기, Secondary Actions: Select
+		461 옵션 에이전트 트리 열기 - 작업, 그룹과 상위 관계, Secondary Actions: Select
+		462 단추 닫기

@@ -1,0 +1,33 @@
+# cargo test -p pod-app -- layouts:: --nocapture (2026-11-10, headless GPUI, native_qa::Harness)
+test layout_mode::tests::every_preset_names_a_known_layout ... ok
+test layout_mode::tests::unknown_or_unbuilt_modes_fall_back_to_the_workbench ... ok
+test layouts::queue::tests::ages_variants_and_presets ... ok
+test layouts::queue::tests::model_puts_requests_first_merges_gates_and_counts_each_state_once ... ok
+test layouts::queue::tests::model_filter_dismissal_and_compact_sections ... ok
+[native-qa] queue-dpi | keys ctrl-shift-q | focus: workspace control [Root]
+[native-qa] queue-mission | keys ctrl-shift-q | focus: workspace control [Root]
+[native-qa] queue-keys | keys ctrl-shift-q | focus: workspace control [Root]
+test layouts::queue::tests::mission_variant_has_pills_activity_bar_and_section_jumps ... ok
+[native-qa] queue-keys | press tab | focus: workspace control [Root]
+[native-qa] queue-keys | press enter | focus: workspace control [Root]
+[native-qa] queue-keys | keys down | focus: workspace control [Root]
+[native-qa] queue-keys | keys enter | focus: terminal b2
+[native-qa] queue-dpi | keys ctrl-shift-q | focus: workspace control [Root]
+[native-qa] queue-dpi | keys ctrl-shift-q | focus: workspace control [Root]
+[native-qa] queue-dpi | keys ctrl-shift-q | focus: workspace control [Root]
+test layouts::queue::tests::korean_text_fits_at_100_to_175_percent ... ok
+[native-qa] queue-keys | type "y" | focus: terminal b2
+[native-qa] queue-keys | keys ctrl-shift-q | focus: workspace control [Root]
+[native-qa] queue-keys | keys end | focus: workspace control [Root]
+[native-qa] queue-keys | keys up | focus: workspace control [Root]
+[native-qa] queue-keys | keys enter | focus: terminal w1
+[native-qa] queue-switch | keys ctrl-shift-q | focus: workspace control [Root]
+[native-qa] queue-switch | keys down | focus: workspace control [Root]
+[native-qa] queue-keys | keys ctrl-shift-q | focus: workspace control [Root]
+[native-qa] queue-keys | keys home | focus: workspace control [Root]
+[native-qa] queue-keys | press tab | focus: workspace control [Root]
+test layouts::queue::tests::switching_layouts_live_keeps_panels_dock_and_queue_state ... ok
+[native-qa] queue-keys | press tab | focus: workspace control [Root]
+[native-qa] queue-keys | press enter | focus: workspace control [Root]
+test layouts::queue::tests::keyboard_decides_a_gate_inline_and_opens_terminals ... ok
+test result: ok. 11 passed; 0 failed; 0 ignored; 0 measured; 108 filtered out; finished in 1.17s

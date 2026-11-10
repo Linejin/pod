@@ -1,0 +1,8 @@
+﻿P3 editor QA 2026-11-09T11:20:21
+shots: editor-tree, editor-quickopen, editor-new-file, editor-close, editor-agent-edit, review-editor, review-editor-open (dark+light)
+cap: max concurrent fake servers=1 (cap 1; a suspended one may overlap for <=2 s while shutting down), running at capture=1, after close=0
+quit with unsaved files: window still open after WM_CLOSE = True
+restore: saved PodEditor info = {"panel":{"task":"sample/task-000","session":{"tabs":[{"path":"src/lib.rs","line":1,"col":1},{"path":"src/main.rs","line":5,"col":1}],"active":1}}}
+left running: pod-app=0 fake-lsp=0
+lsp scenes (earlier run, same code paths): editor-lsp, editor-hover, editor-completion captured with rust-analyzer on the generated fixture repo; rust-analyzer processes after the apps closed: 0
+visual regression: 28/28 pass, 0 pixels above tolerance 8 (visual/compare.json); 26 existing + dark/light editor

@@ -1,0 +1,15 @@
+UIA (System.Windows.Automation) on the release fixture app, dark theme, 2026-11-10.
+SelectionItem.IsSelected of every RadioButton (only True listed for settings; 40 radios, 10 groups):
+orch-settings SELECTED: 워커 기본 배치: 새 워크트리
+orch-settings SELECTED: 끝난 워커 자동 정리: 10분
+orch-settings SELECTED: 멈춤 알림: 20분
+orch-settings SELECTED: 중첩 깊이 한도: 3
+orch-settings SELECTED: 동시 워커(전체): 3개
+orch-settings SELECTED: 실행당 워커: 8개
+orch-settings SELECTED: CPU 한도: 70%
+orch-settings SELECTED: 최소 여유 메모리: 4G
+orch-settings SELECTED: 최소 여유 디스크: 20G
+orch-settings SELECTED: CPU 대기 최대: 30분
+orch-wake RadioButton 실행 목록: r1 · 로그인 버그 수정과 테스트 보강 · 진행 중 = True
+orch-wake RadioButton 실행 목록: r2 · 의존성 정리 · 끝남 = False
+Cleanup "보관 대상" is a CheckBox (Toggle) — see dark-orch-cleanup.tree.txt (확인란).

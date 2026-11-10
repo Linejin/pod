@@ -1,0 +1,3 @@
+# Editor demo fixture: LF in every checkout, so the visual baseline does
+# not depend on core.autocrlf (ui-editor-07).
+crates/pod-editor/fixtures/demo/** text eol=lf

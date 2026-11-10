@@ -1,0 +1,30 @@
+﻿  podd --lib default_shell_is_integrated with the brief's setup gave 1 passed, 0 failed. I didn't run any other tests.
+
+  Review of A's change (aae84a5):
+  - Looks right:
+    - The shared code moved into crates/podd/src/shell_integration.rs unchanged.
+    - pod-app now just re-exports it, so it should behave the same. I didn't build pod-app.
+    - The encoded script contains only plain base64 characters, so Windows quoting can't break it, and at about 2.2 KB
+      it is far under the command-line limit.
+    - Running the integration twice changes nothing. Restoring an archived task and orchestration workers also get the
+      prompt marks.
+  - Findings (none blocking):
+    a. The doc comment at protocol.rs:823 still describes the default shell as plain powershell -NoLogo.
+    b. A's updated agent_command_lines assertion compares the code's own expression with itself, so it proves little.
+       The new test does the real checks.
+    c. In podd, an explicit argv of powershell -NoLogo gets no prompt marks, while pod-app's custom bare shell does.
+       That matches the brief, but the coordinator may want them to match.
+    d. Default tabs from repo_config.rs (tab_argv) that run a command and then stay open get no prompt marks.
+    e. repo_config.rs has its own copy of the base64 encoding, which could now use the shared function.
+    f. Nit: the moved tests keep use core::prelude::v1::test;, which is odd but harmless.
+
+  Still open: building and testing pod-app and running the full podd test suite, both left out under the brief's build
+  rules. Also open: fixing the protocol.rs comment and deciding on findings 3 and 4.
+
+✻ Cogitated for 2m 13s · done 오전 9:36
+
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+❯
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+
+  ⏵⏵ auto mode on (shift+tab to cycle)

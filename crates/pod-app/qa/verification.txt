@@ -1,0 +1,57 @@
+D2 final checks, 2026-11-09; own target, sccache, 4 jobs, CPU gate before each cargo command.
+
+cargo check -p pod-app
+Exit: 0
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 3.08s
+
+cargo build --release
+Exit: 0
+    Finished `release` profile [optimized + debuginfo] target(s) in 13.28s
+
+cargo clippy -p pod-app -p pod-terminal-view --all-targets -- -D warnings
+Exit: 0
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 2.15s
+
+cargo test -p pod-app -p pod-terminal-view
+Exit: 0
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 2m 01s
+test result: ok. 35 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+test result: ok. 28 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+test result: ok. 0 passed; 0 failed; 1 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+cargo deny check
+Exit: 0
+Existing warning: unmatched license allowance ISC (deny.toml:22).
+advisories ok, bans ok, licenses ok, sources ok
+
+cargo test (full workspace)
+Exit: 101
+App 35, terminal-view 28 and pod-ui 9 unit tests passed.
+test slow_attach_client_is_dropped_and_can_reattach ... FAILED
+
+failures:
+
+---- slow_attach_client_is_dropped_and_can_reattach stdout ----
+
+thread 'slow_attach_client_is_dropped_and_can_reattach' (19404) panicked at crates\podd\tests\gaps.rs:59:9:
+timed out waiting for terminal.lagged
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    slow_attach_client_is_dropped_and_can_reattach
+
+test result: FAILED. 3 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 30.89s
+
+error: test failed, to rerun pass `-p podd --test gaps`
+
+Initial full run caught the old hook-implies-confidence assertion; corrected to test explicit high/low confidence. The rerun passed app tests before the podd integration failure. Final targeted tests passed after fixed-width sidebar slots and lifecycle confidence corrections.
+
+Coordinator-requested single rerun of the known timing-sensitive podd test:
+cargo test -p podd --test gaps slow_attach_client_is_dropped_and_can_reattach -- --exact
+Exit: 0
+test slow_attach_client_is_dropped_and_can_reattach ... ok
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 3 filtered out; finished in 36.82s
+Own target, sccache, 4 jobs; CPU gate passed at 41 percent with no other cargo process.
+Test teardown reported: stopping; killed and released 1 terminal(s).
+No podd edits; no further reruns. Original full-suite exit 101 remains recorded above.

@@ -1,0 +1,43 @@
+﻿{
+  "terminals": [
+    {
+      "id": "t1",
+      "name": "sample/app-rerun",
+      "argv": [
+        "codex",
+        "--no-daemon",
+        "-c",
+        "check_for_update_on_startup=false",
+        "-c",
+        "projects={'C:\\ai\\pod-e2e\\rerun-c9cf81\\worktrees\\sample\\app-rerun'={trust_level='trusted'}}"
+      ],
+      "cwd": "C:\\ai\\pod-e2e\\rerun-c9cf81\\worktrees\\sample\\app-rerun",
+      "state": "running",
+      "pid": 72504,
+      "holder_pid": 62488,
+      "cols": 117,
+      "rows": 38,
+      "created_ms": 1794185909024,
+      "killed": false,
+      "lost": false,
+      "attached": 1,
+      "conpty": "bundled:C:\\Users\\User\\dev\\workspaces\\ide\\e2e-reverify\\target\\release\\conpty.dll",
+      "status": {
+        "state": "done",
+        "source": "hook",
+        "confidence": 0.95,
+        "since": 1794186120306,
+        "turn": 4,
+        "agent": "codex",
+        "outcome": "completed",
+        "badge": "done",
+        "records": 0,
+        "running_children": 0,
+        "blocked_children": 0,
+        "hooks_accepted": 18,
+        "hooks_rejected": 0
+      }
+    }
+  ],
+  "retention_ms": 86400000
+}

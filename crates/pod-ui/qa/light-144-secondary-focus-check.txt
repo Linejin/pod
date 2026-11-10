@@ -1,0 +1,2 @@
+GPUI dispatch: modal initial focus=true, Tab trapped=true, Escape closed and restored opener=true
+Native Windows IME composition: not verified by this check

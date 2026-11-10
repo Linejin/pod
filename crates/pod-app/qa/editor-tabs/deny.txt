@@ -1,0 +1,3 @@
+cargo deny check (2026-11-09, branch SJin-Choi/editor-tabs)
+advisories ok, bans ok, licenses ok, sources ok
+(existing warning only: unmatched ISC license allowance)

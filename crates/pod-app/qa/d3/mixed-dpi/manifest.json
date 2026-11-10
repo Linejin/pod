@@ -1,0 +1,47 @@
+﻿[
+    {
+        "Image":  "0-144-dpi.png",
+        "DPI":  144,
+        "Primary":  false,
+        "Rect":  [
+                     2584,
+                     259,
+                     4120,
+                     1309
+                 ],
+        "LogicalSize":  [
+                            1024,
+                            700
+                        ]
+    },
+    {
+        "Image":  "1-96-dpi.png",
+        "DPI":  96,
+        "Primary":  true,
+        "Rect":  [
+                     24,
+                     24,
+                     1048,
+                     724
+                 ],
+        "LogicalSize":  [
+                            1024,
+                            700
+                        ]
+    },
+    {
+        "Image":  "2-144-dpi.png",
+        "DPI":  144,
+        "Primary":  false,
+        "Rect":  [
+                     2584,
+                     259,
+                     4120,
+                     1309
+                 ],
+        "LogicalSize":  [
+                            1024,
+                            700
+                        ]
+    }
+]

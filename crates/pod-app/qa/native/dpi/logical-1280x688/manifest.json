@@ -1,0 +1,82 @@
+﻿[
+    {
+        "Image":  "dark-workspace.png",
+        "DPI":  144,
+        "Rect":  [
+                     2584,
+                     259,
+                     4504,
+                     1291
+                 ],
+        "Scene":  "workspace",
+        "Theme":  "dark",
+        "Fixture":  true,
+        "Font":  "Malgun Gothic",
+        "TerminalFont":  "Cascadia Mono",
+        "HighContrast":  false
+    },
+    {
+        "Image":  "dark-new-task.png",
+        "DPI":  144,
+        "Rect":  [
+                     2584,
+                     259,
+                     4504,
+                     1291
+                 ],
+        "Scene":  "new-task",
+        "Theme":  "dark",
+        "Fixture":  true,
+        "Font":  "Malgun Gothic",
+        "TerminalFont":  "Cascadia Mono",
+        "HighContrast":  false
+    },
+    {
+        "Image":  "dark-palette.png",
+        "DPI":  144,
+        "Rect":  [
+                     2584,
+                     259,
+                     4504,
+                     1291
+                 ],
+        "Scene":  "palette",
+        "Theme":  "dark",
+        "Fixture":  true,
+        "Font":  "Malgun Gothic",
+        "TerminalFont":  "Cascadia Mono",
+        "HighContrast":  false
+    },
+    {
+        "Image":  "dark-settings.png",
+        "DPI":  144,
+        "Rect":  [
+                     2584,
+                     259,
+                     4504,
+                     1291
+                 ],
+        "Scene":  "settings",
+        "Theme":  "dark",
+        "Fixture":  true,
+        "Font":  "Malgun Gothic",
+        "TerminalFont":  "Cascadia Mono",
+        "HighContrast":  false
+    },
+    {
+        "Image":  "dark-notifications.png",
+        "DPI":  144,
+        "Rect":  [
+                     2584,
+                     259,
+                     4504,
+                     1291
+                 ],
+        "Scene":  "notifications",
+        "Theme":  "dark",
+        "Fixture":  true,
+        "Font":  "Malgun Gothic",
+        "TerminalFont":  "Cascadia Mono",
+        "HighContrast":  false
+    }
+]

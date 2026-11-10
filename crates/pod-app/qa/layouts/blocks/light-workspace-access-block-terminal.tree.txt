@@ -1,0 +1,48 @@
+﻿App=pod-app (pid 22336)
+Window: "", App: pod-app.
+
+0 영역
+	1 title bar TitleBar
+		2 menu bar 시스템 메뉴 모음
+			3 menu item 시스템
+		4 button 최소화
+		5 button 최대화
+		6 button 닫기
+	7 단추 명령·터미널 검색
+	8 단추 설정
+	9 탐색 작업
+		10 LIST 작업, 100개
+			11 목록 항목 Task 000 - 한글 작업과 레이아웃 🔎, 승인 대기 1개, Secondary Actions: Select
+			12 목록 항목 Task 001 - 한글 작업과 레이아웃 🔎, Secondary Actions: Select
+			13 목록 항목 Task 002 - 한글 작업과 레이아웃 🔎, Secondary Actions: Select
+			14 목록 항목 Task 003 - 한글 작업과 레이아웃 🔎, Secondary Actions: Select
+			15 목록 항목 Task 004 - 한글 작업과 레이아웃 🔎, Secondary Actions: Select
+			16 목록 항목 Task 005 - 한글 작업과 레이아웃 🔎, Secondary Actions: Select
+			17 목록 항목 Task 006 - 한글 작업과 레이아웃 🔎, Secondary Actions: Select
+			18 목록 항목 Task 007 - 한글 작업과 레이아웃 🔎, Secondary Actions: Select
+			19 목록 항목 Task 008 - 한글 작업과 레이아웃 🔎, Secondary Actions: Select
+			20 목록 항목 Task 009 - 한글 작업과 레이아웃 🔎, Secondary Actions: Select
+			21 목록 항목 Task 010 - 한글 작업과 레이아웃 🔎, Secondary Actions: Select
+			22 목록 항목 Task 011 - 한글 작업과 레이아웃 🔎, Secondary Actions: Select
+		23 단추 모든 에이전트 3, 선택됨
+		24 단추 셸 · Worker 0
+		25 단추 셸 · Worker 1
+		26 단추 셸 · Worker 2
+	27 단추 원본 터미널 보기
+	28 LIST 블록 피드, 블록 4개
+		29 목록 항목 셸 · Worker 0, cargo test -p pod-ui wide_glyph, 3.1초 · 종료 0, 접힘, Secondary Actions: Select
+			30 단추 복사
+		31 목록 항목 셸 · Worker 0, cargo build -p pod-ui, 실행 중, 펼쳐짐, Secondary Actions: Select
+			32 단추 복사
+		33 목록 항목 셸 · Worker 1, cargo clippy -p pod-ui -- -D warnings, 승인 대기, 승인 요청: cargo clippy 실행 승인이 필요합니다., 펼쳐짐, Secondary Actions: Select
+			34 단추 복사
+			35 단추 이번만 허용 (Y)
+			36 단추 항상 허용 (A)
+			37 단추 거부 (N)
+		38 목록 항목 셸 · Worker 2, git status --short, 0.4초 · 종료 0, 펼쳐짐, Secondary Actions: Select
+			39 단추 복사
+	40 그룹 입력: 셸 · Worker 0 · Tab 대상 변경 · Esc 블록으로 · F6 영역 이동
+		41 편집 셸 · Worker 0에게 입력 · Tab으로 대상 변경, Secondary Actions: SetValue
+	42 LIST 최근 알림
+	43 단추 상태
+	44 단추 알림 0

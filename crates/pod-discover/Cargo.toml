@@ -1,0 +1,26 @@
+[package]
+name = "pod-discover"
+version = "0.1.0"
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+publish = false
+description = "Finds the coding-agent sessions on this PC (Claude Code, Codex CLI): past sessions from their local stores (read-only, bounded) and running agent processes"
+
+[dependencies]
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+schemars = "1"
+
+[target.'cfg(windows)'.dependencies]
+windows-sys = { version = "0.61", features = [
+    "Wdk_System_Threading",
+    "Win32_Foundation",
+    "Win32_System_Diagnostics_Debug",
+    "Win32_System_Diagnostics_ToolHelp",
+    "Win32_System_Kernel",
+    "Win32_System_Threading",
+] }
+
+[lints]
+workspace = true

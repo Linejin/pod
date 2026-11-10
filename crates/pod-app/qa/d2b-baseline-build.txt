@@ -1,0 +1,4 @@
+   Compiling pod-terminal-view v0.0.1 (C:\Users\User\dev\workspaces\ide\d2b-polish\crates\pod-terminal-view)
+   Compiling pod-ui v0.1.0 (C:\Users\User\dev\workspaces\ide\d2b-polish\crates\pod-ui)
+   Compiling pod-app v0.1.0 (C:\Users\User\dev\workspaces\ide\d2b-polish\crates\pod-app)
+    Finished `release` profile [optimized + debuginfo] target(s) in 18.50s

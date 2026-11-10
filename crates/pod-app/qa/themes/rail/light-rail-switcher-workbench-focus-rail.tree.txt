@@ -1,0 +1,52 @@
+﻿App=pod-app (pid 66636)
+Window: "", App: pod-app.
+
+0 영역
+	1 title bar TitleBar
+		2 menu bar 시스템 메뉴 모음
+			3 menu item 시스템
+		4 button 최소화
+		5 button 최대화
+		6 button 닫기
+	7 단추 명령·터미널 검색
+	8 단추 설정
+	9 도구 모음 레일 탐색
+		10 단추 작업 공간
+		11 단추 터미널
+		12 단추 파일
+		13 단추 에이전트
+		14 단추 응답 대기: 다른 작업 82개
+	15 Tab 작업 탭
+		16 탭 항목 Task 000 - 한글 작업과 레이아웃 🔎 — 승인 필요 1, Secondary Actions: Select
+		17 탭 항목 Task 001 - 한글 작업과 레이아웃 🔎 — 승인 필요 1, Secondary Actions: Select
+	18 단추 새 작업
+	19 단추 숨은 작업 1개 — 작업 전환
+	20 단추 작업 전환
+	21 탭 항목 … Worker 0, Secondary Actions: Select
+	22 단추 패널 메뉴
+	23 편집 터미널 입력 및 출력
+	24 탭 항목 … Worker 1, Secondary Actions: Select
+	25 단추 패널 메뉴
+	26 편집 터미널 입력 및 출력
+	27 탭 항목 … Worker 2, Secondary Actions: Select
+	28 단추 패널 메뉴
+	29 편집 터미널 입력 및 출력
+	30 대화 상자 모든 작업
+		31 단추 닫기
+		32 LIST 모든 작업
+			33 목록 항목 Task 000 - 한글 작업과 레이아웃 🔎 — 승인 필요 1 (현재 작업), Secondary Actions: Select
+			34 목록 항목 Task 001 - 한글 작업과 레이아웃 🔎 — 승인 필요 1, Secondary Actions: Select
+			35 목록 항목 Task 002 - 한글 작업과 레이아웃 🔎, Secondary Actions: Select
+			36 목록 항목 Task 003 - 한글 작업과 레이아웃 🔎 — 실패 1, Secondary Actions: Select
+			37 목록 항목 Task 004 - 한글 작업과 레이아웃 🔎 — 실패 1, Secondary Actions: Select
+			38 목록 항목 Task 005 - 한글 작업과 레이아웃 🔎 — 승인 필요 1 · 실패 1, Secondary Actions: Select
+			39 목록 항목 Task 006 - 한글 작업과 레이아웃 🔎 — 승인 필요 1, Secondary Actions: Select
+			40 목록 항목 Task 007 - 한글 작업과 레이아웃 🔎 — 승인 필요 1, Secondary Actions: Select
+			41 목록 항목 Task 008 - 한글 작업과 레이아웃 🔎, Secondary Actions: Select
+			42 목록 항목 Task 009 - 한글 작업과 레이아웃 🔎 — 실패 1, Secondary Actions: Select
+			43 목록 항목 Task 010 - 한글 작업과 레이아웃 🔎 — 실패 1, Secondary Actions: Select
+			44 목록 항목 Task 011 - 한글 작업과 레이아웃 🔎 — 승인 필요 1 · 실패 1, Secondary Actions: Select
+			45 목록 항목 Task 012 - 한글 작업과 레이아웃 🔎 — 승인 필요 1, Secondary Actions: Select
+	46 LIST 최근 알림
+	47 단추 상태
+	48 단추 알림 0

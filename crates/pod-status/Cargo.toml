@@ -1,0 +1,19 @@
+[package]
+name = "pod-status"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+publish = false
+description = "Pod agent status engine: OSC 7501 parser, unified state machine, Claude/Codex adapters, hook mapping and installer"
+
+[dependencies]
+serde = { version = "1", features = ["derive"] }
+serde_json = { version = "1", features = ["preserve_order"] }
+base64 = "0.22"
+
+[dev-dependencies]
+tempfile = "3"
+
+[lints]
+workspace = true

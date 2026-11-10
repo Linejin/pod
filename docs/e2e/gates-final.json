@@ -1,0 +1,38 @@
+﻿{
+  "gates": [
+    {
+      "id": "g1",
+      "title": "E2E continue",
+      "message": "Continue the sample verification?",
+      "task": "sample/cli-fix",
+      "terminal": "t1",
+      "state": "approved",
+      "created_ms": 1794177396188,
+      "resolved_ms": 1794177475850,
+      "expires_ms": 1794177996188
+    },
+    {
+      "id": "g2",
+      "title": "E2E expiry",
+      "message": "Expiry fixture",
+      "task": "sample/app-fix",
+      "terminal": "t2",
+      "state": "expired",
+      "created_ms": 1794177599860,
+      "resolved_ms": 1794177601876,
+      "note": "expired after 2 s without a decision",
+      "expires_ms": 1794177601860
+    },
+    {
+      "id": "g3",
+      "title": "E2E final approval",
+      "message": "Continue after expiry?",
+      "task": "sample/app-fix",
+      "terminal": "t2",
+      "state": "approved",
+      "created_ms": 1794177601974,
+      "resolved_ms": 1794177629779,
+      "expires_ms": 1794178201974
+    }
+  ]
+}

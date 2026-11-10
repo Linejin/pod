@@ -1,0 +1,11 @@
+﻿{
+  "version": "0.2.0",
+  "protocol": 8,
+  "pid": 54220,
+  "pipe": "\\\\.\\pipe\\pod-e2e-rerun-c9cf81",
+  "started_ms": 1794186205079,
+  "uptime_ms": 3397,
+  "terminals": 4,
+  "running": 4,
+  "state_dir": "C:\\Users\\User\\AppData\\Local\\pod\\state\\pod-e2e-rerun-c9cf81"
+}

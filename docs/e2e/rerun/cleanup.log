@@ -1,0 +1,37 @@
+{
+  "id": "sample/app-rerun",
+  "terminals": [
+    "t1"
+  ],
+  "worktree_removed": true,
+  "branch_deleted": true
+}
+{
+  "id": "sample/duel-codex-1",
+  "terminals": [
+    "t2"
+  ],
+  "worktree_removed": true,
+  "branch_deleted": true
+}
+{
+  "id": "t4"
+}
+{
+  "id": "sample/duel"
+}
+{
+  "name": "sample"
+}
+{
+  "terminals": [],
+  "retention_ms": 86400000
+}
+{
+  "stopping": true,
+  "killed": 0,
+  "detached": 0
+}
+worktree C:/ai/pod-e2e/rerun-c9cf81/sample
+HEAD 26738d4247000f2aea7679a87277a6b30985a2f7
+branch refs/heads/main

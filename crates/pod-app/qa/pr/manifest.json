@@ -1,0 +1,226 @@
+﻿[
+    {
+        "Image":  "dark-pr-no-remote.png",
+        "DPI":  144,
+        "Rect":  [
+                     2584,
+                     259,
+                     4484,
+                     1409
+                 ],
+        "Scene":  "pr-no-remote",
+        "Theme":  "dark",
+        "Fixture":  true,
+        "Font":  "Malgun Gothic",
+        "TerminalFont":  "Cascadia Mono",
+        "HighContrast":  false
+    },
+    {
+        "Image":  "dark-pr-ready.png",
+        "DPI":  144,
+        "Rect":  [
+                     2584,
+                     259,
+                     4484,
+                     1409
+                 ],
+        "Scene":  "pr-ready",
+        "Theme":  "dark",
+        "Fixture":  true,
+        "Font":  "Malgun Gothic",
+        "TerminalFont":  "Cascadia Mono",
+        "HighContrast":  false
+    },
+    {
+        "Image":  "dark-pr-form.png",
+        "DPI":  144,
+        "Rect":  [
+                     2584,
+                     259,
+                     4484,
+                     1409
+                 ],
+        "Scene":  "pr-form",
+        "Theme":  "dark",
+        "Fixture":  true,
+        "Font":  "Malgun Gothic",
+        "TerminalFont":  "Cascadia Mono",
+        "HighContrast":  false
+    },
+    {
+        "Image":  "dark-pr-pending.png",
+        "DPI":  144,
+        "Rect":  [
+                     2584,
+                     259,
+                     4484,
+                     1409
+                 ],
+        "Scene":  "pr-pending",
+        "Theme":  "dark",
+        "Fixture":  true,
+        "Font":  "Malgun Gothic",
+        "TerminalFont":  "Cascadia Mono",
+        "HighContrast":  false
+    },
+    {
+        "Image":  "dark-pr-failed.png",
+        "DPI":  144,
+        "Rect":  [
+                     2584,
+                     259,
+                     4484,
+                     1409
+                 ],
+        "Scene":  "pr-failed",
+        "Theme":  "dark",
+        "Fixture":  true,
+        "Font":  "Malgun Gothic",
+        "TerminalFont":  "Cascadia Mono",
+        "HighContrast":  false
+    },
+    {
+        "Image":  "dark-pr-passed.png",
+        "DPI":  144,
+        "Rect":  [
+                     2584,
+                     259,
+                     4484,
+                     1409
+                 ],
+        "Scene":  "pr-passed",
+        "Theme":  "dark",
+        "Fixture":  true,
+        "Font":  "Malgun Gothic",
+        "TerminalFont":  "Cascadia Mono",
+        "HighContrast":  false
+    },
+    {
+        "Image":  "dark-pr-merged.png",
+        "DPI":  144,
+        "Rect":  [
+                     2584,
+                     259,
+                     4484,
+                     1409
+                 ],
+        "Scene":  "pr-merged",
+        "Theme":  "dark",
+        "Fixture":  true,
+        "Font":  "Malgun Gothic",
+        "TerminalFont":  "Cascadia Mono",
+        "HighContrast":  false
+    },
+    {
+        "Image":  "light-pr-no-remote.png",
+        "DPI":  144,
+        "Rect":  [
+                     2584,
+                     259,
+                     4484,
+                     1409
+                 ],
+        "Scene":  "pr-no-remote",
+        "Theme":  "light",
+        "Fixture":  true,
+        "Font":  "Malgun Gothic",
+        "TerminalFont":  "Cascadia Mono",
+        "HighContrast":  false
+    },
+    {
+        "Image":  "light-pr-ready.png",
+        "DPI":  144,
+        "Rect":  [
+                     2584,
+                     259,
+                     4484,
+                     1409
+                 ],
+        "Scene":  "pr-ready",
+        "Theme":  "light",
+        "Fixture":  true,
+        "Font":  "Malgun Gothic",
+        "TerminalFont":  "Cascadia Mono",
+        "HighContrast":  false
+    },
+    {
+        "Image":  "light-pr-form.png",
+        "DPI":  144,
+        "Rect":  [
+                     2584,
+                     259,
+                     4484,
+                     1409
+                 ],
+        "Scene":  "pr-form",
+        "Theme":  "light",
+        "Fixture":  true,
+        "Font":  "Malgun Gothic",
+        "TerminalFont":  "Cascadia Mono",
+        "HighContrast":  false
+    },
+    {
+        "Image":  "light-pr-pending.png",
+        "DPI":  144,
+        "Rect":  [
+                     2584,
+                     259,
+                     4484,
+                     1409
+                 ],
+        "Scene":  "pr-pending",
+        "Theme":  "light",
+        "Fixture":  true,
+        "Font":  "Malgun Gothic",
+        "TerminalFont":  "Cascadia Mono",
+        "HighContrast":  false
+    },
+    {
+        "Image":  "light-pr-failed.png",
+        "DPI":  144,
+        "Rect":  [
+                     2584,
+                     259,
+                     4484,
+                     1409
+                 ],
+        "Scene":  "pr-failed",
+        "Theme":  "light",
+        "Fixture":  true,
+        "Font":  "Malgun Gothic",
+        "TerminalFont":  "Cascadia Mono",
+        "HighContrast":  false
+    },
+    {
+        "Image":  "light-pr-passed.png",
+        "DPI":  144,
+        "Rect":  [
+                     2584,
+                     259,
+                     4484,
+                     1409
+                 ],
+        "Scene":  "pr-passed",
+        "Theme":  "light",
+        "Fixture":  true,
+        "Font":  "Malgun Gothic",
+        "TerminalFont":  "Cascadia Mono",
+        "HighContrast":  false
+    },
+    {
+        "Image":  "light-pr-merged.png",
+        "DPI":  144,
+        "Rect":  [
+                     2584,
+                     259,
+                     4484,
+                     1409
+                 ],
+        "Scene":  "pr-merged",
+        "Theme":  "light",
+        "Fixture":  true,
+        "Font":  "Malgun Gothic",
+        "TerminalFont":  "Cascadia Mono",
+        "HighContrast":  false
+    }
+]

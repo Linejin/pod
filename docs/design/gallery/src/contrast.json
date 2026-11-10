@@ -1,0 +1,7742 @@
+[
+ {
+  "sample": "dense",
+  "theme": "dark",
+  "fg": "text",
+  "bg": "app",
+  "ratio": 13.3,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "dense",
+  "theme": "dark",
+  "fg": "text",
+  "bg": "sidebar",
+  "ratio": 12.81,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "dense",
+  "theme": "dark",
+  "fg": "text",
+  "bg": "panel",
+  "ratio": 12.42,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "dense",
+  "theme": "dark",
+  "fg": "text",
+  "bg": "selected",
+  "ratio": 9.29,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "dense",
+  "theme": "dark",
+  "fg": "text",
+  "bg": "hover",
+  "ratio": 11.21,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "dense",
+  "theme": "dark",
+  "fg": "text2",
+  "bg": "app",
+  "ratio": 8.18,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "dense",
+  "theme": "dark",
+  "fg": "text2",
+  "bg": "sidebar",
+  "ratio": 7.88,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "dense",
+  "theme": "dark",
+  "fg": "text2",
+  "bg": "panel",
+  "ratio": 7.65,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "dense",
+  "theme": "dark",
+  "fg": "text2",
+  "bg": "selected",
+  "ratio": 5.72,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "dense",
+  "theme": "dark",
+  "fg": "text2",
+  "bg": "hover",
+  "ratio": 6.9,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "dense",
+  "theme": "dark",
+  "fg": "muted",
+  "bg": "app",
+  "ratio": 7.03,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "dense",
+  "theme": "dark",
+  "fg": "muted",
+  "bg": "sidebar",
+  "ratio": 6.77,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "dense",
+  "theme": "dark",
+  "fg": "muted",
+  "bg": "panel",
+  "ratio": 6.57,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "dense",
+  "theme": "dark",
+  "fg": "muted",
+  "bg": "selected",
+  "ratio": 4.91,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "dense",
+  "theme": "dark",
+  "fg": "muted",
+  "bg": "hover",
+  "ratio": 5.93,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "dense",
+  "theme": "dark",
+  "fg": "working",
+  "bg": "app",
+  "ratio": 7.03,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "dense",
+  "theme": "dark",
+  "fg": "working",
+  "bg": "sidebar",
+  "ratio": 6.77,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "dense",
+  "theme": "dark",
+  "fg": "working",
+  "bg": "panel",
+  "ratio": 6.57,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "dense",
+  "theme": "dark",
+  "fg": "working",
+  "bg": "selected",
+  "ratio": 4.91,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "dense",
+  "theme": "dark",
+  "fg": "working",
+  "bg": "hover",
+  "ratio": 5.93,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "dense",
+  "theme": "dark",
+  "fg": "attention",
+  "bg": "app",
+  "ratio": 9.77,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "dense",
+  "theme": "dark",
+  "fg": "attention",
+  "bg": "sidebar",
+  "ratio": 9.41,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "dense",
+  "theme": "dark",
+  "fg": "attention",
+  "bg": "panel",
+  "ratio": 9.13,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "dense",
+  "theme": "dark",
+  "fg": "attention",
+  "bg": "selected",
+  "ratio": 6.83,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "dense",
+  "theme": "dark",
+  "fg": "attention",
+  "bg": "hover",
+  "ratio": 8.24,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "dense",
+  "theme": "dark",
+  "fg": "done",
+  "bg": "app",
+  "ratio": 7.03,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "dense",
+  "theme": "dark",
+  "fg": "done",
+  "bg": "sidebar",
+  "ratio": 6.77,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "dense",
+  "theme": "dark",
+  "fg": "done",
+  "bg": "panel",
+  "ratio": 6.57,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "dense",
+  "theme": "dark",
+  "fg": "done",
+  "bg": "selected",
+  "ratio": 4.91,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "dense",
+  "theme": "dark",
+  "fg": "done",
+  "bg": "hover",
+  "ratio": 5.93,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "dense",
+  "theme": "dark",
+  "fg": "failed",
+  "bg": "app",
+  "ratio": 7.72,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "dense",
+  "theme": "dark",
+  "fg": "failed",
+  "bg": "sidebar",
+  "ratio": 7.43,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "dense",
+  "theme": "dark",
+  "fg": "failed",
+  "bg": "panel",
+  "ratio": 7.21,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "dense",
+  "theme": "dark",
+  "fg": "failed",
+  "bg": "selected",
+  "ratio": 5.39,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "dense",
+  "theme": "dark",
+  "fg": "failed",
+  "bg": "hover",
+  "ratio": 6.51,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "dense",
+  "theme": "dark",
+  "fg": "accent_fg",
+  "bg": "app",
+  "ratio": 8.43,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "dense",
+  "theme": "dark",
+  "fg": "accent_fg",
+  "bg": "sidebar",
+  "ratio": 8.12,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "dense",
+  "theme": "dark",
+  "fg": "accent_fg",
+  "bg": "panel",
+  "ratio": 7.88,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "dense",
+  "theme": "dark",
+  "fg": "accent_fg",
+  "bg": "selected",
+  "ratio": 5.89,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "dense",
+  "theme": "dark",
+  "fg": "accent_fg",
+  "bg": "hover",
+  "ratio": 7.11,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "dense",
+  "theme": "dark",
+  "fg": "term_fg",
+  "bg": "term_bg",
+  "ratio": 12.3,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "dense",
+  "theme": "dark",
+  "fg": "focus",
+  "bg": "panel",
+  "ratio": 6.35,
+  "min": 3,
+  "ok": true
+ },
+ {
+  "sample": "dense",
+  "theme": "dark",
+  "fg": "focus",
+  "bg": "app",
+  "ratio": 6.8,
+  "min": 3,
+  "ok": true
+ },
+ {
+  "sample": "dense",
+  "theme": "light",
+  "fg": "text",
+  "bg": "app",
+  "ratio": 15.15,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "dense",
+  "theme": "light",
+  "fg": "text",
+  "bg": "sidebar",
+  "ratio": 14.5,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "dense",
+  "theme": "light",
+  "fg": "text",
+  "bg": "panel",
+  "ratio": 16.5,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "dense",
+  "theme": "light",
+  "fg": "text",
+  "bg": "selected",
+  "ratio": 13.04,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "dense",
+  "theme": "light",
+  "fg": "text",
+  "bg": "hover",
+  "ratio": 13.5,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "dense",
+  "theme": "light",
+  "fg": "text2",
+  "bg": "app",
+  "ratio": 7.4,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "dense",
+  "theme": "light",
+  "fg": "text2",
+  "bg": "sidebar",
+  "ratio": 7.09,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "dense",
+  "theme": "light",
+  "fg": "text2",
+  "bg": "panel",
+  "ratio": 8.06,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "dense",
+  "theme": "light",
+  "fg": "text2",
+  "bg": "selected",
+  "ratio": 6.37,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "dense",
+  "theme": "light",
+  "fg": "text2",
+  "bg": "hover",
+  "ratio": 6.6,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "dense",
+  "theme": "light",
+  "fg": "muted",
+  "bg": "app",
+  "ratio": 5.62,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "dense",
+  "theme": "light",
+  "fg": "muted",
+  "bg": "sidebar",
+  "ratio": 5.38,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "dense",
+  "theme": "light",
+  "fg": "muted",
+  "bg": "panel",
+  "ratio": 6.12,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "dense",
+  "theme": "light",
+  "fg": "muted",
+  "bg": "selected",
+  "ratio": 4.84,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "dense",
+  "theme": "light",
+  "fg": "muted",
+  "bg": "hover",
+  "ratio": 5.01,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "dense",
+  "theme": "light",
+  "fg": "working",
+  "bg": "app",
+  "ratio": 5.62,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "dense",
+  "theme": "light",
+  "fg": "working",
+  "bg": "sidebar",
+  "ratio": 5.38,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "dense",
+  "theme": "light",
+  "fg": "working",
+  "bg": "panel",
+  "ratio": 6.12,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "dense",
+  "theme": "light",
+  "fg": "working",
+  "bg": "selected",
+  "ratio": 4.84,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "dense",
+  "theme": "light",
+  "fg": "working",
+  "bg": "hover",
+  "ratio": 5.01,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "dense",
+  "theme": "light",
+  "fg": "attention",
+  "bg": "app",
+  "ratio": 5.31,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "dense",
+  "theme": "light",
+  "fg": "attention",
+  "bg": "sidebar",
+  "ratio": 5.08,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "dense",
+  "theme": "light",
+  "fg": "attention",
+  "bg": "panel",
+  "ratio": 5.78,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "dense",
+  "theme": "light",
+  "fg": "attention",
+  "bg": "selected",
+  "ratio": 4.57,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "dense",
+  "theme": "light",
+  "fg": "attention",
+  "bg": "hover",
+  "ratio": 4.73,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "dense",
+  "theme": "light",
+  "fg": "done",
+  "bg": "app",
+  "ratio": 5.62,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "dense",
+  "theme": "light",
+  "fg": "done",
+  "bg": "sidebar",
+  "ratio": 5.38,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "dense",
+  "theme": "light",
+  "fg": "done",
+  "bg": "panel",
+  "ratio": 6.12,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "dense",
+  "theme": "light",
+  "fg": "done",
+  "bg": "selected",
+  "ratio": 4.84,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "dense",
+  "theme": "light",
+  "fg": "done",
+  "bg": "hover",
+  "ratio": 5.01,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "dense",
+  "theme": "light",
+  "fg": "failed",
+  "bg": "app",
+  "ratio": 5.94,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "dense",
+  "theme": "light",
+  "fg": "failed",
+  "bg": "sidebar",
+  "ratio": 5.68,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "dense",
+  "theme": "light",
+  "fg": "failed",
+  "bg": "panel",
+  "ratio": 6.47,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "dense",
+  "theme": "light",
+  "fg": "failed",
+  "bg": "selected",
+  "ratio": 5.11,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "dense",
+  "theme": "light",
+  "fg": "failed",
+  "bg": "hover",
+  "ratio": 5.29,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "dense",
+  "theme": "light",
+  "fg": "accent_fg",
+  "bg": "app",
+  "ratio": 5.92,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "dense",
+  "theme": "light",
+  "fg": "accent_fg",
+  "bg": "sidebar",
+  "ratio": 5.67,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "dense",
+  "theme": "light",
+  "fg": "accent_fg",
+  "bg": "panel",
+  "ratio": 6.45,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "dense",
+  "theme": "light",
+  "fg": "accent_fg",
+  "bg": "selected",
+  "ratio": 5.1,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "dense",
+  "theme": "light",
+  "fg": "accent_fg",
+  "bg": "hover",
+  "ratio": 5.27,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "dense",
+  "theme": "light",
+  "fg": "term_fg",
+  "bg": "term_bg",
+  "ratio": 15.37,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "dense",
+  "theme": "light",
+  "fg": "focus",
+  "bg": "panel",
+  "ratio": 4.94,
+  "min": 3,
+  "ok": true
+ },
+ {
+  "sample": "dense",
+  "theme": "light",
+  "fg": "focus",
+  "bg": "app",
+  "ratio": 4.54,
+  "min": 3,
+  "ok": true
+ },
+ {
+  "sample": "islands",
+  "theme": "dark",
+  "fg": "text",
+  "bg": "app",
+  "ratio": 15.84,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "islands",
+  "theme": "dark",
+  "fg": "text",
+  "bg": "sidebar",
+  "ratio": 14.48,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "islands",
+  "theme": "dark",
+  "fg": "text",
+  "bg": "panel",
+  "ratio": 14.19,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "islands",
+  "theme": "dark",
+  "fg": "text",
+  "bg": "selected",
+  "ratio": 11.09,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "islands",
+  "theme": "dark",
+  "fg": "text",
+  "bg": "hover",
+  "ratio": 12.82,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "islands",
+  "theme": "dark",
+  "fg": "text2",
+  "bg": "app",
+  "ratio": 9.24,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "islands",
+  "theme": "dark",
+  "fg": "text2",
+  "bg": "sidebar",
+  "ratio": 8.44,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "islands",
+  "theme": "dark",
+  "fg": "text2",
+  "bg": "panel",
+  "ratio": 8.27,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "islands",
+  "theme": "dark",
+  "fg": "text2",
+  "bg": "selected",
+  "ratio": 6.47,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "islands",
+  "theme": "dark",
+  "fg": "text2",
+  "bg": "hover",
+  "ratio": 7.48,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "islands",
+  "theme": "dark",
+  "fg": "muted",
+  "bg": "app",
+  "ratio": 7.06,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "islands",
+  "theme": "dark",
+  "fg": "muted",
+  "bg": "sidebar",
+  "ratio": 6.45,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "islands",
+  "theme": "dark",
+  "fg": "muted",
+  "bg": "panel",
+  "ratio": 6.32,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "islands",
+  "theme": "dark",
+  "fg": "muted",
+  "bg": "selected",
+  "ratio": 4.94,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "islands",
+  "theme": "dark",
+  "fg": "muted",
+  "bg": "hover",
+  "ratio": 5.71,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "islands",
+  "theme": "dark",
+  "fg": "working",
+  "bg": "app",
+  "ratio": 8.43,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "islands",
+  "theme": "dark",
+  "fg": "working",
+  "bg": "sidebar",
+  "ratio": 7.7,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "islands",
+  "theme": "dark",
+  "fg": "working",
+  "bg": "panel",
+  "ratio": 7.55,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "islands",
+  "theme": "dark",
+  "fg": "working",
+  "bg": "selected",
+  "ratio": 5.9,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "islands",
+  "theme": "dark",
+  "fg": "working",
+  "bg": "hover",
+  "ratio": 6.82,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "islands",
+  "theme": "dark",
+  "fg": "attention",
+  "bg": "app",
+  "ratio": 10.3,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "islands",
+  "theme": "dark",
+  "fg": "attention",
+  "bg": "sidebar",
+  "ratio": 9.41,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "islands",
+  "theme": "dark",
+  "fg": "attention",
+  "bg": "panel",
+  "ratio": 9.23,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "islands",
+  "theme": "dark",
+  "fg": "attention",
+  "bg": "selected",
+  "ratio": 7.21,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "islands",
+  "theme": "dark",
+  "fg": "attention",
+  "bg": "hover",
+  "ratio": 8.33,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "islands",
+  "theme": "dark",
+  "fg": "done",
+  "bg": "app",
+  "ratio": 8.67,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "islands",
+  "theme": "dark",
+  "fg": "done",
+  "bg": "sidebar",
+  "ratio": 7.92,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "islands",
+  "theme": "dark",
+  "fg": "done",
+  "bg": "panel",
+  "ratio": 7.77,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "islands",
+  "theme": "dark",
+  "fg": "done",
+  "bg": "selected",
+  "ratio": 6.07,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "islands",
+  "theme": "dark",
+  "fg": "done",
+  "bg": "hover",
+  "ratio": 7.02,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "islands",
+  "theme": "dark",
+  "fg": "failed",
+  "bg": "app",
+  "ratio": 8.13,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "islands",
+  "theme": "dark",
+  "fg": "failed",
+  "bg": "sidebar",
+  "ratio": 7.43,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "islands",
+  "theme": "dark",
+  "fg": "failed",
+  "bg": "panel",
+  "ratio": 7.29,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "islands",
+  "theme": "dark",
+  "fg": "failed",
+  "bg": "selected",
+  "ratio": 5.69,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "islands",
+  "theme": "dark",
+  "fg": "failed",
+  "bg": "hover",
+  "ratio": 6.58,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "islands",
+  "theme": "dark",
+  "fg": "accent_fg",
+  "bg": "app",
+  "ratio": 9.45,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "islands",
+  "theme": "dark",
+  "fg": "accent_fg",
+  "bg": "sidebar",
+  "ratio": 8.64,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "islands",
+  "theme": "dark",
+  "fg": "accent_fg",
+  "bg": "panel",
+  "ratio": 8.46,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "islands",
+  "theme": "dark",
+  "fg": "accent_fg",
+  "bg": "selected",
+  "ratio": 6.61,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "islands",
+  "theme": "dark",
+  "fg": "accent_fg",
+  "bg": "hover",
+  "ratio": 7.65,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "islands",
+  "theme": "dark",
+  "fg": "term_fg",
+  "bg": "term_bg",
+  "ratio": 12.79,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "islands",
+  "theme": "dark",
+  "fg": "focus",
+  "bg": "panel",
+  "ratio": 6.89,
+  "min": 3,
+  "ok": true
+ },
+ {
+  "sample": "islands",
+  "theme": "dark",
+  "fg": "focus",
+  "bg": "app",
+  "ratio": 7.69,
+  "min": 3,
+  "ok": true
+ },
+ {
+  "sample": "islands",
+  "theme": "light",
+  "fg": "text",
+  "bg": "app",
+  "ratio": 12.14,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "islands",
+  "theme": "light",
+  "fg": "text",
+  "bg": "sidebar",
+  "ratio": 16.52,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "islands",
+  "theme": "light",
+  "fg": "text",
+  "bg": "panel",
+  "ratio": 16.52,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "islands",
+  "theme": "light",
+  "fg": "text",
+  "bg": "selected",
+  "ratio": 13.7,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "islands",
+  "theme": "light",
+  "fg": "text",
+  "bg": "hover",
+  "ratio": 14.48,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "islands",
+  "theme": "light",
+  "fg": "text2",
+  "bg": "app",
+  "ratio": 5.78,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "islands",
+  "theme": "light",
+  "fg": "text2",
+  "bg": "sidebar",
+  "ratio": 7.87,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "islands",
+  "theme": "light",
+  "fg": "text2",
+  "bg": "panel",
+  "ratio": 7.87,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "islands",
+  "theme": "light",
+  "fg": "text2",
+  "bg": "selected",
+  "ratio": 6.52,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "islands",
+  "theme": "light",
+  "fg": "text2",
+  "bg": "hover",
+  "ratio": 6.9,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "islands",
+  "theme": "light",
+  "fg": "muted",
+  "bg": "app",
+  "ratio": 5.1,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "islands",
+  "theme": "light",
+  "fg": "muted",
+  "bg": "sidebar",
+  "ratio": 6.94,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "islands",
+  "theme": "light",
+  "fg": "muted",
+  "bg": "panel",
+  "ratio": 6.94,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "islands",
+  "theme": "light",
+  "fg": "muted",
+  "bg": "selected",
+  "ratio": 5.75,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "islands",
+  "theme": "light",
+  "fg": "muted",
+  "bg": "hover",
+  "ratio": 6.08,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "islands",
+  "theme": "light",
+  "fg": "working",
+  "bg": "app",
+  "ratio": 5.28,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "islands",
+  "theme": "light",
+  "fg": "working",
+  "bg": "sidebar",
+  "ratio": 7.18,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "islands",
+  "theme": "light",
+  "fg": "working",
+  "bg": "panel",
+  "ratio": 7.18,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "islands",
+  "theme": "light",
+  "fg": "working",
+  "bg": "selected",
+  "ratio": 5.95,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "islands",
+  "theme": "light",
+  "fg": "working",
+  "bg": "hover",
+  "ratio": 6.29,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "islands",
+  "theme": "light",
+  "fg": "attention",
+  "bg": "app",
+  "ratio": 5.67,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "islands",
+  "theme": "light",
+  "fg": "attention",
+  "bg": "sidebar",
+  "ratio": 7.71,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "islands",
+  "theme": "light",
+  "fg": "attention",
+  "bg": "panel",
+  "ratio": 7.71,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "islands",
+  "theme": "light",
+  "fg": "attention",
+  "bg": "selected",
+  "ratio": 6.4,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "islands",
+  "theme": "light",
+  "fg": "attention",
+  "bg": "hover",
+  "ratio": 6.76,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "islands",
+  "theme": "light",
+  "fg": "done",
+  "bg": "app",
+  "ratio": 5.64,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "islands",
+  "theme": "light",
+  "fg": "done",
+  "bg": "sidebar",
+  "ratio": 7.68,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "islands",
+  "theme": "light",
+  "fg": "done",
+  "bg": "panel",
+  "ratio": 7.68,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "islands",
+  "theme": "light",
+  "fg": "done",
+  "bg": "selected",
+  "ratio": 6.36,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "islands",
+  "theme": "light",
+  "fg": "done",
+  "bg": "hover",
+  "ratio": 6.73,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "islands",
+  "theme": "light",
+  "fg": "failed",
+  "bg": "app",
+  "ratio": 5.28,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "islands",
+  "theme": "light",
+  "fg": "failed",
+  "bg": "sidebar",
+  "ratio": 7.19,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "islands",
+  "theme": "light",
+  "fg": "failed",
+  "bg": "panel",
+  "ratio": 7.19,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "islands",
+  "theme": "light",
+  "fg": "failed",
+  "bg": "selected",
+  "ratio": 5.96,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "islands",
+  "theme": "light",
+  "fg": "failed",
+  "bg": "hover",
+  "ratio": 6.3,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "islands",
+  "theme": "light",
+  "fg": "accent_fg",
+  "bg": "app",
+  "ratio": 5.63,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "islands",
+  "theme": "light",
+  "fg": "accent_fg",
+  "bg": "sidebar",
+  "ratio": 7.66,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "islands",
+  "theme": "light",
+  "fg": "accent_fg",
+  "bg": "panel",
+  "ratio": 7.66,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "islands",
+  "theme": "light",
+  "fg": "accent_fg",
+  "bg": "selected",
+  "ratio": 6.35,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "islands",
+  "theme": "light",
+  "fg": "accent_fg",
+  "bg": "hover",
+  "ratio": 6.71,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "islands",
+  "theme": "light",
+  "fg": "term_fg",
+  "bg": "term_bg",
+  "ratio": 14.99,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "islands",
+  "theme": "light",
+  "fg": "focus",
+  "bg": "panel",
+  "ratio": 6.3,
+  "min": 3,
+  "ok": true
+ },
+ {
+  "sample": "islands",
+  "theme": "light",
+  "fg": "focus",
+  "bg": "app",
+  "ratio": 4.63,
+  "min": 3,
+  "ok": true
+ },
+ {
+  "sample": "mono",
+  "theme": "dark",
+  "fg": "text",
+  "bg": "app",
+  "ratio": 16.91,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "mono",
+  "theme": "dark",
+  "fg": "text",
+  "bg": "sidebar",
+  "ratio": 16.91,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "mono",
+  "theme": "dark",
+  "fg": "text",
+  "bg": "panel",
+  "ratio": 16.91,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "mono",
+  "theme": "dark",
+  "fg": "text",
+  "bg": "selected",
+  "ratio": 14.87,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "mono",
+  "theme": "dark",
+  "fg": "text",
+  "bg": "hover",
+  "ratio": 15.46,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "mono",
+  "theme": "dark",
+  "fg": "text2",
+  "bg": "app",
+  "ratio": 9.55,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "mono",
+  "theme": "dark",
+  "fg": "text2",
+  "bg": "sidebar",
+  "ratio": 9.55,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "mono",
+  "theme": "dark",
+  "fg": "text2",
+  "bg": "panel",
+  "ratio": 9.55,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "mono",
+  "theme": "dark",
+  "fg": "text2",
+  "bg": "selected",
+  "ratio": 8.39,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "mono",
+  "theme": "dark",
+  "fg": "text2",
+  "bg": "hover",
+  "ratio": 8.73,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "mono",
+  "theme": "dark",
+  "fg": "muted",
+  "bg": "app",
+  "ratio": 6.04,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "mono",
+  "theme": "dark",
+  "fg": "muted",
+  "bg": "sidebar",
+  "ratio": 6.04,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "mono",
+  "theme": "dark",
+  "fg": "muted",
+  "bg": "panel",
+  "ratio": 6.04,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "mono",
+  "theme": "dark",
+  "fg": "muted",
+  "bg": "selected",
+  "ratio": 5.31,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "mono",
+  "theme": "dark",
+  "fg": "muted",
+  "bg": "hover",
+  "ratio": 5.52,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "mono",
+  "theme": "dark",
+  "fg": "working",
+  "bg": "app",
+  "ratio": 8.59,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "mono",
+  "theme": "dark",
+  "fg": "working",
+  "bg": "sidebar",
+  "ratio": 8.59,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "mono",
+  "theme": "dark",
+  "fg": "working",
+  "bg": "panel",
+  "ratio": 8.59,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "mono",
+  "theme": "dark",
+  "fg": "working",
+  "bg": "selected",
+  "ratio": 7.55,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "mono",
+  "theme": "dark",
+  "fg": "working",
+  "bg": "hover",
+  "ratio": 7.85,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "mono",
+  "theme": "dark",
+  "fg": "attention",
+  "bg": "app",
+  "ratio": 10.49,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "mono",
+  "theme": "dark",
+  "fg": "attention",
+  "bg": "sidebar",
+  "ratio": 10.49,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "mono",
+  "theme": "dark",
+  "fg": "attention",
+  "bg": "panel",
+  "ratio": 10.49,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "mono",
+  "theme": "dark",
+  "fg": "attention",
+  "bg": "selected",
+  "ratio": 9.22,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "mono",
+  "theme": "dark",
+  "fg": "attention",
+  "bg": "hover",
+  "ratio": 9.59,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "mono",
+  "theme": "dark",
+  "fg": "done",
+  "bg": "app",
+  "ratio": 8.83,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "mono",
+  "theme": "dark",
+  "fg": "done",
+  "bg": "sidebar",
+  "ratio": 8.83,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "mono",
+  "theme": "dark",
+  "fg": "done",
+  "bg": "panel",
+  "ratio": 8.83,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "mono",
+  "theme": "dark",
+  "fg": "done",
+  "bg": "selected",
+  "ratio": 7.76,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "mono",
+  "theme": "dark",
+  "fg": "done",
+  "bg": "hover",
+  "ratio": 8.07,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "mono",
+  "theme": "dark",
+  "fg": "failed",
+  "bg": "app",
+  "ratio": 8.29,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "mono",
+  "theme": "dark",
+  "fg": "failed",
+  "bg": "sidebar",
+  "ratio": 8.29,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "mono",
+  "theme": "dark",
+  "fg": "failed",
+  "bg": "panel",
+  "ratio": 8.29,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "mono",
+  "theme": "dark",
+  "fg": "failed",
+  "bg": "selected",
+  "ratio": 7.29,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "mono",
+  "theme": "dark",
+  "fg": "failed",
+  "bg": "hover",
+  "ratio": 7.58,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "mono",
+  "theme": "dark",
+  "fg": "accent_fg",
+  "bg": "app",
+  "ratio": 19.8,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "mono",
+  "theme": "dark",
+  "fg": "accent_fg",
+  "bg": "sidebar",
+  "ratio": 19.8,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "mono",
+  "theme": "dark",
+  "fg": "accent_fg",
+  "bg": "panel",
+  "ratio": 19.8,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "mono",
+  "theme": "dark",
+  "fg": "accent_fg",
+  "bg": "selected",
+  "ratio": 17.4,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "mono",
+  "theme": "dark",
+  "fg": "accent_fg",
+  "bg": "hover",
+  "ratio": 18.1,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "mono",
+  "theme": "dark",
+  "fg": "term_fg",
+  "bg": "term_bg",
+  "ratio": 14.44,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "mono",
+  "theme": "dark",
+  "fg": "focus",
+  "bg": "panel",
+  "ratio": 19.8,
+  "min": 3,
+  "ok": true
+ },
+ {
+  "sample": "mono",
+  "theme": "dark",
+  "fg": "focus",
+  "bg": "app",
+  "ratio": 19.8,
+  "min": 3,
+  "ok": true
+ },
+ {
+  "sample": "mono",
+  "theme": "light",
+  "fg": "text",
+  "bg": "app",
+  "ratio": 18.88,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "mono",
+  "theme": "light",
+  "fg": "text",
+  "bg": "sidebar",
+  "ratio": 18.88,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "mono",
+  "theme": "light",
+  "fg": "text",
+  "bg": "panel",
+  "ratio": 18.88,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "mono",
+  "theme": "light",
+  "fg": "text",
+  "bg": "selected",
+  "ratio": 16.72,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "mono",
+  "theme": "light",
+  "fg": "text",
+  "bg": "hover",
+  "ratio": 17.02,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "mono",
+  "theme": "light",
+  "fg": "text2",
+  "bg": "app",
+  "ratio": 9.74,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "mono",
+  "theme": "light",
+  "fg": "text2",
+  "bg": "sidebar",
+  "ratio": 9.74,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "mono",
+  "theme": "light",
+  "fg": "text2",
+  "bg": "panel",
+  "ratio": 9.74,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "mono",
+  "theme": "light",
+  "fg": "text2",
+  "bg": "selected",
+  "ratio": 8.62,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "mono",
+  "theme": "light",
+  "fg": "text2",
+  "bg": "hover",
+  "ratio": 8.78,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "mono",
+  "theme": "light",
+  "fg": "muted",
+  "bg": "app",
+  "ratio": 5.33,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "mono",
+  "theme": "light",
+  "fg": "muted",
+  "bg": "sidebar",
+  "ratio": 5.33,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "mono",
+  "theme": "light",
+  "fg": "muted",
+  "bg": "panel",
+  "ratio": 5.33,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "mono",
+  "theme": "light",
+  "fg": "muted",
+  "bg": "selected",
+  "ratio": 4.72,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "mono",
+  "theme": "light",
+  "fg": "muted",
+  "bg": "hover",
+  "ratio": 4.8,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "mono",
+  "theme": "light",
+  "fg": "working",
+  "bg": "app",
+  "ratio": 6.11,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "mono",
+  "theme": "light",
+  "fg": "working",
+  "bg": "sidebar",
+  "ratio": 6.11,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "mono",
+  "theme": "light",
+  "fg": "working",
+  "bg": "panel",
+  "ratio": 6.11,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "mono",
+  "theme": "light",
+  "fg": "working",
+  "bg": "selected",
+  "ratio": 5.41,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "mono",
+  "theme": "light",
+  "fg": "working",
+  "bg": "hover",
+  "ratio": 5.51,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "mono",
+  "theme": "light",
+  "fg": "attention",
+  "bg": "app",
+  "ratio": 5.78,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "mono",
+  "theme": "light",
+  "fg": "attention",
+  "bg": "sidebar",
+  "ratio": 5.78,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "mono",
+  "theme": "light",
+  "fg": "attention",
+  "bg": "panel",
+  "ratio": 5.78,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "mono",
+  "theme": "light",
+  "fg": "attention",
+  "bg": "selected",
+  "ratio": 5.12,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "mono",
+  "theme": "light",
+  "fg": "attention",
+  "bg": "hover",
+  "ratio": 5.21,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "mono",
+  "theme": "light",
+  "fg": "done",
+  "bg": "app",
+  "ratio": 6.08,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "mono",
+  "theme": "light",
+  "fg": "done",
+  "bg": "sidebar",
+  "ratio": 6.08,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "mono",
+  "theme": "light",
+  "fg": "done",
+  "bg": "panel",
+  "ratio": 6.08,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "mono",
+  "theme": "light",
+  "fg": "done",
+  "bg": "selected",
+  "ratio": 5.38,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "mono",
+  "theme": "light",
+  "fg": "done",
+  "bg": "hover",
+  "ratio": 5.48,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "mono",
+  "theme": "light",
+  "fg": "failed",
+  "bg": "app",
+  "ratio": 5.59,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "mono",
+  "theme": "light",
+  "fg": "failed",
+  "bg": "sidebar",
+  "ratio": 5.59,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "mono",
+  "theme": "light",
+  "fg": "failed",
+  "bg": "panel",
+  "ratio": 5.59,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "mono",
+  "theme": "light",
+  "fg": "failed",
+  "bg": "selected",
+  "ratio": 4.95,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "mono",
+  "theme": "light",
+  "fg": "failed",
+  "bg": "hover",
+  "ratio": 5.04,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "mono",
+  "theme": "light",
+  "fg": "accent_fg",
+  "bg": "app",
+  "ratio": 18.88,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "mono",
+  "theme": "light",
+  "fg": "accent_fg",
+  "bg": "sidebar",
+  "ratio": 18.88,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "mono",
+  "theme": "light",
+  "fg": "accent_fg",
+  "bg": "panel",
+  "ratio": 18.88,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "mono",
+  "theme": "light",
+  "fg": "accent_fg",
+  "bg": "selected",
+  "ratio": 16.72,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "mono",
+  "theme": "light",
+  "fg": "accent_fg",
+  "bg": "hover",
+  "ratio": 17.02,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "mono",
+  "theme": "light",
+  "fg": "term_fg",
+  "bg": "term_bg",
+  "ratio": 17.4,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "mono",
+  "theme": "light",
+  "fg": "focus",
+  "bg": "panel",
+  "ratio": 18.88,
+  "min": 3,
+  "ok": true
+ },
+ {
+  "sample": "mono",
+  "theme": "light",
+  "fg": "focus",
+  "bg": "app",
+  "ratio": 18.88,
+  "min": 3,
+  "ok": true
+ },
+ {
+  "sample": "warm",
+  "theme": "dark",
+  "fg": "text",
+  "bg": "app",
+  "ratio": 14.28,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "warm",
+  "theme": "dark",
+  "fg": "text",
+  "bg": "sidebar",
+  "ratio": 13.68,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "warm",
+  "theme": "dark",
+  "fg": "text",
+  "bg": "panel",
+  "ratio": 12.92,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "warm",
+  "theme": "dark",
+  "fg": "text",
+  "bg": "selected",
+  "ratio": 10.6,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "warm",
+  "theme": "dark",
+  "fg": "text",
+  "bg": "hover",
+  "ratio": 11.68,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "warm",
+  "theme": "dark",
+  "fg": "text2",
+  "bg": "app",
+  "ratio": 9.15,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "warm",
+  "theme": "dark",
+  "fg": "text2",
+  "bg": "sidebar",
+  "ratio": 8.76,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "warm",
+  "theme": "dark",
+  "fg": "text2",
+  "bg": "panel",
+  "ratio": 8.27,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "warm",
+  "theme": "dark",
+  "fg": "text2",
+  "bg": "selected",
+  "ratio": 6.79,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "warm",
+  "theme": "dark",
+  "fg": "text2",
+  "bg": "hover",
+  "ratio": 7.48,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "warm",
+  "theme": "dark",
+  "fg": "muted",
+  "bg": "app",
+  "ratio": 6.49,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "warm",
+  "theme": "dark",
+  "fg": "muted",
+  "bg": "sidebar",
+  "ratio": 6.21,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "warm",
+  "theme": "dark",
+  "fg": "muted",
+  "bg": "panel",
+  "ratio": 5.87,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "warm",
+  "theme": "dark",
+  "fg": "muted",
+  "bg": "selected",
+  "ratio": 4.81,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "warm",
+  "theme": "dark",
+  "fg": "muted",
+  "bg": "hover",
+  "ratio": 5.3,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "warm",
+  "theme": "dark",
+  "fg": "working",
+  "bg": "app",
+  "ratio": 8.32,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "warm",
+  "theme": "dark",
+  "fg": "working",
+  "bg": "sidebar",
+  "ratio": 7.97,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "warm",
+  "theme": "dark",
+  "fg": "working",
+  "bg": "panel",
+  "ratio": 7.52,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "warm",
+  "theme": "dark",
+  "fg": "working",
+  "bg": "selected",
+  "ratio": 6.17,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "warm",
+  "theme": "dark",
+  "fg": "working",
+  "bg": "hover",
+  "ratio": 6.8,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "warm",
+  "theme": "dark",
+  "fg": "attention",
+  "bg": "app",
+  "ratio": 9.34,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "warm",
+  "theme": "dark",
+  "fg": "attention",
+  "bg": "sidebar",
+  "ratio": 8.95,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "warm",
+  "theme": "dark",
+  "fg": "attention",
+  "bg": "panel",
+  "ratio": 8.45,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "warm",
+  "theme": "dark",
+  "fg": "attention",
+  "bg": "selected",
+  "ratio": 6.93,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "warm",
+  "theme": "dark",
+  "fg": "attention",
+  "bg": "hover",
+  "ratio": 7.64,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "warm",
+  "theme": "dark",
+  "fg": "done",
+  "bg": "app",
+  "ratio": 9.02,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "warm",
+  "theme": "dark",
+  "fg": "done",
+  "bg": "sidebar",
+  "ratio": 8.64,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "warm",
+  "theme": "dark",
+  "fg": "done",
+  "bg": "panel",
+  "ratio": 8.16,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "warm",
+  "theme": "dark",
+  "fg": "done",
+  "bg": "selected",
+  "ratio": 6.69,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "warm",
+  "theme": "dark",
+  "fg": "done",
+  "bg": "hover",
+  "ratio": 7.37,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "warm",
+  "theme": "dark",
+  "fg": "failed",
+  "bg": "app",
+  "ratio": 7.82,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "warm",
+  "theme": "dark",
+  "fg": "failed",
+  "bg": "sidebar",
+  "ratio": 7.49,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "warm",
+  "theme": "dark",
+  "fg": "failed",
+  "bg": "panel",
+  "ratio": 7.07,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "warm",
+  "theme": "dark",
+  "fg": "failed",
+  "bg": "selected",
+  "ratio": 5.8,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "warm",
+  "theme": "dark",
+  "fg": "failed",
+  "bg": "hover",
+  "ratio": 6.39,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "warm",
+  "theme": "dark",
+  "fg": "accent_fg",
+  "bg": "app",
+  "ratio": 8.47,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "warm",
+  "theme": "dark",
+  "fg": "accent_fg",
+  "bg": "sidebar",
+  "ratio": 8.12,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "warm",
+  "theme": "dark",
+  "fg": "accent_fg",
+  "bg": "panel",
+  "ratio": 7.66,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "warm",
+  "theme": "dark",
+  "fg": "accent_fg",
+  "bg": "selected",
+  "ratio": 6.29,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "warm",
+  "theme": "dark",
+  "fg": "accent_fg",
+  "bg": "hover",
+  "ratio": 6.93,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "warm",
+  "theme": "dark",
+  "fg": "term_fg",
+  "bg": "term_bg",
+  "ratio": 12.19,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "warm",
+  "theme": "dark",
+  "fg": "focus",
+  "bg": "panel",
+  "ratio": 7.66,
+  "min": 3,
+  "ok": true
+ },
+ {
+  "sample": "warm",
+  "theme": "dark",
+  "fg": "focus",
+  "bg": "app",
+  "ratio": 8.47,
+  "min": 3,
+  "ok": true
+ },
+ {
+  "sample": "warm",
+  "theme": "light",
+  "fg": "text",
+  "bg": "app",
+  "ratio": 12.67,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "warm",
+  "theme": "light",
+  "fg": "text",
+  "bg": "sidebar",
+  "ratio": 11.89,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "warm",
+  "theme": "light",
+  "fg": "text",
+  "bg": "panel",
+  "ratio": 14.33,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "warm",
+  "theme": "light",
+  "fg": "text",
+  "bg": "selected",
+  "ratio": 11.81,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "warm",
+  "theme": "light",
+  "fg": "text",
+  "bg": "hover",
+  "ratio": 11.14,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "warm",
+  "theme": "light",
+  "fg": "text2",
+  "bg": "app",
+  "ratio": 6.9,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "warm",
+  "theme": "light",
+  "fg": "text2",
+  "bg": "sidebar",
+  "ratio": 6.48,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "warm",
+  "theme": "light",
+  "fg": "text2",
+  "bg": "panel",
+  "ratio": 7.81,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "warm",
+  "theme": "light",
+  "fg": "text2",
+  "bg": "selected",
+  "ratio": 6.43,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "warm",
+  "theme": "light",
+  "fg": "text2",
+  "bg": "hover",
+  "ratio": 6.07,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "warm",
+  "theme": "light",
+  "fg": "muted",
+  "bg": "app",
+  "ratio": 5.29,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "warm",
+  "theme": "light",
+  "fg": "muted",
+  "bg": "sidebar",
+  "ratio": 4.97,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "warm",
+  "theme": "light",
+  "fg": "muted",
+  "bg": "panel",
+  "ratio": 5.99,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "warm",
+  "theme": "light",
+  "fg": "muted",
+  "bg": "selected",
+  "ratio": 4.93,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "warm",
+  "theme": "light",
+  "fg": "muted",
+  "bg": "hover",
+  "ratio": 4.65,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "warm",
+  "theme": "light",
+  "fg": "working",
+  "bg": "app",
+  "ratio": 5.68,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "warm",
+  "theme": "light",
+  "fg": "working",
+  "bg": "sidebar",
+  "ratio": 5.32,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "warm",
+  "theme": "light",
+  "fg": "working",
+  "bg": "panel",
+  "ratio": 6.42,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "warm",
+  "theme": "light",
+  "fg": "working",
+  "bg": "selected",
+  "ratio": 5.29,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "warm",
+  "theme": "light",
+  "fg": "working",
+  "bg": "hover",
+  "ratio": 4.99,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "warm",
+  "theme": "light",
+  "fg": "attention",
+  "bg": "app",
+  "ratio": 5.47,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "warm",
+  "theme": "light",
+  "fg": "attention",
+  "bg": "sidebar",
+  "ratio": 5.13,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "warm",
+  "theme": "light",
+  "fg": "attention",
+  "bg": "panel",
+  "ratio": 6.19,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "warm",
+  "theme": "light",
+  "fg": "attention",
+  "bg": "selected",
+  "ratio": 5.1,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "warm",
+  "theme": "light",
+  "fg": "attention",
+  "bg": "hover",
+  "ratio": 4.81,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "warm",
+  "theme": "light",
+  "fg": "done",
+  "bg": "app",
+  "ratio": 5.25,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "warm",
+  "theme": "light",
+  "fg": "done",
+  "bg": "sidebar",
+  "ratio": 4.92,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "warm",
+  "theme": "light",
+  "fg": "done",
+  "bg": "panel",
+  "ratio": 5.94,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "warm",
+  "theme": "light",
+  "fg": "done",
+  "bg": "selected",
+  "ratio": 4.89,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "warm",
+  "theme": "light",
+  "fg": "done",
+  "bg": "hover",
+  "ratio": 4.61,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "warm",
+  "theme": "light",
+  "fg": "failed",
+  "bg": "app",
+  "ratio": 5.26,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "warm",
+  "theme": "light",
+  "fg": "failed",
+  "bg": "sidebar",
+  "ratio": 4.93,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "warm",
+  "theme": "light",
+  "fg": "failed",
+  "bg": "panel",
+  "ratio": 5.95,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "warm",
+  "theme": "light",
+  "fg": "failed",
+  "bg": "selected",
+  "ratio": 4.9,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "warm",
+  "theme": "light",
+  "fg": "failed",
+  "bg": "hover",
+  "ratio": 4.62,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "warm",
+  "theme": "light",
+  "fg": "accent_fg",
+  "bg": "app",
+  "ratio": 5.45,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "warm",
+  "theme": "light",
+  "fg": "accent_fg",
+  "bg": "sidebar",
+  "ratio": 5.12,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "warm",
+  "theme": "light",
+  "fg": "accent_fg",
+  "bg": "panel",
+  "ratio": 6.17,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "warm",
+  "theme": "light",
+  "fg": "accent_fg",
+  "bg": "selected",
+  "ratio": 5.08,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "warm",
+  "theme": "light",
+  "fg": "accent_fg",
+  "bg": "hover",
+  "ratio": 4.79,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "warm",
+  "theme": "light",
+  "fg": "term_fg",
+  "bg": "term_bg",
+  "ratio": 13.56,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "warm",
+  "theme": "light",
+  "fg": "focus",
+  "bg": "panel",
+  "ratio": 5.15,
+  "min": 3,
+  "ok": true
+ },
+ {
+  "sample": "warm",
+  "theme": "light",
+  "fg": "focus",
+  "bg": "app",
+  "ratio": 4.55,
+  "min": 3,
+  "ok": true
+ },
+ {
+  "sample": "blocks",
+  "theme": "dark",
+  "fg": "text",
+  "bg": "app",
+  "ratio": 15.16,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "blocks",
+  "theme": "dark",
+  "fg": "text",
+  "bg": "sidebar",
+  "ratio": 14.65,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "blocks",
+  "theme": "dark",
+  "fg": "text",
+  "bg": "panel",
+  "ratio": 14.22,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "blocks",
+  "theme": "dark",
+  "fg": "text",
+  "bg": "selected",
+  "ratio": 11.63,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "blocks",
+  "theme": "dark",
+  "fg": "text",
+  "bg": "hover",
+  "ratio": 12.85,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "blocks",
+  "theme": "dark",
+  "fg": "text2",
+  "bg": "app",
+  "ratio": 8.84,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "blocks",
+  "theme": "dark",
+  "fg": "text2",
+  "bg": "sidebar",
+  "ratio": 8.55,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "blocks",
+  "theme": "dark",
+  "fg": "text2",
+  "bg": "panel",
+  "ratio": 8.29,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "blocks",
+  "theme": "dark",
+  "fg": "text2",
+  "bg": "selected",
+  "ratio": 6.78,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "blocks",
+  "theme": "dark",
+  "fg": "text2",
+  "bg": "hover",
+  "ratio": 7.49,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "blocks",
+  "theme": "dark",
+  "fg": "muted",
+  "bg": "app",
+  "ratio": 6.1,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "blocks",
+  "theme": "dark",
+  "fg": "muted",
+  "bg": "sidebar",
+  "ratio": 5.9,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "blocks",
+  "theme": "dark",
+  "fg": "muted",
+  "bg": "panel",
+  "ratio": 5.72,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "blocks",
+  "theme": "dark",
+  "fg": "muted",
+  "bg": "selected",
+  "ratio": 4.68,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "blocks",
+  "theme": "dark",
+  "fg": "muted",
+  "bg": "hover",
+  "ratio": 5.17,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "blocks",
+  "theme": "dark",
+  "fg": "working",
+  "bg": "app",
+  "ratio": 8.07,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "blocks",
+  "theme": "dark",
+  "fg": "working",
+  "bg": "sidebar",
+  "ratio": 7.8,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "blocks",
+  "theme": "dark",
+  "fg": "working",
+  "bg": "panel",
+  "ratio": 7.57,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "blocks",
+  "theme": "dark",
+  "fg": "working",
+  "bg": "selected",
+  "ratio": 6.19,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "blocks",
+  "theme": "dark",
+  "fg": "working",
+  "bg": "hover",
+  "ratio": 6.84,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "blocks",
+  "theme": "dark",
+  "fg": "attention",
+  "bg": "app",
+  "ratio": 9.85,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "blocks",
+  "theme": "dark",
+  "fg": "attention",
+  "bg": "sidebar",
+  "ratio": 9.53,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "blocks",
+  "theme": "dark",
+  "fg": "attention",
+  "bg": "panel",
+  "ratio": 9.24,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "blocks",
+  "theme": "dark",
+  "fg": "attention",
+  "bg": "selected",
+  "ratio": 7.56,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "blocks",
+  "theme": "dark",
+  "fg": "attention",
+  "bg": "hover",
+  "ratio": 8.35,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "blocks",
+  "theme": "dark",
+  "fg": "done",
+  "bg": "app",
+  "ratio": 8.3,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "blocks",
+  "theme": "dark",
+  "fg": "done",
+  "bg": "sidebar",
+  "ratio": 8.02,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "blocks",
+  "theme": "dark",
+  "fg": "done",
+  "bg": "panel",
+  "ratio": 7.78,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "blocks",
+  "theme": "dark",
+  "fg": "done",
+  "bg": "selected",
+  "ratio": 6.36,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "blocks",
+  "theme": "dark",
+  "fg": "done",
+  "bg": "hover",
+  "ratio": 7.03,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "blocks",
+  "theme": "dark",
+  "fg": "failed",
+  "bg": "app",
+  "ratio": 7.78,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "blocks",
+  "theme": "dark",
+  "fg": "failed",
+  "bg": "sidebar",
+  "ratio": 7.53,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "blocks",
+  "theme": "dark",
+  "fg": "failed",
+  "bg": "panel",
+  "ratio": 7.3,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "blocks",
+  "theme": "dark",
+  "fg": "failed",
+  "bg": "selected",
+  "ratio": 5.97,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "blocks",
+  "theme": "dark",
+  "fg": "failed",
+  "bg": "hover",
+  "ratio": 6.6,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "blocks",
+  "theme": "dark",
+  "fg": "accent_fg",
+  "bg": "app",
+  "ratio": 9.02,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "blocks",
+  "theme": "dark",
+  "fg": "accent_fg",
+  "bg": "sidebar",
+  "ratio": 8.72,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "blocks",
+  "theme": "dark",
+  "fg": "accent_fg",
+  "bg": "panel",
+  "ratio": 8.46,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "blocks",
+  "theme": "dark",
+  "fg": "accent_fg",
+  "bg": "selected",
+  "ratio": 6.92,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "blocks",
+  "theme": "dark",
+  "fg": "accent_fg",
+  "bg": "hover",
+  "ratio": 7.65,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "blocks",
+  "theme": "dark",
+  "fg": "term_fg",
+  "bg": "term_bg",
+  "ratio": 12.82,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "blocks",
+  "theme": "dark",
+  "fg": "focus",
+  "bg": "panel",
+  "ratio": 6.43,
+  "min": 3,
+  "ok": true
+ },
+ {
+  "sample": "blocks",
+  "theme": "dark",
+  "fg": "focus",
+  "bg": "app",
+  "ratio": 6.86,
+  "min": 3,
+  "ok": true
+ },
+ {
+  "sample": "blocks",
+  "theme": "light",
+  "fg": "text",
+  "bg": "app",
+  "ratio": 14.47,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "blocks",
+  "theme": "light",
+  "fg": "text",
+  "bg": "sidebar",
+  "ratio": 15.15,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "blocks",
+  "theme": "light",
+  "fg": "text",
+  "bg": "panel",
+  "ratio": 15.55,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "blocks",
+  "theme": "light",
+  "fg": "text",
+  "bg": "selected",
+  "ratio": 13.42,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "blocks",
+  "theme": "light",
+  "fg": "text",
+  "bg": "hover",
+  "ratio": 13.71,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "blocks",
+  "theme": "light",
+  "fg": "text2",
+  "bg": "app",
+  "ratio": 6.89,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "blocks",
+  "theme": "light",
+  "fg": "text2",
+  "bg": "sidebar",
+  "ratio": 7.21,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "blocks",
+  "theme": "light",
+  "fg": "text2",
+  "bg": "panel",
+  "ratio": 7.41,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "blocks",
+  "theme": "light",
+  "fg": "text2",
+  "bg": "selected",
+  "ratio": 6.39,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "blocks",
+  "theme": "light",
+  "fg": "text2",
+  "bg": "hover",
+  "ratio": 6.53,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "blocks",
+  "theme": "light",
+  "fg": "muted",
+  "bg": "app",
+  "ratio": 5.07,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "blocks",
+  "theme": "light",
+  "fg": "muted",
+  "bg": "sidebar",
+  "ratio": 5.3,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "blocks",
+  "theme": "light",
+  "fg": "muted",
+  "bg": "panel",
+  "ratio": 5.44,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "blocks",
+  "theme": "light",
+  "fg": "muted",
+  "bg": "selected",
+  "ratio": 4.7,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "blocks",
+  "theme": "light",
+  "fg": "muted",
+  "bg": "hover",
+  "ratio": 4.8,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "blocks",
+  "theme": "light",
+  "fg": "working",
+  "bg": "app",
+  "ratio": 5.35,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "blocks",
+  "theme": "light",
+  "fg": "working",
+  "bg": "sidebar",
+  "ratio": 5.6,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "blocks",
+  "theme": "light",
+  "fg": "working",
+  "bg": "panel",
+  "ratio": 5.75,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "blocks",
+  "theme": "light",
+  "fg": "working",
+  "bg": "selected",
+  "ratio": 4.97,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "blocks",
+  "theme": "light",
+  "fg": "working",
+  "bg": "hover",
+  "ratio": 5.07,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "blocks",
+  "theme": "light",
+  "fg": "attention",
+  "bg": "app",
+  "ratio": 5.07,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "blocks",
+  "theme": "light",
+  "fg": "attention",
+  "bg": "sidebar",
+  "ratio": 5.3,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "blocks",
+  "theme": "light",
+  "fg": "attention",
+  "bg": "panel",
+  "ratio": 5.44,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "blocks",
+  "theme": "light",
+  "fg": "attention",
+  "bg": "selected",
+  "ratio": 4.7,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "blocks",
+  "theme": "light",
+  "fg": "attention",
+  "bg": "hover",
+  "ratio": 4.8,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "blocks",
+  "theme": "light",
+  "fg": "done",
+  "bg": "app",
+  "ratio": 5.32,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "blocks",
+  "theme": "light",
+  "fg": "done",
+  "bg": "sidebar",
+  "ratio": 5.57,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "blocks",
+  "theme": "light",
+  "fg": "done",
+  "bg": "panel",
+  "ratio": 5.72,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "blocks",
+  "theme": "light",
+  "fg": "done",
+  "bg": "selected",
+  "ratio": 4.94,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "blocks",
+  "theme": "light",
+  "fg": "done",
+  "bg": "hover",
+  "ratio": 5.04,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "blocks",
+  "theme": "light",
+  "fg": "failed",
+  "bg": "app",
+  "ratio": 4.9,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "blocks",
+  "theme": "light",
+  "fg": "failed",
+  "bg": "sidebar",
+  "ratio": 5.13,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "blocks",
+  "theme": "light",
+  "fg": "failed",
+  "bg": "panel",
+  "ratio": 5.26,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "blocks",
+  "theme": "light",
+  "fg": "failed",
+  "bg": "selected",
+  "ratio": 4.54,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "blocks",
+  "theme": "light",
+  "fg": "failed",
+  "bg": "hover",
+  "ratio": 4.64,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "blocks",
+  "theme": "light",
+  "fg": "accent_fg",
+  "bg": "app",
+  "ratio": 5.65,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "blocks",
+  "theme": "light",
+  "fg": "accent_fg",
+  "bg": "sidebar",
+  "ratio": 5.91,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "blocks",
+  "theme": "light",
+  "fg": "accent_fg",
+  "bg": "panel",
+  "ratio": 6.07,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "blocks",
+  "theme": "light",
+  "fg": "accent_fg",
+  "bg": "selected",
+  "ratio": 5.24,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "blocks",
+  "theme": "light",
+  "fg": "accent_fg",
+  "bg": "hover",
+  "ratio": 5.35,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "blocks",
+  "theme": "light",
+  "fg": "term_fg",
+  "bg": "term_bg",
+  "ratio": 14.99,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "blocks",
+  "theme": "light",
+  "fg": "focus",
+  "bg": "panel",
+  "ratio": 4.65,
+  "min": 3,
+  "ok": true
+ },
+ {
+  "sample": "blocks",
+  "theme": "light",
+  "fg": "focus",
+  "bg": "app",
+  "ratio": 4.33,
+  "min": 3,
+  "ok": true
+ },
+ {
+  "sample": "kanban",
+  "theme": "dark",
+  "fg": "text",
+  "bg": "app",
+  "ratio": 14.63,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "kanban",
+  "theme": "dark",
+  "fg": "text",
+  "bg": "sidebar",
+  "ratio": 14.63,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "kanban",
+  "theme": "dark",
+  "fg": "text",
+  "bg": "panel",
+  "ratio": 13.77,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "kanban",
+  "theme": "dark",
+  "fg": "text",
+  "bg": "selected",
+  "ratio": 10.85,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "kanban",
+  "theme": "dark",
+  "fg": "text",
+  "bg": "hover",
+  "ratio": 12.04,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "kanban",
+  "theme": "dark",
+  "fg": "text2",
+  "bg": "app",
+  "ratio": 8.53,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "kanban",
+  "theme": "dark",
+  "fg": "text2",
+  "bg": "sidebar",
+  "ratio": 8.53,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "kanban",
+  "theme": "dark",
+  "fg": "text2",
+  "bg": "panel",
+  "ratio": 8.03,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "kanban",
+  "theme": "dark",
+  "fg": "text2",
+  "bg": "selected",
+  "ratio": 6.33,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "kanban",
+  "theme": "dark",
+  "fg": "text2",
+  "bg": "hover",
+  "ratio": 7.02,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "kanban",
+  "theme": "dark",
+  "fg": "muted",
+  "bg": "app",
+  "ratio": 6.51,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "kanban",
+  "theme": "dark",
+  "fg": "muted",
+  "bg": "sidebar",
+  "ratio": 6.51,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "kanban",
+  "theme": "dark",
+  "fg": "muted",
+  "bg": "panel",
+  "ratio": 6.13,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "kanban",
+  "theme": "dark",
+  "fg": "muted",
+  "bg": "selected",
+  "ratio": 4.83,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "kanban",
+  "theme": "dark",
+  "fg": "muted",
+  "bg": "hover",
+  "ratio": 5.36,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "kanban",
+  "theme": "dark",
+  "fg": "working",
+  "bg": "app",
+  "ratio": 7.78,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "kanban",
+  "theme": "dark",
+  "fg": "working",
+  "bg": "sidebar",
+  "ratio": 7.78,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "kanban",
+  "theme": "dark",
+  "fg": "working",
+  "bg": "panel",
+  "ratio": 7.33,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "kanban",
+  "theme": "dark",
+  "fg": "working",
+  "bg": "selected",
+  "ratio": 5.77,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "kanban",
+  "theme": "dark",
+  "fg": "working",
+  "bg": "hover",
+  "ratio": 6.41,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "kanban",
+  "theme": "dark",
+  "fg": "attention",
+  "bg": "app",
+  "ratio": 9.51,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "kanban",
+  "theme": "dark",
+  "fg": "attention",
+  "bg": "sidebar",
+  "ratio": 9.51,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "kanban",
+  "theme": "dark",
+  "fg": "attention",
+  "bg": "panel",
+  "ratio": 8.96,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "kanban",
+  "theme": "dark",
+  "fg": "attention",
+  "bg": "selected",
+  "ratio": 7.05,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "kanban",
+  "theme": "dark",
+  "fg": "attention",
+  "bg": "hover",
+  "ratio": 7.83,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "kanban",
+  "theme": "dark",
+  "fg": "done",
+  "bg": "app",
+  "ratio": 8.01,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "kanban",
+  "theme": "dark",
+  "fg": "done",
+  "bg": "sidebar",
+  "ratio": 8.01,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "kanban",
+  "theme": "dark",
+  "fg": "done",
+  "bg": "panel",
+  "ratio": 7.54,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "kanban",
+  "theme": "dark",
+  "fg": "done",
+  "bg": "selected",
+  "ratio": 5.94,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "kanban",
+  "theme": "dark",
+  "fg": "done",
+  "bg": "hover",
+  "ratio": 6.59,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "kanban",
+  "theme": "dark",
+  "fg": "failed",
+  "bg": "app",
+  "ratio": 7.51,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "kanban",
+  "theme": "dark",
+  "fg": "failed",
+  "bg": "sidebar",
+  "ratio": 7.51,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "kanban",
+  "theme": "dark",
+  "fg": "failed",
+  "bg": "panel",
+  "ratio": 7.07,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "kanban",
+  "theme": "dark",
+  "fg": "failed",
+  "bg": "selected",
+  "ratio": 5.57,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "kanban",
+  "theme": "dark",
+  "fg": "failed",
+  "bg": "hover",
+  "ratio": 6.18,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "kanban",
+  "theme": "dark",
+  "fg": "accent_fg",
+  "bg": "app",
+  "ratio": 9.8,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "kanban",
+  "theme": "dark",
+  "fg": "accent_fg",
+  "bg": "sidebar",
+  "ratio": 9.8,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "kanban",
+  "theme": "dark",
+  "fg": "accent_fg",
+  "bg": "panel",
+  "ratio": 9.23,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "kanban",
+  "theme": "dark",
+  "fg": "accent_fg",
+  "bg": "selected",
+  "ratio": 7.27,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "kanban",
+  "theme": "dark",
+  "fg": "accent_fg",
+  "bg": "hover",
+  "ratio": 8.07,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "kanban",
+  "theme": "dark",
+  "fg": "term_fg",
+  "bg": "term_bg",
+  "ratio": 12.39,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "kanban",
+  "theme": "dark",
+  "fg": "focus",
+  "bg": "panel",
+  "ratio": 9.23,
+  "min": 3,
+  "ok": true
+ },
+ {
+  "sample": "kanban",
+  "theme": "dark",
+  "fg": "focus",
+  "bg": "app",
+  "ratio": 9.8,
+  "min": 3,
+  "ok": true
+ },
+ {
+  "sample": "kanban",
+  "theme": "light",
+  "fg": "text",
+  "bg": "app",
+  "ratio": 14.34,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "kanban",
+  "theme": "light",
+  "fg": "text",
+  "bg": "sidebar",
+  "ratio": 14.34,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "kanban",
+  "theme": "light",
+  "fg": "text",
+  "bg": "panel",
+  "ratio": 13.32,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "kanban",
+  "theme": "light",
+  "fg": "text",
+  "bg": "selected",
+  "ratio": 13.79,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "kanban",
+  "theme": "light",
+  "fg": "text",
+  "bg": "hover",
+  "ratio": 13.71,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "kanban",
+  "theme": "light",
+  "fg": "text2",
+  "bg": "app",
+  "ratio": 6.83,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "kanban",
+  "theme": "light",
+  "fg": "text2",
+  "bg": "sidebar",
+  "ratio": 6.83,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "kanban",
+  "theme": "light",
+  "fg": "text2",
+  "bg": "panel",
+  "ratio": 6.34,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "kanban",
+  "theme": "light",
+  "fg": "text2",
+  "bg": "selected",
+  "ratio": 6.56,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "kanban",
+  "theme": "light",
+  "fg": "text2",
+  "bg": "hover",
+  "ratio": 6.53,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "kanban",
+  "theme": "light",
+  "fg": "muted",
+  "bg": "app",
+  "ratio": 5.02,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "kanban",
+  "theme": "light",
+  "fg": "muted",
+  "bg": "sidebar",
+  "ratio": 5.02,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "kanban",
+  "theme": "light",
+  "fg": "muted",
+  "bg": "panel",
+  "ratio": 4.66,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "kanban",
+  "theme": "light",
+  "fg": "muted",
+  "bg": "selected",
+  "ratio": 4.83,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "kanban",
+  "theme": "light",
+  "fg": "muted",
+  "bg": "hover",
+  "ratio": 4.8,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "kanban",
+  "theme": "light",
+  "fg": "working",
+  "bg": "app",
+  "ratio": 5.31,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "kanban",
+  "theme": "light",
+  "fg": "working",
+  "bg": "sidebar",
+  "ratio": 5.31,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "kanban",
+  "theme": "light",
+  "fg": "working",
+  "bg": "panel",
+  "ratio": 4.93,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "kanban",
+  "theme": "light",
+  "fg": "working",
+  "bg": "selected",
+  "ratio": 5.1,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "kanban",
+  "theme": "light",
+  "fg": "working",
+  "bg": "hover",
+  "ratio": 5.07,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "kanban",
+  "theme": "light",
+  "fg": "attention",
+  "bg": "app",
+  "ratio": 5.02,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "kanban",
+  "theme": "light",
+  "fg": "attention",
+  "bg": "sidebar",
+  "ratio": 5.02,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "kanban",
+  "theme": "light",
+  "fg": "attention",
+  "bg": "panel",
+  "ratio": 4.66,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "kanban",
+  "theme": "light",
+  "fg": "attention",
+  "bg": "selected",
+  "ratio": 4.83,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "kanban",
+  "theme": "light",
+  "fg": "attention",
+  "bg": "hover",
+  "ratio": 4.8,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "kanban",
+  "theme": "light",
+  "fg": "done",
+  "bg": "app",
+  "ratio": 5.28,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "kanban",
+  "theme": "light",
+  "fg": "done",
+  "bg": "sidebar",
+  "ratio": 5.28,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "kanban",
+  "theme": "light",
+  "fg": "done",
+  "bg": "panel",
+  "ratio": 4.9,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "kanban",
+  "theme": "light",
+  "fg": "done",
+  "bg": "selected",
+  "ratio": 5.07,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "kanban",
+  "theme": "light",
+  "fg": "done",
+  "bg": "hover",
+  "ratio": 5.04,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "kanban",
+  "theme": "light",
+  "fg": "failed",
+  "bg": "app",
+  "ratio": 4.85,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "kanban",
+  "theme": "light",
+  "fg": "failed",
+  "bg": "sidebar",
+  "ratio": 4.85,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "kanban",
+  "theme": "light",
+  "fg": "failed",
+  "bg": "panel",
+  "ratio": 4.51,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "kanban",
+  "theme": "light",
+  "fg": "failed",
+  "bg": "selected",
+  "ratio": 4.66,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "kanban",
+  "theme": "light",
+  "fg": "failed",
+  "bg": "hover",
+  "ratio": 4.64,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "kanban",
+  "theme": "light",
+  "fg": "accent_fg",
+  "bg": "app",
+  "ratio": 6.17,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "kanban",
+  "theme": "light",
+  "fg": "accent_fg",
+  "bg": "sidebar",
+  "ratio": 6.17,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "kanban",
+  "theme": "light",
+  "fg": "accent_fg",
+  "bg": "panel",
+  "ratio": 5.73,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "kanban",
+  "theme": "light",
+  "fg": "accent_fg",
+  "bg": "selected",
+  "ratio": 5.93,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "kanban",
+  "theme": "light",
+  "fg": "accent_fg",
+  "bg": "hover",
+  "ratio": 5.9,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "kanban",
+  "theme": "light",
+  "fg": "term_fg",
+  "bg": "term_bg",
+  "ratio": 14.99,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "kanban",
+  "theme": "light",
+  "fg": "focus",
+  "bg": "panel",
+  "ratio": 4.77,
+  "min": 3,
+  "ok": true
+ },
+ {
+  "sample": "kanban",
+  "theme": "light",
+  "fg": "focus",
+  "bg": "app",
+  "ratio": 5.14,
+  "min": 3,
+  "ok": true
+ },
+ {
+  "sample": "review",
+  "theme": "dark",
+  "fg": "text",
+  "bg": "app",
+  "ratio": 14.64,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "review",
+  "theme": "dark",
+  "fg": "text",
+  "bg": "sidebar",
+  "ratio": 14.49,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "review",
+  "theme": "dark",
+  "fg": "text",
+  "bg": "panel",
+  "ratio": 13.91,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "review",
+  "theme": "dark",
+  "fg": "text",
+  "bg": "selected",
+  "ratio": 11.43,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "review",
+  "theme": "dark",
+  "fg": "text",
+  "bg": "hover",
+  "ratio": 12.04,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "review",
+  "theme": "dark",
+  "fg": "text2",
+  "bg": "app",
+  "ratio": 8.54,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "review",
+  "theme": "dark",
+  "fg": "text2",
+  "bg": "sidebar",
+  "ratio": 8.45,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "review",
+  "theme": "dark",
+  "fg": "text2",
+  "bg": "panel",
+  "ratio": 8.11,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "review",
+  "theme": "dark",
+  "fg": "text2",
+  "bg": "selected",
+  "ratio": 6.67,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "review",
+  "theme": "dark",
+  "fg": "text2",
+  "bg": "hover",
+  "ratio": 7.02,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "review",
+  "theme": "dark",
+  "fg": "muted",
+  "bg": "app",
+  "ratio": 5.89,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "review",
+  "theme": "dark",
+  "fg": "muted",
+  "bg": "sidebar",
+  "ratio": 5.83,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "review",
+  "theme": "dark",
+  "fg": "muted",
+  "bg": "panel",
+  "ratio": 5.59,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "review",
+  "theme": "dark",
+  "fg": "muted",
+  "bg": "selected",
+  "ratio": 4.6,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "review",
+  "theme": "dark",
+  "fg": "muted",
+  "bg": "hover",
+  "ratio": 4.84,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "review",
+  "theme": "dark",
+  "fg": "working",
+  "bg": "app",
+  "ratio": 7.79,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "review",
+  "theme": "dark",
+  "fg": "working",
+  "bg": "sidebar",
+  "ratio": 7.71,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "review",
+  "theme": "dark",
+  "fg": "working",
+  "bg": "panel",
+  "ratio": 7.4,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "review",
+  "theme": "dark",
+  "fg": "working",
+  "bg": "selected",
+  "ratio": 6.08,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "review",
+  "theme": "dark",
+  "fg": "working",
+  "bg": "hover",
+  "ratio": 6.41,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "review",
+  "theme": "dark",
+  "fg": "attention",
+  "bg": "app",
+  "ratio": 9.52,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "review",
+  "theme": "dark",
+  "fg": "attention",
+  "bg": "sidebar",
+  "ratio": 9.42,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "review",
+  "theme": "dark",
+  "fg": "attention",
+  "bg": "panel",
+  "ratio": 9.04,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "review",
+  "theme": "dark",
+  "fg": "attention",
+  "bg": "selected",
+  "ratio": 7.43,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "review",
+  "theme": "dark",
+  "fg": "attention",
+  "bg": "hover",
+  "ratio": 7.83,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "review",
+  "theme": "dark",
+  "fg": "done",
+  "bg": "app",
+  "ratio": 8.01,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "review",
+  "theme": "dark",
+  "fg": "done",
+  "bg": "sidebar",
+  "ratio": 7.93,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "review",
+  "theme": "dark",
+  "fg": "done",
+  "bg": "panel",
+  "ratio": 7.61,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "review",
+  "theme": "dark",
+  "fg": "done",
+  "bg": "selected",
+  "ratio": 6.26,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "review",
+  "theme": "dark",
+  "fg": "done",
+  "bg": "hover",
+  "ratio": 6.59,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "review",
+  "theme": "dark",
+  "fg": "failed",
+  "bg": "app",
+  "ratio": 7.52,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "review",
+  "theme": "dark",
+  "fg": "failed",
+  "bg": "sidebar",
+  "ratio": 7.44,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "review",
+  "theme": "dark",
+  "fg": "failed",
+  "bg": "panel",
+  "ratio": 7.14,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "review",
+  "theme": "dark",
+  "fg": "failed",
+  "bg": "selected",
+  "ratio": 5.87,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "review",
+  "theme": "dark",
+  "fg": "failed",
+  "bg": "hover",
+  "ratio": 6.18,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "review",
+  "theme": "dark",
+  "fg": "accent_fg",
+  "bg": "app",
+  "ratio": 8.71,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "review",
+  "theme": "dark",
+  "fg": "accent_fg",
+  "bg": "sidebar",
+  "ratio": 8.62,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "review",
+  "theme": "dark",
+  "fg": "accent_fg",
+  "bg": "panel",
+  "ratio": 8.28,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "review",
+  "theme": "dark",
+  "fg": "accent_fg",
+  "bg": "selected",
+  "ratio": 6.8,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "review",
+  "theme": "dark",
+  "fg": "accent_fg",
+  "bg": "hover",
+  "ratio": 7.17,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "review",
+  "theme": "dark",
+  "fg": "term_fg",
+  "bg": "term_bg",
+  "ratio": 13.32,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "review",
+  "theme": "dark",
+  "fg": "focus",
+  "bg": "panel",
+  "ratio": 6.29,
+  "min": 3,
+  "ok": true
+ },
+ {
+  "sample": "review",
+  "theme": "dark",
+  "fg": "focus",
+  "bg": "app",
+  "ratio": 6.62,
+  "min": 3,
+  "ok": true
+ },
+ {
+  "sample": "review",
+  "theme": "light",
+  "fg": "text",
+  "bg": "app",
+  "ratio": 14.75,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "review",
+  "theme": "light",
+  "fg": "text",
+  "bg": "sidebar",
+  "ratio": 15.02,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "review",
+  "theme": "light",
+  "fg": "text",
+  "bg": "panel",
+  "ratio": 16.52,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "review",
+  "theme": "light",
+  "fg": "text",
+  "bg": "selected",
+  "ratio": 13.42,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "review",
+  "theme": "light",
+  "fg": "text",
+  "bg": "hover",
+  "ratio": 13.71,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "review",
+  "theme": "light",
+  "fg": "text2",
+  "bg": "app",
+  "ratio": 7.02,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "review",
+  "theme": "light",
+  "fg": "text2",
+  "bg": "sidebar",
+  "ratio": 7.15,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "review",
+  "theme": "light",
+  "fg": "text2",
+  "bg": "panel",
+  "ratio": 7.87,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "review",
+  "theme": "light",
+  "fg": "text2",
+  "bg": "selected",
+  "ratio": 6.39,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "review",
+  "theme": "light",
+  "fg": "text2",
+  "bg": "hover",
+  "ratio": 6.53,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "review",
+  "theme": "light",
+  "fg": "muted",
+  "bg": "app",
+  "ratio": 5.16,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "review",
+  "theme": "light",
+  "fg": "muted",
+  "bg": "sidebar",
+  "ratio": 5.26,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "review",
+  "theme": "light",
+  "fg": "muted",
+  "bg": "panel",
+  "ratio": 5.78,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "review",
+  "theme": "light",
+  "fg": "muted",
+  "bg": "selected",
+  "ratio": 4.7,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "review",
+  "theme": "light",
+  "fg": "muted",
+  "bg": "hover",
+  "ratio": 4.8,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "review",
+  "theme": "light",
+  "fg": "working",
+  "bg": "app",
+  "ratio": 5.46,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "review",
+  "theme": "light",
+  "fg": "working",
+  "bg": "sidebar",
+  "ratio": 5.55,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "review",
+  "theme": "light",
+  "fg": "working",
+  "bg": "panel",
+  "ratio": 6.11,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "review",
+  "theme": "light",
+  "fg": "working",
+  "bg": "selected",
+  "ratio": 4.97,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "review",
+  "theme": "light",
+  "fg": "working",
+  "bg": "hover",
+  "ratio": 5.07,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "review",
+  "theme": "light",
+  "fg": "attention",
+  "bg": "app",
+  "ratio": 5.16,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "review",
+  "theme": "light",
+  "fg": "attention",
+  "bg": "sidebar",
+  "ratio": 5.26,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "review",
+  "theme": "light",
+  "fg": "attention",
+  "bg": "panel",
+  "ratio": 5.78,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "review",
+  "theme": "light",
+  "fg": "attention",
+  "bg": "selected",
+  "ratio": 4.7,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "review",
+  "theme": "light",
+  "fg": "attention",
+  "bg": "hover",
+  "ratio": 4.8,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "review",
+  "theme": "light",
+  "fg": "done",
+  "bg": "app",
+  "ratio": 5.43,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "review",
+  "theme": "light",
+  "fg": "done",
+  "bg": "sidebar",
+  "ratio": 5.52,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "review",
+  "theme": "light",
+  "fg": "done",
+  "bg": "panel",
+  "ratio": 6.08,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "review",
+  "theme": "light",
+  "fg": "done",
+  "bg": "selected",
+  "ratio": 4.94,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "review",
+  "theme": "light",
+  "fg": "done",
+  "bg": "hover",
+  "ratio": 5.04,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "review",
+  "theme": "light",
+  "fg": "failed",
+  "bg": "app",
+  "ratio": 4.99,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "review",
+  "theme": "light",
+  "fg": "failed",
+  "bg": "sidebar",
+  "ratio": 5.08,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "review",
+  "theme": "light",
+  "fg": "failed",
+  "bg": "panel",
+  "ratio": 5.59,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "review",
+  "theme": "light",
+  "fg": "failed",
+  "bg": "selected",
+  "ratio": 4.54,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "review",
+  "theme": "light",
+  "fg": "failed",
+  "bg": "hover",
+  "ratio": 4.64,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "review",
+  "theme": "light",
+  "fg": "accent_fg",
+  "bg": "app",
+  "ratio": 5.76,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "review",
+  "theme": "light",
+  "fg": "accent_fg",
+  "bg": "sidebar",
+  "ratio": 5.86,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "review",
+  "theme": "light",
+  "fg": "accent_fg",
+  "bg": "panel",
+  "ratio": 6.45,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "review",
+  "theme": "light",
+  "fg": "accent_fg",
+  "bg": "selected",
+  "ratio": 5.24,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "review",
+  "theme": "light",
+  "fg": "accent_fg",
+  "bg": "hover",
+  "ratio": 5.35,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "review",
+  "theme": "light",
+  "fg": "term_fg",
+  "bg": "term_bg",
+  "ratio": 14.37,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "review",
+  "theme": "light",
+  "fg": "focus",
+  "bg": "panel",
+  "ratio": 4.94,
+  "min": 3,
+  "ok": true
+ },
+ {
+  "sample": "review",
+  "theme": "light",
+  "fg": "focus",
+  "bg": "app",
+  "ratio": 4.41,
+  "min": 3,
+  "ok": true
+ },
+ {
+  "sample": "access",
+  "theme": "dark",
+  "fg": "text",
+  "bg": "app",
+  "ratio": 17.32,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "access",
+  "theme": "dark",
+  "fg": "text",
+  "bg": "sidebar",
+  "ratio": 16.59,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "access",
+  "theme": "dark",
+  "fg": "text",
+  "bg": "panel",
+  "ratio": 15.93,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "access",
+  "theme": "dark",
+  "fg": "text",
+  "bg": "selected",
+  "ratio": 11.72,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "access",
+  "theme": "dark",
+  "fg": "text",
+  "bg": "hover",
+  "ratio": 13.14,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "access",
+  "theme": "dark",
+  "fg": "text2",
+  "bg": "app",
+  "ratio": 13.22,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "access",
+  "theme": "dark",
+  "fg": "text2",
+  "bg": "sidebar",
+  "ratio": 12.67,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "access",
+  "theme": "dark",
+  "fg": "text2",
+  "bg": "panel",
+  "ratio": 12.17,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "access",
+  "theme": "dark",
+  "fg": "text2",
+  "bg": "selected",
+  "ratio": 8.95,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "access",
+  "theme": "dark",
+  "fg": "text2",
+  "bg": "hover",
+  "ratio": 10.03,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "access",
+  "theme": "dark",
+  "fg": "muted",
+  "bg": "app",
+  "ratio": 10.56,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "access",
+  "theme": "dark",
+  "fg": "muted",
+  "bg": "sidebar",
+  "ratio": 10.12,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "access",
+  "theme": "dark",
+  "fg": "muted",
+  "bg": "panel",
+  "ratio": 9.72,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "access",
+  "theme": "dark",
+  "fg": "muted",
+  "bg": "selected",
+  "ratio": 7.15,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "access",
+  "theme": "dark",
+  "fg": "muted",
+  "bg": "hover",
+  "ratio": 8.01,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "access",
+  "theme": "dark",
+  "fg": "working",
+  "bg": "app",
+  "ratio": 10.67,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "access",
+  "theme": "dark",
+  "fg": "working",
+  "bg": "sidebar",
+  "ratio": 10.22,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "access",
+  "theme": "dark",
+  "fg": "working",
+  "bg": "panel",
+  "ratio": 9.81,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "access",
+  "theme": "dark",
+  "fg": "working",
+  "bg": "selected",
+  "ratio": 7.22,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "access",
+  "theme": "dark",
+  "fg": "working",
+  "bg": "hover",
+  "ratio": 8.09,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "access",
+  "theme": "dark",
+  "fg": "attention",
+  "bg": "app",
+  "ratio": 11.52,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "access",
+  "theme": "dark",
+  "fg": "attention",
+  "bg": "sidebar",
+  "ratio": 11.04,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "access",
+  "theme": "dark",
+  "fg": "attention",
+  "bg": "panel",
+  "ratio": 10.6,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "access",
+  "theme": "dark",
+  "fg": "attention",
+  "bg": "selected",
+  "ratio": 7.8,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "access",
+  "theme": "dark",
+  "fg": "attention",
+  "bg": "hover",
+  "ratio": 8.74,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "access",
+  "theme": "dark",
+  "fg": "done",
+  "bg": "app",
+  "ratio": 10.52,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "access",
+  "theme": "dark",
+  "fg": "done",
+  "bg": "sidebar",
+  "ratio": 10.08,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "access",
+  "theme": "dark",
+  "fg": "done",
+  "bg": "panel",
+  "ratio": 9.68,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "access",
+  "theme": "dark",
+  "fg": "done",
+  "bg": "selected",
+  "ratio": 7.12,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "access",
+  "theme": "dark",
+  "fg": "done",
+  "bg": "hover",
+  "ratio": 7.98,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "access",
+  "theme": "dark",
+  "fg": "failed",
+  "bg": "app",
+  "ratio": 9.79,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "access",
+  "theme": "dark",
+  "fg": "failed",
+  "bg": "sidebar",
+  "ratio": 9.38,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "access",
+  "theme": "dark",
+  "fg": "failed",
+  "bg": "panel",
+  "ratio": 9.01,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "access",
+  "theme": "dark",
+  "fg": "failed",
+  "bg": "selected",
+  "ratio": 6.63,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "access",
+  "theme": "dark",
+  "fg": "failed",
+  "bg": "hover",
+  "ratio": 7.42,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "access",
+  "theme": "dark",
+  "fg": "accent_fg",
+  "bg": "app",
+  "ratio": 11.07,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "access",
+  "theme": "dark",
+  "fg": "accent_fg",
+  "bg": "sidebar",
+  "ratio": 10.61,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "access",
+  "theme": "dark",
+  "fg": "accent_fg",
+  "bg": "panel",
+  "ratio": 10.19,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "access",
+  "theme": "dark",
+  "fg": "accent_fg",
+  "bg": "selected",
+  "ratio": 7.49,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "access",
+  "theme": "dark",
+  "fg": "accent_fg",
+  "bg": "hover",
+  "ratio": 8.4,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "access",
+  "theme": "dark",
+  "fg": "term_fg",
+  "bg": "term_bg",
+  "ratio": 15.86,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "access",
+  "theme": "dark",
+  "fg": "focus",
+  "bg": "panel",
+  "ratio": 11.98,
+  "min": 3,
+  "ok": true
+ },
+ {
+  "sample": "access",
+  "theme": "dark",
+  "fg": "focus",
+  "bg": "app",
+  "ratio": 13.02,
+  "min": 3,
+  "ok": true
+ },
+ {
+  "sample": "access",
+  "theme": "light",
+  "fg": "text",
+  "bg": "app",
+  "ratio": 17.64,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "access",
+  "theme": "light",
+  "fg": "text",
+  "bg": "sidebar",
+  "ratio": 18.91,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "access",
+  "theme": "light",
+  "fg": "text",
+  "bg": "panel",
+  "ratio": 18.91,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "access",
+  "theme": "light",
+  "fg": "text",
+  "bg": "selected",
+  "ratio": 15.0,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "access",
+  "theme": "light",
+  "fg": "text",
+  "bg": "hover",
+  "ratio": 16.1,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "access",
+  "theme": "light",
+  "fg": "text2",
+  "bg": "app",
+  "ratio": 12.22,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "access",
+  "theme": "light",
+  "fg": "text2",
+  "bg": "sidebar",
+  "ratio": 13.1,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "access",
+  "theme": "light",
+  "fg": "text2",
+  "bg": "panel",
+  "ratio": 13.1,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "access",
+  "theme": "light",
+  "fg": "text2",
+  "bg": "selected",
+  "ratio": 10.39,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "access",
+  "theme": "light",
+  "fg": "text2",
+  "bg": "hover",
+  "ratio": 11.15,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "access",
+  "theme": "light",
+  "fg": "muted",
+  "bg": "app",
+  "ratio": 9.02,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "access",
+  "theme": "light",
+  "fg": "muted",
+  "bg": "sidebar",
+  "ratio": 9.67,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "access",
+  "theme": "light",
+  "fg": "muted",
+  "bg": "panel",
+  "ratio": 9.67,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "access",
+  "theme": "light",
+  "fg": "muted",
+  "bg": "selected",
+  "ratio": 7.67,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "access",
+  "theme": "light",
+  "fg": "muted",
+  "bg": "hover",
+  "ratio": 8.23,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "access",
+  "theme": "light",
+  "fg": "working",
+  "bg": "app",
+  "ratio": 6.94,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "access",
+  "theme": "light",
+  "fg": "working",
+  "bg": "sidebar",
+  "ratio": 7.44,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "access",
+  "theme": "light",
+  "fg": "working",
+  "bg": "panel",
+  "ratio": 7.44,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "access",
+  "theme": "light",
+  "fg": "working",
+  "bg": "selected",
+  "ratio": 5.9,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "access",
+  "theme": "light",
+  "fg": "working",
+  "bg": "hover",
+  "ratio": 6.33,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "access",
+  "theme": "light",
+  "fg": "attention",
+  "bg": "app",
+  "ratio": 7.79,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "access",
+  "theme": "light",
+  "fg": "attention",
+  "bg": "sidebar",
+  "ratio": 8.35,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "access",
+  "theme": "light",
+  "fg": "attention",
+  "bg": "panel",
+  "ratio": 8.35,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "access",
+  "theme": "light",
+  "fg": "attention",
+  "bg": "selected",
+  "ratio": 6.63,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "access",
+  "theme": "light",
+  "fg": "attention",
+  "bg": "hover",
+  "ratio": 7.11,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "access",
+  "theme": "light",
+  "fg": "done",
+  "bg": "app",
+  "ratio": 7.27,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "access",
+  "theme": "light",
+  "fg": "done",
+  "bg": "sidebar",
+  "ratio": 7.79,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "access",
+  "theme": "light",
+  "fg": "done",
+  "bg": "panel",
+  "ratio": 7.79,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "access",
+  "theme": "light",
+  "fg": "done",
+  "bg": "selected",
+  "ratio": 6.18,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "access",
+  "theme": "light",
+  "fg": "done",
+  "bg": "hover",
+  "ratio": 6.63,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "access",
+  "theme": "light",
+  "fg": "failed",
+  "bg": "app",
+  "ratio": 7.08,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "access",
+  "theme": "light",
+  "fg": "failed",
+  "bg": "sidebar",
+  "ratio": 7.59,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "access",
+  "theme": "light",
+  "fg": "failed",
+  "bg": "panel",
+  "ratio": 7.59,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "access",
+  "theme": "light",
+  "fg": "failed",
+  "bg": "selected",
+  "ratio": 6.02,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "access",
+  "theme": "light",
+  "fg": "failed",
+  "bg": "hover",
+  "ratio": 6.46,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "access",
+  "theme": "light",
+  "fg": "accent_fg",
+  "bg": "app",
+  "ratio": 7.36,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "access",
+  "theme": "light",
+  "fg": "accent_fg",
+  "bg": "sidebar",
+  "ratio": 7.89,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "access",
+  "theme": "light",
+  "fg": "accent_fg",
+  "bg": "panel",
+  "ratio": 7.89,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "access",
+  "theme": "light",
+  "fg": "accent_fg",
+  "bg": "selected",
+  "ratio": 6.26,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "access",
+  "theme": "light",
+  "fg": "accent_fg",
+  "bg": "hover",
+  "ratio": 6.72,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "access",
+  "theme": "light",
+  "fg": "term_fg",
+  "bg": "term_bg",
+  "ratio": 18.91,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "access",
+  "theme": "light",
+  "fg": "focus",
+  "bg": "panel",
+  "ratio": 7.89,
+  "min": 3,
+  "ok": true
+ },
+ {
+  "sample": "access",
+  "theme": "light",
+  "fg": "focus",
+  "bg": "app",
+  "ratio": 7.36,
+  "min": 3,
+  "ok": true
+ },
+ {
+  "sample": "a-teal",
+  "theme": "dark",
+  "fg": "text",
+  "bg": "app",
+  "ratio": 14.55,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "a-teal",
+  "theme": "dark",
+  "fg": "text",
+  "bg": "sidebar",
+  "ratio": 14.55,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "a-teal",
+  "theme": "dark",
+  "fg": "text",
+  "bg": "panel",
+  "ratio": 13.71,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "a-teal",
+  "theme": "dark",
+  "fg": "text",
+  "bg": "selected",
+  "ratio": 10.95,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "a-teal",
+  "theme": "dark",
+  "fg": "text",
+  "bg": "hover",
+  "ratio": 11.87,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "a-teal",
+  "theme": "dark",
+  "fg": "text2",
+  "bg": "app",
+  "ratio": 8.49,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "a-teal",
+  "theme": "dark",
+  "fg": "text2",
+  "bg": "sidebar",
+  "ratio": 8.49,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "a-teal",
+  "theme": "dark",
+  "fg": "text2",
+  "bg": "panel",
+  "ratio": 7.99,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "a-teal",
+  "theme": "dark",
+  "fg": "text2",
+  "bg": "selected",
+  "ratio": 6.39,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "a-teal",
+  "theme": "dark",
+  "fg": "text2",
+  "bg": "hover",
+  "ratio": 6.92,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "a-teal",
+  "theme": "dark",
+  "fg": "muted",
+  "bg": "app",
+  "ratio": 6.3,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "a-teal",
+  "theme": "dark",
+  "fg": "muted",
+  "bg": "sidebar",
+  "ratio": 6.3,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "a-teal",
+  "theme": "dark",
+  "fg": "muted",
+  "bg": "panel",
+  "ratio": 5.93,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "a-teal",
+  "theme": "dark",
+  "fg": "muted",
+  "bg": "selected",
+  "ratio": 4.74,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "a-teal",
+  "theme": "dark",
+  "fg": "muted",
+  "bg": "hover",
+  "ratio": 5.14,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "a-teal",
+  "theme": "dark",
+  "fg": "working",
+  "bg": "app",
+  "ratio": 7.75,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "a-teal",
+  "theme": "dark",
+  "fg": "working",
+  "bg": "sidebar",
+  "ratio": 7.75,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "a-teal",
+  "theme": "dark",
+  "fg": "working",
+  "bg": "panel",
+  "ratio": 7.29,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "a-teal",
+  "theme": "dark",
+  "fg": "working",
+  "bg": "selected",
+  "ratio": 5.83,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "a-teal",
+  "theme": "dark",
+  "fg": "working",
+  "bg": "hover",
+  "ratio": 6.32,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "a-teal",
+  "theme": "dark",
+  "fg": "attention",
+  "bg": "app",
+  "ratio": 9.46,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "a-teal",
+  "theme": "dark",
+  "fg": "attention",
+  "bg": "sidebar",
+  "ratio": 9.46,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "a-teal",
+  "theme": "dark",
+  "fg": "attention",
+  "bg": "panel",
+  "ratio": 8.91,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "a-teal",
+  "theme": "dark",
+  "fg": "attention",
+  "bg": "selected",
+  "ratio": 7.12,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "a-teal",
+  "theme": "dark",
+  "fg": "attention",
+  "bg": "hover",
+  "ratio": 7.72,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "a-teal",
+  "theme": "dark",
+  "fg": "done",
+  "bg": "app",
+  "ratio": 7.96,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "a-teal",
+  "theme": "dark",
+  "fg": "done",
+  "bg": "sidebar",
+  "ratio": 7.96,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "a-teal",
+  "theme": "dark",
+  "fg": "done",
+  "bg": "panel",
+  "ratio": 7.5,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "a-teal",
+  "theme": "dark",
+  "fg": "done",
+  "bg": "selected",
+  "ratio": 5.99,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "a-teal",
+  "theme": "dark",
+  "fg": "done",
+  "bg": "hover",
+  "ratio": 6.5,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "a-teal",
+  "theme": "dark",
+  "fg": "failed",
+  "bg": "app",
+  "ratio": 7.47,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "a-teal",
+  "theme": "dark",
+  "fg": "failed",
+  "bg": "sidebar",
+  "ratio": 7.47,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "a-teal",
+  "theme": "dark",
+  "fg": "failed",
+  "bg": "panel",
+  "ratio": 7.04,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "a-teal",
+  "theme": "dark",
+  "fg": "failed",
+  "bg": "selected",
+  "ratio": 5.62,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "a-teal",
+  "theme": "dark",
+  "fg": "failed",
+  "bg": "hover",
+  "ratio": 6.1,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "a-teal",
+  "theme": "dark",
+  "fg": "accent_fg",
+  "bg": "app",
+  "ratio": 9.81,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "a-teal",
+  "theme": "dark",
+  "fg": "accent_fg",
+  "bg": "sidebar",
+  "ratio": 9.81,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "a-teal",
+  "theme": "dark",
+  "fg": "accent_fg",
+  "bg": "panel",
+  "ratio": 9.24,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "a-teal",
+  "theme": "dark",
+  "fg": "accent_fg",
+  "bg": "selected",
+  "ratio": 7.38,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "a-teal",
+  "theme": "dark",
+  "fg": "accent_fg",
+  "bg": "hover",
+  "ratio": 8.0,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "a-teal",
+  "theme": "dark",
+  "fg": "term_fg",
+  "bg": "term_bg",
+  "ratio": 12.36,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "a-teal",
+  "theme": "dark",
+  "fg": "focus",
+  "bg": "panel",
+  "ratio": 9.24,
+  "min": 3,
+  "ok": true
+ },
+ {
+  "sample": "a-teal",
+  "theme": "dark",
+  "fg": "focus",
+  "bg": "app",
+  "ratio": 9.81,
+  "min": 3,
+  "ok": true
+ },
+ {
+  "sample": "a-teal",
+  "theme": "light",
+  "fg": "text",
+  "bg": "app",
+  "ratio": 14.82,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "a-teal",
+  "theme": "light",
+  "fg": "text",
+  "bg": "sidebar",
+  "ratio": 14.82,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "a-teal",
+  "theme": "light",
+  "fg": "text",
+  "bg": "panel",
+  "ratio": 16.52,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "a-teal",
+  "theme": "light",
+  "fg": "text",
+  "bg": "selected",
+  "ratio": 13.59,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "a-teal",
+  "theme": "light",
+  "fg": "text",
+  "bg": "hover",
+  "ratio": 13.47,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "a-teal",
+  "theme": "light",
+  "fg": "text2",
+  "bg": "app",
+  "ratio": 7.06,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "a-teal",
+  "theme": "light",
+  "fg": "text2",
+  "bg": "sidebar",
+  "ratio": 7.06,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "a-teal",
+  "theme": "light",
+  "fg": "text2",
+  "bg": "panel",
+  "ratio": 7.87,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "a-teal",
+  "theme": "light",
+  "fg": "text2",
+  "bg": "selected",
+  "ratio": 6.47,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "a-teal",
+  "theme": "light",
+  "fg": "text2",
+  "bg": "hover",
+  "ratio": 6.42,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "a-teal",
+  "theme": "light",
+  "fg": "muted",
+  "bg": "app",
+  "ratio": 5.19,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "a-teal",
+  "theme": "light",
+  "fg": "muted",
+  "bg": "sidebar",
+  "ratio": 5.19,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "a-teal",
+  "theme": "light",
+  "fg": "muted",
+  "bg": "panel",
+  "ratio": 5.78,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "a-teal",
+  "theme": "light",
+  "fg": "muted",
+  "bg": "selected",
+  "ratio": 4.76,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "a-teal",
+  "theme": "light",
+  "fg": "muted",
+  "bg": "hover",
+  "ratio": 4.72,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "a-teal",
+  "theme": "light",
+  "fg": "working",
+  "bg": "app",
+  "ratio": 5.48,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "a-teal",
+  "theme": "light",
+  "fg": "working",
+  "bg": "sidebar",
+  "ratio": 5.48,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "a-teal",
+  "theme": "light",
+  "fg": "working",
+  "bg": "panel",
+  "ratio": 6.11,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "a-teal",
+  "theme": "light",
+  "fg": "working",
+  "bg": "selected",
+  "ratio": 5.03,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "a-teal",
+  "theme": "light",
+  "fg": "working",
+  "bg": "hover",
+  "ratio": 4.98,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "a-teal",
+  "theme": "light",
+  "fg": "attention",
+  "bg": "app",
+  "ratio": 5.19,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "a-teal",
+  "theme": "light",
+  "fg": "attention",
+  "bg": "sidebar",
+  "ratio": 5.19,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "a-teal",
+  "theme": "light",
+  "fg": "attention",
+  "bg": "panel",
+  "ratio": 5.78,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "a-teal",
+  "theme": "light",
+  "fg": "attention",
+  "bg": "selected",
+  "ratio": 4.76,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "a-teal",
+  "theme": "light",
+  "fg": "attention",
+  "bg": "hover",
+  "ratio": 4.72,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "a-teal",
+  "theme": "light",
+  "fg": "done",
+  "bg": "app",
+  "ratio": 5.45,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "a-teal",
+  "theme": "light",
+  "fg": "done",
+  "bg": "sidebar",
+  "ratio": 5.45,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "a-teal",
+  "theme": "light",
+  "fg": "done",
+  "bg": "panel",
+  "ratio": 6.08,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "a-teal",
+  "theme": "light",
+  "fg": "done",
+  "bg": "selected",
+  "ratio": 5.0,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "a-teal",
+  "theme": "light",
+  "fg": "done",
+  "bg": "hover",
+  "ratio": 4.96,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "a-teal",
+  "theme": "light",
+  "fg": "failed",
+  "bg": "app",
+  "ratio": 5.01,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "a-teal",
+  "theme": "light",
+  "fg": "failed",
+  "bg": "sidebar",
+  "ratio": 5.01,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "a-teal",
+  "theme": "light",
+  "fg": "failed",
+  "bg": "panel",
+  "ratio": 5.59,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "a-teal",
+  "theme": "light",
+  "fg": "failed",
+  "bg": "selected",
+  "ratio": 4.6,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "a-teal",
+  "theme": "light",
+  "fg": "failed",
+  "bg": "hover",
+  "ratio": 4.56,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "a-teal",
+  "theme": "light",
+  "fg": "accent_fg",
+  "bg": "app",
+  "ratio": 5.68,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "a-teal",
+  "theme": "light",
+  "fg": "accent_fg",
+  "bg": "sidebar",
+  "ratio": 5.68,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "a-teal",
+  "theme": "light",
+  "fg": "accent_fg",
+  "bg": "panel",
+  "ratio": 6.33,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "a-teal",
+  "theme": "light",
+  "fg": "accent_fg",
+  "bg": "selected",
+  "ratio": 5.21,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "a-teal",
+  "theme": "light",
+  "fg": "accent_fg",
+  "bg": "hover",
+  "ratio": 5.16,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "a-teal",
+  "theme": "light",
+  "fg": "term_fg",
+  "bg": "term_bg",
+  "ratio": 14.99,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "a-teal",
+  "theme": "light",
+  "fg": "focus",
+  "bg": "panel",
+  "ratio": 5.16,
+  "min": 3,
+  "ok": true
+ },
+ {
+  "sample": "a-teal",
+  "theme": "light",
+  "fg": "focus",
+  "bg": "app",
+  "ratio": 4.62,
+  "min": 3,
+  "ok": true
+ },
+ {
+  "sample": "a-violet",
+  "theme": "dark",
+  "fg": "text",
+  "bg": "app",
+  "ratio": 14.64,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "a-violet",
+  "theme": "dark",
+  "fg": "text",
+  "bg": "sidebar",
+  "ratio": 14.64,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "a-violet",
+  "theme": "dark",
+  "fg": "text",
+  "bg": "panel",
+  "ratio": 13.91,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "a-violet",
+  "theme": "dark",
+  "fg": "text",
+  "bg": "selected",
+  "ratio": 11.93,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "a-violet",
+  "theme": "dark",
+  "fg": "text",
+  "bg": "hover",
+  "ratio": 12.35,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "a-violet",
+  "theme": "dark",
+  "fg": "text2",
+  "bg": "app",
+  "ratio": 8.39,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "a-violet",
+  "theme": "dark",
+  "fg": "text2",
+  "bg": "sidebar",
+  "ratio": 8.39,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "a-violet",
+  "theme": "dark",
+  "fg": "text2",
+  "bg": "panel",
+  "ratio": 7.97,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "a-violet",
+  "theme": "dark",
+  "fg": "text2",
+  "bg": "selected",
+  "ratio": 6.83,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "a-violet",
+  "theme": "dark",
+  "fg": "text2",
+  "bg": "hover",
+  "ratio": 7.07,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "a-violet",
+  "theme": "dark",
+  "fg": "muted",
+  "bg": "app",
+  "ratio": 5.79,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "a-violet",
+  "theme": "dark",
+  "fg": "muted",
+  "bg": "sidebar",
+  "ratio": 5.79,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "a-violet",
+  "theme": "dark",
+  "fg": "muted",
+  "bg": "panel",
+  "ratio": 5.5,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "a-violet",
+  "theme": "dark",
+  "fg": "muted",
+  "bg": "selected",
+  "ratio": 4.71,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "a-violet",
+  "theme": "dark",
+  "fg": "muted",
+  "bg": "hover",
+  "ratio": 4.88,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "a-violet",
+  "theme": "dark",
+  "fg": "working",
+  "bg": "app",
+  "ratio": 7.78,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "a-violet",
+  "theme": "dark",
+  "fg": "working",
+  "bg": "sidebar",
+  "ratio": 7.78,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "a-violet",
+  "theme": "dark",
+  "fg": "working",
+  "bg": "panel",
+  "ratio": 7.39,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "a-violet",
+  "theme": "dark",
+  "fg": "working",
+  "bg": "selected",
+  "ratio": 6.33,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "a-violet",
+  "theme": "dark",
+  "fg": "working",
+  "bg": "hover",
+  "ratio": 6.56,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "a-violet",
+  "theme": "dark",
+  "fg": "attention",
+  "bg": "app",
+  "ratio": 9.5,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "a-violet",
+  "theme": "dark",
+  "fg": "attention",
+  "bg": "sidebar",
+  "ratio": 9.5,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "a-violet",
+  "theme": "dark",
+  "fg": "attention",
+  "bg": "panel",
+  "ratio": 9.02,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "a-violet",
+  "theme": "dark",
+  "fg": "attention",
+  "bg": "selected",
+  "ratio": 7.74,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "a-violet",
+  "theme": "dark",
+  "fg": "attention",
+  "bg": "hover",
+  "ratio": 8.01,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "a-violet",
+  "theme": "dark",
+  "fg": "done",
+  "bg": "app",
+  "ratio": 8.0,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "a-violet",
+  "theme": "dark",
+  "fg": "done",
+  "bg": "sidebar",
+  "ratio": 8.0,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "a-violet",
+  "theme": "dark",
+  "fg": "done",
+  "bg": "panel",
+  "ratio": 7.6,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "a-violet",
+  "theme": "dark",
+  "fg": "done",
+  "bg": "selected",
+  "ratio": 6.51,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "a-violet",
+  "theme": "dark",
+  "fg": "done",
+  "bg": "hover",
+  "ratio": 6.74,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "a-violet",
+  "theme": "dark",
+  "fg": "failed",
+  "bg": "app",
+  "ratio": 7.5,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "a-violet",
+  "theme": "dark",
+  "fg": "failed",
+  "bg": "sidebar",
+  "ratio": 7.5,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "a-violet",
+  "theme": "dark",
+  "fg": "failed",
+  "bg": "panel",
+  "ratio": 7.13,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "a-violet",
+  "theme": "dark",
+  "fg": "failed",
+  "bg": "selected",
+  "ratio": 6.11,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "a-violet",
+  "theme": "dark",
+  "fg": "failed",
+  "bg": "hover",
+  "ratio": 6.33,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "a-violet",
+  "theme": "dark",
+  "fg": "accent_fg",
+  "bg": "app",
+  "ratio": 8.55,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "a-violet",
+  "theme": "dark",
+  "fg": "accent_fg",
+  "bg": "sidebar",
+  "ratio": 8.55,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "a-violet",
+  "theme": "dark",
+  "fg": "accent_fg",
+  "bg": "panel",
+  "ratio": 8.12,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "a-violet",
+  "theme": "dark",
+  "fg": "accent_fg",
+  "bg": "selected",
+  "ratio": 6.96,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "a-violet",
+  "theme": "dark",
+  "fg": "accent_fg",
+  "bg": "hover",
+  "ratio": 7.21,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "a-violet",
+  "theme": "dark",
+  "fg": "term_fg",
+  "bg": "term_bg",
+  "ratio": 12.44,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "a-violet",
+  "theme": "dark",
+  "fg": "focus",
+  "bg": "panel",
+  "ratio": 8.12,
+  "min": 3,
+  "ok": true
+ },
+ {
+  "sample": "a-violet",
+  "theme": "dark",
+  "fg": "focus",
+  "bg": "app",
+  "ratio": 8.55,
+  "min": 3,
+  "ok": true
+ },
+ {
+  "sample": "a-violet",
+  "theme": "light",
+  "fg": "text",
+  "bg": "app",
+  "ratio": 15.47,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "a-violet",
+  "theme": "light",
+  "fg": "text",
+  "bg": "sidebar",
+  "ratio": 15.47,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "a-violet",
+  "theme": "light",
+  "fg": "text",
+  "bg": "panel",
+  "ratio": 17.0,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "a-violet",
+  "theme": "light",
+  "fg": "text",
+  "bg": "selected",
+  "ratio": 13.55,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "a-violet",
+  "theme": "light",
+  "fg": "text",
+  "bg": "hover",
+  "ratio": 14.02,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "a-violet",
+  "theme": "light",
+  "fg": "text2",
+  "bg": "app",
+  "ratio": 7.63,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "a-violet",
+  "theme": "light",
+  "fg": "text2",
+  "bg": "sidebar",
+  "ratio": 7.63,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "a-violet",
+  "theme": "light",
+  "fg": "text2",
+  "bg": "panel",
+  "ratio": 8.38,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "a-violet",
+  "theme": "light",
+  "fg": "text2",
+  "bg": "selected",
+  "ratio": 6.68,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "a-violet",
+  "theme": "light",
+  "fg": "text2",
+  "bg": "hover",
+  "ratio": 6.91,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "a-violet",
+  "theme": "light",
+  "fg": "muted",
+  "bg": "app",
+  "ratio": 5.67,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "a-violet",
+  "theme": "light",
+  "fg": "muted",
+  "bg": "sidebar",
+  "ratio": 5.67,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "a-violet",
+  "theme": "light",
+  "fg": "muted",
+  "bg": "panel",
+  "ratio": 6.23,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "a-violet",
+  "theme": "light",
+  "fg": "muted",
+  "bg": "selected",
+  "ratio": 4.97,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "a-violet",
+  "theme": "light",
+  "fg": "muted",
+  "bg": "hover",
+  "ratio": 5.14,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "a-violet",
+  "theme": "light",
+  "fg": "working",
+  "bg": "app",
+  "ratio": 5.56,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "a-violet",
+  "theme": "light",
+  "fg": "working",
+  "bg": "sidebar",
+  "ratio": 5.56,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "a-violet",
+  "theme": "light",
+  "fg": "working",
+  "bg": "panel",
+  "ratio": 6.11,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "a-violet",
+  "theme": "light",
+  "fg": "working",
+  "bg": "selected",
+  "ratio": 4.87,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "a-violet",
+  "theme": "light",
+  "fg": "working",
+  "bg": "hover",
+  "ratio": 5.04,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "a-violet",
+  "theme": "light",
+  "fg": "attention",
+  "bg": "app",
+  "ratio": 5.26,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "a-violet",
+  "theme": "light",
+  "fg": "attention",
+  "bg": "sidebar",
+  "ratio": 5.26,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "a-violet",
+  "theme": "light",
+  "fg": "attention",
+  "bg": "panel",
+  "ratio": 5.78,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "a-violet",
+  "theme": "light",
+  "fg": "attention",
+  "bg": "selected",
+  "ratio": 4.61,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "a-violet",
+  "theme": "light",
+  "fg": "attention",
+  "bg": "hover",
+  "ratio": 4.77,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "a-violet",
+  "theme": "light",
+  "fg": "done",
+  "bg": "app",
+  "ratio": 5.53,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "a-violet",
+  "theme": "light",
+  "fg": "done",
+  "bg": "sidebar",
+  "ratio": 5.53,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "a-violet",
+  "theme": "light",
+  "fg": "done",
+  "bg": "panel",
+  "ratio": 6.08,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "a-violet",
+  "theme": "light",
+  "fg": "done",
+  "bg": "selected",
+  "ratio": 4.84,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "a-violet",
+  "theme": "light",
+  "fg": "done",
+  "bg": "hover",
+  "ratio": 5.01,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "a-violet",
+  "theme": "light",
+  "fg": "failed",
+  "bg": "app",
+  "ratio": 5.88,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "a-violet",
+  "theme": "light",
+  "fg": "failed",
+  "bg": "sidebar",
+  "ratio": 5.88,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "a-violet",
+  "theme": "light",
+  "fg": "failed",
+  "bg": "panel",
+  "ratio": 6.47,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "a-violet",
+  "theme": "light",
+  "fg": "failed",
+  "bg": "selected",
+  "ratio": 5.15,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "a-violet",
+  "theme": "light",
+  "fg": "failed",
+  "bg": "hover",
+  "ratio": 5.33,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "a-violet",
+  "theme": "light",
+  "fg": "accent_fg",
+  "bg": "app",
+  "ratio": 7.46,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "a-violet",
+  "theme": "light",
+  "fg": "accent_fg",
+  "bg": "sidebar",
+  "ratio": 7.46,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "a-violet",
+  "theme": "light",
+  "fg": "accent_fg",
+  "bg": "panel",
+  "ratio": 8.19,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "a-violet",
+  "theme": "light",
+  "fg": "accent_fg",
+  "bg": "selected",
+  "ratio": 6.53,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "a-violet",
+  "theme": "light",
+  "fg": "accent_fg",
+  "bg": "hover",
+  "ratio": 6.76,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "a-violet",
+  "theme": "light",
+  "fg": "term_fg",
+  "bg": "term_bg",
+  "ratio": 14.99,
+  "min": 4.5,
+  "ok": true
+ },
+ {
+  "sample": "a-violet",
+  "theme": "light",
+  "fg": "focus",
+  "bg": "panel",
+  "ratio": 6.68,
+  "min": 3,
+  "ok": true
+ },
+ {
+  "sample": "a-violet",
+  "theme": "light",
+  "fg": "focus",
+  "bg": "app",
+  "ratio": 6.08,
+  "min": 3,
+  "ok": true
+ }
+]

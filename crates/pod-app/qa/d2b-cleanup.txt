@@ -1,0 +1,2 @@
+podd stopping (killed 3 running terminal(s))
+Post-stop process inventory: no executable processes under this worktree target directory.

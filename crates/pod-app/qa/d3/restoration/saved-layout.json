@@ -1,0 +1,59 @@
+{
+  "version": 1,
+  "dock": {
+    "version": 1,
+    "center": {
+      "panel_name": "StackPanel",
+      "children": [
+        {
+          "panel_name": "TabPanel",
+          "children": [
+            {
+              "panel_name": "PodSettings",
+              "children": [],
+              "info": {
+                "panel": null
+              }
+            }
+          ],
+          "info": {
+            "tabs": {
+              "active_index": 0
+            }
+          }
+        }
+      ],
+      "info": {
+        "stack": {
+          "sizes": [
+            672.0
+          ],
+          "axis": 0
+        }
+      }
+    },
+    "right_dock": {
+      "panel": {
+        "panel_name": "TabPanel",
+        "children": [
+          {
+            "panel_name": "PodInspector",
+            "children": [],
+            "info": {
+              "panel": null
+            }
+          }
+        ],
+        "info": {
+          "tabs": {
+            "active_index": 0
+          }
+        }
+      },
+      "placement": "right",
+      "size": 304.0,
+      "open": true
+    }
+  },
+  "labels": {}
+}

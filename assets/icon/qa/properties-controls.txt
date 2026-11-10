@@ -1,0 +1,31 @@
+ControlType.Pane: 일반
+ControlType.Pane:
+ControlType.Pane: pod-app
+ControlType.Pane:
+ControlType.Pane: 파일 형식:
+ControlType.Pane: 응용 프로그램(.exe)
+ControlType.Pane: 설명:
+ControlType.Pane: Pod agent coding IDE (Apache-2.0)
+ControlType.Pane:
+ControlType.Pane: 위치:
+ControlType.Pane: C:\Users\User\dev\workspaces\ide\fu-icon\target\release
+ControlType.Pane: 크기:
+ControlType.Pane: 39.8MB (41,828,352 바이트)
+ControlType.Pane: 디스크 할당 크기:
+ControlType.Pane: 39.8MB (41,828,352 바이트)
+ControlType.Pane:
+ControlType.Pane: 만든 날짜:
+ControlType.Pane: ‎2026‎년 ‎11‎월 ‎9‎일 ‎월요일, ‏‎오후 3:02:04
+ControlType.Pane: 수정한 날짜:
+ControlType.Pane: ‎2026‎년 ‎11‎월 ‎9‎일 ‎월요일, ‏‎오후 3:02:05
+ControlType.Pane: 액세스한 날짜:
+ControlType.Pane: ‎2026‎년 ‎11‎월 ‎9‎일 ‎오늘, ‏‎21분 전
+ControlType.Pane:
+ControlType.Pane: 특성:
+ControlType.Pane: 읽기 전용(R)
+ControlType.Pane: 숨김(H)
+ControlType.Pane: 고급(D)...
+ControlType.Pane: 확인
+ControlType.Pane: 취소
+ControlType.Pane: 적용(A)
+ControlType.Pane:

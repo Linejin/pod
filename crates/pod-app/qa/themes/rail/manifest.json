@@ -1,0 +1,38 @@
+﻿[
+    {
+        "Image":  "dark-rail-switcher-workbench-focus-rail.png",
+        "DPI":  144,
+        "Rect":  [
+                     2584,
+                     259,
+                     4024,
+                     1219
+                 ],
+        "Scene":  "rail-switcher",
+        "Theme":  "dark",
+        "Style":  "workbench",
+        "Layout":  "focus-rail",
+        "Fixture":  true,
+        "Font":  "Malgun Gothic",
+        "TerminalFont":  "Cascadia Mono",
+        "HighContrast":  false
+    },
+    {
+        "Image":  "light-rail-switcher-workbench-focus-rail.png",
+        "DPI":  144,
+        "Rect":  [
+                     2584,
+                     259,
+                     4024,
+                     1219
+                 ],
+        "Scene":  "rail-switcher",
+        "Theme":  "light",
+        "Style":  "workbench",
+        "Layout":  "focus-rail",
+        "Fixture":  true,
+        "Font":  "Malgun Gothic",
+        "TerminalFont":  "Cascadia Mono",
+        "HighContrast":  false
+    }
+]

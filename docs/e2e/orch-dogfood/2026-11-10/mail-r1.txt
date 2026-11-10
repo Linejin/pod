@@ -1,0 +1,21 @@
+﻿09:23:41 m1 attempt:a1->run:r1 [escalation] worker a1 ended its turn without `pod orch done`
+    
+09:24:07 (read run:r1 m1)
+09:24:30 m2 attempt:a1->run:r1 [question] Should the PowerShell integration helper live in podd as shared code with pod-ap…
+    Should the PowerShell integration helper live in podd as shared code with pod-app reusing it, or should I add a podd-local helper and leave pod-app unchanged?
+09:24:37 (read run:r1 m2)
+09:24:44 m3 run:r1->attempt:a1 [answer] re: Should the PowerShell integration helper live in podd as shared code with pod-ap…
+    Shared code in podd. Move POWERSHELL, CMD_PROMPT, integrate, encode_command (and their existing unit tests) into a new public module crates/podd/src/shell_integration.rs (declared pub in podd's lib.rs, NOT behind a cargo feature: pod-app bu
+09:24:44 (read attempt:a1 m3)
+09:24:48 m4 attempt:a2->run:r1 [escalation] worker a2 ended its turn without `pod orch done`
+    
+09:24:54 (read run:r1 m4)
+09:34:16 m5 attempt:a1->run:r1 [done] done (succeeded): podd shell OSC 133 marks
+    Committed aae84a5: moved shared OSC 133 integration and existing tests into public non-feature-gated crates/podd/src/shell_integration.rs, declared in podd lib.rs; pod-app shell_integration.rs retains docs and re-exports podd; tasks.rs inte
+09:34:19 (read run:r1 m5)
+09:34:27 m6 run:r1->attempt:a2 [status] A is done: aae84a5 on pod/r1-a1
+    Worker A reported done (commit aae84a5 on pod/r1-a1; shared code now in crates/podd/src/shell_integration.rs, pod-app re-exports it, agent_command_lines updated). Continue: git merge --no-edit pod/r1-a1, run cargo test -p podd --lib default
+09:34:30 (read attempt:a2 m6)
+09:36:31 m7 attempt:a2->run:r1 [done] done (succeeded): test + review podd shell marks
+    TEST: default_shell_is_integrated, added at the end of the tests module in crates/podd/src/server/tasks.rs (commit 9bb800e; merged pod/r1-a1 as c0726c0, no conflicts and no test change needed). It checks: - the default shell argv starts wit
+09:36:34 (read run:r1 m7)

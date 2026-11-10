@@ -1,0 +1,131 @@
+﻿App=pod-app (pid 67084)
+Window: "", App: pod-app.
+
+0 영역
+	1 title bar TitleBar
+		2 menu bar 시스템 메뉴 모음
+			3 menu item 시스템
+		4 button 최소화
+		5 button 최대화
+		6 button 닫기
+	7 단추 명령·터미널 검색
+	8 단추 설정
+	9 도구 모음 활동 막대
+		10 단추 작업 탐색 보이기/숨기기
+		11 단추 파일
+		12 단추 에이전트 트리
+		13 단추 검색
+		14 단추 승인 요청
+		15 단추 출력 패널 보이기/숨기기
+		16 단추 세부 정보 보이기/숨기기
+		17 단추 설정
+	18 트리 저장소와 작업 탐색
+		19 단추 격자
+		20 단추 + 작업
+		21 단추 + 터미널
+		22 단추 + 그룹
+		23 단추 에이전트
+		24 편집 저장소, 작업, 터미널 검색, Secondary Actions: SetValue
+		25 콘솔 트리 sample · 작업 100, Secondary Actions: Select
+		26 콘솔 트리 Task 000 - 한글 작업과 레이아웃 🔎 · Claude 에이전트, Codex 에이전트, Secondary Actions: Select
+			27 이미지 에이전트: Claude, Codex
+		28 콘솔 트리 Worker 0 · Claude 에이전트 | 작업 중 · 출처: osc · 신뢰도: 100% · 상위: 작업 중 · 마지막: — | 보고 없음
+			29 이미지 Claude 에이전트
+			30 상태 작업 중 · 출처: osc · 신뢰도: 100% · 상위: 작업 중 · 마지막: —
+		31 콘솔 트리 Worker 1 · Codex 에이전트 | 승인 필요 · 출처: osc · 신뢰도: 100% · 상위: 승인 필요 · 마지막: — | 보고 없음
+			32 이미지 Codex 에이전트
+			33 상태 승인 필요 · 출처: osc · 신뢰도: 100% · 상위: 승인 필요 · 마지막: —
+		34 콘솔 트리 Worker 2 · 셸 터미널 | 실패 종료 (1) · 출처: unknown · 신뢰도: 0% · 상위: 종료 · 마지막: — | 보고 없음
+			35 이미지 셸 터미널
+			36 상태 실패 종료 (1) · 출처: unknown · 신뢰도: 0% · 상위: 종료 · 마지막: —
+		37 콘솔 트리 Task 001 - 한글 작업과 레이아웃 🔎 · Claude 에이전트, Codex 에이전트, Secondary Actions: Select
+			38 이미지 에이전트: Claude, Codex
+		39 콘솔 트리 Worker 3 · Claude 에이전트 | 답변 필요 · 출처: osc · 신뢰도: 100% · 상위: 답변 필요 · 마지막: — | 보고 없음
+			40 이미지 Claude 에이전트
+			41 상태 답변 필요 · 출처: osc · 신뢰도: 100% · 상위: 답변 필요 · 마지막: —
+		42 콘솔 트리 Worker 4 · Codex 에이전트 | 완료 · 출처: osc · 신뢰도: 100% · 상위: 완료 · 마지막: — | 보고 없음
+			43 이미지 Codex 에이전트
+			44 상태 완료 · 출처: osc · 신뢰도: 100% · 상위: 완료 · 마지막: —
+		45 콘솔 트리 Worker 5 · 셸 터미널 | 대기 · 출처: osc · 신뢰도: 100% · 상위: 대기 · 마지막: — | 보고 없음
+			46 이미지 셸 터미널
+			47 상태 대기 · 출처: osc · 신뢰도: 100% · 상위: 대기 · 마지막: —
+		48 콘솔 트리 Task 002 - 한글 작업과 레이아웃 🔎 · Claude 에이전트, Codex 에이전트, Secondary Actions: Select
+			49 이미지 에이전트: Claude, Codex
+		50 콘솔 트리 Worker 6 · Claude 에이전트 | 완료 · 출처: osc · 신뢰도: 100% · 상위: 완료 · 마지막: — | 보고 없음
+			51 이미지 Claude 에이전트
+			52 상태 완료 · 출처: osc · 신뢰도: 100% · 상위: 완료 · 마지막: —
+		53 콘솔 트리 Worker 7 · Codex 에이전트 | 대기 · 출처: osc · 신뢰도: 100% · 상위: 대기 · 마지막: — | 보고 없음
+			54 이미지 Codex 에이전트
+			55 상태 대기 · 출처: osc · 신뢰도: 100% · 상위: 대기 · 마지막: —
+		56 콘솔 트리 Worker 8 · 셸 터미널 | 상태 미확인 · 추정 · 출처: heuristic · 신뢰도: 40% · 상위: 상태 미확인 · 마지막: — | 보고 없음
+			57 이미지 셸 터미널
+			58 상태 상태 미확인 · 추정 · 출처: heuristic · 신뢰도: 40% · 상위: 상태 미확인 · 마지막: —
+		59 콘솔 트리 Task 003 - 한글 작업과 레이아웃 🔎 · Claude 에이전트, Codex 에이전트, Secondary Actions: Select
+			60 이미지 에이전트: Claude, Codex
+		61 콘솔 트리 Worker 9 · Claude 에이전트 | 대기 · 출처: osc · 신뢰도: 100% · 상위: 대기 · 마지막: — | 보고 없음
+			62 이미지 Claude 에이전트
+			63 상태 대기 · 출처: osc · 신뢰도: 100% · 상위: 대기 · 마지막: —
+		64 콘솔 트리 Worker 10 · Codex 에이전트 | 상태 미확인 · 추정 · 출처: heuristic · 신뢰도: 40% · 상위: 상태 미확인 · 마지막: — | 보고 없음
+			65 이미지 Codex 에이전트
+			66 상태 상태 미확인 · 추정 · 출처: heuristic · 신뢰도: 40% · 상위: 상태 미확인 · 마지막: —
+		67 콘솔 트리 Worker 11 · 셸 터미널 | 오류 · 출처: osc · 신뢰도: 100% · 상위: 오류 · 마지막: — | 보고 없음
+			68 이미지 셸 터미널
+			69 상태 오류 · 출처: osc · 신뢰도: 100% · 상위: 오류 · 마지막: —
+		70 콘솔 트리 Task 004 - 한글 작업과 레이아웃 🔎 · Claude 에이전트, Codex 에이전트, Secondary Actions: Select
+			71 이미지 에이전트: Claude, Codex
+		72 콘솔 트리 Worker 12 · Claude 에이전트 | 상태 미확인 · 추정 · 출처: heuristic · 신뢰도: 40% · 상위: 상태 미확인 · 마지막: — | 보고 없음
+			73 이미지 Claude 에이전트
+			74 상태 상태 미확인 · 추정 · 출처: heuristic · 신뢰도: 40% · 상위: 상태 미확인 · 마지막: —
+		75 콘솔 트리 Worker 13 · Codex 에이전트 | 오류 · 출처: osc · 신뢰도: 100% · 상위: 오류 · 마지막: — | 보고 없음
+			76 이미지 Codex 에이전트
+			77 상태 오류 · 출처: osc · 신뢰도: 100% · 상위: 오류 · 마지막: —
+		78 콘솔 트리 Worker 14 · 셸 터미널 | 작업 중 · 출처: osc · 신뢰도: 100% · 상위: 작업 중 · 마지막: — | 보고 없음
+			79 이미지 셸 터미널
+			80 상태 작업 중 · 출처: osc · 신뢰도: 100% · 상위: 작업 중 · 마지막: —
+		81 콘솔 트리 Task 005 - 한글 작업과 레이아웃 🔎 · Claude 에이전트, Codex 에이전트, Secondary Actions: Select
+			82 이미지 에이전트: Claude, Codex
+	83 LIST 최근 알림
+		84 상태 Worker 2 · 작업 완료: 1분 12초 · 토큰 18.2k
+			85 단추 닫기
+	86 탭 항목 … Worker 0 · Claude 에이전트, Secondary Actions: Select
+		87 이미지 Claude 에이전트
+	88 단추 패널 메뉴
+	89 편집 터미널 입력 및 출력
+	90 탭 항목 … Worker 1 · Codex 에이전트, Secondary Actions: Select
+		91 이미지 Codex 에이전트
+	92 단추 패널 메뉴
+	93 편집 터미널 입력 및 출력
+	94 탭 항목 … Worker 2, Secondary Actions: Select
+		95 이미지 셸 터미널
+	96 단추 패널 메뉴
+	97 편집 터미널 입력 및 출력
+	98 탭 항목 … Worker 3 · Claude 에이전트, Secondary Actions: Select
+		99 이미지 Claude 에이전트
+	100 단추 패널 메뉴
+	101 편집 터미널 입력 및 출력
+	102 영역 출력
+		103 단추 출력 지우기
+		104 단추 출력 패널 닫기
+		105 LIST 출력 · 이벤트 기록
+			106 목록 항목 09:22:40, osc, Worker 291, 승인 필요, Secondary Actions: Select
+				107 이미지 Claude 에이전트
+			108 목록 항목 09:22:40, osc, Worker 299, 오류, Secondary Actions: Select
+				109 이미지 셸 터미널
+			110 목록 항목 09:22:41, pod, Worker 2, 실패 종료 (1), Secondary Actions: Select
+				111 이미지 셸 터미널
+			112 목록 항목 09:22:41, osc, Worker 3, 답변 필요, Secondary Actions: Select
+				113 이미지 Claude 에이전트
+			114 목록 항목 09:22:41, gate, Worker 1, 승인 요청 · 명령 실행 승인: $ cargo clippy -p pod-ui -- -D warnings, Secondary Actions: Select
+				115 이미지 Codex 에이전트
+			116 목록 항목 09:22:41, 알림, Worker 2 · 작업 완료, 1분 12초 · 토큰 18.2k, Secondary Actions: Select
+	117 단추 세부 정보 닫기
+	118 영역 세부 정보: Worker 1, Codex 에이전트, 승인 필요
+		119 이미지 Codex 에이전트
+		120 단추 이번만 허용: 명령 실행 승인
+		121 단추 거부: 명령 실행 승인
+		122 단추 터미널 열기: Worker 1
+		123 단추 변경 검토: Task 000 - 한글 작업과 레이아웃 🔎
+		124 단추 파일 열기: Task 000 - 한글 작업과 레이아웃 🔎
+		125 단추 PR 보기: Task 000 - 한글 작업과 레이아웃 🔎
+	126 단추 상태
+	127 단추 알림 1
