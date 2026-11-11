@@ -1,7 +1,7 @@
 //! The mobile API: the only operations a mobile channel can ever reach.
 //!
 //! A channel (M2 LAN TLS, M4/M5 relay + Noise) authenticates the device,
-//! then calls [`Daemon::mobile_call`] with a session and an operation name.
+//! then calls `Daemon::mobile_call` with a session and an operation name.
 //! [`route`] maps names to the closed [`Op`] set; anything else, every
 //! pipe method included, is refused before any daemon state is touched.
 //! There is no generic JSON-RPC proxy: each op has its own handler and DTO
@@ -93,7 +93,7 @@ fn mobile_gate(g: &GateInfo) -> Option<MobileGate> {
 }
 
 /// Terminal text for a phone: control characters removed, last lines only,
-/// at most [`OUTPUT_BYTES`].
+/// at most `OUTPUT_BYTES`.
 pub fn clean_output(lines: Vec<String>) -> (Vec<String>, bool) {
     let mut out: Vec<String> = lines
         .into_iter()

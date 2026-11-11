@@ -59,6 +59,52 @@ pub(super) fn is_method_not_found(e: &ClientError) -> bool {
     matches!(e, ClientError::Rpc(r) if r.code == codes::METHOD_NOT_FOUND)
 }
 
+/// Why one request on the control or input connection failed.
+#[derive(Debug)]
+pub(super) enum CallError {
+    /// From the client: [`is_transport`] tells a lost connection from an RPC error.
+    Client(ClientError),
+    /// podd answered, but the result does not decode. Only this request
+    /// fails (its caller gets the message, it is logged); the connection
+    /// stays. `Client::call` reports this as a protocol error, which
+    /// [`is_transport`] cannot tell from a broken connection.
+    BadResult(String),
+}
+
+impl From<ClientError> for CallError {
+    fn from(e: ClientError) -> Self {
+        Self::Client(e)
+    }
+}
+
+impl CallError {
+    /// The connection is gone: drop it and reconnect.
+    pub(super) fn into_transport(self) -> Option<ClientError> {
+        match self {
+            Self::Client(e) if is_transport(&e) => Some(e),
+            Self::Client(_) => None,
+            Self::BadResult(m) => {
+                log_bad_result(&m);
+                None
+            }
+        }
+    }
+}
+
+pub(super) fn log_bad_result(message: &str) {
+    eprintln!("pod-app: {message}");
+}
+
+/// [`Client::call`] with the result decoded here, so a result that does not
+/// decode is a [`CallError::BadResult`] and not a lost connection. Sends the
+/// same request.
+pub(super) fn call<M: Method>(c: &mut Client, params: &M::Params) -> Result<M::Result, CallError> {
+    let params = serde_json::to_value(params).map_err(|e| ClientError::Protocol(e.to_string()))?;
+    let result = c.call_raw(M::NAME, params)?;
+    serde_json::from_value(result)
+        .map_err(|e| CallError::BadResult(format!("bad {} result: {e}", M::NAME)))
+}
+
 /// Does the daemon know `method`? Probed with empty params: anything other
 /// than "method not found" (typically "invalid params") means yes.
 fn probe(client: &mut Client, method: &str) -> Result<bool, ClientError> {
@@ -206,7 +252,7 @@ impl Control {
         if self.caps.tasks && self.task_polled.is_none_or(|t| t.elapsed() >= task_every) {
             self.task_polled = Some(Instant::now());
             let c = self.client.as_mut().expect("connected");
-            match c.call::<p::RepoList>(&p::Empty {}) {
+            match call::<p::RepoList>(c, &p::Empty {}) {
                 Ok(r) => {
                     let repos: Vec<RepoVm> = r.repos.into_iter().map(mapping::repo).collect();
                     if self.last_repos.as_ref() != Some(&repos) {
@@ -214,8 +260,11 @@ impl Control {
                         self.last_repos = Some(repos);
                     }
                 }
-                Err(e) if is_transport(&e) => return Err(e),
-                Err(_) => {}
+                Err(e) => {
+                    if let Some(e) = e.into_transport() {
+                        return Err(e);
+                    }
+                }
             }
             let c = self.client.as_mut().expect("connected");
             match c.call_raw("task.list", json!({})) {
@@ -260,18 +309,23 @@ impl Control {
 
     /// Run one command. Err only for transport failures.
     pub(super) fn handle(&mut self, cmd: Cmd) -> Result<(), ClientError> {
-        fn reply<T>(r: Reply<T>, v: Result<T, ClientError>) -> Result<(), ClientError> {
-            match v {
+        fn reply<T>(r: Reply<T>, v: Result<T, impl Into<CallError>>) -> Result<(), ClientError> {
+            match v.map_err(Into::into) {
                 Ok(x) => {
                     let _ = r.send(Ok(x));
                     Ok(())
                 }
-                Err(e) if is_transport(&e) => {
+                Err(CallError::Client(e)) if is_transport(&e) => {
                     let _ = r.send(Err(SourceError::msg(format!("podd connection lost: {e}"))));
                     Err(e)
                 }
-                Err(e) => {
+                Err(CallError::Client(e)) => {
                     let _ = r.send(Err(SourceError::of(&e)));
+                    Ok(())
+                }
+                Err(CallError::BadResult(m)) => {
+                    log_bad_result(&m);
+                    let _ = r.send(Err(SourceError::msg(m)));
                     Ok(())
                 }
             }
@@ -306,9 +360,10 @@ impl Control {
                         p::TerminalRun::NAME,
                         serde_json::to_value(&params).unwrap_or_default(),
                     )
+                    .map_err(CallError::from)
                     .and_then(|v| {
                         TerminalVm::from_json(&v)
-                            .ok_or_else(|| ClientError::Protocol("bad terminal.run result".into()))
+                            .ok_or_else(|| CallError::BadResult("bad terminal.run result".into()))
                     });
                 let ok = v.is_ok();
                 reply(r, v)?;
@@ -317,17 +372,19 @@ impl Control {
                 }
             }
             Cmd::Kill(id, r) => {
-                let v = c.call::<p::TerminalKill>(&target(&id)).map(|_| ());
+                let v = call::<p::TerminalKill>(c, &target(&id)).map(|_| ());
                 reply(r, v)?;
                 self.poll()?;
             }
             Cmd::Rm(id, r) => {
-                let v = c
-                    .call::<p::TerminalRm>(&p::RmParams {
+                let v = call::<p::TerminalRm>(
+                    c,
+                    &p::RmParams {
                         target: target(&id),
                         force: false,
-                    })
-                    .map(|_| ());
+                    },
+                )
+                .map(|_| ());
                 reply(r, v)?;
                 self.poll()?;
             }
@@ -339,9 +396,7 @@ impl Control {
                 self.poll()?;
             }
             Cmd::RepoAdd(path, name, r) => {
-                let v = c
-                    .call::<p::RepoAdd>(&p::RepoAddParams { path, name })
-                    .map(mapping::repo);
+                let v = call::<p::RepoAdd>(c, &p::RepoAddParams { path, name }).map(mapping::repo);
                 let ok = v.is_ok();
                 reply(r, v)?;
                 if ok {
@@ -365,9 +420,10 @@ impl Control {
                         p::TaskCreate::NAME,
                         serde_json::to_value(&params).unwrap_or_default(),
                     )
+                    .map_err(CallError::from)
                     .and_then(|v| {
                         TaskVm::from_json(&v)
-                            .ok_or_else(|| ClientError::Protocol("bad task.create result".into()))
+                            .ok_or_else(|| CallError::BadResult("bad task.create result".into()))
                     });
                 let ok = v.is_ok();
                 reply(r, v)?;
@@ -377,13 +433,15 @@ impl Control {
                 }
             }
             Cmd::TaskRemove(task, force, delete_branch, r) => {
-                let v = c
-                    .call::<p::TaskRemove>(&p::TaskRemoveParams {
+                let v = call::<p::TaskRemove>(
+                    c,
+                    &p::TaskRemoveParams {
                         task,
                         force,
                         delete_branch,
-                    })
-                    .map(|r| r.terminals);
+                    },
+                )
+                .map(|r| r.terminals);
                 reply(r, v)?;
                 self.task_polled = None;
                 self.poll()?;
@@ -395,14 +453,18 @@ impl Control {
                     return Err(e);
                 }
             }
-            Cmd::Resize(id, cols, rows) => match c.call::<p::TerminalResize>(&p::ResizeParams {
-                target: target(&id),
-                cols,
-                rows,
-            }) {
-                Err(e) if is_transport(&e) => return Err(e),
-                _ => {}
-            },
+            Cmd::Resize(id, cols, rows) => {
+                let params = p::ResizeParams {
+                    target: target(&id),
+                    cols,
+                    rows,
+                };
+                if let Err(e) = call::<p::TerminalResize>(c, &params)
+                    && let Some(e) = e.into_transport()
+                {
+                    return Err(e);
+                }
+            }
             Cmd::RefreshTasks => self.task_polled = None,
             Cmd::RefreshTerminals => self.terminals_polled = None,
         }

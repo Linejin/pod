@@ -46,7 +46,29 @@ impl FileRow {
 
 /// Parsed files for `DiffState` plus their list rows. A parse failure yields
 /// no files and the error text.
+///
+/// A source missing on both sides (deleted and re-created while the review
+/// loaded, or listed by git yet absent) has nothing to show and would fail
+/// the whole parse: it is skipped, the rest parses, and the text names it
+/// (`missing on both sides, skipped: a, b`).
 pub fn parse(sources: &[SourceFile]) -> (Vec<DiffFile>, Vec<FileRow>, Option<String>) {
+    let has_side = |s: &&SourceFile| s.old.is_some() || s.new.is_some();
+    let missing: Vec<&str> = sources
+        .iter()
+        .filter(|s| !has_side(s))
+        .map(|s| s.path.as_str())
+        .collect();
+    if missing.is_empty() {
+        return parse_present(sources);
+    }
+    let present: Vec<SourceFile> = sources.iter().filter(has_side).cloned().collect();
+    let (files, rows, error) = parse_present(&present);
+    let skipped = format!("missing on both sides, skipped: {}", missing.join(", "));
+    (files, rows, error.or(Some(skipped)))
+}
+
+/// [`parse`] of sources that each have at least one side.
+fn parse_present(sources: &[SourceFile]) -> (Vec<DiffFile>, Vec<FileRow>, Option<String>) {
     let patch = model::patch_of(sources);
     match DiffFile::parse(&patch) {
         Ok(files) => {
@@ -147,5 +169,41 @@ mod tests {
             "{rows:?}"
         );
         let _: &FileRow = &rows[0];
+    }
+
+    /// A file listed as changed but absent on both sides (deleted and
+    /// re-created while the review loaded, or listed by git yet gone) is
+    /// skipped and named; the other files still parse, rows stay in order.
+    #[test]
+    fn a_file_missing_on_both_sides_is_skipped_not_fatal() {
+        let src = |path: &str, old: Option<&str>, new: Option<&str>| SourceFile {
+            path: path.into(),
+            old: old.map(Into::into),
+            new: new.map(Into::into),
+            ..Default::default()
+        };
+        let sources = vec![
+            src("a.rs", Some("x\n"), Some("y\n")),
+            src("gone 1.rs", None, None),
+            src("crlf.txt", Some("a\nb\n"), Some("a\r\nb\r\n")),
+            src("gone 2.rs", None, None),
+        ];
+        let (files, rows, note) = parse(&sources);
+        assert_eq!(files.len(), 2, "{note:?}");
+        let paths: Vec<&str> = rows.iter().map(|r| r.path.as_ref()).collect();
+        assert_eq!(paths, ["a.rs", "crlf.txt"]);
+        assert_eq!(rows[0].status, DiffFileStatus::Modified);
+        assert!(rows[1].eol_only, "eol_only follows the right source");
+        assert_eq!(
+            note.as_deref(),
+            Some("missing on both sides, skipped: gone 1.rs, gone 2.rs")
+        );
+        // Only missing files: nothing to show, and the text says why.
+        let (files, rows, note) = parse(&sources[1..2]);
+        assert!(files.is_empty() && rows.is_empty());
+        assert_eq!(
+            note.as_deref(),
+            Some("missing on both sides, skipped: gone 1.rs")
+        );
     }
 }

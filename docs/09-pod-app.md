@@ -68,7 +68,7 @@ UI 스레드 ──명령(std mpsc)──▶ [podd-control 스레드] ── Cli
 - **연결**: `Client::connect_or_start` — `pod` CLI와 같은 함수다. 파이프가 없으면 실행 파일 옆의 `podd.exe`를 분리 실행한다(`POD_DAEMON`으로 변경 가능, `POD_SOCKET`/`--pipe`로 파이프 변경).
 - **폴링**: 연결 중 `terminal.list` 0.5초마다(바뀐 때만 이벤트), `repo.list`+`task.list` 3초마다(Task마다 git을 여러 번 돌리므로, 08 §7). Task 생성/삭제·저장소 추가 직후에는 바로 다시 읽는다.
 - **명령**: run(`task` 포함), kill, rm, rename, resize, repo.add, task.create, task.remove. **입력은 제어 연결이 아니라 `podd-input` 스레드의 전용 연결로 간다**(fix2 B4, §9): 키 입력(큐에 쌓인 같은 터미널 입력은 한 호출로 합침)과 뷰의 질의 응답이 순서대로, 폴링(`task.list`)에 막히지 않고 나간다. 응답은 oneshot으로 돌아오고 오류는 `SourceError{code, message}`(JSON-RPC 코드 유지 → UI가 `TASK_DIRTY`를 구분).
-- **재연결**: 전송 오류(Io/Protocol, 그리고 멈추는 데몬의 `SERVER_STOPPING`)면 연결을 버리고 `Reconnecting`을 알린 뒤 1초마다 `connect_or_start`. 즉 `pod server stop` 뒤에는 앱이 데몬을 다시 띄운다. 멈추는 동안에는 파이프가 바쁨 상태라 옛 데몬이 끝난 뒤에 새 데몬을 띄운다(docs/03 §2 수명). attach는 `SERVER_STOPPING`을 끊김으로 보고 다시 붙는다. 연결 중이 아닐 때 온 명령은 즉시 "not connected" 오류, 입력은 버린다.
+- **재연결**: 전송 오류(Io/Protocol, 그리고 멈추는 데몬의 `SERVER_STOPPING`)면 연결을 버리고 `Reconnecting`을 알린 뒤 1초마다 `connect_or_start`. 즉 `pod server stop` 뒤에는 앱이 데몬을 다시 띄운다. 멈추는 동안에는 파이프가 바쁨 상태라 옛 데몬이 끝난 뒤에 새 데몬을 띄운다(docs/03 §2 수명). attach는 `SERVER_STOPPING`을 끊김으로 보고 다시 붙는다. 연결 중이 아닐 때 온 명령은 즉시 "not connected" 오류, 입력은 버린다. podd가 답했는데 결과가 형식에 맞지 않으면(디코드 실패) 전송 오류가 아니다: 그 요청만 실패하고(호출한 쪽에 `bad <method> result…` 오류, stderr 로그) 제어·입력 연결은 그대로 둔다(fx-app, 2026-11-11).
 - **기능 감지(Capabilities)**: 연결할 때마다 빈 params로 메서드를 호출해 본다. `METHOD_NOT_FOUND`면 없음, 그 밖의 답(보통 INVALID_PARAMS)이면 있음.
   - `tasks` ← `task.list` (현재 master에 있음 → Task UI 켜짐)
   - `rename` ← `terminal.rename` (없음 → 앱 로컬 라벨)
@@ -223,7 +223,8 @@ pod-diff (새 라이브러리 크레이트, pod-app과 diff-spike가 같이 씀)
   model.rs   SourceFile{path, old_path, old, new, binary} · full_context_patch(rename·binary 헤더 포함)
              load_changed(worktree, merge_base, files): 옛 버전은 `git cat-file --batch` 한 번, 새 버전은 worktree 파일
              from_git / from_two_files / bench_texts (spike·벤치용), git은 CREATE_NO_WINDOW
-  lib.rs     parse(sources) -> (Vec<DiffFile>, Vec<FileRow>, error): gpui-component diff API를 감싸는 얇은 어댑터(05 §7 권고)
+  lib.rs     parse(sources) -> (Vec<DiffFile>, Vec<FileRow>, error): gpui-component diff API를 감싸는 얇은 어댑터(05 §7 권고).
+             양쪽 다 없는 파일(로드 중 삭제·재생성 경쟁, git 목록엔 있으나 없음)은 건너뛰고 나머지를 파싱, error에 `missing on both sides, skipped: <경로>`
              gpui-kit tree-sitter 문법 feature(rust/js/ts/python/toml/markdown)도 여기서 켠다
   examples/gen-bench.rs  1만 줄 벤치 파일 쌍 생성
 

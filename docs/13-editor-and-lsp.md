@@ -106,7 +106,7 @@ cx.subscribe(&editor, |this, _, ev: &pod_editor::EditorEvent, cx| match ev {
 | `active_path()`, `open_paths()`, `active_editor()` | 상태 조회 |
 | `set_mode(Mode)` | 다크/라이트(전역 `apply_theme`는 호스트가 호출) |
 | `show_panel(references)` | 문제/참조 패널 |
-| `shutdown(cx) -> Task<()>` | 언어 서버 정중히 종료(2초 뒤 프로세스 트리 강제 종료). 작업 닫을 때, 앱 종료(`on_app_quit`) 때 호출 |
+| `shutdown(cx) -> Task<()>` | 언어 서버 정중히 종료(`shutdown` 응답 뒤 `exit`를 보내고 서버가 스스로 끝나기를 최대 0.5초 기다림. 전체는 2초 안. 그 뒤 프로세스 트리 강제 종료). 작업 닫을 때, 앱 종료(`on_app_quit`) 때 호출 |
 | `lsp() -> &Entity<LspStore>` | `statuses()`, `diagnostic_counts()`, `set_enabled(false)` 등 |
 | `session(cx) -> EditorSession`, `restore_session(&s)` | (통합 때 추가) 열린 탭·커서·활성 탭 저장/복원. 복원한 탭은 뷰가 처음 포커스를 받을 때까지 LSP를 시작하지 않는다 |
 | `close_path(path, force)`, `has_overlay()` | (추가) 탭 닫기(저장 안 됨이면 확인), 오버레이 여부 |
@@ -171,7 +171,7 @@ Windows 처리: 서버마다 Job Object(KILL_ON_JOB_CLOSE)라서 rustup 프록�
 
 `cargo test -p pod-editor`: 트리/.gitignore(중첩 포함)/키보드, git porcelain 파싱·폴더 집계·실제 저장소, 감시기 필터·실제 배치, 퍼지 순위·일치 위치, 색인·최근 가중치·5만 개 질의, CRLF/BOM/바이너리/크기 제한, UTF-16/8 열 변환(이모지·한글), URI(드라이브 표기 4종, UNC, `\\?\`), JSON-RPC 프레이밍(유니코드 길이, 대소문자 헤더, 잘린 프레임), 클라이언트(서버 요청 응답, 서버 종료 시 대기 요청 실패), Job Object로 손자 프로세스 종료, 레지스트리 병합·루트 규칙·PATHEXT, 재시작 백오프, 이름 바꾸기 편집 적용, 줄:열 파싱.
 
-`tests/lsp_lifecycle.rs`(가짜 서버 `pod-editor-fake-lsp`): initialize(utf-16 협상) → didOpen → 진단(이모지 열 변환 확인) → hover/definition/references/rename/completion → 알 수 없는 메서드 오류 → shutdown/exit; 크래시 시 Exited(세대 번호 포함)와 대기 요청 실패; 서버 drop 시 손자 프로세스 종료; 미설치 서버 보고.
+`tests/lsp_lifecycle.rs`(가짜 서버 `pod-editor-fake-lsp`): initialize(utf-16 협상) → didOpen → 진단(이모지 열 변환 확인) → hover/definition/references/rename/completion → 알 수 없는 메서드 오류 → shutdown/exit; `exit`를 읽고 정리하는 서버(100 ms)는 끝까지 돌고 손자 프로세스는 Job Object로 종료, `exit`를 무시하는 서버는 0.5초 뒤 강제 종료; 크래시 시 Exited(세대 번호 포함)와 대기 요청 실패; 서버 drop 시 손자 프로세스 종료; 미설치 서버 보고.
 
 `rust_analyzer_smoke`(`#[ignore]`, rust-analyzer 없으면 건너뜀): 작은 고정 저장소(공백 있는 경로)에서 실제 rust-analyzer로 initialize(utf-32) → main.rs 오류 진단 → 다른 파일(geometry.rs)로 정의 이동 → hover → 종료. `cargo test -p pod-editor --test lsp_lifecycle -- --ignored` (약 70초, CPU 사용 큼 — Pod 저장소가 아니라 임시 고정 저장소에서만).
 
@@ -247,7 +247,7 @@ target\release\pod-editor-demo.exe --fixture <빈 폴더> --scenario hover [--li
 | 레이아웃 복원 | 탭만 되살림, 뷰가 처음 포커스를 받을 때 활성 탭의 서버 시작 |
 | 서버 상태 변화 | 앱이 모든 파일 패널의 `running_servers()`를 모아 상한(기본 2) 초과분을 LRU로 `suspend` + 정보 토스트 |
 | 일시 중지된 서버의 파일로 돌아감 | `touch`/`open_document`가 다시 시작 |
-| 파일 패널 닫기 / 작업 삭제 / 작업이 목록에서 사라짐 | `shutdown()` (2초 정중 종료 후 Job Object 트리 종료) |
+| 파일 패널 닫기 / 작업 삭제 / 작업이 목록에서 사라짐 | `shutdown()` (2초 정중 종료: `exit` 뒤 최대 0.5초 서버 스스로 종료 대기, 그 뒤 Job Object 트리 종료) |
 | 앱 종료 | `on_app_quit`: 레이아웃 저장, 모든 편집기 `shutdown()` 대기. 강제 종료여도 Job Object가 정리 |
 
 **저장 안 함 보호**: 탭 닫기 확인(pod-editor 오버레이), 저장 안 한 파일이 있는 파일 패널은 Dock에서 닫을 수 없음(`closable`), 창 닫기 확인(`on_window_should_close` → 대화, 선택 후 `cx.quit()`), 작업 삭제 전 확인.

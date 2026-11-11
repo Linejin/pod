@@ -249,7 +249,8 @@ mod tests {
         got.push_str("--- patch\n");
         got.push_str(&patch_of(&sources).replace('\r', "\\r"));
         got.push_str("--- rows\n");
-        // A file missing on both sides fails the whole parse (as before L6).
+        // A file missing on both sides is skipped and named; the rest parses
+        // (it used to fail the whole parse).
         let (parsed, _, error) = crate::parse(&sources);
         got.push_str(&format!("all: {} files, error {error:?}\n", parsed.len()));
         let present: Vec<SourceFile> = sources
@@ -352,7 +353,7 @@ diff --git "a/src/keep.rs" "b/src/keep.rs"
 -fn b() {}
 +fn b2() {}
 --- rows
-all: 0 files, error Some("line 43: both file sides are missing")
+all: 11 files, error Some("missing on both sides, skipped: missing 4.rs")
 present: 11 files, error None
 FileRow { path: "added.rs", status: Added, additions: 1, deletions: 0, binary: false, eol_only: false }
 FileRow { path: "big.txt", status: Modified, additions: 0, deletions: 0, binary: true, eol_only: false }

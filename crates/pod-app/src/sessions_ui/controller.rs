@@ -1,6 +1,6 @@
 //! The page's `sessions.*` requests and their replies, as before the split:
-//! `sessions.list` when the page opens or re-reads (one at a time: a read
-//! asked while one is in flight is dropped), `sessions.scan` from 다시 찾기
+//! `sessions.list` when the page opens or re-reads (one at a time: reads
+//! asked while one is in flight make one follow-up read after it), `sessions.scan` from 다시 찾기
 //! and once after discovery is turned on (nothing scans on its own),
 //! `sessions.settings` (then the list again), `sessions.hide` /
 //! `sessions.register` / `sessions.resume` with their toasts, and the
@@ -48,9 +48,11 @@ fn apply(ws: &WeakEntity<Workspace>, r: Result<SessionsList, SourceError>, cx: &
     });
 }
 
-/// Re-read `sessions.list`.
+/// Re-read `sessions.list`. While one read is in flight, a re-read is
+/// queued (any number of them make one) and goes out when it answers.
 pub(super) fn refresh(ws: &mut Workspace, cx: &mut Context<Workspace>) {
     if std::mem::replace(&mut state(cx).loading, true) {
+        state(cx).reread = true;
         return;
     }
     let include_hidden = state(cx).show_hidden;
@@ -58,8 +60,15 @@ pub(super) fn refresh(ws: &mut Workspace, cx: &mut Context<Workspace>) {
         .source
         .call::<SessionsListMethod>(&SessionsListParams { include_hidden });
     let weak = cx.entity().downgrade();
-    cx.spawn(async move |_, cx| apply(&weak, call.await, cx))
-        .detach();
+    cx.spawn(async move |_, cx| {
+        apply(&weak, call.await, cx);
+        let _ = weak.update(cx, |w, cx| {
+            if std::mem::take(&mut state(cx).reread) {
+                refresh(w, cx);
+            }
+        });
+    })
+    .detach();
 }
 
 fn with_ws(

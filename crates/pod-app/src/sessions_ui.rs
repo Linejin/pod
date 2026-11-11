@@ -31,6 +31,9 @@ pub(crate) use copy::s;
 pub(crate) struct SessionsUi {
     pub list: Option<SessionsList>,
     pub loading: bool,
+    /// A re-read was asked while `sessions.list` was in flight: read once
+    /// more when it answers, so the page does not keep a stale list.
+    pub reread: bool,
     pub scanning: bool,
     pub failed: bool,
     pub show_hidden: bool,

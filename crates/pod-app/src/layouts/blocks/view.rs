@@ -13,7 +13,8 @@ use super::controller::{Feed, Region, Shown};
 use super::copy as s;
 use super::{INPUT_CONTEXT, KEY_CONTEXT, LeaveInput, NextTarget, PrevTarget, SwitchRegion};
 use crate::layouts::blocks_model::{
-    Approval, FeedBlock, Kind, Origin, block_name, decision, status_text, title_of, who,
+    Approval, FeedBlock, Kind, Origin, block_name, decision, drawer_width, status_text, title_of,
+    who,
 };
 use crate::layouts::kit::{BodyFlow, ConnectionShell, LayoutMetrics, ToastAnchor, color};
 use crate::qa_marks::QaId;
@@ -516,6 +517,8 @@ impl Render for Feed {
             metrics,
             raw_panel,
             target_name,
+            panels,
+            dock,
         }) = self.sync_frame(window, cx)
         else {
             return div().into_any_element();
@@ -785,8 +788,10 @@ impl Render for Feed {
             .border_b(px(m.border_width))
             .border_color(color(t.border_subtle))
             .child(
+                // Shrinks (with an ellipsis) before the buttons do: beside
+                // the panel drawer the feed column is narrow.
                 div()
-                    .flex_shrink_0()
+                    .min_w_0()
                     .max_w(px(420.))
                     .truncate()
                     .text_lg()
@@ -830,7 +835,26 @@ impl Render for Feed {
                 .render(mode, move |window, cx| {
                     let _ = raw_me.update(cx, |f, cx| f.toggle_raw(window, cx));
                 }),
-            );
+            )
+            // The panel drawer's button, while the dock has panels to show.
+            .when(panels > 0 || self.drawer_open, |d| {
+                let drawer_me = me.clone();
+                d.child(
+                    pod_ui::IconButton::new(
+                        "blocks-drawer-toggle",
+                        pod_ui::Icon::PanelRight,
+                        if self.drawer_open {
+                            s::DRAWER_CLOSE
+                        } else {
+                            s::DRAWER_OPEN
+                        },
+                    )
+                    .render(mode, move |window, cx| {
+                        let _ = drawer_me.update(cx, |f, cx| f.toggle_drawer(window, cx));
+                    })
+                    .qa_id(|| "blocks-drawer-toggle".into()),
+                )
+            });
 
         // ── feed or raw terminal ──
         let body = if self.raw {
@@ -946,6 +970,71 @@ impl Render for Feed {
             .child(body)
             .when(!self.raw, |d| d.child(input_row));
 
+        // ── panel drawer: the host's dock at the right ──
+        let drawer = self.drawer_open.then(|| {
+            let width = drawer_width(
+                f32::from(window.viewport_size().width),
+                m.density.sidebar.clamp(220., 320.),
+            );
+            let (esc_me, close_me) = (me.clone(), me.clone());
+            div()
+                .id("blocks-drawer")
+                .qa_id(|| "blocks-drawer".into())
+                .track_focus(&self.drawer_focus)
+                .role(Role::Region)
+                .aria_label(s::DRAWER_REGION)
+                .w(px(width))
+                .flex_shrink_0()
+                .flex()
+                .flex_col()
+                .min_h_0()
+                .bg(color(t.bg_surface))
+                .border_l(px(m.border_width))
+                .border_color(color(t.border_subtle))
+                // Esc that nothing inside used (a terminal keeps its Esc).
+                .on_key_down(move |e, window, cx| {
+                    if e.keystroke.key == "escape" && !e.keystroke.modifiers.modified() {
+                        cx.stop_propagation();
+                        let _ = esc_me.update(cx, |f, cx| f.close_drawer(window, cx));
+                    }
+                })
+                .child(
+                    div()
+                        .flex()
+                        .items_center()
+                        .gap_2()
+                        .px_3()
+                        .min_h(px(m.density.panel_header.max(40.)))
+                        .flex_shrink_0()
+                        .border_b(px(m.border_width))
+                        .border_color(color(t.border_subtle))
+                        .child(
+                            div()
+                                .flex_1()
+                                .min_w_0()
+                                .truncate()
+                                .font_weight(FontWeight::SEMIBOLD)
+                                .child(s::DRAWER),
+                        )
+                        .child(
+                            pod_ui::IconButton::new(
+                                "blocks-drawer-close",
+                                pod_ui::Icon::X,
+                                s::DRAWER_CLOSE,
+                            )
+                            .render(mode, move |window, cx| {
+                                let _ = close_me.update(cx, |f, cx| f.close_drawer(window, cx));
+                            }),
+                        ),
+                )
+                .child(
+                    div()
+                        .flex_1()
+                        .min_h_0()
+                        .when_some(dock.clone(), |d, dock| d.child(dock)),
+                )
+        });
+
         div()
             .id("blocks-layout")
             .qa_id(|| "blocks-layout".into())
@@ -966,6 +1055,7 @@ impl Render for Feed {
             .text_color(color(t.text_primary))
             .child(sidebar)
             .child(main)
+            .when_some(drawer, |d, dr| d.child(dr))
             .into_any_element()
     }
 }

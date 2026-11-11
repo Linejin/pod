@@ -11,6 +11,15 @@
 //! feed-owned ones, and the host notify, the gate answer and the fixture's
 //! gate as window-less [`HostUpdate`]s. The gate keeps its own path (fixed
 //! toast title, notify only), not the kit's `resolve_gate`.
+//!
+//! The panel drawer (fx-layouts): panels opened while the layout shows
+//! (settings, gates, agents, inspector, Review, editor, orchestration) live
+//! in the host's dock, which this layout does not draw in its body. The feed
+//! opens a drawer at the right that draws the dock ([`Slot::Dock`]) when a
+//! panel is asked for (the dock's panel count rose, or the workspace focused
+//! one of its panels), as the kanban drawer's 패널 view does. F6 reaches it
+//! while it is open; Esc in it (or its close button) closes it and the
+//! keyboard goes back where it was in the feed.
 use std::collections::{HashMap, HashSet};
 
 use futures::StreamExt as _;
@@ -24,9 +33,12 @@ use crate::attach::{AttachHandle, Chunk};
 use crate::layout_mode::LayoutMode;
 use crate::layouts::blocks_model::{
     Approval, Block, BlockKey, FeedBlock, Kind, TermBlocks, build_feed, cycle_target, decision,
-    default_expanded, gates_by_terminal, nav, state_label, task_terminals, title_of, who,
+    default_expanded, gates_by_terminal, nav, panels_rose, state_label, task_terminals, title_of,
+    who,
 };
-use crate::layouts::kit::{Clock, HostUpdate, LayoutActions, LayoutMetrics, UiIntent};
+use crate::layouts::kit::{
+    Clock, HostUpdate, LayoutActions, LayoutMetrics, PanelWatch, Slot, UiIntent,
+};
 use crate::panel::TerminalPanel;
 use crate::vm::{Liveness, TaskVm, TerminalVm};
 use crate::workspace::ToastKind;
@@ -47,6 +59,19 @@ pub enum Region {
     Tasks,
     Feed,
     Input,
+    /// The panel drawer (the dock), while it is open.
+    Drawer,
+}
+
+/// F6: 작업 → 블록 → 입력 → 패널 → 작업. The raw view has no input row
+/// (작업 → 터미널 → 패널); the drawer is in the cycle only while open.
+pub(super) fn next_region(current: Region, raw: bool, drawer: bool) -> Region {
+    match (current, raw) {
+        (Region::Tasks, _) => Region::Feed,
+        (Region::Feed, false) => Region::Input,
+        (Region::Feed, true) | (Region::Input, _) if drawer => Region::Drawer,
+        (Region::Feed, true) | (Region::Input, _) | (Region::Drawer, _) => Region::Tasks,
+    }
 }
 
 pub struct Feed {
@@ -85,6 +110,17 @@ pub struct Feed {
     seen_focus: Option<String>,
     entered: bool,
     shown: bool,
+    /// The panel drawer at the right (the host's dock) is open.
+    pub drawer_open: bool,
+    /// Tracked on the drawer: the keyboard is somewhere in it.
+    pub(super) drawer_focus: FocusHandle,
+    /// The dock's panels other than terminals, last frame (a rise opens the drawer).
+    dock_signature: usize,
+    /// A dock panel the workspace focused for the user opens the drawer.
+    panel_watch: PanelWatch,
+    /// Where the keyboard was in the feed before the drawer took it; closing
+    /// the drawer returns it there.
+    back_to: Region,
     _subs: Vec<Subscription>,
 }
 
@@ -105,6 +141,11 @@ pub(super) struct Shown {
     pub(super) raw_panel: Option<Entity<TerminalPanel>>,
     /// `who` of the input target, if there is one.
     pub(super) target_name: Option<String>,
+    /// The dock's panels other than terminals (the header's drawer button
+    /// shows while there are any, or while the drawer is open).
+    pub(super) panels: usize,
+    /// The host's dock, while the drawer is open.
+    pub(super) dock: Option<AnyView>,
 }
 
 impl Feed {
@@ -166,6 +207,11 @@ impl Feed {
             seen_focus: None,
             entered: true,
             shown: true,
+            drawer_open: false,
+            drawer_focus: cx.focus_handle(),
+            dock_signature: usize::MAX,
+            panel_watch: PanelWatch::default(),
+            back_to: Region::Feed,
             _subs: subs,
         }
     }
@@ -549,6 +595,12 @@ impl Feed {
                 }
             }
             Region::Input => self.input.update(cx, |i, cx| i.focus(window, cx)),
+            // The dock the drawer draws, as the kanban drawer's F6 does.
+            Region::Drawer => {
+                if let Some(dock) = self.actions.focus_handle(Slot::Dock, cx) {
+                    dock.focus(window, cx);
+                }
+            }
         }
     }
 
@@ -566,20 +618,90 @@ impl Feed {
             .contains_focused(window, cx)
         {
             Region::Input
+        } else if self.in_drawer(window, cx) {
+            Region::Drawer
         } else {
             Region::Feed
         }
     }
 
-    /// F6: 작업 → 블록 → 입력 → 작업.
+    /// The keyboard is in the open drawer (its dock, header or close button).
+    fn in_drawer(&self, window: &Window, cx: &App) -> bool {
+        self.drawer_open && self.drawer_focus.contains_focused(window, cx)
+    }
+
+    #[cfg(test)]
+    pub fn drawer_has_focus(&self, window: &Window, cx: &App) -> bool {
+        self.in_drawer(window, cx)
+    }
+
+    /// The feed's own region holding the keyboard (not the drawer), if any:
+    /// where closing the drawer sends the keyboard back to.
+    fn own_region(&self, window: &Window, cx: &App) -> Option<Region> {
+        let r = self.region(window, cx);
+        if r != Region::Feed {
+            return (r != Region::Drawer).then_some(r);
+        }
+        let raw_focused = self.raw
+            && self.raw_terminal.as_ref().is_some_and(|id| {
+                self.actions.terminal_panels(cx).iter().any(|p| {
+                    let p = p.read(cx);
+                    p.terminal_id == *id
+                        && p.view
+                            .read(cx)
+                            .focus_handle(cx)
+                            .contains_focused(window, cx)
+                })
+            });
+        let feed_focused = self.focus.contains_focused(window, cx)
+            || self
+                .block_focus
+                .values()
+                .any(|f| f.contains_focused(window, cx));
+        (raw_focused || feed_focused).then_some(Region::Feed)
+    }
+
+    /// F6: 작업 → 블록 → 입력 → 패널 → 작업 ([`next_region`]).
     pub fn switch_region(&mut self, window: &mut Window, cx: &mut Context<Self>) {
-        // The raw view has no input row: 작업 ↔ 터미널.
-        let next = match (self.region(window, cx), self.raw) {
-            (Region::Tasks, _) => Region::Feed,
-            (Region::Feed, false) => Region::Input,
-            (Region::Feed, true) | (Region::Input, _) => Region::Tasks,
-        };
+        let drawer = self.drawer_open && self.actions.dock(cx).is_some();
+        let current = self.region(window, cx);
+        if let Some(r) = self.own_region(window, cx) {
+            self.back_to = r;
+        }
+        let next = next_region(current, self.raw, drawer);
         self.focus_region(next, window, cx);
+    }
+
+    /// Open the drawer (the header's button) and move the keyboard into it.
+    pub fn open_drawer(&mut self, window: &mut Window, cx: &mut Context<Self>) {
+        if let Some(r) = self.own_region(window, cx) {
+            self.back_to = r;
+        }
+        self.drawer_open = true;
+        self.focus_region(Region::Drawer, window, cx);
+        self.notify_all(cx);
+    }
+
+    /// Close the drawer (Esc in it, its close button, the header's button);
+    /// the keyboard goes back where it was in the feed. The panels stay open
+    /// in the dock.
+    pub fn close_drawer(&mut self, window: &mut Window, cx: &mut Context<Self>) {
+        if !self.drawer_open {
+            return;
+        }
+        let back = self.own_region(window, cx).unwrap_or(self.back_to);
+        self.drawer_open = false;
+        self.focus_region(back, window, cx);
+        self.notify_all(cx);
+    }
+
+    /// The header's drawer button.
+    pub(super) fn toggle_drawer(&mut self, window: &mut Window, cx: &mut Context<Self>) {
+        if self.drawer_open {
+            self.close_drawer(window, cx)
+        } else {
+            self.open_drawer(window, cx)
+        }
     }
 
     /// Approve / reject through the gate path (`gate.resolve`), as the gates
@@ -735,8 +857,9 @@ impl Feed {
     }
 
     /// Entering the layout: a focused terminal's task is shown and that
-    /// terminal becomes the input target (focus in the input); otherwise the
-    /// newest block takes focus.
+    /// terminal becomes the input target (focus in the input); a focused
+    /// panel of the dock stays focused in the drawer; otherwise the newest
+    /// block takes focus.
     fn place_focus_on_enter(&mut self, window: &mut Window, cx: &mut Context<Self>) {
         use gpui_kit::component::WindowExt as _;
         if window.has_active_dialog(cx) {
@@ -768,6 +891,15 @@ impl Feed {
             window.defer(cx, move |window, cx| {
                 input.update(cx, |i, cx| i.focus(window, cx))
             });
+            return;
+        }
+        // A focused settings/Review/… panel keeps the keyboard, in the drawer.
+        if self
+            .actions
+            .focus_handle(Slot::Dock, cx)
+            .is_some_and(|dock| dock.contains_focused(window, cx))
+        {
+            self.drawer_open = true;
             return;
         }
         let me = cx.entity().downgrade();
@@ -863,6 +995,23 @@ impl Feed {
             }
             self.follow_sig = sig;
         }
+        // A panel opened while the layout shows (settings, gates, a Review,
+        // an orchestration page …) or one the workspace focused for the user
+        // (asked for again) opens the drawer that draws the dock.
+        let panels = self
+            .actions
+            .read(cx, |f| f.other_panels() + f.panels.reviews)?;
+        let asked = self
+            .panel_watch
+            .asked(&self.actions, &[crate::panel::PANEL_NAME], window, cx);
+        if panels_rose(self.dock_signature, panels) || asked {
+            self.drawer_open = true;
+        }
+        self.dock_signature = panels;
+        // Where the keyboard is in the feed: closing the drawer returns it there.
+        if let Some(r) = self.own_region(window, cx) {
+            self.back_to = r;
+        }
         if std::mem::take(&mut self.entered) {
             self.place_focus_on_enter(window, cx);
         }
@@ -894,7 +1043,14 @@ impl Feed {
             self.input
                 .update(cx, |i, cx| i.set_placeholder(placeholder, window, cx));
         }
+        let dock = if self.drawer_open {
+            self.actions.view(Slot::Dock, cx)
+        } else {
+            None
+        };
         Some(Shown {
+            panels,
+            dock,
             terms,
             feed,
             focus,

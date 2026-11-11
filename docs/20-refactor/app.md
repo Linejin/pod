@@ -420,6 +420,19 @@ T2는 다섯 장으로 나눠 했다(README "A-T2 나누기"). A-T1(`27d1809`)�
 
 **후속으로 남김(이 카드에서 바꾸지 않음)**
 
-- 블록 터미널에는 dock이 없어 그 모드에서 연 패널이 보이지 않는다. 칸반 서랍의 dock에서 F6을 눌러도 보드로 돌아가지 않는다.
-- `pod_ui::apply_theme`이 설정을 적용할 때마다 PodModal 키 3개를 다시 묶는다. 그래서 레이아웃·테마를 바꿀 때마다 keymap이 커진다(pod-ui). 순환 검사는 이 키를 빼고 센다.
+- ~~블록 터미널에는 dock이 없어 그 모드에서 연 패널이 보이지 않는다. 칸반 서랍의 dock에서 F6을 눌러도 보드로 돌아가지 않는다.~~ fx-layouts에서 고침: 블록 터미널 오른쪽 패널 서랍(kit `Slot::Dock`, F6·Esc·포커스 복귀), 칸반 F6 보드↔dock, 칸반·리뷰에서 연 오케스트레이션 화면이 패널 보기로(kit `other_panels`에 orch 화면, `PanelWatch`). docs/10 §D5.5·D5.8·D5.9.
+- ~~`pod_ui::apply_theme`이 설정을 적용할 때마다 PodModal 키 3개를 다시 묶는다. 그래서 레이아웃·테마를 바꿀 때마다 keymap이 커진다(pod-ui). 순환 검사는 이 키를 빼고 센다.~~ fx-app에서 고침(아래). 순환 검사의 제외 필터는 이제 필요 없지만 그대로 둬도 결과는 같다.
 - 순환 중 focus가 블록 입력, 리뷰, 작업 공간 root 순으로 옮겨 간다. 작업대로 돌아와도 터미널 focus는 돌아오지 않는다. 기존 동작이라 고정만 해 두었다.
+
+## fx-app 버그 수정 (2026-11-11)
+
+리팩터링 중 찾은 버그 4개. 동작은 이 4개만 바뀌었다. 각 항목의 회귀 테스트는 수정 전 코드에서 실패한다(직접 되돌려 확인).
+
+| 버그 | 수정 | 회귀 테스트 · 바뀐 고정값 |
+|---|---|---|
+| 리뷰: `review.comments.add`가 실패하면 줄 의견 초안이 닫혀 입력이 사라짐 | 초안은 저장이 끝날 때까지 열려 있다. 실패하면 글을 그대로 두고 초안 아래(`rv-draft-error`)와 토스트에 이유를 보인다. Enter로 다시 시도한다. 저장 중 두 번째 Enter는 보내지 않는다 | `review::qa::refused_send_keeps_the_instructions_and_checks` (A-P3의 "초안이 닫힘" 고정을 바꿈: 초안·글·이유 유지, 재시도 요청 1개 뒤 초안 닫힘) |
+| 세션 페이지: `sessions.list`가 진행 중일 때 들어온 다시 읽기를 버려 목록이 낡음 | 진행 중 요청이 끝나면 한 번 더 읽는다(여러 번 요청해도 1번) | `sessions_ui::tests::a_reread_during_a_read_is_queued_once`; `opening_reads_the_list_once_and_does_not_scan`은 진행 중 열기 3번 → 읽기 2번으로 바꿈 |
+| source: 제어·입력 연결에서 결과 디코드 실패를 전송 오류로 보고 연결을 버림 | `control::call`이 결과를 직접 디코드한다. 실패하면 그 요청만 `bad <method> result…`로 실패하고 stderr에 남기며 연결은 유지한다. 보내는 요청은 같다 | `source::wire_tests::a_bad_result_fails_the_request_and_keeps_the_connection`; J golden 5건을 손으로 고침(`wire.json`의 `changes`에 목록). 나머지 J는 84bdf9e 그대로 |
+| `pod_ui::apply_theme`이 적용할 때마다 PodModal 키 3개를 다시 묶음 | `install_key_bindings`가 앱마다 한 번만 묶는다(전역 표시) | `crates/pod-ui/tests/theme_keys.rs` |
+
+V: 바뀐 화면은 실패한 의견 저장(초안 아래 오류 줄) 하나뿐이고 캡처 행렬에 그 장면이 없다. 8개 행렬 56장은 바뀌지 않는다.

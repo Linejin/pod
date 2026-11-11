@@ -134,10 +134,24 @@ impl Handler for Forward {
     }
 }
 
+/// How long [`ServerProcess::shutdown`] lets a server exit by itself after
+/// `exit` before its tree is killed: killing at once could beat the server
+/// to reading `exit` (and to its own cleanup).
+pub const EXIT_WAIT: Duration = Duration::from_millis(500);
+
+/// Has the process exited? (A poisoned lock counts as gone.)
+fn child_exited(child: &Mutex<Child>) -> bool {
+    child
+        .lock()
+        .map(|mut c| c.try_wait().ok().flatten().is_some())
+        .unwrap_or(true)
+}
+
 pub struct ServerProcess {
     pub client: Client,
     pub tree: ProcessTree,
-    child: Mutex<Child>,
+    /// Shared with the [`EXIT_WAIT`] watcher thread of `shutdown`.
+    child: Arc<Mutex<Child>>,
     /// Last lines of stderr, shown when the server crashes.
     pub stderr_tail: Arc<Mutex<VecDeque<String>>>,
 }
@@ -185,24 +199,53 @@ impl ServerProcess {
         Ok(ServerProcess {
             client,
             tree,
-            child: Mutex::new(child),
+            child: Arc::new(Mutex::new(child)),
             stderr_tail: tail,
         })
     }
 
-    /// Asks politely (shutdown + exit), then kills the whole tree.
+    /// Asks politely (shutdown + exit), gives the server up to [`EXIT_WAIT`]
+    /// (and never past `timer`) to exit by itself, then kills the whole tree
+    /// either way: the job also takes what the server left running.
     pub async fn shutdown(&self, timer: impl std::future::Future<Output = ()>) {
         if self.client.is_alive() {
             let req = self.client.request("shutdown", Value::Null);
             futures::pin_mut!(req);
             futures::pin_mut!(timer);
-            if let futures::future::Either::Left((Ok(_), _)) =
+            if let futures::future::Either::Left((Ok(_), timer)) =
                 futures::future::select(req, timer).await
+                && self.client.notify("exit", Value::Null).is_ok()
             {
-                let _ = self.client.notify("exit", Value::Null);
+                let exited = self.wait_exit(EXIT_WAIT);
+                futures::pin_mut!(exited);
+                futures::future::select(exited, timer).await;
             }
         }
         self.kill();
+    }
+
+    /// Resolves once the process has exited, or after `limit`. A watcher
+    /// thread polls the child, so the executor is never blocked; it stops
+    /// early when the future is dropped.
+    fn wait_exit(&self, limit: Duration) -> impl std::future::Future<Output = ()> + use<> {
+        let (tx, rx) = futures::channel::oneshot::channel::<()>();
+        let child = self.child.clone();
+        // If the thread cannot start, `tx` is dropped and `rx` resolves now.
+        let _ = std::thread::Builder::new()
+            .name("lsp-exit-wait".into())
+            .spawn(move || {
+                let deadline = std::time::Instant::now() + limit;
+                while !child_exited(&child)
+                    && !tx.is_canceled()
+                    && std::time::Instant::now() < deadline
+                {
+                    std::thread::sleep(Duration::from_millis(10));
+                }
+                let _ = tx.send(());
+            });
+        async move {
+            let _ = rx.await;
+        }
     }
 
     /// Kills the process tree immediately (also what `Drop` does).
@@ -215,10 +258,7 @@ impl ServerProcess {
     }
 
     pub fn exited(&self) -> bool {
-        self.child
-            .lock()
-            .map(|mut c| c.try_wait().ok().flatten().is_some())
-            .unwrap_or(true)
+        child_exited(&self.child)
     }
 
     /// The last `n` lines the server wrote to stderr (its log).

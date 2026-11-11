@@ -31,9 +31,10 @@ $script:PodUiaRequired = @{
 # draw their own body: a scene listed under a layout replaces the workbench
 # entry (@() = size check only); unlisted scenes keep it (dialogs, palette).
 # Every layout id needs an entry here (uia-selftest.ps1 checks the source).
-# A dock-panel scene the layout does not show (kanban/review keep the panel
-# behind their 패널 tab, block-terminal draws no dock) checks the layout's
-# own body instead (A-F0b: every scene captured in every layout).
+# A dock-panel scene the layout does not show at capture time (kanban/review
+# keep the panel behind their 패널 tab; block-terminal shows the dock only in
+# its panel drawer, opened on a panel request since fx-layouts) checks the
+# layout's own body instead (A-F0b: every scene captured in every layout).
 $script:PodUiaLayoutRequired = @{
  'focus-rail'     = @{
   'workspace'      = @('레일 탐색')

@@ -154,6 +154,11 @@ struct Draft {
     line: u32,
     end_line: u32,
     input: Entity<TextareaState>,
+    /// A `review.comments.add` for this draft is in flight: a second Enter
+    /// does not send it again. The draft closes when it succeeds.
+    saving: bool,
+    /// Why the last save failed; the text stays so Enter can retry.
+    error: Option<String>,
 }
 
 pub struct ReviewPanel {

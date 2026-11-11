@@ -402,7 +402,8 @@ fn queued_delivery_is_reported_once() {
 
 /// B: a refused send keeps the instructions and the checked comments and
 /// says why under the send box; the next send that goes through clears both.
-/// A failed comment save closes the draft and says so (pinned as it is).
+/// A failed comment save keeps the draft's text, says why under it and in a
+/// toast, and Enter retries it.
 #[test]
 fn refused_send_keeps_the_instructions_and_checks() {
     let s = Rc::new(RefCell::new(Reviews::default()));
@@ -484,15 +485,16 @@ fn refused_send_keeps_the_instructions_and_checks() {
         )
     );
 
-    // A comment podd does not store: one request, the draft is gone, an error toast.
+    // A comment podd does not store: one request, an error toast, and the
+    // draft stays with its text and the reason under it (fx-app: it used to
+    // close and lose the text).
     s.borrow_mut().add_error = Some("disk full".into());
     focus_review(&mut h, &r);
     h.keys("ctrl-shift-c");
-    h.type_text("lost");
+    h.type_text("kept");
     let mark = h.backend.calls.len();
     h.keys("enter");
     assert_eq!(requests(&h, mark).len(), 1);
-    assert!(h.cx.update(|_, cx| r.read(cx).draft.is_none()));
     assert_eq!(
         toasts(&mut h)[2],
         (
@@ -501,6 +503,44 @@ fn refused_send_keeps_the_instructions_and_checks() {
             "disk full".to_string()
         )
     );
+    // Trimmed: the headless platform types Enter's "\n" after the submit
+    // propagates (Windows drops control characters); the save trims too.
+    let draft = |h: &mut Harness| {
+        h.cx.update(|_, cx| {
+            r.read(cx).draft.as_ref().map(|d| {
+                (
+                    d.input.read(cx).value().trim().to_string(),
+                    d.saving,
+                    d.error.clone(),
+                )
+            })
+        })
+    };
+    assert_eq!(
+        draft(&mut h),
+        Some(("kept".to_string(), false, Some("disk full".to_string()))),
+        "the draft keeps the text and the reason"
+    );
+    assert!(
+        h.bounds("rv-draft-error-w0").is_some(),
+        "the reason is shown under the draft"
+    );
+
+    // Enter again retries the same comment; once podd stores it the draft closes.
+    s.borrow_mut().add_error = None;
+    let mark = h.backend.calls.len();
+    let before = h.cx.update(|_, cx| r.read(cx).comments.len());
+    h.keys("enter");
+    assert_eq!(
+        requests(&h, mark),
+        [
+            "review.comments.add {\"task\":\"sample/로그인-수정\",\"comments\":[{\"file\":\"README.md\",\"side\":\"new\",\"line\":9,\"body\":\"kept\",\"code\":\"- `docs/` — 한글 문서\\n\"}]}"
+        ]
+    );
+    assert_eq!(draft(&mut h), None, "a stored comment closes the draft");
+    assert!(h.bounds("rv-draft-error-w0").is_none());
+    assert_eq!(h.cx.update(|_, cx| r.read(cx).comments.len()), before + 1);
+    assert_eq!(toasts(&mut h).len(), 3, "no new toast");
 }
 
 /// B: the comment column keeps its width with side-by-side on and off, the

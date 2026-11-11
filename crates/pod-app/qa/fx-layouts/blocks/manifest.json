@@ -1,0 +1,146 @@
+﻿[
+    {
+        "Image":  "dark-settings-blocks-block-terminal.png",
+        "DPI":  144,
+        "Rect":  [
+                     2584,
+                     259,
+                     4024,
+                     1219
+                 ],
+        "Client":  [
+                       2595,
+                       259,
+                       4013,
+                       1208
+                   ],
+        "Scene":  "settings",
+        "Theme":  "dark",
+        "Style":  "blocks",
+        "Layout":  "block-terminal",
+        "Fixture":  true,
+        "Font":  "Malgun Gothic",
+        "TerminalFont":  "Cascadia Mono",
+        "HighContrast":  false
+    },
+    {
+        "Image":  "dark-orch-board-blocks-block-terminal.png",
+        "DPI":  144,
+        "Rect":  [
+                     2584,
+                     259,
+                     4024,
+                     1219
+                 ],
+        "Client":  [
+                       2595,
+                       259,
+                       4013,
+                       1208
+                   ],
+        "Scene":  "orch-board",
+        "Theme":  "dark",
+        "Style":  "blocks",
+        "Layout":  "block-terminal",
+        "Fixture":  true,
+        "Font":  "Malgun Gothic",
+        "TerminalFont":  "Cascadia Mono",
+        "HighContrast":  false
+    },
+    {
+        "Image":  "dark-gates-blocks-block-terminal.png",
+        "DPI":  144,
+        "Rect":  [
+                     2584,
+                     259,
+                     4024,
+                     1219
+                 ],
+        "Client":  [
+                       2595,
+                       259,
+                       4013,
+                       1208
+                   ],
+        "Scene":  "gates",
+        "Theme":  "dark",
+        "Style":  "blocks",
+        "Layout":  "block-terminal",
+        "Fixture":  true,
+        "Font":  "Malgun Gothic",
+        "TerminalFont":  "Cascadia Mono",
+        "HighContrast":  false
+    },
+    {
+        "Image":  "light-settings-blocks-block-terminal.png",
+        "DPI":  144,
+        "Rect":  [
+                     2584,
+                     259,
+                     4024,
+                     1219
+                 ],
+        "Client":  [
+                       2595,
+                       259,
+                       4013,
+                       1208
+                   ],
+        "Scene":  "settings",
+        "Theme":  "light",
+        "Style":  "blocks",
+        "Layout":  "block-terminal",
+        "Fixture":  true,
+        "Font":  "Malgun Gothic",
+        "TerminalFont":  "Cascadia Mono",
+        "HighContrast":  false
+    },
+    {
+        "Image":  "light-orch-board-blocks-block-terminal.png",
+        "DPI":  144,
+        "Rect":  [
+                     2584,
+                     259,
+                     4024,
+                     1219
+                 ],
+        "Client":  [
+                       2595,
+                       259,
+                       4013,
+                       1208
+                   ],
+        "Scene":  "orch-board",
+        "Theme":  "light",
+        "Style":  "blocks",
+        "Layout":  "block-terminal",
+        "Fixture":  true,
+        "Font":  "Malgun Gothic",
+        "TerminalFont":  "Cascadia Mono",
+        "HighContrast":  false
+    },
+    {
+        "Image":  "light-gates-blocks-block-terminal.png",
+        "DPI":  144,
+        "Rect":  [
+                     2584,
+                     259,
+                     4024,
+                     1219
+                 ],
+        "Client":  [
+                       2595,
+                       259,
+                       4013,
+                       1208
+                   ],
+        "Scene":  "gates",
+        "Theme":  "light",
+        "Style":  "blocks",
+        "Layout":  "block-terminal",
+        "Fixture":  true,
+        "Font":  "Malgun Gothic",
+        "TerminalFont":  "Cascadia Mono",
+        "HighContrast":  false
+    }
+]

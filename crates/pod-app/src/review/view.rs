@@ -638,6 +638,10 @@ impl ReviewPanel {
                 AnnView::Draft {
                     input: d.input.clone(),
                     title: crate::tr!(NEW_COMMENT_ON_LABEL; label; d.path).into(),
+                    error: d
+                        .error
+                        .as_ref()
+                        .map(|e| format!("{}: {e}", crate::strings::COMMENT_NOT_SAVED)),
                 },
             );
         }
@@ -656,7 +660,11 @@ impl ReviewPanel {
                     .my_1()
                     .child(comment_card(c, false, false, &weak_ann))
                     .into_any_element(),
-                Some(AnnView::Draft { input, title }) => {
+                Some(AnnView::Draft {
+                    input,
+                    title,
+                    error,
+                }) => {
                     let (w_save, w_cancel) = (weak_ann.clone(), weak_ann.clone());
                     div()
                         .mx_2()
@@ -676,6 +684,13 @@ impl ReviewPanel {
                                 .child(title.clone()),
                         )
                         .child(Textarea::new(input))
+                        .when_some(error.as_deref(), |d, e| {
+                            d.child(
+                                words(e, "rv-draft-error")
+                                    .text_xs()
+                                    .text_color(rgb(color::del())),
+                            )
+                        })
                         .child(
                             div()
                                 .flex()
@@ -897,6 +912,8 @@ enum AnnView {
     Draft {
         input: Entity<TextareaState>,
         title: SharedString,
+        /// The last failed save, kept with the text for a retry.
+        error: Option<String>,
     },
 }
 

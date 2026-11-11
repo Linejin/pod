@@ -360,19 +360,24 @@ fn toast(title: &str, body: &str) -> Option<(String, String)> {
 
 const IDLE: (bool, bool, bool, bool, Option<String>) = (false, false, false, false, None);
 
-/// Opening reads `sessions.list` once (a second open while it is in
-/// flight adds nothing) and never scans; discovery stays off.
+/// Opening reads `sessions.list` and never scans; discovery stays off. Opens
+/// while that read is in flight make one follow-up read after it, however
+/// many there are (fx-app: they used to be dropped).
 #[test]
 fn opening_reads_the_list_once_and_does_not_scan() {
     let d = Daemon::shared(SessionsList::default());
     let mut h = harness("sessions-open", &d);
     open(&mut h);
     open(&mut h);
+    open(&mut h);
     assert!(flags(&mut h).0, "loading until podd answers");
     h.settle();
     assert_eq!(
         sent(&mut h),
-        vec![req("sessions.list", json!({"include_hidden": false}))]
+        vec![
+            req("sessions.list", json!({"include_hidden": false})),
+            req("sessions.list", json!({"include_hidden": false})),
+        ]
     );
     assert_eq!(flags(&mut h), IDLE);
     assert!(h.cx.update(|_, cx| page_open(cx)));
@@ -386,6 +391,37 @@ fn opening_reads_the_list_once_and_does_not_scan() {
         "re-opening re-reads the list once"
     );
     assert!(!d.borrow().list.enabled);
+}
+
+/// fx-app regression: showing hidden sessions while a list read is in flight
+/// is not lost. The in-flight read answers with the old filter, then one
+/// follow-up read goes out with the new one and the page ends idle.
+#[test]
+fn a_reread_during_a_read_is_queued_once() {
+    let mut list = listed(vec![resumable()]);
+    list.hidden = 1;
+    let d = Daemon::shared(list);
+    let mut h = harness("sessions-reread", &d);
+    open(&mut h);
+    h.settle();
+    sent(&mut h);
+
+    open(&mut h);
+    assert!(flags(&mut h).0, "a read is in flight");
+    let ws = h.ws.downgrade();
+    h.cx.update(|_, cx| super::controller::toggle_hidden(&ws, cx));
+    assert!(h.cx.update(|_, cx| cx.global::<SessionsUi>().reread));
+    h.settle();
+    assert_eq!(
+        sent(&mut h),
+        vec![
+            req("sessions.list", json!({"include_hidden": false})),
+            req("sessions.list", json!({"include_hidden": true})),
+        ]
+    );
+    assert_eq!(flags(&mut h), (false, false, false, true, None));
+    assert!(!h.cx.update(|_, cx| cx.global::<SessionsUi>().reread));
+    assert!(last_toast(&mut h).is_none(), "no errors");
 }
 
 /// Enabling saves the setting, then scans once (without `enable`).

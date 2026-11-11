@@ -467,12 +467,13 @@ fn other_panels_count_one_each_like_the_review_signature() {
             tree_panel: true,
             mods_page: true,
             sessions_page: true,
-            // The orchestration page is not part of the signature.
+            // fx-layouts: the orchestration pages count too (opening one
+            // switches the kanban drawer and the review canvas to 패널).
             orch_page: true,
         },
         ..base.clone()
     };
-    assert_eq!(f.other_panels(), 1 + 1 + 2 + 2 + 1 + 1 + 1 + 1);
+    assert_eq!(f.other_panels(), 1 + 1 + 2 + 2 + 1 + 1 + 1 + 1 + 1);
 }
 
 #[test]

@@ -1194,6 +1194,23 @@ pub fn cycle_target(terms: &[&TerminalVm], current: Option<&str>, back: bool) ->
     Some(live[j].to_string())
 }
 
+// ───────────────────────────── panel drawer ─────────────────────────────
+
+/// A panel was opened while the layout shows (settings, gates, a Review …):
+/// the count of the dock's panels other than terminals rose since the last
+/// frame (`usize::MAX`: no frame yet, nothing to compare). The drawer opens.
+pub fn panels_rose(last: usize, now: usize) -> bool {
+    now > last && last != usize::MAX
+}
+
+/// Width of the panel drawer at the right, in logical px: about 42 % of the
+/// window, 360–720 px, but the task list and at least 360 px of feed stay
+/// beside it (280 px of drawer at the very least).
+pub fn drawer_width(window: f32, sidebar: f32) -> f32 {
+    let room = (window - sidebar - 360.).max(280.);
+    (window * 0.42).clamp(360., 720.).min(room)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

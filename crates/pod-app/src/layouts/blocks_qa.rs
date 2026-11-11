@@ -746,3 +746,245 @@ fn the_kit_renderer_keeps_one_feed_per_window_in_its_state_slot() {
         "the first window keeps its feed"
     );
 }
+
+// ───────────────────────── panel drawer (fx-layouts) ─────────────────────────
+
+const LOGIN: &str = "sample/로그인-수정";
+
+/// [`seed_two_tasks`] with a small git repository as 로그인-수정's worktree
+/// (the Review and the editor need one).
+fn with_worktree(name: &str) -> impl FnOnce(&mut TestBackend) {
+    let wt = std::env::temp_dir().join(format!("pod-native-qa-{name}-{}", std::process::id()));
+    let _ = std::fs::remove_dir_all(&wt);
+    let wt = pod_editor::fixture::create(&wt, true).expect("fixture repo");
+    move |b| {
+        seed_two_tasks(b);
+        b.tasks[0].worktree = Some(wt.to_string_lossy().into_owned());
+        b.worktrees.insert(LOGIN.into(), wt);
+    }
+}
+
+/// The drawer is open and drawn.
+fn drawer_shown(h: &mut Harness) -> bool {
+    let f = feed(h);
+    h.cx.update(|_, cx| f.read(cx).drawer_open) && h.bounds("blocks-drawer").is_some()
+}
+
+/// The keyboard is somewhere in the drawer.
+fn drawer_has_focus(h: &mut Harness) -> bool {
+    let f = feed(h);
+    h.cx.update(|window, cx| f.read(cx).drawer_has_focus(window, cx))
+}
+
+fn focus_input(h: &mut Harness) {
+    let f = feed(h);
+    h.cx.update(|window, cx| {
+        let input = f.read(cx).input.clone();
+        input.update(cx, |i, cx| i.focus(window, cx))
+    });
+    h.settle();
+    assert!(input_focused(h));
+}
+
+type OpenPanel =
+    fn(&mut crate::workspace::Workspace, &mut Window, &mut Context<crate::workspace::Workspace>);
+
+/// The block terminal had no dock, so every panel opened in it was invisible.
+/// Settings, gates, agents, inspector, Review, editor and an orchestration
+/// page each open the drawer at the right with the keyboard in the panel;
+/// Esc closes it and the keyboard goes back to the input it came from.
+#[test]
+fn panels_opened_in_the_block_terminal_show_in_the_drawer_and_esc_returns() {
+    let mut h = Harness::new("blocks-drawer", with_worktree("blocks-drawer"));
+    set_layout(&mut h, "block-terminal");
+    let f = feed(&mut h);
+    assert!(!drawer_shown(&mut h), "no panel, no drawer");
+    assert!(
+        h.bounds("blocks-drawer-toggle").is_none(),
+        "no panel, no drawer button"
+    );
+    let ws = h.ws.clone();
+    let opens: [(&str, OpenPanel); 7] = [
+        ("settings", |w, window, cx| w.open_settings(window, cx)),
+        ("gates", |w, window, cx| w.open_gates(window, cx)),
+        ("agents", |w, window, cx| w.open_agent_tree(window, cx)),
+        ("inspector", |w, window, cx| w.open_inspector(window, cx)),
+        ("review", |w, window, cx| w.open_review(LOGIN, window, cx)),
+        ("editor", |w, window, cx| {
+            w.open_editor(LOGIN, None, false, window, cx)
+        }),
+        ("orch", |w, window, cx| {
+            assert!(crate::orch_ui::run(w, "orch-board", window, cx));
+        }),
+    ];
+    for (name, open) in opens {
+        focus_input(&mut h);
+        h.cx.update(|window, cx| ws.update(cx, |w, cx| open(w, window, cx)));
+        h.settle();
+        assert!(drawer_shown(&mut h), "{name}: the drawer shows the dock");
+        assert!(
+            h.bounds("blocks-feed").is_some() && h.bounds("blocks-input").is_some(),
+            "{name}: the feed stays beside it"
+        );
+        assert!(
+            drawer_has_focus(&mut h),
+            "{name}: the keyboard is in the panel: {}",
+            h.focus_name()
+        );
+        h.keys("escape");
+        assert!(!drawer_shown(&mut h), "{name}: Esc closes the drawer");
+        assert!(
+            input_focused(&mut h),
+            "{name}: the keyboard is back in the input: {}",
+            h.focus_name()
+        );
+    }
+    // The panels stay open in the dock: the header's button shows them again.
+    // By keyboard: F6 to the task row, Tab past the two agent chips and the
+    // raw toggle to it, Enter.
+    assert!(h.bounds("blocks-drawer-toggle").is_some());
+    h.keys("f6");
+    h.keys("tab tab tab tab");
+    h.keys("enter");
+    assert!(
+        drawer_shown(&mut h) && drawer_has_focus(&mut h),
+        "the header's button opens the drawer: {}",
+        h.focus_name()
+    );
+    // Esc: back to the task row the keyboard came from.
+    h.keys("escape");
+    assert!(!drawer_shown(&mut h));
+    let row =
+        h.cx.update(|_, cx| f.update(cx, |f, cx| f.task_focus(LOGIN, cx)));
+    assert!(h.is_focused(&row), "{}", h.focus_name());
+}
+
+/// F6 reaches the open drawer (작업 → 블록 → 입력 → 패널 → 작업); Esc and its
+/// close button give the keyboard back to the region it came from. A
+/// settings page asked for again (already open, drawer closed) opens it too.
+#[test]
+fn f6_cycles_through_the_open_drawer_and_closing_returns_the_keyboard() {
+    let mut h = Harness::new("blocks-drawer-f6", seed_two_tasks);
+    set_layout(&mut h, "block-terminal");
+    let f = feed(&mut h);
+    let ws = h.ws.clone();
+    h.cx.update(|window, cx| ws.update(cx, |w, cx| w.open_settings(window, cx)));
+    h.settle();
+    assert!(drawer_shown(&mut h) && drawer_has_focus(&mut h));
+    let task_focused = |h: &mut Harness| {
+        let handle =
+            h.cx.update(|_, cx| f.update(cx, |f, cx| f.task_focus(LOGIN, cx)));
+        h.is_focused(&handle)
+    };
+    // From the panel: tasks, the feed, the input, the drawer's dock, tasks.
+    h.keys("f6");
+    assert!(task_focused(&mut h), "F6 from the drawer: the tasks");
+    h.keys("f6");
+    assert!(
+        !task_focused(&mut h) && !input_focused(&mut h) && !drawer_has_focus(&mut h),
+        "F6: the feed ({})",
+        h.focus_name()
+    );
+    h.keys("f6");
+    assert!(input_focused(&mut h), "F6: the input");
+    h.keys("f6");
+    assert!(
+        drawer_has_focus(&mut h),
+        "F6: the drawer ({})",
+        h.focus_name()
+    );
+    h.keys("f6");
+    assert!(task_focused(&mut h), "F6: around to the tasks");
+    // Into the drawer from the input, then Esc: back to the input.
+    h.keys("f6 f6 f6");
+    assert!(drawer_has_focus(&mut h));
+    h.keys("escape");
+    assert!(!drawer_shown(&mut h));
+    assert!(input_focused(&mut h), "Esc: back to the input");
+    // Closed: F6 skips it (input → tasks).
+    h.keys("f6");
+    assert!(
+        task_focused(&mut h),
+        "the closed drawer is not in the cycle"
+    );
+
+    // Settings asked for again (already open in the dock): the drawer opens on it.
+    h.cx.update(|window, cx| ws.update(cx, |w, cx| w.open_settings(window, cx)));
+    h.settle();
+    assert!(
+        drawer_shown(&mut h),
+        "a panel asked for again opens the drawer"
+    );
+    assert!(drawer_has_focus(&mut h));
+    // The close button gives the keyboard back to the tasks it came from.
+    h.cx.update(|window, cx| f.update(cx, |f, cx| f.close_drawer(window, cx)));
+    h.settle();
+    assert!(!drawer_shown(&mut h));
+    assert!(task_focused(&mut h), "closing: back to the tasks");
+}
+
+/// Entering the layout with a settings page focused in the workbench keeps
+/// it focused, in the drawer (as kanban and review keep it in 패널).
+#[test]
+fn entering_with_a_focused_panel_keeps_it_in_the_drawer() {
+    let mut h = Harness::new("blocks-drawer-enter", seed_two_tasks);
+    let ws = h.ws.clone();
+    h.cx.update(|window, cx| ws.update(cx, |w, cx| w.open_settings(window, cx)));
+    h.settle();
+    assert!(
+        h.focus_name().starts_with("settings panel"),
+        "{}",
+        h.focus_name()
+    );
+    set_layout(&mut h, "block-terminal");
+    assert!(drawer_shown(&mut h), "the drawer shows the settings");
+    assert!(
+        h.focus_name().starts_with("settings panel"),
+        "focus stays in the settings: {}",
+        h.focus_name()
+    );
+    set_layout(&mut h, "workbench");
+    assert!(h.bounds("blocks-drawer").is_none());
+}
+
+/// fx-layouts regression: a panel opened while the block terminal shows is
+/// drawn (the layout had no dock, the settings page took the keyboard
+/// somewhere invisible).
+#[test]
+fn a_panel_opened_in_the_block_terminal_is_drawn_with_the_keyboard_in_it() {
+    let mut h = Harness::new("blocks-panel-drawn", seed_two_tasks);
+    set_layout(&mut h, "block-terminal");
+    let ws = h.ws.clone();
+    h.cx.update(|window, cx| ws.update(cx, |w, cx| w.open_settings(window, cx)));
+    h.settle();
+    let dock =
+        h.cx.update(|_, cx| ws.read(cx).dock.read(cx).focus_handle(cx));
+    assert!(
+        h.cx.update(|window, cx| dock.contains_focused(window, cx)),
+        "the dock is drawn, the settings page in it has the keyboard: {}",
+        h.focus_name()
+    );
+    assert!(h.bounds("blocks-layout").is_some(), "beside the feed");
+}
+
+/// Beside the open drawer the feed column is narrow (960 px window, as the
+/// 1440 px capture at 150 %): a long task title gives way with an ellipsis
+/// and the header's buttons stay in view, left of the drawer.
+#[test]
+fn header_buttons_stay_beside_the_open_drawer_in_a_narrow_window() {
+    let mut h = Harness::sized("blocks-drawer-narrow", 1.0, size(px(960.), px(640.)), |b| {
+        seed_two_tasks(b);
+        b.tasks[0].title = "로그인 화면의 세션 만료 처리와 회귀 테스트, 문서·변경 기록 정리".into();
+    });
+    set_layout(&mut h, "block-terminal");
+    let ws = h.ws.clone();
+    h.cx.update(|window, cx| ws.update(cx, |w, cx| w.open_settings(window, cx)));
+    h.settle();
+    assert!(drawer_shown(&mut h));
+    let toggle = h.bounds("blocks-drawer-toggle").expect("the drawer button");
+    let drawer = h.bounds("blocks-drawer").expect("the drawer");
+    assert!(
+        toggle.right() <= drawer.left(),
+        "the button is left of the drawer: {toggle:?} / {drawer:?}"
+    );
+}

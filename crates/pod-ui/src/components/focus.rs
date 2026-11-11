@@ -43,7 +43,17 @@ impl FocusReturn {
 }
 
 gpui_kit::actions!(pod_modal, [ModalNext, ModalPrevious, ModalClose]);
+/// Set once the modal keys are in the app's keymap.
+struct ModalKeysBound;
+impl Global for ModalKeysBound {}
+/// Tab / Shift+Tab / Escape in a `PodModal` frame. Binds once per app: later
+/// calls (every `apply_theme`, i.e. every settings apply) leave the keymap as
+/// it is instead of adding the three bindings again.
 pub fn install_key_bindings(cx: &mut App) {
+    if cx.has_global::<ModalKeysBound>() {
+        return;
+    }
+    cx.set_global(ModalKeysBound);
     cx.bind_keys([
         KeyBinding::new("tab", ModalNext, Some("PodModal")),
         KeyBinding::new("shift-tab", ModalPrevious, Some("PodModal")),

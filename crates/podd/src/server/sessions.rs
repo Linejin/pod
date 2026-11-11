@@ -5,7 +5,7 @@
 //!
 //! `task.create` itself stays in `tasks.rs`; this module holds the pieces it
 //! calls and the background work that follows a create (setup watcher,
-//! typed brief). Background work needs an `Arc<Daemon>`; [`start`] keeps a
+//! typed brief). Background work needs an `Arc<Daemon>`; `start` keeps a
 //! weak reference for that.
 
 use std::collections::{BTreeMap, BTreeSet};

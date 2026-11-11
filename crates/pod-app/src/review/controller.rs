@@ -402,6 +402,8 @@ impl ReviewPanel {
             line,
             end_line,
             input,
+            saving: false,
+            error: None,
         });
         cx.notify();
     }
@@ -485,14 +487,30 @@ impl ReviewPanel {
         }
     }
 
+    /// Enter / 의견: add the draft as a comment. The draft stays open until
+    /// podd stores it; a failed save keeps the text, shows why under it and
+    /// in a toast, and the next Enter retries.
     pub(super) fn save_draft(&mut self, _window: &mut Window, cx: &mut Context<Self>) {
-        let Some(d) = self.draft.take() else { return };
+        let Some(d) = self.draft.as_mut() else { return };
+        if d.saving {
+            return;
+        }
         let body = d.input.read(cx).value().trim().to_string();
         cx.notify();
         if body.is_empty() {
+            self.draft = None;
             return;
         }
-        let comment = new_comment(&self.sources, d.path, d.side, d.line, d.end_line, body);
+        (d.saving, d.error) = (true, None);
+        let input = d.input.clone();
+        let comment = new_comment(
+            &self.sources,
+            d.path.clone(),
+            d.side,
+            d.line,
+            d.end_line,
+            body,
+        );
         let rx = self
             .source
             .call::<p::ReviewCommentsAdd>(&p::ReviewAddParams {
@@ -501,17 +519,29 @@ impl ReviewPanel {
             });
         cx.spawn(async move |this, cx| {
             let r = rx.await;
-            let _ = this.update(cx, |p, cx| match r {
-                Ok(added) => {
-                    p.comments.extend(added.comments);
-                    cx.notify();
+            let _ = this.update(cx, |p, cx| {
+                // The draft this save belongs to, unless another one replaced it.
+                let draft = p.draft.as_mut().filter(|d| d.input == input);
+                match r {
+                    Ok(added) => {
+                        if draft.is_some() {
+                            p.draft = None;
+                        }
+                        p.comments.extend(added.comments);
+                        cx.notify();
+                    }
+                    Err(e) => {
+                        if let Some(d) = draft {
+                            (d.saving, d.error) = (false, Some(e.message.clone()));
+                        }
+                        p.toast(
+                            ToastKind::Error,
+                            crate::strings::COMMENT_NOT_SAVED.into(),
+                            e.message,
+                            cx,
+                        );
+                    }
                 }
-                Err(e) => p.toast(
-                    ToastKind::Error,
-                    crate::strings::COMMENT_NOT_SAVED.into(),
-                    e.message,
-                    cx,
-                ),
             });
         })
         .detach();

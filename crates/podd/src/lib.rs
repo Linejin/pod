@@ -7,7 +7,7 @@
 //!   re-exported from `pod-protocol` with the nine `*_protocol` domain modules.
 //! - [`client`]: blocking pipe client with daemon auto-start and attach streams.
 //! - [`transport`], [`endpoint`], `detach`: line framing, pipe names, detached spawn.
-//! - [`env`], [`keys`]: terminal environment hygiene, named keys -> bytes.
+//! - [`env`](mod@env), [`keys`]: terminal environment hygiene, named keys -> bytes.
 //!
 //! Server side (feature `server`):
 //! - [`server`]: the `podd` daemon (registry, RPC, read/wait/attach).

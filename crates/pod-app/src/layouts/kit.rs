@@ -15,8 +15,8 @@ mod widgets;
 
 pub(crate) use clock::Clock;
 pub(crate) use host::{
-    AppOnce, GateDone, HostChange, HostUpdate, OnChange, OnChangeIn, WindowKey, state_in_window,
-    states,
+    AppOnce, GateDone, HostChange, HostUpdate, OnChange, OnChangeIn, PanelWatch, WindowKey,
+    state_in_window, states,
 };
 // The QA modules look a window's state up by key, and release one by hand.
 #[cfg(test)]

@@ -61,7 +61,8 @@ use self::model::{
 };
 use crate::layout_mode::{LayoutMode, LayoutModule};
 use crate::layouts::kit::{
-    HostUpdate, LayoutActions, LayoutFrame, LayoutHost, LayoutMetrics, LayoutRenderer, Slot,
+    HostUpdate, LayoutActions, LayoutFrame, LayoutHost, LayoutMetrics, LayoutRenderer, PanelWatch,
+    Slot,
 };
 use crate::panel::TerminalPanel;
 use crate::review::ReviewPanel;
@@ -115,6 +116,9 @@ pub struct ReviewView {
     busy: HashSet<String>,
     dock_signature: usize,
     dock_reviews: HashSet<EntityId>,
+    /// A dock panel asked for by focus (an orchestration page next to
+    /// another, a panel brought back): the canvas shows 패널.
+    panel_watch: PanelWatch,
     seen_focus: Option<String>,
     /// The layout was just switched to (or the app started in it): place focus once.
     entered: bool,
@@ -168,6 +172,7 @@ impl ReviewView {
             busy: HashSet::new(),
             dock_signature: usize::MAX,
             dock_reviews: HashSet::new(),
+            panel_watch: PanelWatch::default(),
             seen_focus: None,
             entered: true,
             shown: true,
@@ -270,8 +275,17 @@ impl ReviewView {
             self.model.select(task);
         }
         self.dock_reviews = ids;
-        // Another panel opened while the layout shows (settings, editor …) appears in the canvas.
-        if dock_rose(self.dock_signature, signature) {
+        // Another panel opened while the layout shows (settings, editor …)
+        // appears in the canvas; so does one the workspace focused for the
+        // user (an orchestration page next to another, a panel asked for
+        // again). Its terminals and Reviews the layout shows itself.
+        let asked = self.panel_watch.asked(
+            &self.actions,
+            &[crate::panel::PANEL_NAME, crate::review::REVIEW_PANEL_NAME],
+            window,
+            cx,
+        );
+        if dock_rose(self.dock_signature, signature) || asked {
             self.model.show_dock = true;
             self.model.expanded = None;
         }

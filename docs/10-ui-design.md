@@ -379,7 +379,7 @@ D0 산출은 이 문서 하나다.
 
 ## 10. D1 results (2026-11-08)
 
-Added the Apache-2.0 `crates/pod-ui` library. Dark/light tokens are the source of truth for the actual gpui-component 0.9 ThemeColor adapter, spacing, radius, typography, elevation, motion and terminal defaults. `apply_theme` uses `Theme::change` then `Theme::update`, reconciling ThemeTokens/Base projection and refreshing windows; it also installs PodModal bindings. Fonts are selected from installed families, with Windows/GPUI Korean fallback. Icons are 16px, icon hit areas 28px, focus rings 2px with a 2px gap.
+Added the Apache-2.0 `crates/pod-ui` library. Dark/light tokens are the source of truth for the actual gpui-component 0.9 ThemeColor adapter, spacing, radius, typography, elevation, motion and terminal defaults. `apply_theme` uses `Theme::change` then `Theme::update`, reconciling ThemeTokens/Base projection and refreshing windows; it also installs PodModal bindings (once per app; later applies leave the keymap as it is). Fonts are selected from installed families, with Windows/GPUI Korean fallback. Icons are 16px, icon hit areas 28px, focus rings 2px with a 2px gap.
 
 API: `StatusBadge`, `StatusSummary`, `TreeRow`, `IconButton`, `semantic_button`, `Frame` (Dialog/CommandPalette/List/Toast/Empty), `FocusReturn`, `modal_keyboard`, `ListSelection`, `toast_timeout`, and `TerminalPalette`. StatusBadge consumes `StatusSnapshot::display_state()` and preserves source, confidence, root/final state and running children. Exit code and stale connection are separate inputs. Summary deduplicates terminal IDs; UI priority is error > blocked > working > unknown > idle, intentionally different from engine aggregation. Mixed done/exited is not reported as all done. Semantic actions add hover borders and pressed insets; noninteractive status uses StatusBadge.
 
@@ -951,8 +951,8 @@ hover100ms, press100ms, 펼치기/tooltip/menu opacity120ms, toast150ms, easing 
 - **카드** = 터미널 하나: 상태 아이콘 · `에이전트 · 이름` · 작업 제목 · 마지막 출력 줄(고정폭) · 동작 · 상태 문구(항상 표시). 동작: 대기 중 gate가 있으면 **승인/거부**(`gate.resolve`, gates 수신함과 같은 경로), gate 없는 질문은 **응답하기**(서랍 터미널), 그 외 **로그**, 종료된 터미널은 **다시 실행**(같은 argv·폴더·작업으로 `terminal.run`).
 - **끌기는 상태를 바꾸지 않는다**: 같은 열 카드 위에 놓으면 순서 변경, 열 머리에 놓으면 맨 위 고정. 다른 열에는 놓을 수 없다(`can_drop`). 손잡이 툴팁이 이유를 설명한다. 키보드: Alt+↑/↓ 순서, Alt+Home 고정. 순서·고정·필터는 보드의 화면 상태이며 앱을 다시 켜면 초기화된다.
 - **필터**: 저장소, 에이전트(드롭다운), 필터 지우기.
-- **서랍**: 고른 카드의 터미널. 작업대가 이미 연 패널은 **같은 패널을 그대로** 보여 준다(재연결·재실행 없음). 패널이 없으면 서랍 전용 패널을 만들고, 다른 레이아웃으로 바꾸면 닫는다. dock은 건드리지 않으므로 작업대로 돌아오면 배치가 그대로다. 보드에서 연 설정·리뷰 등은 서랍의 “패널” 보기(dock 자체)에 나온다. 크게/작게/닫기.
-- **키보드**: 카드 하나만 Tab 정지(선택된 카드) → 그 카드의 동작 단추 → 서랍 머리. ↑↓←→ Home End 이동, Enter 서랍에서 열고 터미널로 이동, **F6** 보드↔서랍. 레이아웃에 들어오면 선택 카드(또는 쓰던 터미널)에 포커스. UIA 이름: 열 “작업 중, 카드 N개”, 카드 “제목, 열: 상태, 작업: …, 승인 요청: …, 마지막 줄: …, 고정됨”.
+- **서랍**: 고른 카드의 터미널. 작업대가 이미 연 패널은 **같은 패널을 그대로** 보여 준다(재연결·재실행 없음). 패널이 없으면 서랍 전용 패널을 만들고, 다른 레이아웃으로 바꾸면 닫는다. dock은 건드리지 않으므로 작업대로 돌아오면 배치가 그대로다. 보드에서 연 설정·리뷰·오케스트레이션 화면 등은 서랍의 “패널” 보기(dock 자체)에 나온다. 이미 열린 패널을 다시 불러도 같다(작업 공간이 포커스를 준 dock 패널을 보고 연다). 크게/작게/닫기.
+- **키보드**: 카드 하나만 Tab 정지(선택된 카드) → 그 카드의 동작 단추 → 서랍 머리. ↑↓←→ Home End 이동, Enter 서랍에서 열고 터미널로 이동, **F6** 보드↔서랍(패널 보기의 dock에서도 보드로 돌아온다). 레이아웃에 들어오면 선택 카드(또는 쓰던 터미널)에 포커스. UIA 이름: 열 “작업 중, 카드 N개”, 카드 “제목, 열: 상태, 작업: …, 승인 요청: …, 마지막 줄: …, 고정됨”.
 - **폴링 없음**: 카드는 작업 공간 데이터로 매 프레임 만든다. 마지막 줄은 화면에 보이는 카드만, 상태 키(상태·since·turn·수명)가 바뀔 때 `terminal.read`(1줄)로 한 번 읽는다 → 작업 중 출력이 이어져도 상태가 바뀌기 전에는 갱신되지 않는다.
 - **크기**: 카드 높이는 UI 글자 크기에서 계산(균일 목록, 300 터미널도 보이는 카드만 그림). 100–175%·글자 20px에서 상태 줄이 카드 안에 있음을 테스트로 확인.
 - **스타일**: 토큰·metrics만 사용(면 모델별 열/카드 면, 반경, 그림자, 경계 두께, focus 폭). quiet·islands·mono·warm·access·kanban × 다크/라이트 캡처: `crates/pod-app/qa/layouts/kanban/`(목업과의 차이는 그 README).
@@ -992,7 +992,8 @@ hover100ms, press100ms, 펼치기/tooltip/menu opacity120ms, toast150ms, easing 
 - **승인**: 대기 중 gate는 그 터미널의 마지막 블록 안에(블록이 없으면 승인 블록 하나). **이번만 허용**(Y) · **항상 허용**(A) · **거부**(N) 모두 `gate.resolve` 한 경로. gate에 선택지(v17 `options`)가 있으면 “항상/always/don't ask” 선택지를 항상 허용에, 나머지를 이번만 허용에 `choice`로 보낸다. “항상” 선택지가 없으면 항상 허용은 비활성(툴팁으로 이유).
 - **입력**: 한 에이전트에만 보낸다(`terminal.input`, 텍스트+CR). **Tab/Shift+Tab** 대상 변경(실행 중 터미널만), **Esc** 블록으로, Enter 보내기. 자리표시: `Claude · 구현에게 입력 · Tab으로 대상 변경`.
 - **원본 터미널**: 머리줄 단추로 피드 ↔ 터미널. 작업대가 이미 연 패널은 **같은 패널**(재연결 없음), 없으면 피드 전용 패널(레이아웃을 바꾸면 닫음). dock은 건드리지 않아 작업대로 돌아오면 배치 그대로.
-- **키보드**: F6 작업 목록 → 블록 → 입력. 작업 목록 ↑↓ Home End(바로 그 작업을 보여 줌), Enter 블록으로. 블록 하나만 Tab 정지(선택된 블록) → 그 블록의 단추들. ↑↓ Home End 이동, Enter/Space/←→ 접기·펼치기, C 또는 Ctrl+C 복사, T 전체 터미널, Y/A/N 승인. 레이아웃에 들어올 때 터미널에 포커스가 있었으면 그 작업을 열고 그 터미널을 입력 대상으로 입력에 포커스, 아니면 최신 블록. UIA 이름: 블록 “Claude · 구현, cargo test, 3.1초 · 종료 0, 접힘”, 승인이 있으면 “승인 요청: …”.
+- **패널 서랍**: 이 레이아웃에서 연 설정·승인함·에이전트 트리·상태 검사·리뷰·편집기·오케스트레이션 화면은 오른쪽 서랍(dock 자체, 칸반 서랍의 “패널” 보기와 같음)에 나온다. 패널이 새로 열리거나 작업 공간이 dock 패널에 포커스를 주면 서랍이 열리고 포커스는 그 패널에 있다. 머리줄 “패널 서랍 열기/닫기” 단추(dock에 패널이 있을 때만), 서랍 머리의 닫기, 서랍 안에서 쓰이지 않은 **Esc**로 닫으면 포커스는 원래 있던 영역(작업 목록·블록·입력)으로 돌아간다. 패널은 dock에 그대로 남는다.
+- **키보드**: F6 작업 목록 → 블록 → 입력 → 패널 서랍(열려 있을 때만). 작업 목록 ↑↓ Home End(바로 그 작업을 보여 줌), Enter 블록으로. 블록 하나만 Tab 정지(선택된 블록) → 그 블록의 단추들. ↑↓ Home End 이동, Enter/Space/←→ 접기·펼치기, C 또는 Ctrl+C 복사, T 전체 터미널, Y/A/N 승인. 레이아웃에 들어올 때 터미널에 포커스가 있었으면 그 작업을 열고 그 터미널을 입력 대상으로 입력에 포커스, 아니면 최신 블록. UIA 이름: 블록 “Claude · 구현, cargo test, 3.1초 · 종료 0, 접힘”, 승인이 있으면 “승인 요청: …”.
 - **폴링 없음**: 고른 작업의 터미널마다 `terminal.attach` 흐름 하나(머리 없는 VT로 화면대로 읽음), 작업이나 레이아웃이 바뀌면 끊는다. 상태 변화는 작업 공간 이벤트로. 실행 중 블록의 경과 시간은 타이머가 필요해 표시하지 않고 “실행 중”.
 - **스타일**: 토큰·metrics만(면 모델별 블록 면, 반경, 그림자, 경계 두께, focus 폭, 승인 대기는 주황 테두리+띠+아이콘+문구). 캡처: `crates/pod-app/qa/layouts/blocks/`(목업과의 차이는 그 README).
 
@@ -1004,7 +1005,7 @@ hover100ms, press100ms, 펼치기/tooltip/menu opacity120ms, toast150ms, easing 
 - **배치**: 왼쪽 작업 목록 · 가운데 고른 작업의 **리뷰**(기존 Review 패널 그대로: 나란히 diff, 파일 목록, 의견, 에이전트에 보내기·전달 상태, PR 탭) · 아래 그 작업의 터미널을 작게 도킹(최대 4개, 넘으면 `(+N)`). 각 터미널은 **크게 보기**로 캔버스 전체를 덮고, 다시 누르면 제자리. 터미널 줄은 접을 수 있다(머리만).
 - **리뷰 머리**: `브랜치 → 기준` · 작업 제목 · git 요약 · 작업 터미널별 에이전트 상태(아이콘+문구) · 대기 중 gate(**승인/거부**, `gate.resolve`) · gate 없는 응답 대기는 **응답하기**(그 터미널로 이동).
 - **상태를 복제하지 않는다**: 행·머리는 작업 공간의 작업·터미널·gate로 매 프레임 만든다. 캔버스는 dock에 그 작업의 Review가 있으면 **같은 패널**(다시 읽지 않음), 없으면 레이아웃 전용 Review(나란히 보기로 시작)를 만들어 작업 공간에 등록한다(작업·상태·전달 이벤트가 그대로 도착). 작업을 바꾸면 전용 Review를 바꾼다.
-- **전환**: dock은 건드리지 않는다. 작업대가 연 터미널 패널은 그대로 타일에 보여 준다(재연결·재실행 없음). 패널이 없는 터미널은 전용 패널을 만들고, 타일에서 빠지거나 레이아웃을 바꾸면 닫는다(전용 Review도). 작업대로 돌아오면 dock 배치가 그대로이고, 다시 오면 고른 작업·접힘 상태를 기억한다. 레이아웃이 보이는 동안 연 설정·편집기 등은 캔버스의 **패널** 탭(dock 자체)에 나온다. 다른 작업의 터미널로 이동(팔레트 등)하거나 Review를 열면 그 작업으로 바뀐다.
+- **전환**: dock은 건드리지 않는다. 작업대가 연 터미널 패널은 그대로 타일에 보여 준다(재연결·재실행 없음). 패널이 없는 터미널은 전용 패널을 만들고, 타일에서 빠지거나 레이아웃을 바꾸면 닫는다(전용 Review도). 작업대로 돌아오면 dock 배치가 그대로이고, 다시 오면 고른 작업·접힘 상태를 기억한다. 레이아웃이 보이는 동안 연 설정·편집기·오케스트레이션 화면 등은 캔버스의 **패널** 탭(dock 자체)에 나온다(이미 열린 패널을 다시 불러도). 다른 작업의 터미널로 이동(팔레트 등)하거나 Review를 열면 그 작업으로 바뀐다.
 - **키보드**: 작업 목록은 고른 행 하나만 Tab 정지, ↑↓ Home End로 작업 전환, Enter는 리뷰로. **F6 / Shift+F6**: 작업 → 리뷰(또는 패널) → 터미널 1…4 → 작업. **Ctrl+Shift+X**: 포커스한 터미널(없으면 첫 터미널) 크게/작게. 레이아웃에 들어오면 포커스한 터미널·리뷰가 포커스를 유지하고 그 작업이 캔버스가 된다; 아니면 고른 작업 행. UIA 이름: 목록 “작업, N개”, 행 “제목, 브랜치 → 기준, 상태: …, 의견 N개, 승인 대기 N개”, 영역 “리뷰 화면”, “터미널, N개”, 타일 “에이전트 · 이름, 상태”.
 - **폴링 없음**: 모든 갱신은 작업 공간 변경 이벤트로(리뷰 자체의 갱신 규칙은 Review와 같다).
 - **크기**: 행 높이·머리 높이는 UI 글자 크기에서 계산, 머리의 상태·gate 줄은 줄바꿈. 100–175%·글자 20px에서 행·gate·터미널 줄이 잘리지 않음을 테스트로 확인.

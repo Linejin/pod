@@ -1,0 +1,116 @@
+﻿App=pod-app (pid 21152)
+Window: "Pod", App: pod-app.
+
+0 영역 Pod
+	1 title bar Pod
+		2 menu bar 시스템 메뉴 모음
+			3 menu item 시스템
+		4 button 최소화
+		5 button 최대화
+		6 button 닫기
+	7 단추 명령·터미널 검색
+	8 단추 설정
+	9 탐색 작업
+		10 LIST 작업, 100개
+			11 목록 항목 Task 000 - 한글 작업과 레이아웃 🔎, 승인 대기 1개, Secondary Actions: Select
+			12 목록 항목 Task 001 - 한글 작업과 레이아웃 🔎, Secondary Actions: Select
+			13 목록 항목 Task 002 - 한글 작업과 레이아웃 🔎, 승인 대기 1개, Secondary Actions: Select
+			14 목록 항목 Task 003 - 한글 작업과 레이아웃 🔎, Secondary Actions: Select
+			15 목록 항목 Task 004 - 한글 작업과 레이아웃 🔎, Secondary Actions: Select
+			16 목록 항목 Task 005 - 한글 작업과 레이아웃 🔎, Secondary Actions: Select
+			17 목록 항목 Task 006 - 한글 작업과 레이아웃 🔎, Secondary Actions: Select
+			18 목록 항목 Task 007 - 한글 작업과 레이아웃 🔎, Secondary Actions: Select
+			19 목록 항목 Task 008 - 한글 작업과 레이아웃 🔎, Secondary Actions: Select
+			20 목록 항목 Task 009 - 한글 작업과 레이아웃 🔎, Secondary Actions: Select
+			21 목록 항목 Task 010 - 한글 작업과 레이아웃 🔎, Secondary Actions: Select
+			22 목록 항목 Task 011 - 한글 작업과 레이아웃 🔎, Secondary Actions: Select
+			23 목록 항목 Task 012 - 한글 작업과 레이아웃 🔎, Secondary Actions: Select
+			24 목록 항목 Task 013 - 한글 작업과 레이아웃 🔎, Secondary Actions: Select
+			25 목록 항목 Task 014 - 한글 작업과 레이아웃 🔎, Secondary Actions: Select
+			26 목록 항목 Task 015 - 한글 작업과 레이아웃 🔎, Secondary Actions: Select
+			27 목록 항목 Task 016 - 한글 작업과 레이아웃 🔎, Secondary Actions: Select
+		28 단추 모든 에이전트 3, 선택됨
+		29 단추 Claude · Worker 0
+		30 단추 Codex · Worker 1
+		31 단추 셸 · Worker 2
+	32 단추 원본 터미널 보기
+	33 단추 패널 서랍 닫기 (Esc)
+	34 LIST 블록 피드, 블록 4개
+		35 목록 항목 Claude · Worker 0, cargo test -p pod-ui wide_glyph, 3.1초 · 종료 0, 접힘, Secondary Actions: Select
+			36 이미지 Claude 에이전트
+			37 단추 복사
+		38 목록 항목 Claude · Worker 0, cargo build -p pod-ui, 실행 중, 펼쳐짐, Secondary Actions: Select
+			39 이미지 Claude 에이전트
+			40 단추 복사
+		41 목록 항목 Codex · Worker 1, cargo clippy -p pod-ui -- -D warnings, 승인 대기, 승인 요청: cargo clippy 실행 승인이 필요합니다., 펼쳐짐, Secondary Actions: Select
+			42 이미지 Codex 에이전트
+			43 단추 복사
+			44 단추 이번만 허용 (Y)
+			45 단추 항상 허용 (A)
+			46 단추 거부 (N)
+		47 목록 항목 셸 · Worker 2, git status --short, 0.4초 · 종료 0, 펼쳐짐, Secondary Actions: Select
+			48 이미지 셸 터미널
+			49 단추 복사
+	50 그룹 입력: Claude · Worker 0 · Tab 대상 변경 · Esc 블록으로 · F6 영역 이동
+		51 편집 Claude · Worker 0에게 입력 · Tab으로 대상 변경, Secondary Actions: SetValue
+	52 영역 패널 서랍 · Esc 닫기 · F6 영역 이동
+		53 단추 패널 서랍 닫기 (Esc)
+		54 탭 항목 실행 보드, Secondary Actions: Select
+		55 단추 패널 메뉴
+		56 그룹 실행 보드
+			57 단추 받은 편지함 · 답을 기다리는 질문: 1 (Ctrl+Shift+M)
+			58 단추 끝난 워커 정리
+			59 단추 오케스트레이션 설정
+			60 단추 실행 보드 다시 읽기
+			61 라디오 그룹 실행 목록
+				62 라디오 단추 실행 목록: r1 · 로그인 버그 수정과 테스트 보강 · 진행 중, Secondary Actions: Select
+				63 라디오 단추 실행 목록: r2 · 의존성 정리 · 끝남, Secondary Actions: Select
+			64 그룹 실행 목록 r1: 로그인 버그 수정과 테스트 보강
+				65 단추 r1 코디네이터 터미널 열기 (fixture-0)
+			66 LIST 작업 항목 대기, 0개
+			67 LIST 작업 항목 준비, 0개
+			68 LIST 작업 항목 진행, 3개
+				69 목록 항목 항목 i2 세션 만료 처리 고치기, 진행, 선행 i1, 시도 1
+				70 목록 항목 항목 i3 회귀 테스트 추가, 진행, 선행 i1, 시도 1
+				71 목록 항목 항목 i4 문서·변경 기록 갱신, 진행, 선행 i2,i3, 시도 1
+			72 LIST 작업 항목 차단, 0개
+			73 LIST 작업 항목 완료, 1개
+				74 목록 항목 항목 i1 로그인 실패 원인 찾기, 완료, 시도 1
+			75 LIST 작업 항목 실패, 1개
+				76 목록 항목 항목 i5 야간 빌드 확인, 실패, 시도 1
+			77 LIST 워커
+				78 목록 항목 워커 a2, 세션 만료 처리 고치기, claude, 실행 중, 자원 사용 중, 질문 있음, Claude 에이전트
+					79 이미지 Claude 에이전트
+					80 상태 대기 · 출처: osc · 신뢰도: 100% · 상위: 대기 · 마지막: —
+					81 단추 a2 · 세션 만료 처리 고치기 터미널 열기
+					82 단추 a2 · 세션 만료 처리 고치기 리뷰
+					83 단추 a2 · 세션 만료 처리 고치기 유지
+					84 단추 a2 · 세션 만료 처리 고치기 터미널 정리
+					85 단추 a2 · 세션 만료 처리 고치기 포기
+					86 단추 a2 · 세션 만료 처리 고치기 멈추기
+				87 목록 항목 워커 a3, 회귀 테스트 추가, codex, 실행 중, 자원 사용 중, Codex 에이전트
+					88 이미지 Codex 에이전트
+					89 상태 작업 중 · 출처: osc · 신뢰도: 100% · 상위: 작업 중 · 마지막: —
+					90 단추 a3 · 회귀 테스트 추가 터미널 열기
+					91 단추 a3 · 회귀 테스트 추가 리뷰
+					92 단추 a3 · 회귀 테스트 추가 유지
+					93 단추 a3 · 회귀 테스트 추가 터미널 정리
+					94 단추 a3 · 회귀 테스트 추가 포기
+					95 단추 a3 · 회귀 테스트 추가 멈추기
+				96 목록 항목 워커 a5, 문서·변경 기록 갱신, claude, 자원 대기 (1번째), 자원 사용 중, Claude 에이전트
+					97 이미지 Claude 에이전트
+					98 단추 a5 · 문서·변경 기록 갱신 유지
+					99 단추 a5 · 문서·변경 기록 갱신 포기
+				100 목록 항목 워커 a1, 로그인 실패 원인 찾기, codex, 성공, 끝남 · 자동 정리 대기, Codex 에이전트
+					101 이미지 Codex 에이전트
+					102 상태 완료 · 출처: osc · 신뢰도: 100% · 상위: 완료 · 마지막: —
+					103 단추 a1 · 로그인 실패 원인 찾기 터미널 열기
+					104 단추 a1 · 로그인 실패 원인 찾기 리뷰
+					105 단추 a1 · 로그인 실패 원인 찾기 유지
+					106 단추 a1 · 로그인 실패 원인 찾기 터미널 정리
+	107 LIST 최근 알림
+		108 경고 승인 대기 1개: 승인 요청을 확인하세요 (상태 표시줄 ⚑, Ctrl+Shift+I).
+			109 단추 닫기
+	110 상태 podd 연결됨 (podd UI fixture (read only) · pid 0) · 터미널 300 · 실행 300 · 패널 0 · 작업 중 49 · 응답 50 · 완료 51 · 작업 100개
+	111 단추 상태
+	112 단추 알림 1

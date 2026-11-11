@@ -12,7 +12,7 @@ use futures::channel::mpsc::{UnboundedReceiver, unbounded};
 use lsp_types as lt;
 use pod_editor::lsp::registry::{Availability, ServerRegistry, check_available, which};
 use pod_editor::lsp::rpc::SERVER_GONE;
-use pod_editor::lsp::server::{ServerEvent, ServerProcess, initialize};
+use pod_editor::lsp::server::{EXIT_WAIT, ServerEvent, ServerProcess, initialize};
 use pod_editor::lsp::{FileEdit, LspStore, LspStoreEvent, ServerConfig, ServerState};
 use pod_editor::text::{self, PosEncoding};
 use pod_editor::uri::{path_to_uri_string, uri_str_to_path};
@@ -214,6 +214,71 @@ fn dropping_a_server_kills_its_process_tree() {
         if pid_alive(pid) { Err(pid) } else { Ok(()) }
     });
     assert!(gone.is_ok(), "grandchild {pid} must die with the job");
+}
+
+/// Polite shutdown lets the server read `exit` and finish its own cleanup
+/// (100 ms here) before the tree is killed; what the server left running
+/// still dies with the job.
+#[cfg(windows)]
+#[test]
+fn shutdown_lets_the_server_exit_then_kills_the_tree() {
+    let dir = tempfile::tempdir().unwrap();
+    let pid_file = dir.path().join("child.pid");
+    let log = dir.path().join("lsp.log");
+    let (exe, cfg) = fake_cfg(&[
+        "--exit-delay-ms",
+        "100",
+        "--log",
+        log.to_str().unwrap(),
+        "--child-pid-file",
+        pid_file.to_str().unwrap(),
+    ]);
+    let (tx, _rx) = unbounded();
+    let p = ServerProcess::spawn(&exe, &cfg, dir.path(), tx, 1).unwrap();
+    block(initialize(&p.client, dir.path(), None)).unwrap();
+    let pid = until(Duration::from_secs(10), Duration::from_millis(50), || {
+        let text = std::fs::read_to_string(&pid_file).unwrap_or_default();
+        let pid: Option<u32> = text.trim().parse().ok();
+        let active = p.tree.active_processes();
+        match pid {
+            Some(pid) if pid_alive(pid) && active >= 2 => Ok(pid),
+            _ => Err((text, active)),
+        }
+    })
+    .unwrap_or_else(|e| panic!("grandchild in the tree: {e}"));
+    block(p.shutdown(timer(10)));
+    let log = std::fs::read_to_string(&log).unwrap_or_default();
+    assert!(
+        log.lines().any(|l| l.trim() == "exit"),
+        "the server finished `exit` before the kill: {log:?}"
+    );
+    assert!(p.exited());
+    let gone = until(Duration::from_secs(10), Duration::from_millis(100), || {
+        if pid_alive(pid) { Err(pid) } else { Ok(()) }
+    });
+    assert!(gone.is_ok(), "grandchild {pid} must die with the job");
+}
+
+/// A server that does not exit after `exit` is killed once `EXIT_WAIT` is
+/// over, long before the caller's timer.
+#[test]
+fn shutdown_kills_a_server_that_ignores_exit() {
+    let dir = tempfile::tempdir().unwrap();
+    let log = dir.path().join("lsp.log");
+    let (exe, cfg) = fake_cfg(&["--exit-delay-ms", "60000", "--log", log.to_str().unwrap()]);
+    let (tx, _rx) = unbounded();
+    let p = ServerProcess::spawn(&exe, &cfg, dir.path(), tx, 1).unwrap();
+    block(initialize(&p.client, dir.path(), None)).unwrap();
+    let t = Instant::now();
+    block(p.shutdown(timer(60)));
+    let took = t.elapsed();
+    assert!(p.exited());
+    assert!(
+        took >= EXIT_WAIT && took < Duration::from_secs(10),
+        "{took:?}"
+    );
+    let log = std::fs::read_to_string(&log).unwrap_or_default();
+    assert!(!log.contains("exit"), "{log:?}");
 }
 
 #[test]
@@ -739,8 +804,9 @@ impl Drop for StoreHarness {
 /// The `--wire` file as canonical JSON lines: object keys sorted, the root
 /// spelled `ROOT`, `processId` 0, the client version and capabilities
 /// replaced (the capabilities are compared on their own). Without `exit`:
-/// the client kills the tree right after sending it, so the server may die
-/// before reading it.
+/// the golden was taken when the client killed the tree right after sending
+/// it (the server could die before reading it); the bounded exit wait is
+/// pinned by `shutdown_lets_the_server_exit_then_kills_the_tree`.
 fn wire_lines(wire: &Path, root: &Path) -> Vec<String> {
     let text = std::fs::read_to_string(wire).unwrap_or_default();
     let uri = path_to_uri_string(root);

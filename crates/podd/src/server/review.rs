@@ -17,7 +17,7 @@
 //!   status comes only from heuristics (or not at all: shells) may never
 //!   advance it, so for them the previous prompt also counts as handled once
 //!   the status changed after the delivery, or once the terminal has been
-//!   quiet for [`QUIET_MS`]; [`INFLIGHT_FALLBACK_MS`] is the last resort.
+//!   quiet for `QUIET_MS`; `INFLIGHT_FALLBACK_MS` is the last resort.
 
 use std::path::{Path, PathBuf};
 use std::sync::Arc;

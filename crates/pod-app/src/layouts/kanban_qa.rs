@@ -439,3 +439,101 @@ fn switching_in_reads_each_card_once_and_the_board_is_the_windows_state() {
         "the window's state slot holds the board"
     );
 }
+
+// ───────────────────────────── fx-layouts ─────────────────────────────
+
+/// Opens palette entry `id` of the orchestration screens, as the palette does.
+fn open_orch(h: &mut Harness, id: &str) {
+    let ws = h.ws.clone();
+    let id = id.to_string();
+    h.cx.update(|window, cx| {
+        ws.update(cx, |w, cx| assert!(crate::orch_ui::run(w, &id, window, cx)))
+    });
+    h.settle();
+}
+
+/// The keyboard is in the workspace's dock (the drawer's 패널 view).
+fn dock_focused(h: &mut Harness) -> bool {
+    let ws = h.ws.clone();
+    h.cx.update(|window, cx| {
+        ws.read(cx)
+            .dock
+            .read(cx)
+            .focus_handle(cx)
+            .contains_focused(window, cx)
+    })
+}
+
+/// F6 cycles board → the drawer's dock → board. The dock is drawn inside the
+/// board's root, so F6 from the dock (or a panel in it) used to land on the
+/// dock again.
+#[test]
+fn f6_from_the_drawers_dock_returns_to_the_board() {
+    let mut h = Harness::new("kanban-dock-f6", seed_two_tasks);
+    set_layout(&mut h, "kanban");
+    let b = board(&mut h);
+    assert!(card_focused(&mut h, "w1"), "first card focused on entry");
+    let ws = h.ws.clone();
+    h.cx.update(|window, cx| ws.update(cx, |w, cx| w.open_settings(window, cx)));
+    h.settle();
+    assert!(h.cx.update(|_, cx| b.read(cx).show_dock));
+    assert!(dock_focused(&mut h), "the settings page has the keyboard");
+    h.keys("f6");
+    assert!(card_focused(&mut h, "w1"), "F6 from a panel: the board");
+    h.keys("f6");
+    assert!(dock_focused(&mut h), "F6: the dock");
+    h.keys("f6");
+    assert!(card_focused(&mut h, "w1"), "F6 from the dock: the board");
+    h.keys("f6");
+    assert!(dock_focused(&mut h), "and round again");
+    assert!(h.cx.update(|_, cx| b.read(cx).show_dock));
+}
+
+/// An orchestration page opened on the board shows in the drawer's 패널 view:
+/// the first one, one next to another while the drawer shows a terminal, one
+/// asked for again, and one while the drawer is closed.
+#[test]
+fn orch_pages_opened_on_the_board_show_in_the_drawer() {
+    let mut h = Harness::new("kanban-orch", seed_two_tasks);
+    set_layout(&mut h, "kanban");
+    let b = board(&mut h);
+    let shows = |h: &mut Harness| {
+        h.cx.update(|_, cx| {
+            let b = b.read(cx);
+            b.drawer_open && b.show_dock
+        })
+    };
+    // The drawer's 터미널 tab (as its click does).
+    let to_terminal = |h: &mut Harness| {
+        h.cx.update(|window, cx| {
+            b.update(cx, |b, cx| {
+                b.show_dock = false;
+                b.switch_region(window, cx);
+            })
+        });
+        h.settle();
+    };
+    assert!(!shows(&mut h));
+    open_orch(&mut h, "orch-board");
+    assert!(shows(&mut h), "the board page shows in the drawer");
+    assert!(dock_focused(&mut h));
+    to_terminal(&mut h);
+    assert!(!shows(&mut h));
+    open_orch(&mut h, "orch-settings");
+    assert!(shows(&mut h), "a page next to another shows too");
+    to_terminal(&mut h);
+    open_orch(&mut h, "orch-board");
+    assert!(shows(&mut h), "a page asked for again shows");
+    // The drawer's close button, then the inbox: the drawer opens on it.
+    h.cx.update(|window, cx| {
+        b.update(cx, |b, cx| {
+            b.drawer_open = false;
+            b.switch_region(window, cx);
+        })
+    });
+    h.settle();
+    assert!(h.cx.update(|_, cx| !b.read(cx).drawer_open));
+    open_orch(&mut h, "orch-inbox");
+    assert!(shows(&mut h), "the inbox opens the drawer on 패널");
+    assert!(dock_focused(&mut h), "with the keyboard in it");
+}

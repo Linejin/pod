@@ -14,7 +14,8 @@
 //! count what the editor's tabs opened and closed; `--wire <path>` appends
 //! every message the client sends, as one JSON line each (wire goldens);
 //! `--incremental` asks for ranged `didChange` (sync kind 2) and applies the
-//! ranges (UTF-16 columns).
+//! ranges (UTF-16 columns); `--exit-delay-ms <n>` makes `exit` take `n` ms
+//! (a server flushing state), then logs `exit` to `--log` and exits 0.
 
 use std::collections::BTreeMap;
 use std::io::{BufRead, BufReader, Write};
@@ -136,6 +137,10 @@ fn main() {
         .find(|w| w[0] == "--wire")
         .map(|w| w[1].clone());
     let wire = wire_file.as_deref();
+    let exit_delay = argv
+        .windows(2)
+        .find(|w| w[0] == "--exit-delay-ms")
+        .and_then(|w| w[1].parse::<u64>().ok());
     let sync_kind = if argv.iter().any(|a| a == "--incremental") {
         2
     } else {
@@ -316,7 +321,13 @@ fn main() {
                     );
                 };
                 match method.as_str() {
-                    "exit" => std::process::exit(0),
+                    "exit" => {
+                        if let Some(ms) = exit_delay {
+                            std::thread::sleep(std::time::Duration::from_millis(ms));
+                            log("exit", "");
+                        }
+                        std::process::exit(0)
+                    }
                     "textDocument/didOpen" => {
                         if crash_on_open {
                             std::process::exit(3);

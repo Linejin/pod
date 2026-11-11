@@ -2,6 +2,9 @@
   "schema": 1,
   "card": "A-P2",
   "about": "J (wire) golden of pod-app's podd boundary: decoders (wire -> view model), status-stream notifications, control-connection requests and replies, the input connection, client-error classification and typed feature requests. 'expect' was captured once from the source before the split (84bdf9e) and is never regenerated from the code under test. Checked by crates/pod-app/src/source/wire_tests.rs.",
+  "changes": [
+    "fx-app (2026-11-11), intended bug fix, edited by hand: a control/input result that does not decode fails only that request and keeps the connection. Cases: control 'poll repo.list with a bad shape keeps the connection', 'run bad result fails the request and keeps the connection', 'kill with a bad result fails the request and keeps the connection', 'task create bad result fails the request and keeps the connection'; input 'bad result keeps the connection' (a second send shows the kept connection). Everything else is the 84bdf9e capture."
+  ],
   "protocol_version": 19,
   "daemon_defaults": {
     "terminal.list": {
@@ -2180,7 +2183,7 @@
       }
     },
     {
-      "name": "poll repo.list with a bad shape drops the connection",
+      "name": "poll repo.list with a bad shape keeps the connection",
       "cmd": "poll",
       "daemon": {
         "repo.list": {
@@ -2203,13 +2206,20 @@
           {
             "method": "repo.list",
             "params": {}
+          },
+          {
+            "method": "task.list",
+            "params": {}
           }
         ],
         "reply": null,
-        "lost": "protocol error: bad repo.list result: missing field `added_ms`",
+        "lost": null,
         "events": [
           {
             "terminals": []
+          },
+          {
+            "tasks": []
           }
         ]
       }
@@ -2431,7 +2441,7 @@
       }
     },
     {
-      "name": "run bad result drops the connection",
+      "name": "run bad result fails the request and keeps the connection",
       "cmd": {
         "run": {
           "argv": [
@@ -2462,10 +2472,10 @@
         "reply": {
           "err": {
             "code": null,
-            "message": "podd connection lost: protocol error: bad terminal.run result"
+            "message": "bad terminal.run result"
           }
         },
-        "lost": "protocol error: bad terminal.run result",
+        "lost": null,
         "events": []
       }
     },
@@ -2530,7 +2540,7 @@
       }
     },
     {
-      "name": "kill with a bad result drops the connection",
+      "name": "kill with a bad result fails the request and keeps the connection",
       "cmd": {
         "kill": "t1"
       },
@@ -2546,16 +2556,38 @@
             "params": {
               "id": "t1"
             }
+          },
+          {
+            "method": "terminal.list",
+            "params": {}
+          },
+          {
+            "method": "repo.list",
+            "params": {}
+          },
+          {
+            "method": "task.list",
+            "params": {}
           }
         ],
         "reply": {
           "err": {
             "code": null,
-            "message": "podd connection lost: protocol error: bad terminal.kill result: missing field `id`"
+            "message": "bad terminal.kill result: missing field `id`"
           }
         },
-        "lost": "protocol error: bad terminal.kill result: missing field `id`",
-        "events": []
+        "lost": null,
+        "events": [
+          {
+            "terminals": []
+          },
+          {
+            "repos": []
+          },
+          {
+            "tasks": []
+          }
+        ]
       }
     },
     {
@@ -3166,7 +3198,7 @@
       }
     },
     {
-      "name": "task create bad result",
+      "name": "task create bad result fails the request and keeps the connection",
       "cmd": {
         "task_create": {
           "repo": "demo",
@@ -3195,10 +3227,10 @@
         "reply": {
           "err": {
             "code": null,
-            "message": "podd connection lost: protocol error: bad task.create result"
+            "message": "bad task.create result"
           }
         },
-        "lost": "protocol error: bad task.create result",
+        "lost": null,
         "events": []
       }
     },
@@ -3675,11 +3707,15 @@
       }
     },
     {
-      "name": "bad result drops the connection",
+      "name": "bad result keeps the connection",
       "sends": [
         {
           "id": "t1",
           "bytes": "x"
+        },
+        {
+          "id": "t1",
+          "bytes": "y"
         }
       ],
       "daemon": {
@@ -3695,9 +3731,16 @@
               "id": "t1",
               "data": "eA=="
             }
+          },
+          {
+            "method": "terminal.input",
+            "params": {
+              "id": "t1",
+              "data": "eQ=="
+            }
           }
         ],
-        "client_kept": false
+        "client_kept": true
       }
     }
   ],

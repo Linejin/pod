@@ -35,6 +35,12 @@ pub const INPUT_HINT: &str = "Tab 대상 변경 · Esc 블록으로 · F6 영역
 pub const OMITTED: &str = "줄 생략";
 pub const COULD_NOT_RESOLVE: &str = "승인 요청을 처리하지 못했습니다";
 pub const RAW_EMPTY: &str = "보여 줄 터미널이 없습니다.";
+/// The drawer at the right that shows the panels opened in this layout.
+pub const DRAWER: &str = "패널";
+pub const DRAWER_OPEN: &str = "패널 서랍 열기";
+pub const DRAWER_CLOSE: &str = "패널 서랍 닫기 (Esc)";
+/// Accessible name of the drawer: what it is and its keys.
+pub const DRAWER_REGION: &str = "패널 서랍 · Esc 닫기 · F6 영역 이동";
 /// Body of an expanded block without lines, still running / finished.
 pub const WAITING_FOR_OUTPUT: &str = "출력 기다리는 중…";
 pub const NO_OUTPUT: &str = "출력 없음";

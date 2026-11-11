@@ -19,7 +19,7 @@
 //!
 //! It also keeps the holders rediscovery could not reach (daemon-03):
 //! listed as `unreachable`, retried in the background with backoff, and
-//! forgotten only by `terminal.kill`/`terminal.rm` (see [`Unreachable`]).
+//! forgotten only by `terminal.kill`/`terminal.rm` (see `Unreachable`).
 
 use std::collections::{HashMap, HashSet};
 use std::path::PathBuf;

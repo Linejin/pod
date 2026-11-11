@@ -402,3 +402,42 @@ fn fixture_scenes_use_the_clock_they_are_given() {
         (now - 12_000, Some("fixture-1"))
     );
 }
+
+/// fx-layouts, the panel drawer: it opens on a rise of the dock's panel count
+/// (not on the first frame), F6 visits it only while it is open, and its
+/// width leaves the task list and some feed beside it.
+#[test]
+fn the_panel_drawer_opens_on_a_rise_and_is_in_f6_only_while_open() {
+    use super::controller::{Region, next_region};
+    use crate::layouts::blocks_model::{drawer_width, panels_rose};
+    use Region::{Drawer, Feed, Input, Tasks};
+
+    assert!(
+        !panels_rose(usize::MAX, 3),
+        "first frame: nothing to compare"
+    );
+    assert!(panels_rose(0, 1) && panels_rose(2, 3));
+    assert!(!panels_rose(1, 1) && !panels_rose(2, 1), "same or fewer");
+
+    let cycle = |raw: bool, drawer: bool| {
+        let mut r = Tasks;
+        let mut seen = vec![r];
+        for _ in 0..4 {
+            r = next_region(r, raw, drawer);
+            seen.push(r);
+        }
+        seen
+    };
+    assert_eq!(cycle(false, false), [Tasks, Feed, Input, Tasks, Feed]);
+    assert_eq!(cycle(false, true), [Tasks, Feed, Input, Drawer, Tasks]);
+    // The raw view has no input row.
+    assert_eq!(cycle(true, true), [Tasks, Feed, Drawer, Tasks, Feed]);
+    assert_eq!(cycle(true, false), [Tasks, Feed, Tasks, Feed, Tasks]);
+    assert_eq!(next_region(Drawer, false, false), Tasks);
+
+    // 960 px window (1440 physical at 150 %): the feed keeps 360 px.
+    assert_eq!(drawer_width(960., 240.), 360.);
+    assert!((drawer_width(1440., 260.) - 604.8).abs() < 0.01);
+    assert_eq!(drawer_width(1920., 280.), 720., "at most 720");
+    assert_eq!(drawer_width(800., 240.), 280., "at least 280");
+}

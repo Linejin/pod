@@ -1,6 +1,6 @@
 //! Extensions in the daemon (docs/16): one `pod-mods` thread, fed by the
 //! status hub (event bridge) and the status sampler (detectors), acting
-//! through [`PoddHost`]. `mod.*` RPCs manage it.
+//! through `PoddHost`. `mod.*` RPCs manage it.
 //!
 //! Mods live in `POD_MODS_DIR` or `%APPDATA%\Pod\mods`; `POD_MODS=off`
 //! turns the whole thing off. Logs go to `<state dir>\mods\<name>.log`.

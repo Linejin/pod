@@ -8,7 +8,7 @@ use std::time::{Duration, Instant};
 use podd::client::Client;
 use podd::protocol as p;
 
-use super::control::is_transport;
+use super::control::call;
 
 /// Bytes for a terminal's input, on the input connection ([`input_loop`]).
 pub(super) enum InputCmd {
@@ -133,8 +133,10 @@ pub(super) fn send_input(pipe: &str, client: &mut Option<Client>, id: &str, byte
         target: p::TerminalRef::id(id),
         data: p::b64_encode(bytes),
     };
-    if let Err(e) = c.call::<p::TerminalInput>(&params)
-        && is_transport(&e)
+    // A lost connection is dropped (the next input reconnects); a result
+    // that does not decode is logged and the connection kept.
+    if let Err(e) = call::<p::TerminalInput>(c, &params)
+        && e.into_transport().is_some()
     {
         *client = None;
     }

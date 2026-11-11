@@ -562,6 +562,61 @@ fn run_case(section: &str, case: &Value, defaults: &Value) -> Value {
     }
 }
 
+/// fx-app regression: a typed result that does not decode fails that request
+/// only. Its caller gets the message, the control and input connections stay
+/// and the next request goes over the same connection.
+#[test]
+fn a_bad_result_fails_the_request_and_keeps_the_connection() {
+    let daemon = FakeDaemon::new(
+        &json!({}),
+        &json!({
+            "terminal.kill": {"result": {}},
+            "terminal.resize": {"result": {}},
+            "repo.list": {"result": {"repos": [{"name": "demo"}]}},
+            "task.list": {"result": {"tasks": []}},
+            "terminal.list": {"result": {"terminals": []}},
+            "terminal.input": {"result": {}},
+        }),
+    );
+    let (_cmds, rx) = std_mpsc::channel();
+    let (etx, _erx) = mpsc::unbounded();
+    let mut c = Control::new(absent_pipe(), rx, etx);
+    c.client = Some(daemon.client());
+    c.caps.tasks = true;
+
+    // A kill polls after its reply: a bad repo.list there does not end the round.
+    let (cmd, pending) = command(&json!({"kill": "t1"})).expect("kill");
+    assert!(c.handle(cmd).is_ok(), "the connection is not lost");
+    assert_eq!(
+        pending.settle(),
+        json!({"err": {"code": null, "message": "bad terminal.kill result: missing field `id`"}})
+    );
+    let (cmd, _) = command(&json!({"resize": {"id": "t1", "cols": 80, "rows": 24}})).unwrap();
+    assert!(c.handle(cmd).is_ok());
+    assert!(c.client.is_some());
+    let methods: Vec<Value> = daemon
+        .sent()
+        .as_array()
+        .unwrap()
+        .iter()
+        .map(|s| s["method"].clone())
+        .collect();
+    assert_eq!(
+        methods,
+        [
+            "terminal.kill",
+            "terminal.list",
+            "repo.list",
+            "task.list",
+            "terminal.resize",
+        ],
+    );
+
+    let mut input = Some(daemon.client());
+    send_input(&absent_pipe(), &mut input, "t1", b"x");
+    assert!(input.is_some(), "the input connection stays");
+}
+
 #[test]
 fn wire_golden_matches_the_pre_split_source() {
     let doc: Value = serde_json::from_str(WIRE).expect("wire.json");

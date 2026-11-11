@@ -97,6 +97,10 @@ fn rpc_err<T: std::fmt::Debug>(r: Result<T, ClientError>) -> RpcError {
     }
 }
 
+/// Upper bound for one `task.pr.changed` event. The slow timer is 1 s here,
+/// but a loaded CI runner needed more than 10 s once; waits end at the event.
+const EVENT_WAIT: Duration = Duration::from_secs(30);
+
 /// `task.pr.changed` events of a lifecycle subscription.
 fn pr_events(d: &Daemon) -> mpsc::Receiver<TaskPrChangedEvent> {
     let (_, mut stream) = Client::connect(&d.pipe)
@@ -283,7 +287,7 @@ fn create_follow_checks_and_merge_through_the_fake_forge() {
         .expect("created");
     assert!(push < create, "push before create: {:?}", st.calls);
     assert_eq!(st.prs[0].body, "## 요약\n- hello.txt");
-    let ev = next_pr_event(&events, Duration::from_secs(10), "create", |e| {
+    let ev = next_pr_event(&events, EVENT_WAIT, "create", |e| {
         e.pr.as_ref().is_some_and(|p| p.number == 1)
     });
     assert_eq!(ev.id, t.id);
@@ -308,7 +312,7 @@ fn create_follow_checks_and_merge_through_the_fake_forge() {
 
     // CI fails: the slow timer (1 s here) picks it up and announces it.
     forge.edit(|s| s.pr_mut(1).unwrap().checks = pod_forge::fixtures::checks_failed());
-    let ev = next_pr_event(&events, Duration::from_secs(10), "failed checks", |e| {
+    let ev = next_pr_event(&events, EVENT_WAIT, "failed checks", |e| {
         e.pr.as_ref().is_some_and(|p| p.checks.failed > 0)
     });
     assert_eq!(ev.pr.unwrap().checks.verdict(), "failed");
@@ -328,7 +332,7 @@ fn create_follow_checks_and_merge_through_the_fake_forge() {
         p.checks = pod_forge::fixtures::checks_passed();
         p.view.review_decision = Some(ReviewDecision::Approved);
     });
-    let ev = next_pr_event(&events, Duration::from_secs(10), "approval", |e| {
+    let ev = next_pr_event(&events, EVENT_WAIT, "approval", |e| {
         e.pr.as_ref()
             .is_some_and(|p| p.review_decision == Some(ReviewDecision::Approved))
     });
@@ -343,7 +347,7 @@ fn create_follow_checks_and_merge_through_the_fake_forge() {
         .expect("task.pr.merge");
     assert_eq!(m.status.pr.as_ref().unwrap().state, PrState::Merged);
     assert_eq!(forge.state().prs[0].merged_with, Some(MergeMethod::Squash));
-    next_pr_event(&events, Duration::from_secs(10), "merged", |e| {
+    next_pr_event(&events, EVENT_WAIT, "merged", |e| {
         e.pr.as_ref().is_some_and(|p| p.state == PrState::Merged)
     });
     assert_eq!(

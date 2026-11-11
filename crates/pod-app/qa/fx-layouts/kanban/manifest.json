@@ -1,0 +1,24 @@
+﻿{
+    "Image":  "dark-orch-board-kanban-kanban.png",
+    "DPI":  144,
+    "Rect":  [
+                 2584,
+                 259,
+                 4024,
+                 1219
+             ],
+    "Client":  [
+                   2595,
+                   259,
+                   4013,
+                   1208
+               ],
+    "Scene":  "orch-board",
+    "Theme":  "dark",
+    "Style":  "kanban",
+    "Layout":  "kanban",
+    "Fixture":  true,
+    "Font":  "Malgun Gothic",
+    "TerminalFont":  "Cascadia Mono",
+    "HighContrast":  false
+}

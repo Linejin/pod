@@ -86,8 +86,11 @@ impl std::fmt::Debug for FrameToasts<'_> {
 
 impl<'a> LayoutFrame<'a> {
     /// Panels other than terminals and reviews, counted one each, plus the
-    /// extensions and sessions pages: the review layout's dock signature (a
-    /// rise means "show the 패널 view"); the kanban one adds `panels.reviews`.
+    /// extensions, sessions and orchestration pages: the review layout's dock
+    /// signature (a rise means "show the 패널 view"); the kanban and block
+    /// ones add `panels.reviews`. The orchestration pages count as one while
+    /// any is open (the frame has no count); a page opened next to another
+    /// is seen through its focus ([`super::LayoutActions::focused_dock_panel`]).
     pub(crate) fn other_panels(&self) -> usize {
         let (p, d) = (&self.panels, &self.panel_detail);
         p.settings as usize
@@ -98,6 +101,7 @@ impl<'a> LayoutFrame<'a> {
             + d.tree_panel as usize
             + d.mods_page as usize
             + d.sessions_page as usize
+            + d.orch_page as usize
     }
 
     /// The name a terminal shows: the saved label, else its name, else its

@@ -17,6 +17,11 @@
 //! - **Switching is live.** The dock is never touched; the raw view shows the
 //!   workbench's own terminal panel when it has one (same entity, same
 //!   attach), else a feed-owned one dropped when the layout changes.
+//! - **Panels in a drawer.** Panels opened while the layout shows (settings,
+//!   gates, agents, inspector, Review, editor, orchestration) appear in a
+//!   drawer at the right that draws the dock itself, as the kanban drawer's
+//!   패널 view does: it opens when a panel is asked for, F6 reaches it, Esc
+//!   closes it and the keyboard goes back where it was (`controller.rs`).
 //!
 //! Files (docs/20-refactor/app.md A-P13): [`super::blocks_model`] holds the
 //! pure model (output → blocks, and the feed on top), `controller` the

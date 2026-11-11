@@ -201,7 +201,7 @@ impl TermStatus {
     /// holder snapshot, which ends with the last OSC 7501 reports and window
     /// title (osc_replay.rs), and re-derives the rest from new output, the
     /// screen and hooks. The turn counter, the last hook message and the
-    /// last ack come back from `<id>.status.json` (see [`Persisted`]).
+    /// last ack come back from `<id>.status.json` (see `Persisted`).
     pub fn new(id: &str, argv: &[String], pid: u32, snapshot: &[u8]) -> Self {
         let now = now();
         let mut engine = TerminalStatus::new(now);

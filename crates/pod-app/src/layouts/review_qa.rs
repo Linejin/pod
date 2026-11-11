@@ -892,3 +892,36 @@ fn long_comment_tokens_wrap_inside_the_column_at_800_960() {
         }
     }
 }
+
+/// fx-layouts: an orchestration page opened while the layout shows becomes the
+/// canvas's 패널 view (it opened behind the 리뷰 tab): the first one, one next
+/// to another, and one asked for again.
+#[test]
+fn orch_pages_opened_meanwhile_show_in_the_panel_view() {
+    let mut h = Harness::new("review-orch", with_worktree("review-orch"));
+    set_layout(&mut h, "review");
+    let v = view(&mut h);
+    let shows = |h: &mut Harness| h.cx.update(|_, cx| v.read(cx).model.show_dock);
+    let open_orch = |h: &mut Harness, id: &'static str| {
+        let ws = h.ws.clone();
+        h.cx.update(|window, cx| {
+            ws.update(cx, |w, cx| assert!(crate::orch_ui::run(w, id, window, cx)))
+        });
+        h.settle();
+    };
+    assert!(!shows(&mut h));
+    open_orch(&mut h, "orch-board");
+    assert!(shows(&mut h), "the board page shows in the canvas");
+    assert!(dock_has_focus(&mut h), "{}", h.focus_name());
+    // F6 to the tasks: the row shows its Review again.
+    h.keys("f6");
+    assert!(row_focused(&mut h, LOGIN));
+    assert!(!shows(&mut h));
+    open_orch(&mut h, "orch-inbox");
+    assert!(shows(&mut h), "a page next to another");
+    h.keys("f6");
+    assert!(!shows(&mut h));
+    open_orch(&mut h, "orch-board");
+    assert!(shows(&mut h), "a page asked for again");
+    assert!(dock_has_focus(&mut h));
+}

@@ -53,7 +53,8 @@ pub use self::model::{
 use self::model::{CardKey, card_key, dock_rose, follow_focus, nav_key, task_count};
 use crate::layout_mode::{LayoutMode, LayoutModule};
 use crate::layouts::kit::{
-    HostUpdate, LayoutActions, LayoutFrame, LayoutHost, LayoutMetrics, LayoutRenderer, Slot,
+    HostUpdate, LayoutActions, LayoutFrame, LayoutHost, LayoutMetrics, LayoutRenderer, PanelWatch,
+    Slot,
 };
 use crate::panel::TerminalPanel;
 use crate::source::RunSpec;
@@ -145,6 +146,9 @@ pub struct Board {
     /// Drawer panel for a terminal the workbench has no panel for.
     own_panel: Option<Entity<TerminalPanel>>,
     dock_signature: usize,
+    /// A dock panel asked for by focus (an orchestration page next to
+    /// another, a panel brought back): the drawer shows the panels.
+    panel_watch: PanelWatch,
     seen_focus: Option<String>,
     /// The layout was just switched to (or the app started in it): place focus once.
     entered: bool,
@@ -192,6 +196,7 @@ impl Board {
             show_dock: false,
             own_panel: None,
             dock_signature: usize::MAX,
+            panel_watch: PanelWatch::default(),
             seen_focus: None,
             entered: true,
             shown: true,
@@ -257,8 +262,13 @@ impl Board {
             self.drawer_open = true;
             self.show_dock = false;
         }
-        // A panel opened while the board shows (settings, review …) appears in the drawer.
-        if dock_rose(self.dock_signature, signature) {
+        // A panel opened while the board shows (settings, review …) appears
+        // in the drawer; so does one the workspace focused for the user (an
+        // orchestration page next to another, a panel asked for again).
+        let asked = self
+            .panel_watch
+            .asked(&self.actions, &[crate::panel::PANEL_NAME], window, cx);
+        if dock_rose(self.dock_signature, signature) || asked {
             self.drawer_open = true;
             self.show_dock = true;
         }
@@ -359,9 +369,18 @@ impl Board {
 
     /// F6: board ↔ drawer.
     pub fn switch_region(&mut self, window: &mut Window, cx: &mut Context<Self>) {
+        // The dock is drawn inside the board's root, whose focus therefore
+        // "contains" it: ask the dock first, or F6 from the dock lands on
+        // the dock again instead of the board.
+        let in_dock = self.show_dock
+            && self
+                .actions
+                .focus_handle(Slot::Dock, cx)
+                .is_some_and(|dock| dock.contains_focused(window, cx));
         let in_drawer = self.drawer_open
             && self.hosted(cx)
             && (self.focused_panel(window, cx).is_some()
+                || in_dock
                 || self.show_dock && !self.board_focused(window, cx));
         if in_drawer || !self.drawer_open {
             match self.model.selected.clone() {

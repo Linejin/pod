@@ -41,6 +41,38 @@ pub(crate) type OnChangeIn = Box<dyn FnMut(&mut Window, &mut App)>;
 /// Runs once podd answered a gate decision (or the request failed).
 pub(crate) type GateDone = Box<dyn FnOnce(Result<(), ResolveError>, &mut App)>;
 
+/// "A dock panel was asked for", for a layout that draws the dock only in a
+/// drawer or a tab (kanban, review, blocks): [`Self::asked`] is true once
+/// each time the focus lands on a dock panel whose name is not skipped.
+/// The workspace focuses each panel it opens or brings back, so this also
+/// sees an orchestration page opened next to another one and a panel asked
+/// for again, which no panel count shows.
+#[derive(Debug, Default)]
+pub(crate) struct PanelWatch {
+    /// The dock panel that held the focus last frame (not a skipped one).
+    seen: Option<EntityId>,
+}
+
+impl PanelWatch {
+    /// Call once per frame. `skip`: panel names the layout shows on its own
+    /// (its terminals, the review layout's Reviews).
+    pub(crate) fn asked(
+        &mut self,
+        actions: &LayoutActions,
+        skip: &[&str],
+        window: &Window,
+        cx: &App,
+    ) -> bool {
+        let now = actions
+            .focused_dock_panel(window, cx)
+            .filter(|(_, name)| !skip.contains(name))
+            .map(|(id, _)| id);
+        let asked = now.is_some() && now != self.seen;
+        self.seen = now;
+        asked
+    }
+}
+
 /// Stable key of one hosted window (the host entity's id). It outlives the
 /// host, so it also names the window's state slots while they are dropped.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
@@ -262,6 +294,37 @@ impl LayoutActions {
     /// the toast stack and hook banner are lent by a host render only.
     pub(crate) fn view(&self, slot: Slot, cx: &App) -> Option<AnyView> {
         self.0.view(slot, cx)
+    }
+
+    /// The dock panel holding the keyboard focus: its entity and its panel
+    /// name (`Panel::panel_name`). The workspace focuses every panel it opens
+    /// or brings back (settings, the gates inbox, an orchestration page …),
+    /// so a layout that draws the dock in a drawer or a tab reads "a panel
+    /// was asked for" here even while the dock is hidden: the panel's own
+    /// focus matches before it was ever drawn. `None` when the focus is
+    /// elsewhere or the host is gone.
+    pub(crate) fn focused_dock_panel(
+        &self,
+        window: &Window,
+        cx: &App,
+    ) -> Option<(EntityId, &'static str)> {
+        use gpui_kit::component::dock::DockPlacement;
+        let dock = self.dock(cx)?;
+        let area = dock.read(cx);
+        let ids: Vec<_> = [
+            DockPlacement::Center,
+            DockPlacement::Left,
+            DockPlacement::Right,
+            DockPlacement::Bottom,
+        ]
+        .into_iter()
+        .filter_map(|p| area.layout(p))
+        .flat_map(|tree| tree.panels())
+        .collect();
+        ids.into_iter()
+            .filter_map(|id| area.panel(id).cloned())
+            .find(|p| p.focus_handle(cx).contains_focused(window, cx))
+            .map(|p| (p.view().entity_id(), p.panel_name(cx)))
     }
 
     /// The task the user works in (`Workspace::current_task`): it reads
