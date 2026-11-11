@@ -1,18 +1,14 @@
 //! Layout modes: the structural axis of a theme (docs/10 §D5.4).
 //!
 //! A preset (`pod_ui::themes::PRESETS`) names a style theme and one of these
-//! modes. Each mode is a [`LayoutModule`] that renders the window body between
-//! the title bar and the status bar; the workspace keeps the data, actions,
-//! dock and dialogs. Adding a mode = one module file + one `register` line in
-//! [`LayoutRegistry::new`]; nothing in the workbench module has to change.
-//! A mode without a module falls back to the workbench (the settings page says so).
-//!
-//! Refactor in progress (docs/20-refactor/app.md, card A-F0): a module may also
-//! offer a narrow [`LayoutRenderer`] over the layout kit (`layouts::kit`). The
-//! body is still drawn by [`LayoutModule::render_body`]; once the workspace
-//! hosts the kit (A-F1), a mode without a renderer keeps that path.
+//! modes. Each mode is a [`LayoutModule`] whose narrow [`LayoutRenderer`]
+//! (the layout kit, `layouts::kit`) draws the window body between the title
+//! bar and the status bar; the workspace keeps the data, actions, dock and
+//! dialogs and hosts the kit (`workspace/layout_host.rs`). Adding a mode = one
+//! module under `layouts/` + one `register` line in [`LayoutRegistry::new`];
+//! nothing in the workspace has to change. A mode without a module falls back
+//! to the workbench (the settings page says so).
 use crate::layouts::kit::LayoutRenderer;
-use crate::workspace::Workspace;
 use gpui_kit::*;
 use std::rc::Rc;
 
@@ -71,30 +67,17 @@ impl LayoutMode {
     }
 }
 
-/// One layout mode's body renderer.
+/// One layout mode.
 pub trait LayoutModule {
     fn mode(&self) -> LayoutMode;
-    /// Everything between the title bar and the status bar.
-    fn render_body(
-        &self,
-        ws: &mut Workspace,
-        window: &mut Window,
-        cx: &mut Context<Workspace>,
-    ) -> AnyElement;
-    /// Extra title-bar content after the context line (e.g. status pills); none by default.
-    fn title_bar_extra(&self, _ws: &Workspace, _cx: &mut Context<Workspace>) -> Option<AnyElement> {
-        None
-    }
     /// Whether the status bar shows 작업 중/응답/완료 (false where the title bar already does).
     fn status_counts(&self, _cx: &App) -> bool {
         true
     }
-    /// The mode's narrow renderer over the layout kit. `None` (the default)
-    /// keeps [`Self::render_body`] and [`Self::title_bar_extra`]; with one,
-    /// the host draws the body and the title-bar extra through it.
-    fn renderer(&self) -> Option<Rc<dyn LayoutRenderer>> {
-        None
-    }
+    /// The mode's narrow renderer over the layout kit: the host draws the
+    /// body (everything between the title bar and the status bar) and the
+    /// title-bar extra through it.
+    fn renderer(&self) -> Rc<dyn LayoutRenderer>;
 }
 
 /// The registered modules (a GPUI global, set once at startup).
@@ -112,7 +95,7 @@ impl LayoutRegistry {
         let mut r = Self {
             modules: Vec::new(),
         };
-        r.register(Rc::new(Workbench));
+        r.register(Rc::new(crate::layouts::workbench::Workbench));
         r.register(Rc::new(crate::layouts::kanban::Kanban));
         r.register(Rc::new(crate::layouts::rail::FocusRail));
         r.register(Rc::new(crate::layouts::queue::QueueLayout));
@@ -155,75 +138,34 @@ fn current(cx: &App) -> Rc<dyn LayoutModule> {
     }
 }
 
-/// Body of the window for the layout in settings.
-pub fn render_body(
-    ws: &mut Workspace,
-    window: &mut Window,
-    cx: &mut Context<Workspace>,
-) -> AnyElement {
-    current(cx).render_body(ws, window, cx)
-}
-
-/// Title-bar extra of the layout in settings.
-pub fn title_bar_extra(ws: &Workspace, cx: &mut Context<Workspace>) -> Option<AnyElement> {
-    current(cx).title_bar_extra(ws, cx)
-}
-
 /// Status-bar counts for the layout in settings (06 관제형 shows them in the title bar).
 pub fn status_counts(cx: &App) -> bool {
     current(cx).status_counts(cx)
 }
 
-/// Narrow renderer of the layout in settings, if its mode has one. `None`:
-/// the caller keeps [`render_body`] and [`title_bar_extra`].
-#[allow(
-    dead_code,
-    reason = "A-F1 calls this from the workspace shell; A-T2 removes this allow"
-)]
-pub(crate) fn renderer(cx: &App) -> Option<Rc<dyn LayoutRenderer>> {
+/// Narrow renderer of the layout in settings: the host draws the body and
+/// the title-bar extra through it.
+pub(crate) fn renderer(cx: &App) -> Rc<dyn LayoutRenderer> {
     current(cx).renderer()
-}
-
-/// 작업대: the tree sidebar + dock (the base for every preset in this stage).
-struct Workbench;
-impl LayoutModule for Workbench {
-    fn mode(&self) -> LayoutMode {
-        LayoutMode::Workbench
-    }
-    fn render_body(
-        &self,
-        ws: &mut Workspace,
-        window: &mut Window,
-        cx: &mut Context<Workspace>,
-    ) -> AnyElement {
-        ws.render_workbench_body(window, cx)
-    }
 }
 
 #[cfg(test)]
 mod tests {
     // Not `super::*`: gpui's own `test` attribute would shadow the std one.
-    use super::{LayoutMode, LayoutModule, LayoutRegistry, Workbench, Workspace};
+    use super::{LayoutMode, LayoutModule, LayoutRegistry};
     use crate::layouts::kit::{LayoutFrame, LayoutHost, LayoutRenderer};
-    use gpui_kit::{AnyElement, App, Context, IntoElement, Window, div};
+    use crate::layouts::workbench::Workbench;
+    use gpui_kit::{AnyElement, App, IntoElement, Window, div};
     use std::rc::Rc;
 
-    /// A mode moved onto the layout kit.
-    struct Migrated(LayoutMode);
+    /// A module with a given renderer, to tell which module a lookup found.
+    struct Migrated(LayoutMode, Rc<dyn LayoutRenderer>);
     impl LayoutModule for Migrated {
         fn mode(&self) -> LayoutMode {
             self.0
         }
-        fn render_body(
-            &self,
-            _: &mut Workspace,
-            _: &mut Window,
-            _: &mut Context<Workspace>,
-        ) -> AnyElement {
-            div().into_any_element()
-        }
-        fn renderer(&self) -> Option<Rc<dyn LayoutRenderer>> {
-            Some(Rc::new(Narrow))
+        fn renderer(&self) -> Rc<dyn LayoutRenderer> {
+            self.1.clone()
         }
     }
     struct Narrow;
@@ -244,13 +186,8 @@ mod tests {
         fn mode(&self) -> LayoutMode {
             self.0
         }
-        fn render_body(
-            &self,
-            _: &mut Workspace,
-            _: &mut Window,
-            _: &mut Context<Workspace>,
-        ) -> AnyElement {
-            div().into_any_element()
+        fn renderer(&self) -> Rc<dyn LayoutRenderer> {
+            Rc::new(Narrow)
         }
     }
 
@@ -300,27 +237,24 @@ mod tests {
         let mut r = LayoutRegistry::new();
         let n = r.modules.len();
         assert_eq!(n, LayoutMode::ALL.len(), "one module per mode");
-        assert!(
-            Fake(LayoutMode::Kanban).renderer().is_none(),
-            "no narrow renderer unless a mode offers one"
-        );
-        r.register(Rc::new(Migrated(LayoutMode::Kanban)));
+        let narrow: Rc<dyn LayoutRenderer> = Rc::new(Narrow);
+        r.register(Rc::new(Migrated(LayoutMode::Kanban, narrow.clone())));
         assert_eq!(r.modules.len(), n);
         assert_eq!(r.resolve("kanban").mode(), LayoutMode::Kanban);
         assert!(
-            r.resolve("kanban").renderer().is_some(),
+            Rc::ptr_eq(&r.resolve("kanban").renderer(), &narrow),
             "the later module wins"
         );
         r.register(Rc::new(Fake(LayoutMode::Kanban)));
         assert_eq!(r.modules.len(), n);
         assert!(
-            r.resolve("kanban").renderer().is_none(),
+            !Rc::ptr_eq(&r.resolve("kanban").renderer(), &narrow),
             "replacing the module drops its renderer too"
         );
         // The fallback is the workbench module as registered, renderer included.
-        r.register(Rc::new(Migrated(LayoutMode::Workbench)));
+        r.register(Rc::new(Migrated(LayoutMode::Workbench, narrow.clone())));
         assert_eq!(r.resolve("nonsense").mode(), LayoutMode::Workbench);
-        assert!(r.resolve("nonsense").renderer().is_some());
+        assert!(Rc::ptr_eq(&r.resolve("nonsense").renderer(), &narrow));
         // Other modes are untouched by either replacement.
         for m in LayoutMode::ALL {
             assert_eq!(r.resolve(m.id()).mode(), m, "{m:?}");
@@ -339,17 +273,24 @@ mod tests {
             };
             cx.set_global(layout("kanban"));
             assert_eq!(super::current(cx).mode(), LayoutMode::Kanban);
+            let narrow: Rc<dyn LayoutRenderer> = Rc::new(Narrow);
             let mut r = LayoutRegistry::new();
-            r.register(Rc::new(Migrated(LayoutMode::Kanban)));
+            r.register(Rc::new(Migrated(LayoutMode::Kanban, narrow.clone())));
             cx.set_global(r);
             assert_eq!(super::current(cx).mode(), LayoutMode::Kanban);
-            assert!(super::renderer(cx).is_some(), "the registry global is used");
+            assert!(
+                Rc::ptr_eq(&super::renderer(cx), &narrow),
+                "the registry global is used"
+            );
             cx.set_global(layout("queue"));
             assert_eq!(super::current(cx).mode(), LayoutMode::Queue);
-            assert!(super::renderer(cx).is_none(), "queue still renders itself");
+            assert!(
+                !Rc::ptr_eq(&super::renderer(cx), &narrow),
+                "queue renders through its own renderer"
+            );
             cx.set_global(layout("nonsense"));
             assert_eq!(super::current(cx).mode(), LayoutMode::Workbench);
-            assert!(super::renderer(cx).is_none());
+            assert!(!Rc::ptr_eq(&super::renderer(cx), &narrow));
         });
         cx.update(|cx| cx.quit());
     }

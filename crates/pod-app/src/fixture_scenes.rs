@@ -17,7 +17,10 @@ use gpui_kit::*;
 use pod_editor::EditorWorkspace;
 use pod_editor::lsp::ServerState;
 
-use crate::workspace::Workspace;
+use podd::protocol::{GateInfo, GateState};
+
+use crate::vm::{AgentState, Liveness};
+use crate::workspace::{ToastKind, Workspace};
 
 pub const TASK: &str = "sample/task-000";
 static WORKTREE: OnceLock<Option<String>> = OnceLock::new();
@@ -552,4 +555,119 @@ fn spawn_after(
         let _ = this.update_in(cx, f);
     })
     .detach();
+}
+
+// ───────────────────────── layout scenes (visual QA) ─────────────────────────
+//
+// `rail…`, `queue` and `dense` set fixture data up in the workspace (a gate
+// snapshot, terminal statuses, a toast, the dock), which no layout reaches
+// through the kit, and then hand the layout's own part a `LayoutActions` (and
+// a frame) so the layout files never name the workspace (card T2).
+
+/// The pending approval on the blocked fixture-1 that the queue and dense
+/// scenes show, asked `now - 12 s`.
+fn fixture_gate(now: u64) -> GateInfo {
+    GateInfo {
+        id: "g1".into(),
+        title: "명령 실행 승인".into(),
+        message: "$ cargo clippy -p pod-ui -- -D warnings".into(),
+        task: Some("sample/task-000".into()),
+        group: None,
+        terminal: Some("fixture-1".into()),
+        state: GateState::Pending,
+        created_ms: now.saturating_sub(12_000),
+        resolved_ms: None,
+        note: None,
+        expires_ms: None,
+        run: None,
+        item: None,
+        options: Vec::new(),
+        choice: None,
+        requested_by: None,
+        decided_by: None,
+    }
+}
+
+/// `--fixture-scene rail[-attention|-switcher|-workspace]`: task-000's three
+/// terminals laid out like the gallery mockup, two more task tabs, and the
+/// named drawer open.
+pub fn rail(scene: &str, w: &mut Workspace, window: &mut Window, cx: &mut Context<Workspace>) {
+    for task in ["sample/task-002", "sample/task-001", "sample/task-000"] {
+        let ids: Vec<String> = w
+            .task(task)
+            .map(|t| t.terminals.clone())
+            .unwrap_or_default();
+        for id in ids.iter().rev() {
+            w.open_terminal(id, false, window, cx);
+        }
+    }
+    crate::layouts::rail::fixture_scene(scene, w.layout_actions(cx), window, cx);
+}
+
+/// `--fixture-scene queue`: a pending gate on the blocked fixture-1, a
+/// question on fixture-3, four panels in a grid, the gate card selected.
+pub fn queue(w: &mut Workspace, window: &mut Window, cx: &mut Context<Workspace>) {
+    w.orch
+        .merge_snapshot(vec![fixture_gate(crate::orch::now_ms())]);
+    if let Some(s) = w
+        .terminals
+        .iter_mut()
+        .find(|t| t.id == "fixture-3")
+        .and_then(|t| t.status.as_mut())
+    {
+        s.kind = Some("question".into());
+    }
+    for id in ["fixture-0", "fixture-1", "fixture-2", "fixture-3"] {
+        w.open_terminal(id, false, window, cx);
+    }
+    w.arrange_grid(window, cx);
+    w.touch(cx);
+    crate::layouts::queue::fixture_scene(&w.layout_actions(cx), window, cx);
+}
+
+/// `--fixture-scene dense`: a pending gate on the blocked fixture-1, fixture-3
+/// asks a question, four panels in a grid, fixture-1 in the details column,
+/// a few status changes and a notification in the log.
+pub fn dense(w: &mut Workspace, window: &mut Window, cx: &mut Context<Workspace>) {
+    for id in ["fixture-0", "fixture-1", "fixture-2", "fixture-3"] {
+        w.open_terminal(id, false, window, cx);
+    }
+    w.arrange_grid(window, cx);
+    // The details column follows the focused terminal: end on fixture-1.
+    w.open_terminal("fixture-1", false, window, cx);
+    let actions = w.layout_actions(cx);
+    let (view, now) = {
+        let pending = w.orch.pending();
+        let frame = w.layout_frame(&pending, cx);
+        crate::layouts::dense::fixture_view(&actions, &frame, window, cx)
+    };
+    // Live changes after the log started.
+    w.orch.merge_snapshot(vec![fixture_gate(now)]);
+    if let Some(s) = w
+        .terminals
+        .iter_mut()
+        .find(|t| t.id == "fixture-3")
+        .and_then(|t| t.status.as_mut())
+    {
+        s.state = AgentState::Blocked;
+        s.kind = Some("question".into());
+    }
+    if let Some(t) = w.terminals.iter_mut().find(|t| t.id == "fixture-2") {
+        t.live = Liveness::Exited {
+            code: Some(1),
+            killed: false,
+        };
+    }
+    w.raise_toast(
+        ToastKind::Success,
+        "Worker 2 · 작업 완료",
+        "1분 12초 · 토큰 18.2k",
+        cx,
+    );
+    {
+        let pending = w.orch.pending();
+        let frame = w.layout_frame(&pending, cx);
+        crate::layouts::dense::fixture_select(&view, &frame, cx);
+    }
+    w.touch(cx);
 }

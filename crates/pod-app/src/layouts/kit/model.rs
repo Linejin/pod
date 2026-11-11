@@ -14,19 +14,34 @@
 //! [`ActionSink`], so a mode written against this contract never names the
 //! Workspace type. [`UiIntent`] is a UI request, not a wire message: gate
 //! decisions and RPCs stay with their existing controllers.
+//!
+//! A-T2a added what the layout cards (A-P10…P14) still read or did through the
+//! workspace: saved labels, every gate, toasts, the tree selection and the
+//! fixture flag on the frame; the per-window state slots, change
+//! observation, dock and panel access, window-less updates and the gate path
+//! on [`LayoutActions`] (`kit/host.rs`). T2 kept only what a mode uses and
+//! added the repositories (the workbench's empty state).
+use std::collections::BTreeMap;
 use std::rc::Rc;
 
-use gpui_kit::{AnyElement, App, FocusHandle, SharedString, Window};
-use podd::protocol::GateInfo;
+use gpui_kit::component::dock::DockArea;
+use gpui_kit::{AnyElement, AnyView, App, Entity, FocusHandle, SharedString, Subscription, Window};
+use podd::protocol::{GateInfo, GateResolveParams};
 
+use super::host::{AppOnce, GateDone, HostChange, HostUpdate, OnChange, OnChangeIn, WindowKey};
 use super::metrics::LayoutMetrics;
-use crate::vm::{ConnState, Counts, TaskVm, TerminalVm};
-use crate::workspace::ToastKind;
+use crate::panel::TerminalPanel;
+use crate::review::ReviewPanel;
+use crate::source::PoddSource;
+use crate::vm::{ConnState, RepoVm, TaskVm, TerminalVm};
+use crate::workspace::{Toast, ToastKind};
 
 /// Read-only projection of the window state for one render.
 #[derive(Clone, Debug)]
 pub(crate) struct LayoutFrame<'a> {
     pub(crate) tasks: &'a [TaskVm],
+    /// Registered repositories (the workbench's empty state).
+    pub(crate) repos: &'a [RepoVm],
     pub(crate) terminals: &'a [TerminalVm],
     pub(crate) conn: &'a ConnState,
     /// Pending gates, oldest first (`OrchState::pending`).
@@ -34,10 +49,67 @@ pub(crate) struct LayoutFrame<'a> {
     /// Terminal with keyboard focus (`Workspace::focused_terminal`).
     pub(crate) focused_terminal: Option<&'a str>,
     pub(crate) panels: OpenPanels,
+    /// The orchestration panels one by one and the app-level pages.
+    pub(crate) panel_detail: PanelDetail,
     pub(crate) metrics: LayoutMetrics,
+    /// Terminal names the user saved (`layout::Saved::labels`, keyed by
+    /// `layout::label_key`); read through [`Self::label_of`].
+    pub(crate) labels: &'a BTreeMap<String, String>,
+    /// Every gate seen this session, decided ones too, by id
+    /// (`OrchState::gates`); [`Self::gates`] holds the pending ones only.
+    pub(crate) all_gates: &'a BTreeMap<String, GateInfo>,
+    /// The toast stack as data, oldest first (`Workspace::toasts`, hidden
+    /// ones included, as the dense log reads it).
+    pub(crate) toasts: FrameToasts<'a>,
+    /// Row key selected in the tree sidebar (`Sidebar::selected`).
+    pub(crate) tree_selection: Option<String>,
+    /// The window runs on the `--ui-fixture` source, without podd.
+    pub(crate) fixture: bool,
+}
+
+/// The workspace's toasts lent to a frame (`Toast` has no `Debug`).
+#[derive(Clone, Copy)]
+pub(crate) struct FrameToasts<'a>(pub(crate) &'a [Toast]);
+
+impl<'a> std::ops::Deref for FrameToasts<'a> {
+    type Target = [Toast];
+    fn deref(&self) -> &[Toast] {
+        self.0
+    }
+}
+
+impl std::fmt::Debug for FrameToasts<'_> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_list().entries(self.0.iter().map(|t| t.id)).finish()
+    }
 }
 
 impl<'a> LayoutFrame<'a> {
+    /// Panels other than terminals and reviews, counted one each, plus the
+    /// extensions and sessions pages: the review layout's dock signature (a
+    /// rise means "show the 패널 view"); the kanban one adds `panels.reviews`.
+    pub(crate) fn other_panels(&self) -> usize {
+        let (p, d) = (&self.panels, &self.panel_detail);
+        p.settings as usize
+            + p.inspector as usize
+            + p.editors
+            + d.groups
+            + d.gates_panel as usize
+            + d.tree_panel as usize
+            + d.mods_page as usize
+            + d.sessions_page as usize
+    }
+
+    /// The name a terminal shows: the saved label, else its name, else its
+    /// id — `Workspace::label_of`.
+    pub(crate) fn label_of(&self, t: &TerminalVm) -> String {
+        self.labels
+            .get(&crate::layout::label_key(&t.id, t.created_ms))
+            .cloned()
+            .or_else(|| t.name.clone())
+            .unwrap_or_else(|| t.id.clone())
+    }
+
     /// First task with this id, like `Workspace::task`.
     pub(crate) fn task(&self, id: &str) -> Option<&'a TaskVm> {
         self.tasks.iter().find(|t| t.id == id)
@@ -51,11 +123,6 @@ impl<'a> LayoutFrame<'a> {
     /// Text of the connection warning above the body; none while connected.
     pub(crate) fn warning(&self) -> Option<String> {
         connection_warning(self.conn)
-    }
-
-    /// Agent state counts of the terminals (`vm::counts`).
-    pub(crate) fn counts(&self) -> Counts {
-        crate::vm::counts(self.terminals)
     }
 }
 
@@ -88,6 +155,24 @@ pub(crate) struct OpenPanels {
     pub(crate) settings: bool,
     /// Inspector panel still open.
     pub(crate) inspector: bool,
+}
+
+/// What [`OpenPanels`] folds into `orch` or leaves out: the orchestration
+/// panels one by one and the app-level pages beside the dock.
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+pub(crate) struct PanelDetail {
+    /// Group panels open (`OrchState::live_groups`).
+    pub(crate) groups: usize,
+    /// The gates (approval) panel is open.
+    pub(crate) gates_panel: bool,
+    /// The agent-tree panel is open.
+    pub(crate) tree_panel: bool,
+    /// The extensions page (`mods_ui::page_open`).
+    pub(crate) mods_page: bool,
+    /// The sessions page (`sessions_ui::page_open`).
+    pub(crate) sessions_page: bool,
+    /// The orchestration page (`orch_ui::page_open`).
+    pub(crate) orch_page: bool,
 }
 
 impl OpenPanels {
@@ -145,12 +230,10 @@ pub(crate) enum UiIntent {
     QuickOpenFiles {
         quick_open: bool,
     },
-    /// A shell terminal in a task's worktree.
-    TaskTerminal {
-        task: String,
-    },
     /// The new-task dialog.
     NewTask,
+    /// The open-repository dialog (the workbench's empty state).
+    OpenRepository,
     /// The gates (approval) inbox.
     OpenGates,
     /// The agent tree.
@@ -159,19 +242,33 @@ pub(crate) enum UiIntent {
     OpenNotifications,
     /// The jump-to palette.
     OpenJump,
-    /// Arrange the open terminals in a grid.
-    ArrangeGrid,
-    /// Move keyboard focus into a host slot.
-    FocusRegion(Slot),
     /// Raise a toast.
     Toast {
         kind: ToastKind,
         title: SharedString,
         body: SharedString,
     },
+    /// Bring the terminal's panel forward in the dock when it has one;
+    /// keyboard focus stays where it is (the queue's and dense's selection).
+    RevealTerminal {
+        id: String,
+    },
+    /// The task's running terminals, opened in reverse task order so the
+    /// first ends in front, or a shell in its worktree when none runs — all
+    /// in one host update (the rail's 터미널 button). Follow up with
+    /// [`LayoutActions::dispatch_then`].
+    OpenTaskTerminals {
+        task: String,
+    },
+    /// The review command for the focused panel, dispatched as the
+    /// `OpenReview` action like its key (the queue's 06 activity bar).
+    OpenFocusedReview,
 }
 
 /// What the host side does for [`LayoutActions`]; it holds the weak workspace.
+///
+/// The methods after `dispatch` (A-T2a) have inert defaults (`None`, empty,
+/// `false`) so a test sink stays small; the workspace host implements all.
 pub(crate) trait ActionSink {
     /// Calls `f` with a frame of the current window state; does nothing when
     /// the window is gone.
@@ -181,12 +278,85 @@ pub(crate) trait ActionSink {
     /// Carries the intent out now. Never called while the host itself is
     /// being updated (no re-entrant workspace update).
     fn dispatch(&self, intent: UiIntent, window: &mut Window, cx: &mut App);
+    /// Key of the window: stable for the host's life, also once it is gone.
+    fn window_key(&self) -> WindowKey;
+    /// Runs `f` once when the host is released (detached); `false` and `f`
+    /// dropped when it is already gone.
+    fn on_release(&self, _cx: &mut App, _f: AppOnce) -> bool {
+        false
+    }
+    /// Calls `f` after each `change`; `None` when the host is gone.
+    fn observe(&self, _change: HostChange, _cx: &mut App, _f: OnChange) -> Option<Subscription> {
+        None
+    }
+    /// [`Self::observe`] with the window, like `Context::observe_in`.
+    fn observe_in(
+        &self,
+        _change: HostChange,
+        _window: &mut Window,
+        _cx: &mut App,
+        _f: OnChangeIn,
+    ) -> Option<Subscription> {
+        None
+    }
+    /// The live dock of the window.
+    fn dock(&self, _cx: &App) -> Option<Entity<DockArea>> {
+        None
+    }
+    /// A host view to draw outside a host render (dock, sidebar).
+    fn view(&self, _slot: Slot, _cx: &App) -> Option<AnyView> {
+        None
+    }
+    /// `Workspace::current_task`.
+    fn current_task(&self, _window: &Window, _cx: &App) -> Option<String> {
+        None
+    }
+    /// Live terminal panels, dock order of creation (`Workspace::live_panels`).
+    fn terminal_panels(&self, _cx: &App) -> Vec<Entity<TerminalPanel>> {
+        Vec::new()
+    }
+    /// Live Review panels (`Workspace::live_reviews`).
+    fn review_panels(&self, _cx: &App) -> Vec<Entity<ReviewPanel>> {
+        Vec::new()
+    }
+    /// A terminal panel outside the dock, registered like dock panels.
+    fn new_terminal_panel(
+        &self,
+        _id: &str,
+        _window: &mut Window,
+        _cx: &mut App,
+    ) -> Option<Entity<TerminalPanel>> {
+        None
+    }
+    /// A Review panel outside the dock, registered like dock reviews.
+    fn new_review_panel(
+        &self,
+        _task: &str,
+        _window: &mut Window,
+        _cx: &mut App,
+    ) -> Option<Entity<ReviewPanel>> {
+        None
+    }
+    /// The podd source of the window.
+    fn source(&self, _cx: &App) -> Option<PoddSource> {
+        None
+    }
+    /// Applies the updates in order inside one host update; `false` when
+    /// the host is gone. Never called while the host is being updated.
+    fn post(&self, _updates: Vec<HostUpdate>, _cx: &mut App) -> bool {
+        false
+    }
+    /// The one gate decision path (`gates::resolve_gate`); `false` and `done`
+    /// dropped when the host is gone.
+    fn resolve_gate(&self, _params: GateResolveParams, _cx: &mut App, _done: GateDone) -> bool {
+        false
+    }
 }
 
 /// Clone-able handle to the host for event closures and long-lived views.
 /// Closures capture this and stable ids, never a borrowed frame.
 #[derive(Clone)]
-pub(crate) struct LayoutActions(Rc<dyn ActionSink>);
+pub(crate) struct LayoutActions(pub(super) Rc<dyn ActionSink>);
 
 impl LayoutActions {
     pub(crate) fn new(sink: Rc<dyn ActionSink>) -> Self {

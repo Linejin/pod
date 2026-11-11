@@ -5,13 +5,14 @@ use std::collections::HashSet;
 use super::*;
 // After the glob: GPUI exports its own `test` attribute; these are plain Rust tests.
 use core::prelude::v1::test;
+use podd::protocol::{GateInfo, GateState};
 use serde_json::json;
 
 use super::model::{COMPACT_ROWS, Counts, NeedKind};
 use crate::native_qa::Harness;
 use crate::source::{SourceEvent, TestBackend};
 use crate::theme::Settings;
-use crate::vm::{Liveness, TaskVm};
+use crate::vm::{Liveness, TaskVm, TerminalVm};
 
 fn term(id: &str, task: Option<&str>, state: &str) -> TerminalVm {
     TestBackend::terminal(id, &format!("작업자 {id}"), task, state)
@@ -477,9 +478,9 @@ fn set_mission(h: &mut Harness) {
     h.settle();
 }
 
+/// The window's queue column (the kit's state slot).
 fn queue(h: &mut Harness) -> Entity<QueueColumn> {
-    let ws = h.ws.clone();
-    h.cx.update(|_, cx| existing_column(ws.entity_id(), cx))
+    h.cx.update(|window, cx| kit::state_in_window::<QueueColumn>(window.window_handle(), cx))
         .expect("queue column")
 }
 

@@ -22,23 +22,23 @@
 //! layout's view state (selection, expanded terminal, strip, 패널 view), list
 //! keys and F6 regions, the frame's bookkeeping rules and the size formulas,
 //! `view` the render, `copy` the strings. This file keeps the layout module,
-//! the [`ReviewView`] with its controller methods and the legacy adapter.
-//! This is the layout named "review"; the Review *panel* it shows is
-//! `crate::review` and stays that module's. Reads go through the kit's frame
-//! (tasks, terminals, gates, the focused terminal, the connection warning,
-//! font metrics), the dock's focus through the host's focus slot. What the
-//! kit does not carry yet stays on the workspace: its live terminal and
-//! Review panels and dock entity, the count of open non-terminal panels,
-//! terminal labels, the podd source and review capability (new Review,
-//! `gate.resolve`), registering the layout-owned Review, applying a resolved
-//! gate, toasts without a window and the workspace notify.
+//! its kit renderer ([`LayoutModule::renderer`], A-T2d) and the
+//! [`ReviewView`] with its controller methods, kept in the kit's per-window
+//! state slot. This is the layout named "review"; the Review *panel* it shows
+//! is `crate::review` and stays that module's. The view reaches the host only
+//! through [`LayoutActions`]: frame reads (tasks, terminals, gates, the
+//! focused terminal, labels, the dock signature, the connection warning, font
+//! metrics), the dock's focus slot and entity, the host's live terminal and
+//! Review panels and new layout-owned ones, the podd source for its own
+//! `gate.resolve`, and the gate answer, failure toast and host notify as
+//! window-less [`HostUpdate`]s. The gate keeps its own path (fixed toast
+//! title, notify only), not the kit's `resolve_gate`.
 pub mod copy;
 mod model;
 #[cfg(test)]
 mod tests;
 mod view;
 
-use std::cell::RefCell;
 use std::collections::{HashMap, HashSet};
 use std::rc::Rc;
 
@@ -60,10 +60,12 @@ use self::model::{
     row_key,
 };
 use crate::layout_mode::{LayoutMode, LayoutModule};
-use crate::layouts::kit::{self, LayoutActions, LayoutMetrics, Slot};
+use crate::layouts::kit::{
+    HostUpdate, LayoutActions, LayoutFrame, LayoutHost, LayoutMetrics, LayoutRenderer, Slot,
+};
 use crate::panel::TerminalPanel;
 use crate::review::ReviewPanel;
-use crate::workspace::{ToastKind, Workspace};
+use crate::workspace::ToastKind;
 
 actions!(pod_review_layout, [NextRegion, PrevRegion, ToggleExpand]);
 
@@ -79,45 +81,26 @@ impl LayoutModule for ReviewLayout {
     fn mode(&self) -> LayoutMode {
         LayoutMode::Review
     }
-    fn render_body(
-        &self,
-        ws: &mut Workspace,
-        _window: &mut Window,
-        cx: &mut Context<Workspace>,
-    ) -> AnyElement {
-        render_body(ws, cx)
+    fn renderer(&self) -> Rc<dyn LayoutRenderer> {
+        Rc::new(ReviewRenderer)
     }
 }
 
 struct ReviewKeys;
 impl Global for ReviewKeys {}
-struct ViewGlobal(WeakEntity<ReviewView>);
-impl Global for ViewGlobal {}
-struct ViewSlot(Rc<RefCell<Option<Entity<ReviewView>>>>);
-impl Global for ViewSlot {}
-
-/// Strong owner of the view, per app (it lives as long as the app).
-fn view_slot(cx: &mut App) -> Rc<RefCell<Option<Entity<ReviewView>>>> {
-    if cx.try_global::<ViewSlot>().is_none() {
-        cx.set_global(ViewSlot(Rc::default()));
-    }
-    cx.global::<ViewSlot>().0.clone()
-}
 
 #[cfg(test)]
-/// The view of this app, if the layout was shown once (tests).
+/// The view of the window that showed the layout (tests run one window).
 pub fn view(cx: &App) -> Option<Entity<ReviewView>> {
-    cx.try_global::<ViewGlobal>().and_then(|g| g.0.upgrade())
+    crate::layouts::kit::states::<ReviewView>(cx)
+        .into_iter()
+        .next()
 }
 
 // ───────────────────────────── view ─────────────────────────────
 
 pub struct ReviewView {
-    /// Legacy adapter: live terminal and Review panels, the dock entity and
-    /// its panel count, labels, the podd source and the workspace notify
-    /// (not in the kit yet).
-    ws: WeakEntity<Workspace>,
-    /// Reads (frame) and focus slots of the host.
+    /// The host: frame reads, focus slots, dock, panels, source and updates.
     actions: LayoutActions,
     pub model: ReviewModel,
     /// Focus of the task list when it has no row.
@@ -152,12 +135,12 @@ struct Synced {
     parts: Selected,
     /// Who each of the selected task's terminals is.
     who: HashMap<String, Who>,
-    /// The workspace's dock, shown by the canvas's 패널 view.
+    /// The host's dock, shown by the canvas's 패널 view.
     dock: Entity<DockArea>,
 }
 
 impl ReviewView {
-    fn new(ws: WeakEntity<Workspace>, actions: LayoutActions, cx: &mut Context<Self>) -> Self {
+    fn new(actions: LayoutActions, cx: &mut Context<Self>) -> Self {
         // Leaving the layout drops what it owns (Review, tile attaches); the
         // dock and its panels were never touched.
         let subs = vec![
@@ -174,7 +157,6 @@ impl ReviewView {
             }),
         ];
         Self {
-            ws,
             actions,
             model: ReviewModel::default(),
             focus: cx.focus_handle().tab_stop(true),
@@ -231,57 +213,37 @@ impl ReviewView {
             .flatten()
     }
 
-    /// Panels other than terminals and reviews the dock holds (a rise shows
-    /// the dock). Legacy adapter: the frame counts the orchestration panels
-    /// as one flag, not one each, and not the app-level pages.
-    fn dock_signature(w: &Workspace, cx: &App) -> usize {
-        let live = |p: &Option<WeakEntity<crate::chrome::ChromePanel>>| {
-            p.as_ref().is_some_and(|p| p.upgrade().is_some()) as usize
-        };
-        live(&w.settings_panel)
-            + live(&w.inspector_panel)
-            + w.live_editors().len()
-            + w.orch.live_groups().len()
-            + w.orch
-                .gates_panel
-                .as_ref()
-                .is_some_and(|p| p.upgrade().is_some()) as usize
-            + w.orch
-                .tree_panel
-                .as_ref()
-                .is_some_and(|p| p.upgrade().is_some()) as usize
-            + crate::mods_ui::page_open(cx) as usize
-            + crate::sessions_ui::page_open(cx) as usize
-    }
-
     /// The frame's bookkeeping before the layout draws: follow a terminal
     /// focused elsewhere, show Reviews and panels opened meanwhile, keep the
     /// selection on a task, place focus once after entering, and make the
-    /// rows' focus handles. `None` once the workspace is gone.
+    /// rows' focus handles. `None` once the host is gone.
     fn sync(&mut self, window: &mut Window, cx: &mut Context<Self>) -> Option<Synced> {
-        let ws = self.ws.upgrade()?;
+        let dock = self.actions.dock(cx)?;
         let rows = self.rows(cx);
         let focused = self
             .actions
             .read(cx, |f| f.focused_terminal.map(str::to_owned))
             .flatten();
-        let (signature, reviews, dock, hidden) = {
-            let w = ws.read(cx);
+        let (signature, reviews, hidden) = {
             let own = self.own_review.as_ref().map(|p| p.entity_id());
-            let reviews: Vec<(EntityId, String)> = w
-                .live_reviews()
+            let reviews: Vec<(EntityId, String)> = self
+                .actions
+                .review_panels(cx)
                 .into_iter()
                 .filter(|r| Some(r.entity_id()) != own)
                 .map(|r| (r.entity_id(), r.read(cx).task_id.clone()))
                 .collect();
-            // A terminal the workspace just focused (palette jump, 새 터미널)
+            // A terminal the host just focused (palette jump, 새 터미널)
             // whose panel this layout does not show yet.
-            let hidden = w
-                .live_panels()
+            let hidden = self
+                .actions
+                .terminal_panels(cx)
                 .into_iter()
                 .find(|p| p.read(cx).view.read(cx).focus_handle(cx).is_focused(window))
                 .map(|p| p.read(cx).terminal_id.clone());
-            (Self::dock_signature(w, cx), reviews, w.dock.clone(), hidden)
+            // Panels other than terminals and reviews (a rise shows the dock).
+            let signature = self.actions.read(cx, |f| f.other_panels())?;
+            (signature, reviews, hidden)
         };
         // Bring its task in and focus it there.
         if let Some(id) = hidden
@@ -325,14 +287,13 @@ impl ReviewView {
         for r in &rows {
             self.row_focus(&r.id, cx);
         }
-        let w = ws.read(cx);
         let selected = self.model.selected.as_deref();
         let (badges, parts, who) = self.actions.read(cx, |f| {
             let parts = Selected::of(selected, f.tasks, f.terminals, f.gates);
             let who = parts
                 .terms
                 .iter()
-                .map(|x| (x.id.clone(), Who::of(x, f.tasks, w.label_of(x))))
+                .map(|x| (x.id.clone(), Who::of(x, f.tasks, f.label_of(x))))
                 .collect();
             (row_badges(&rows, f.terminals), parts, who)
         })?;
@@ -353,11 +314,10 @@ impl ReviewView {
         window: &mut Window,
         cx: &mut Context<Self>,
     ) -> Option<Entity<ReviewPanel>> {
-        let ws = self.ws.upgrade()?;
         let own = self.own_review.as_ref().map(|p| p.entity_id());
-        let existing = ws
-            .read(cx)
-            .live_reviews()
+        let existing = self
+            .actions
+            .review_panels(cx)
             .into_iter()
             .find(|r| Some(r.entity_id()) != own && r.read(cx).task_id == task);
         if let Some(p) = existing {
@@ -371,23 +331,19 @@ impl ReviewView {
         {
             return Some(p.clone());
         }
-        let (source, caps) = {
-            let w = ws.read(cx);
-            (w.source.clone(), w.caps.review)
-        };
-        // The task and its first terminal's status, from the frame.
-        let (k, status) = self.actions.read(cx, |f| {
-            let k = f.task(task).cloned();
-            let status = k
-                .as_ref()
-                .and_then(|k| k.terminals.first())
-                .and_then(|t| f.terminal(t))
-                .and_then(|t| t.status.clone().map(|s| (t.id.clone(), s)));
-            (k, status)
-        })?;
-        let k = k.filter(|_| caps)?;
-        let weak = self.ws.clone();
-        let panel = cx.new(|cx| ReviewPanel::new(source, weak, &k, window, cx));
+        // The task's first terminal's status, from the frame.
+        let status = self
+            .actions
+            .read(cx, |f| {
+                f.task(task)
+                    .and_then(|k| k.terminals.first())
+                    .and_then(|t| f.terminal(t))
+                    .and_then(|t| t.status.clone().map(|s| (t.id.clone(), s)))
+            })
+            .flatten();
+        // Made and registered by the host like dock reviews (task, status
+        // and delivery events reach it); none without the review capability.
+        let panel = self.actions.new_review_panel(task, window, cx)?;
         panel.update(cx, |r, cx| {
             // The canvas is wide: side by side, as the preset shows it.
             r.set_split(true, cx);
@@ -395,8 +351,6 @@ impl ReviewView {
                 r.agent_status(t, s, cx);
             }
         });
-        // Registered like dock reviews: task, status and delivery events reach it.
-        ws.update(cx, |w, _| w.reviews.push(panel.downgrade()));
         self.own_review = Some(panel.clone());
         Some(panel)
     }
@@ -423,11 +377,10 @@ impl ReviewView {
         window: &mut Window,
         cx: &mut Context<Self>,
     ) -> Option<Entity<TerminalPanel>> {
-        let ws = self.ws.upgrade()?;
         let own: HashSet<EntityId> = self.own_panels.values().map(|p| p.entity_id()).collect();
-        let existing = ws
-            .read(cx)
-            .live_panels()
+        let existing = self
+            .actions
+            .terminal_panels(cx)
             .into_iter()
             .find(|p| !own.contains(&p.entity_id()) && p.read(cx).terminal_id == id);
         if let Some(p) = existing {
@@ -437,45 +390,23 @@ impl ReviewView {
         if let Some(p) = self.own_panels.get(id) {
             return Some(p.clone());
         }
-        self.actions
-            .read(cx, |f| f.terminal(id).is_some())
-            .filter(|known| *known)?;
-        let g = cx.global::<crate::workspace::AppGlobals>();
-        let (source, panels) = (g.source.clone(), g.panels.clone());
-        let label: SharedString = g
-            .labels
-            .borrow()
-            .get(id)
-            .cloned()
-            .unwrap_or_else(|| id.to_string())
-            .into();
-        let weak = self.ws.clone();
-        let panel =
-            cx.new(|cx| TerminalPanel::new(source, weak, id.to_string(), label, window, cx));
-        // Registered like dock panels: labels, theme changes and "terminal in view" reach it.
-        panels.borrow_mut().push(panel.downgrade());
+        // Made and registered by the host like dock panels (labels, theme
+        // changes and "terminal in view" reach it); none for an unknown id.
+        let panel = self.actions.new_terminal_panel(id, window, cx)?;
         self.own_panels.insert(id.to_string(), panel.clone());
         Some(panel)
     }
 
     fn notify_all(&self, cx: &mut Context<Self>) {
         cx.notify();
-        if let Some(ws) = self.ws.upgrade() {
-            ws.update(cx, |_, cx| cx.notify());
-        }
+        self.actions.post(vec![HostUpdate::Notify], cx);
     }
 
     /// Focus handle of terminal `id`'s panel: the layout's own, else the
-    /// workspace's (legacy adapter: the kit does not lend panels).
+    /// host's.
     fn terminal_focus(&self, id: &str, cx: &App) -> Option<FocusHandle> {
-        let ws = self.ws.upgrade()?;
         let own = self.own_panels.get(id).cloned();
-        let p = own.or_else(|| {
-            ws.read(cx)
-                .live_panels()
-                .into_iter()
-                .find(|p| p.read(cx).terminal_id == id)
-        })?;
+        let p = own.or_else(|| self.actions.terminal_panel(id, cx))?;
         Some(p.read(cx).view.read(cx).focus_handle(cx))
     }
 
@@ -544,10 +475,9 @@ impl ReviewView {
                 return Some(Region::Terminal(id));
             }
         }
-        let ws = self.ws.upgrade()?;
-        let in_review = ws
-            .read(cx)
-            .live_reviews()
+        let in_review = self
+            .actions
+            .review_panels(cx)
             .iter()
             .any(|r| r.read(cx).focus_handle().contains_focused(window, cx));
         let in_dock = self.model.show_dock
@@ -606,7 +536,9 @@ impl ReviewView {
         self.focus_region(&Region::Terminal(id.to_string()), window, cx);
     }
 
-    /// Approve / reject through the gate path (`gate.resolve`), as the gates inbox does.
+    /// Approve / reject through the gate path (`gate.resolve`), as the gates
+    /// inbox does: the request goes through the host's source, the answer (or
+    /// the failure toast) and a notify into the host in one update.
     pub fn resolve(
         &mut self,
         gate: String,
@@ -615,19 +547,18 @@ impl ReviewView {
         window: &mut Window,
         cx: &mut Context<Self>,
     ) {
-        let Some(ws) = self.ws.upgrade() else { return };
+        let Some(source) = self.actions.source(cx) else {
+            return;
+        };
         if !self.busy.insert(gate.clone()) {
             return;
         }
-        let rx = ws
-            .read(cx)
-            .source
-            .call::<p::GateResolve>(&p::GateResolveParams {
-                id: gate.clone(),
-                decision,
-                note: None,
-                choice,
-            });
+        let rx = source.call::<p::GateResolve>(&p::GateResolveParams {
+            id: gate.clone(),
+            decision,
+            note: None,
+            choice,
+        });
         cx.spawn_in(window, async move |this, cx| {
             let r = rx.await;
             let _ = this.update_in(cx, |v, window, cx| {
@@ -636,17 +567,15 @@ impl ReviewView {
                 if v.current_region(window, cx).is_none() {
                     v.focus_region(&Region::Tasks, window, cx);
                 }
-                ws.update(cx, |w, cx| {
-                    match r {
-                        Ok(g) => {
-                            w.orch.apply(g);
-                        }
-                        Err(e) => {
-                            w.raise_toast(ToastKind::Error, s::COULD_NOT_RESOLVE, e.message, cx)
-                        }
-                    }
-                    cx.notify();
-                });
+                let answer = match r {
+                    Ok(g) => HostUpdate::ApplyGate(g),
+                    Err(e) => HostUpdate::Toast {
+                        kind: ToastKind::Error,
+                        title: s::COULD_NOT_RESOLVE.into(),
+                        body: e.message.into(),
+                    },
+                };
+                v.actions.post(vec![answer, HostUpdate::Notify], cx);
                 cx.notify();
             });
         })
@@ -662,27 +591,25 @@ impl ReviewView {
         if window.has_active_dialog(cx) {
             return;
         }
-        let Some(ws) = self.ws.upgrade() else { return };
-        let (terminal, review_task) = {
-            let w = ws.read(cx);
-            let term = w
-                .live_panels()
-                .into_iter()
-                .find(|p| {
-                    p.read(cx)
-                        .view
-                        .read(cx)
-                        .focus_handle(cx)
-                        .contains_focused(window, cx)
-                })
-                .map(|p| p.read(cx).terminal_id.clone());
-            let review = w
-                .live_reviews()
-                .into_iter()
-                .find(|r| r.read(cx).focus_handle().contains_focused(window, cx))
-                .map(|r| r.read(cx).task_id.clone());
-            (term, review)
-        };
+        // The host's live terminal or Review panel holding the focus.
+        let terminal = self
+            .actions
+            .terminal_panels(cx)
+            .into_iter()
+            .find(|p| {
+                p.read(cx)
+                    .view
+                    .read(cx)
+                    .focus_handle(cx)
+                    .contains_focused(window, cx)
+            })
+            .map(|p| p.read(cx).terminal_id.clone());
+        let review_task = self
+            .actions
+            .review_panels(cx)
+            .into_iter()
+            .find(|r| r.read(cx).focus_handle().contains_focused(window, cx))
+            .map(|r| r.read(cx).task_id.clone());
         // The focused panel's terminal and its task, from the frame.
         let terminal_task = terminal.and_then(|id| {
             self.actions
@@ -764,36 +691,42 @@ impl Focusable for ReviewView {
     }
 }
 
-// ───────────────────── legacy adapter: `LayoutModule::render_body` ─────────────────────
+// ───────────────────────────── renderer ─────────────────────────────
 
-/// The window body. The view is made on first use with the workspace (legacy
-/// adapter) and the host's [`LayoutActions`]; the app owns it.
-fn render_body(ws: &mut Workspace, cx: &mut Context<Workspace>) -> AnyElement {
-    if cx.try_global::<ReviewKeys>().is_none() {
-        let c = Some(KEY_CONTEXT);
-        cx.bind_keys([
-            KeyBinding::new("f6", NextRegion, c),
-            KeyBinding::new("shift-f6", PrevRegion, c),
-            KeyBinding::new("ctrl-shift-x", ToggleExpand, c),
-        ]);
-        cx.set_global(ReviewKeys);
-    }
-    let view = match cx.try_global::<ViewGlobal>().and_then(|g| g.0.upgrade()) {
-        Some(v) => v,
-        None => {
-            let weak = cx.entity().downgrade();
-            let actions = ws.layout_actions(cx);
-            let v = cx.new(|cx| ReviewView::new(weak, actions, cx));
-            // The app owns the view; the global only finds it again.
-            view_slot(cx).replace(Some(v.clone()));
-            cx.set_global(ViewGlobal(v.downgrade()));
-            v
+/// The body through the layout kit: the window's view in the shell.
+struct ReviewRenderer;
+
+impl LayoutRenderer for ReviewRenderer {
+    /// The keys are bound once per app. The view is made on first use with
+    /// the host's [`LayoutActions`] and kept in the window's state slot (it
+    /// lives as long as the window).
+    fn render_body(
+        &self,
+        frame: &LayoutFrame<'_>,
+        host: &mut dyn LayoutHost,
+        window: &mut Window,
+        cx: &mut App,
+    ) -> AnyElement {
+        if cx.try_global::<ReviewKeys>().is_none() {
+            let c = Some(KEY_CONTEXT);
+            cx.bind_keys([
+                KeyBinding::new("f6", NextRegion, c),
+                KeyBinding::new("shift-f6", PrevRegion, c),
+                KeyBinding::new("ctrl-shift-x", ToggleExpand, c),
+            ]);
+            cx.set_global(ReviewKeys);
         }
-    };
-    view::shell(
-        kit::connection_warning(&ws.conn),
-        ws.render_hook_banner(cx),
-        view.into_any_element(),
-        ws.render_toasts(cx).into_any_element(),
-    )
+        let actions = host.actions();
+        let view = actions.state_or_insert_with(window, cx, {
+            let actions = actions.clone();
+            move |_, cx| cx.new(|cx| ReviewView::new(actions, cx))
+        });
+        view::shell(
+            frame.warning(),
+            host.slot(Slot::HookBanner, window, cx),
+            view.into_any_element(),
+            host.slot(Slot::Toasts, window, cx)
+                .unwrap_or_else(|| div().into_any_element()),
+        )
+    }
 }

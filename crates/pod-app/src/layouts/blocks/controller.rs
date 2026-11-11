@@ -3,12 +3,14 @@
 //! sync before drawing ([`Feed::sync_frame`]) and every event handler the view
 //! calls.
 //!
-//! Reads of tasks, terminals, gates and the focused terminal go through the
-//! kit's frame ([`LayoutActions::read`]); the copy toast is a [`UiIntent`].
-//! What the kit does not carry yet stays a small legacy adapter over the
-//! workspace (`Feed::ws`): change notifications, terminal labels, the attach
-//! pipe, typing into a terminal, the workbench's live terminal panels, the
-//! gate decision and the fixture's gate.
+//! Everything the feed needs from the window goes through the host's
+//! [`LayoutActions`] (A-T2d): reads of tasks, terminals, gates, labels and the
+//! focused terminal through the frame ([`LayoutActions::read`]), the copy
+//! toast as a [`UiIntent`], the attach pipe, terminal input and its own gate
+//! request through the podd source, the host's live terminal panels and new
+//! feed-owned ones, and the host notify, the gate answer and the fixture's
+//! gate as window-less [`HostUpdate`]s. The gate keeps its own path (fixed
+//! toast title, notify only), not the kit's `resolve_gate`.
 use std::collections::{HashMap, HashSet};
 
 use futures::StreamExt as _;
@@ -24,10 +26,10 @@ use crate::layouts::blocks_model::{
     Approval, Block, BlockKey, FeedBlock, Kind, TermBlocks, build_feed, cycle_target, decision,
     default_expanded, gates_by_terminal, nav, state_label, task_terminals, title_of, who,
 };
-use crate::layouts::kit::{Clock, LayoutActions, LayoutMetrics, UiIntent};
+use crate::layouts::kit::{Clock, HostUpdate, LayoutActions, LayoutMetrics, UiIntent};
 use crate::panel::TerminalPanel;
 use crate::vm::{Liveness, TaskVm, TerminalVm};
-use crate::workspace::{ToastKind, Workspace};
+use crate::workspace::ToastKind;
 
 /// One terminal's output stream and blocks.
 struct Stream {
@@ -48,9 +50,7 @@ pub enum Region {
 }
 
 pub struct Feed {
-    /// Legacy adapter: what the kit does not carry yet (see the module doc).
-    ws: WeakEntity<Workspace>,
-    /// Reads (frame) and UI intents of the host.
+    /// The host: frame reads, intents, source, panels and updates.
     actions: LayoutActions,
     /// "Now" of block starts and ends, status steps and the fixture.
     clock: Clock,
@@ -98,7 +98,7 @@ pub(super) struct Shown {
     pub(super) tasks: Vec<TaskVm>,
     /// Pending gates, oldest first.
     pub(super) pending: Vec<GateInfo>,
-    /// The workspace's label of each terminal in `terms`.
+    /// The label of each terminal in `terms` (`LayoutFrame::label_of`).
     pub(super) labels: HashMap<String, String>,
     pub(super) metrics: LayoutMetrics,
     /// The raw terminal's panel, while the raw view is shown.
@@ -109,7 +109,6 @@ pub(super) struct Shown {
 
 impl Feed {
     pub(super) fn new(
-        ws: WeakEntity<Workspace>,
         actions: LayoutActions,
         fixture: bool,
         window: &mut Window,
@@ -141,7 +140,6 @@ impl Feed {
             },
         ));
         Self {
-            ws,
             actions,
             clock: Clock::System,
             task: None,
@@ -201,23 +199,16 @@ impl Feed {
             .clone()
     }
 
-    /// Legacy adapter: the workspace re-renders with the feed (its title bar
-    /// and status bar show the feed's task).
+    /// The host re-renders with the feed (its title bar and status bar show
+    /// the feed's task).
     pub(super) fn notify_all(&self, cx: &mut Context<Self>) {
         cx.notify();
-        if let Some(ws) = self.ws.upgrade() {
-            ws.update(cx, |_, cx| cx.notify());
-        }
+        self.actions.post(vec![HostUpdate::Notify], cx);
     }
 
     /// The task's terminals, the feed, and the gates (built from the frame every
-    /// time). Terminal labels are the workspace's (`label_of`): the frame does
-    /// not carry them yet.
+    /// time), with the frame's terminal labels.
     pub fn feed(&self, cx: &App) -> Vec<FeedBlock> {
-        let Some(ws) = self.ws.upgrade() else {
-            return Vec::new();
-        };
-        let w = ws.read(cx);
         self.actions
             .read(cx, |f| {
                 let Some(task) = self.task.as_deref().and_then(|id| f.task(id)) else {
@@ -231,22 +222,22 @@ impl Feed {
                     .map(|(k, s)| (k.clone(), s.blocks.blocks.clone()))
                     .collect();
                 build_feed(&terms, &blocks, &gates, self.filter.as_deref(), |t| {
-                    w.label_of(t)
+                    f.label_of(t)
                 })
             })
             .unwrap_or_default()
     }
 
-    /// Legacy adapter: the workspace's label of each terminal.
+    /// The frame's label of each terminal.
     fn labels(&self, terms: &[TerminalVm], cx: &App) -> HashMap<String, String> {
-        let Some(ws) = self.ws.upgrade() else {
-            return HashMap::new();
-        };
-        let w = ws.read(cx);
-        terms
-            .iter()
-            .map(|x| (x.id.clone(), w.label_of(x)))
-            .collect()
+        self.actions
+            .read(cx, |f| {
+                terms
+                    .iter()
+                    .map(|x| (x.id.clone(), f.label_of(x)))
+                    .collect()
+            })
+            .unwrap_or_default()
     }
 
     pub(super) fn expanded(&self, f: &FeedBlock) -> bool {
@@ -285,9 +276,11 @@ impl Feed {
 
     /// Attach to the selected task's terminals, detach from the rest; apply status changes.
     fn sync_streams(&mut self, cx: &mut Context<Self>) {
-        let Some(ws) = self.ws.upgrade() else { return };
-        // Legacy adapter: the attach pipe is the workspace source's.
-        let pipe = ws.read(cx).source.pipe().to_string();
+        // The attach pipe is the host source's.
+        let Some(source) = self.actions.source(cx) else {
+            return;
+        };
+        let pipe = source.pipe().to_string();
         let terms = self.task_terms(cx);
         self.streams
             .retain(|id, _| terms.iter().any(|t| &t.id == id));
@@ -457,19 +450,18 @@ impl Feed {
     }
 
     /// The workbench's own panel for the raw terminal when it has one (no new
-    /// attach), else a feed-owned one. Legacy adapter: the live panels, the
-    /// panel registry and a new panel's workspace are the workspace's.
+    /// attach), else a feed-owned one the host makes and registers (`None`
+    /// for a terminal the frame does not know).
     fn raw_panel(
         &mut self,
         window: &mut Window,
         cx: &mut Context<Self>,
     ) -> Option<Entity<TerminalPanel>> {
         let id = self.raw_terminal.clone()?;
-        let ws = self.ws.upgrade()?;
         let own = self.own_panel.as_ref().map(|p| p.entity_id());
-        let existing = ws
-            .read(cx)
-            .live_panels()
+        let existing = self
+            .actions
+            .terminal_panels(cx)
             .into_iter()
             .find(|p| Some(p.entity_id()) != own && p.read(cx).terminal_id == id);
         if let Some(p) = existing {
@@ -483,25 +475,7 @@ impl Feed {
         {
             return Some(p.clone());
         }
-        if !self
-            .actions
-            .read(cx, |f| f.terminal(&id).is_some())
-            .unwrap_or(false)
-        {
-            return None;
-        }
-        let g = cx.global::<crate::workspace::AppGlobals>();
-        let (source, panels) = (g.source.clone(), g.panels.clone());
-        let label: SharedString = g
-            .labels
-            .borrow()
-            .get(&id)
-            .cloned()
-            .unwrap_or_else(|| id.clone())
-            .into();
-        let weak = self.ws.clone();
-        let panel = cx.new(|cx| TerminalPanel::new(source, weak, id, label, window, cx));
-        panels.borrow_mut().push(panel.downgrade());
+        let panel = self.actions.new_terminal_panel(&id, window, cx)?;
         self.own_panel = Some(panel.clone());
         Some(panel)
     }
@@ -515,11 +489,8 @@ impl Feed {
         if text.trim().is_empty() {
             return;
         }
-        // Legacy adapter: the kit has no terminal input intent.
-        if let Some(ws) = self.ws.upgrade() {
-            ws.read(cx)
-                .source
-                .input(&target, format!("{text}\r").into_bytes());
+        if let Some(source) = self.actions.source(cx) {
+            source.input(&target, format!("{text}\r").into_bytes());
         }
         self.input.update(cx, |i, cx| i.set_value("", window, cx));
         self.follow = true;
@@ -612,8 +583,8 @@ impl Feed {
     }
 
     /// Approve / reject through the gate path (`gate.resolve`), as the gates
-    /// inbox does. Legacy adapter: the request goes through the workspace's
-    /// source and the answer into its gate state, in one update.
+    /// inbox does: the request goes through the host's source, the answer
+    /// (or the failure toast) and a notify into the host in one update.
     pub fn resolve(
         &mut self,
         key: BlockKey,
@@ -622,7 +593,9 @@ impl Feed {
         window: &mut Window,
         cx: &mut Context<Self>,
     ) {
-        let Some(ws) = self.ws.upgrade() else { return };
+        let Some(source) = self.actions.source(cx) else {
+            return;
+        };
         let Some((decision, choice)) = decision(&gate, a) else {
             return;
         };
@@ -631,15 +604,12 @@ impl Feed {
         }
         let id = gate.id.clone();
         let refocus = self.block_focus(&key, cx).contains_focused(window, cx);
-        let rx = ws
-            .read(cx)
-            .source
-            .call::<p::GateResolve>(&p::GateResolveParams {
-                id: id.clone(),
-                decision,
-                note: None,
-                choice,
-            });
+        let rx = source.call::<p::GateResolve>(&p::GateResolveParams {
+            id: id.clone(),
+            decision,
+            note: None,
+            choice,
+        });
         cx.spawn_in(window, async move |this, cx| {
             let r = rx.await;
             let _ = this.update_in(cx, |f, window, cx| {
@@ -649,17 +619,15 @@ impl Feed {
                 let h = f.block_focus(&key, cx);
                 // Unless the user moved on to the tasks or the input meanwhile.
                 let refocus = refocus && f.region(window, cx) == Region::Feed;
-                ws.update(cx, |w, cx| {
-                    match r {
-                        Ok(g) => {
-                            w.orch.apply(g);
-                        }
-                        Err(e) => {
-                            w.raise_toast(ToastKind::Error, s::COULD_NOT_RESOLVE, e.message, cx)
-                        }
-                    }
-                    cx.notify();
-                });
+                let answer = match r {
+                    Ok(g) => HostUpdate::ApplyGate(g),
+                    Err(e) => HostUpdate::Toast {
+                        kind: ToastKind::Error,
+                        title: s::COULD_NOT_RESOLVE.into(),
+                        body: e.message.into(),
+                    },
+                };
+                f.actions.post(vec![answer, HostUpdate::Notify], cx);
                 if refocus {
                     if f.feed(cx).iter().any(|b| b.key == key) {
                         h.focus(window, cx);
@@ -774,11 +742,10 @@ impl Feed {
         if window.has_active_dialog(cx) {
             return;
         }
-        let Some(ws) = self.ws.upgrade() else { return };
-        // Legacy adapter: which live panel holds the keyboard focus.
-        let focused = ws
-            .read(cx)
-            .live_panels()
+        // Which of the host's live terminal panels holds the keyboard focus.
+        let focused = self
+            .actions
+            .terminal_panels(cx)
             .into_iter()
             .find(|p| {
                 p.read(cx)
@@ -846,13 +813,10 @@ impl Feed {
         self.sync_streams(cx);
         if self.fixture && !self.fixture_gate && self.task.is_some() {
             self.fixture_gate = true;
-            // Legacy adapter: the fixture's gate goes into the workspace's gate state.
+            // The fixture's gate goes into the host's gate state (no notify).
             let now = self.clock.now_ms();
-            if let Some(ws) = self.ws.upgrade() {
-                ws.update(cx, |w, _| {
-                    w.orch.apply(fixture_gate(now));
-                });
-            }
+            self.actions
+                .post(vec![HostUpdate::ApplyGate(fixture_gate(now))], cx);
         }
         let terms = self.task_terms(cx);
         let term_refs: Vec<&TerminalVm> = terms.iter().collect();

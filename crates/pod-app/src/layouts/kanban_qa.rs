@@ -384,3 +384,58 @@ fn panels_opened_on_the_board_show_in_the_drawer_and_f6_reaches_the_dock() {
         "the drawer keeps showing the panels"
     );
 }
+
+#[test]
+fn switching_in_reads_each_card_once_and_the_board_is_the_windows_state() {
+    // A-T2c: the board is made by the narrow renderer while the workspace
+    // renders and kept in the window's kit state slot. Requests as before:
+    // one `terminal.read` per card when the board first shows, none when
+    // switching away and back (same board, lines kept).
+    let mut h = Harness::new("kanban-state-slot", |b| {
+        seed_two_tasks(b);
+        // Last lines as in the UI fixture.
+        b.rpc = Some(Box::new(super::kanban::fixture_answer));
+    });
+    let before = h.backend.calls.len();
+    set_layout(&mut h, "kanban");
+    let b = board(&mut h);
+    let cards: Vec<String> =
+        h.cx.update(|_, cx| b.read(cx).cards(cx).into_iter().map(|c| c.id).collect());
+    assert_eq!(cards.len(), 2, "{cards:?}");
+    let calls = h.backend.calls[before..].to_vec();
+    assert_eq!(calls.len(), cards.len(), "{calls:?}");
+    for (call, id) in calls.iter().zip(&cards) {
+        assert!(
+            call.starts_with("terminal.read") && call.contains(&format!("\"{id}\"")),
+            "card order: {call} for {id}"
+        );
+    }
+    let lines: Vec<Option<String>> = h.cx.update(|_, cx| {
+        cards
+            .iter()
+            .map(|id| b.read(cx).line(id).map(str::to_owned))
+            .collect()
+    });
+    assert!(lines.iter().all(Option::is_some), "{lines:?}");
+
+    let seen = h.backend.calls.len();
+    set_layout(&mut h, "workbench");
+    set_layout(&mut h, "kanban");
+    assert_eq!(board(&mut h).entity_id(), b.entity_id(), "the same board");
+    assert_eq!(
+        h.backend.calls.len(),
+        seen,
+        "{:?}",
+        &h.backend.calls[seen..]
+    );
+
+    let ws = h.ws.entity_id();
+    let slot = h.cx.update(|_, cx| {
+        crate::layouts::kit::state::<Board>(crate::layouts::kit::WindowKey(ws), cx)
+    });
+    assert_eq!(
+        slot.map(|s| s.entity_id()),
+        Some(b.entity_id()),
+        "the window's state slot holds the board"
+    );
+}

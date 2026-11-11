@@ -15,7 +15,8 @@ use crate::agent_kind::AgentKind;
 use crate::native_qa::Harness;
 use crate::source::{SourceEvent, TestBackend};
 use crate::theme::Settings;
-use crate::vm::TaskVm;
+use crate::vm::{AgentState, Liveness, TaskVm};
+use podd::protocol::{GateInfo, GateState};
 
 fn term(id: &str, task: Option<&str>, state: &str) -> TerminalVm {
     TestBackend::terminal(id, &format!("작업자 {id}"), task, state)
@@ -878,7 +879,7 @@ fn fixture_scene_runs_inside_a_workspace_update() {
     });
     set_layout(&mut h, "dense-details");
     let ws = h.ws.clone();
-    h.cx.update(|window, cx| ws.update(cx, |w, cx| fixture_scene(w, window, cx)));
+    h.cx.update(|window, cx| ws.update(cx, |w, cx| crate::fixture_scenes::dense(w, window, cx)));
     h.settle();
     assert_eq!(selected(&mut h), Some(Sel::Terminal("fixture-1".into())));
     let v = dense(&mut h);
@@ -926,7 +927,7 @@ fn fixture_runs_print_one_frozen_time_and_real_runs_the_system_clock() {
         })
     });
     let ws = h.ws.clone();
-    h.cx.update(|window, cx| ws.update(cx, |w, cx| fixture_scene(w, window, cx)));
+    h.cx.update(|window, cx| ws.update(cx, |w, cx| crate::fixture_scenes::dense(w, window, cx)));
     h.settle();
     let events: Vec<(EventKind, u64)> =
         h.cx.update(|_, cx| v.read(cx).log.events().map(|e| (e.kind, e.at)).collect());
@@ -1468,4 +1469,56 @@ fn details_link_opens_its_terminal_through_the_host() {
         "터미널 열기 opened d1"
     );
     assert_eq!(selected(&mut h), Some(Sel::Terminal("d1".into())));
+}
+
+#[test]
+fn the_first_render_reads_the_selected_terminal_once_and_keeps_the_view_per_window() {
+    // A-T2c: the narrow renderer makes and seeds the view while the workspace
+    // renders (source and tree observation are lent then). Requests as
+    // before: one `terminal.read` for the focused terminal when the layout
+    // first shows, none when switching away and back (same view, lines kept).
+    let _config = Config::new();
+    let mut h = Harness::new("dense-first-render", seed);
+    open(&mut h, "w1");
+    open(&mut h, "b1");
+    let before = h.backend.calls.len();
+    set_layout(&mut h, "dense-details");
+    let calls = h.backend.calls[before..].to_vec();
+    assert_eq!(calls.len(), 1, "{calls:?}");
+    assert!(
+        calls[0].starts_with("terminal.read") && calls[0].contains("\"b1\""),
+        "{calls:?}"
+    );
+    assert_eq!(selected(&mut h), Some(Sel::Terminal("b1".into())));
+    let v = dense(&mut h);
+    assert!(h.cx.update(|_, cx| v.read(cx).last_lines("b1").is_some()));
+
+    let seen = h.backend.calls.len();
+    set_layout(&mut h, "workbench");
+    set_layout(&mut h, "dense-details");
+    assert_eq!(dense(&mut h).entity_id(), v.entity_id(), "the same view");
+    assert_eq!(
+        h.backend.calls.len(),
+        seen,
+        "{:?}",
+        &h.backend.calls[seen..]
+    );
+
+    // Ctrl+Shift+U from outside the layout (the workspace root): the app
+    // shortcut finds the view through the active window.
+    let root = h.root_focus();
+    h.cx.update(|window, cx| root.focus(window, cx));
+    h.settle();
+    h.keys(FOCUS_OUTPUT_KEY);
+    assert!(log_focused(&mut h), "Ctrl+Shift+U from the workspace root");
+
+    let slot = h.cx.update(|window, cx| {
+        crate::layouts::kit::state_in_window::<DenseView>(window.window_handle(), cx)
+            .map(|s| s.entity_id())
+    });
+    assert_eq!(
+        slot,
+        Some(v.entity_id()),
+        "the window's state slot holds the view"
+    );
 }

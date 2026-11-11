@@ -597,6 +597,92 @@ fn preset_13_maps_to_the_review_layout() {
     );
 }
 
+/// A-T2d: the layout draws through its kit renderer (no Workspace adapter)
+/// and the window's state slot keeps its view: the same view across a layout
+/// round trip (its layout-owned Review made and registered by the host, and
+/// dropped on leaving as before); one view per window, dropped with it.
+#[test]
+fn the_kit_renderer_keeps_one_view_per_window_in_its_state_slot() {
+    use super::blocks_qa::second_window;
+    use crate::layout_mode::{LayoutMode, LayoutRegistry};
+    use crate::layouts::kit::{self, WindowKey};
+    assert_eq!(
+        LayoutRegistry::new()
+            .resolve(LayoutMode::Review.id())
+            .mode(),
+        LayoutMode::Review,
+        "the review layout is registered (every module has a kit renderer)"
+    );
+    let mut h = Harness::new("review-slot", with_worktree("review-slot"));
+    let key = WindowKey(h.ws.entity_id());
+    let in_slot = |h: &mut Harness, key| h.cx.update(|_, cx| kit::state::<ReviewView>(key, cx));
+    assert!(in_slot(&mut h, key).is_none(), "no view before the layout");
+    set_layout(&mut h, "review");
+    assert!(h.bounds("review-layout").is_some(), "the renderer drew it");
+    let v = view(&mut h);
+    assert_eq!(
+        in_slot(&mut h, key).map(|s| s.entity_id()),
+        Some(v.entity_id()),
+        "the view sits in this window's slot"
+    );
+    assert_eq!(
+        selected(&mut h).as_deref(),
+        Some(LOGIN),
+        "the window's first task, read through the host"
+    );
+    let ws = h.ws.clone();
+    let (own, registered) = h.cx.update(|_, cx| {
+        (
+            v.read(cx).own_review().map(|r| r.entity_id()),
+            ws.read(cx).live_reviews().first().map(|r| r.entity_id()),
+        )
+    });
+    assert!(own.is_some(), "a layout-owned canvas Review");
+    assert_eq!(own, registered, "made and registered by the host");
+    assert_eq!(review_tasks(&mut h), [LOGIN]);
+
+    set_layout(&mut h, "workbench");
+    assert_eq!(
+        in_slot(&mut h, key).map(|s| s.entity_id()),
+        Some(v.entity_id()),
+        "the slot keeps the view while another layout shows"
+    );
+    assert!(
+        review_tasks(&mut h).is_empty(),
+        "leaving drops the layout-owned Review"
+    );
+    set_layout(&mut h, "review");
+    assert_eq!(
+        view(&mut h).entity_id(),
+        v.entity_id(),
+        "and shows it again"
+    );
+    assert_eq!(review_tasks(&mut h), [LOGIN]);
+
+    // A second window: its own view over its own workspace, gone with it.
+    let second = second_window(&mut h, seed_two_tasks);
+    let other = in_slot(&mut h, second.key).expect("the second window's view");
+    assert_ne!(other.entity_id(), v.entity_id(), "one view per window");
+    assert_eq!(
+        h.cx.update(|_, cx| other.read(cx).model.selected.clone())
+            .as_deref(),
+        Some(LOGIN)
+    );
+    assert_eq!(h.cx.update(|_, cx| kit::states::<ReviewView>(cx).len()), 2);
+    let weak = other.downgrade();
+    drop(other);
+    let other = weak;
+    let second_key = second.key;
+    second.close(&mut h);
+    assert!(in_slot(&mut h, second_key).is_none(), "its slot is dropped");
+    assert!(other.upgrade().is_none(), "and its view released");
+    assert_eq!(
+        in_slot(&mut h, key).map(|s| s.entity_id()),
+        Some(v.entity_id()),
+        "the first window keeps its view"
+    );
+}
+
 fn canvas_review(h: &mut Harness) -> Entity<crate::review::ReviewPanel> {
     let ws = h.ws.clone();
     h.cx.update(|_, cx| {

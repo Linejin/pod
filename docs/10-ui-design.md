@@ -939,13 +939,13 @@ hover100ms, press100ms, 펼치기/tooltip/menu opacity120ms, toast150ms, easing 
 
 ### D5.4 레이아웃 모드 연결점
 
-`pod-app/src/layout_mode.rs`: `LayoutMode` enum과 등록부. 각 모드는 `LayoutModule`(id, 이름, 제목줄과 상태줄 사이 본문 렌더)을 구현해 등록부에 한 줄로 추가한다. 등록되지 않은 모드를 고르면 작업대로 그리고 설정에 “이 레이아웃은 아직 준비 중 — 작업대로 표시”를 보여 준다. 처음에는 작업대만 있었고, 지금은 아래처럼 7개 모드가 모두 등록되어 있다. 제목줄에 집계를 보이는 모드(06 관제형)는 `status_counts`로 상태 표시줄의 같은 집계를 끈다.
+`pod-app/src/layout_mode.rs`: `LayoutMode` enum과 등록부. 각 모드는 `LayoutModule`(모드, 상태줄 집계 여부, 제목줄과 상태줄 사이 본문을 그리는 kit renderer)을 구현해 등록부에 한 줄로 추가한다. renderer는 layout kit(`layouts/kit.rs`+`kit/`: `LayoutFrame` 읽기·`LayoutHost` 슬롯·`LayoutActions` 동작)만 쓰고 Workspace를 부르지 않는다. host는 `workspace/layout_host.rs` 하나다. 등록되지 않은 모드를 고르면 작업대로 그리고 설정에 “이 레이아웃은 아직 준비 중 — 작업대로 표시”를 보여 준다. 처음에는 작업대만 있었고, 지금은 아래처럼 7개 모드가 모두 등록되어 있다. 제목줄에 집계를 보이는 모드(06 관제형)는 `status_counts`로 상태 표시줄의 같은 집계를 끈다.
 
-모드별 상태(2단계): 작업대 ✅ · 칸반 ✅(§D5.5) · 집중 레일 ✅(§D5.6) · 응답 대기열 ✅(§D5.7) · 블록 터미널 ✅(§D5.8) · 리뷰 중심 ✅(§D5.9) · 고밀도+세부 열 ✅(§D5.10) · 나머지는 준비 중. 모드 모듈은 `pod-app/src/layouts/<id>.rs`.
+모드별 상태(2단계): 작업대 ✅ · 칸반 ✅(§D5.5) · 집중 레일 ✅(§D5.6) · 응답 대기열 ✅(§D5.7) · 블록 터미널 ✅(§D5.8) · 리뷰 중심 ✅(§D5.9) · 고밀도+세부 열 ✅(§D5.10) · 나머지는 준비 중. 모드 모듈은 `pod-app/src/layouts/<id>.rs`(작업대는 `workbench.rs`)와 그 하위 폴더(model·view·copy·tests 등)다.
 
 ### D5.5 칸반 보드 (프리셋 12)
 
-`pod-app/src/layouts/kanban.rs` (+ `kanban_qa.rs` 테스트). 상태: **구현됨**.
+`pod-app/src/layouts/kanban.rs`(모듈·kit renderer·Board) + `kanban/{model,view,copy,tests}.rs` (+ `kanban_qa.rs` 테스트). 상태: **구현됨**.
 
 - **열 = 에이전트가 보고한 상태**: 작업 중(working·unknown·상태 없는 셸) / 응답 필요(blocked + **실패**: error·0이 아닌 종료·lost, 빨간 띠) / 완료(done·idle·정상 종료·사용자가 끝냄). 실패는 따로 열을 두지 않고 응답 필요에 둔다(사용자 손이 필요한 일이라는 점이 같다).
 - **카드** = 터미널 하나: 상태 아이콘 · `에이전트 · 이름` · 작업 제목 · 마지막 출력 줄(고정폭) · 동작 · 상태 문구(항상 표시). 동작: 대기 중 gate가 있으면 **승인/거부**(`gate.resolve`, gates 수신함과 같은 경로), gate 없는 질문은 **응답하기**(서랍 터미널), 그 외 **로그**, 종료된 터미널은 **다시 실행**(같은 argv·폴더·작업으로 `terminal.run`).
@@ -959,7 +959,7 @@ hover100ms, press100ms, 펼치기/tooltip/menu opacity120ms, toast150ms, easing 
 
 ### D5.6 집중 레일 (프리셋 02) — 구현됨
 
-`pod-app/src/layouts/rail.rs` (2026-11-10). 다른 모드도 `layouts/<모드>.rs` 한 파일 + 등록 한 줄로 붙인다.
+`pod-app/src/layouts/rail.rs`(모듈·kit renderer·RailState) + `rail/{model,view,copy,fixture,tests}.rs` (2026-11-10). 다른 모드도 `layouts/<모드>.rs` 모듈(+ 하위 파일) + 등록 한 줄로 붙인다.
 
 - **구조**: 왼쪽 44px 레일(작업 공간 · 터미널 · 파일 · 에이전트, 아래쪽 응답 대기) · 위쪽 현재 작업 탭(열린 패널이 있는 작업 + 최근 작업 + 현재 작업, 작업 순서) · `+` 새 작업 · 넘친 탭 수 `+N` · “작업 전환”(모든 작업 목록). dock에는 **현재 작업의 패널**(터미널 → 파일/리뷰)과 작업에 속하지 않는 패널(설정·승인함·에이전트 트리·그룹·확장)만 보인다.
 - **dock 소유**: 패널은 계속 작업대 dock이 소유한다(새 패널·저장·복원은 그대로). 레일은 자기 dock에 같은 패널을 가리키는 slot을 둔다. 작업을 바꾸거나 레이아웃을 바꿔도 패널이 떨어지지 않으므로 터미널이 다시 attach되지 않고, 작업대로 돌아가면 dock 배치가 그대로다. 레일에서 탭을 닫으면 작업대에서도 닫힌다(터미널은 계속 실행). 레일 배치는 작업별로 기억한다(세션 동안). Ctrl+Shift+G는 레일에서 현재 작업을 갤러리 배치(넓은 첫 터미널 + 오른쪽에 나머지 세로)로 다시 놓는다.
@@ -982,7 +982,7 @@ hover100ms, press100ms, 펼치기/tooltip/menu opacity120ms, toast150ms, easing 
 
 ### D5.8 블록 터미널 (프리셋 11)
 
-`pod-app/src/layouts/blocks.rs`(화면) + `blocks_model.rs`(블록 자르기, GPUI 없음) + `shell_integration.rs` + `blocks_qa.rs`(테스트). 상태: **구현됨**.
+`pod-app/src/layouts/blocks.rs`(모듈·kit renderer) + `blocks/{controller,view,copy,tests}.rs` + `blocks_model.rs`(블록 자르기·피드 모델, GPUI 없음) + `shell_integration.rs` + `blocks_qa.rs`(테스트). 상태: **구현됨**. layout kit(`LayoutFrame`·`LayoutActions`)만 거쳐 그린다. 피드(보기 상태·attach 흐름)는 창마다 하나이고 창을 닫으면 함께 사라진다.
 
 - **화면**: 왼쪽 작업 목록(상태 점·승인 대기 수)과 에이전트 칩(모든 에이전트 / 터미널별 필터), 가운데 고른 작업의 **시간순 블록 피드**, 아래 **입력 한 줄**. 머리줄: 작업 제목 · `블록 N · 에이전트 M · 시간순` · `응답 필요 K` · 원본 터미널 전환.
 - **블록** = 셸 명령 하나 또는 에이전트 단계 하나. 머리: 접기 표시 · 상태 아이콘 · `에이전트 · 이름`(셸은 `셸 · 이름`) · 명령/단계(고정폭) · 상태 문구(`3.1초 · 종료 0`, `1분 12초 · 완료`, `실행 중`, `승인 대기`, `이전 출력`) · 복사. 본문은 출력(최근 400줄 보관, 200줄 표시, 그 앞은 “… 앞 N줄 생략”). 실행 중·승인 대기·실패·터미널의 마지막 블록은 펼쳐서, 나머지 끝난 블록은 접어서 시작한다.
@@ -999,7 +999,7 @@ hover100ms, press100ms, 펼치기/tooltip/menu opacity120ms, toast150ms, easing 
 
 ### D5.9 분할 리뷰 중심 (프리셋 13)
 
-`pod-app/src/layouts/review.rs` (+ `review_qa.rs` 테스트). 상태: **구현됨**.
+`pod-app/src/layouts/review.rs`(모듈·kit renderer·controller) + `review/{model,view,copy,tests}.rs` (+ `review_qa.rs` 테스트). 상태: **구현됨**. layout kit(`LayoutFrame`·`LayoutActions`)만 거쳐 그린다. 레이아웃 보기 상태는 창마다 하나이고 창을 닫으면 함께 사라진다.
 
 - **배치**: 왼쪽 작업 목록 · 가운데 고른 작업의 **리뷰**(기존 Review 패널 그대로: 나란히 diff, 파일 목록, 의견, 에이전트에 보내기·전달 상태, PR 탭) · 아래 그 작업의 터미널을 작게 도킹(최대 4개, 넘으면 `(+N)`). 각 터미널은 **크게 보기**로 캔버스 전체를 덮고, 다시 누르면 제자리. 터미널 줄은 접을 수 있다(머리만).
 - **리뷰 머리**: `브랜치 → 기준` · 작업 제목 · git 요약 · 작업 터미널별 에이전트 상태(아이콘+문구) · 대기 중 gate(**승인/거부**, `gate.resolve`) · gate 없는 응답 대기는 **응답하기**(그 터미널로 이동).
@@ -1012,7 +1012,7 @@ hover100ms, press100ms, 펼치기/tooltip/menu opacity120ms, toast150ms, easing 
 
 ### D5.10 고밀도 + 세부 열 (07)
 
-`pod-app/src/layouts/dense.rs` (+ `dense/tests.rs`). 상태: **구현됨**.
+`pod-app/src/layouts/dense.rs`(모듈·kit renderer·DenseView) + `dense/{log,model,view,copy,fixture,tests}.rs`. 상태: **구현됨**.
 
 - **구조**: 왼쪽 활동 막대(작업 탐색 보이기/숨기기 · 파일 · 에이전트 트리 · 검색 · 승인 요청, 아래 출력/세부 정보 보이기/숨기기 · 설정) · 작업 트리(작업대와 같은 sidebar) · dock(모든 레이아웃이 같은 dock) 아래 **출력** 패널 · 오른쪽 **세부 정보** 열. 행 높이·제목 높이·sidebar 폭·UI 글자는 스타일 metrics(07 = `dense`: 행 22, UI 12)이고, 글자를 키우면 행이 `글자×1.5+4`까지 커진다. 버튼은 스타일의 hit area보다 작지 않다.
 - **출력**: 상태 변화(출처 hook/osc), 승인 요청·결정, 종료(실패 종료·연결 끊김), 알림을 `시각 출처 누구 → 내용` 한 줄로(고정폭, 최대 500줄, 가상화). 처음 열 때는 지금 확인이 필요한 것(승인 요청, 응답 필요·오류, 실패 종료, 알림, 최근 40개)만 넣고 그 뒤 변화는 모두 기록한다. 지우기·닫기. 새 줄이 오면 마지막 줄을 보고 있을 때만 따라 내려간다.

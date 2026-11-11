@@ -10,38 +10,43 @@
 //! the panel in the workbench (the same as there).
 //!
 //! State comes only from change events: the workbench dock's `LayoutChanged`
-//! and the workspace's own notify (tasks, terminals, statuses, gates). The
+//! and the host's notify (tasks, terminals, statuses, gates). The
 //! derived rows (tabs, 응답 대기) are computed then, not per frame.
 //!
 //! Files (docs/20-refactor/app.md A-P10): `model` holds the pure arrangement
-//! and selection plans, `view` the render, `copy` the strings. This file keeps
-//! the layout module, the per-window [`RailState`] with its controller methods
-//! and the dock slots. Reads go through the kit's frame and UI actions through
-//! [`LayoutActions`]; what the kit does not carry yet stays a small legacy
-//! adapter over the workspace: observing it, its current task, the workbench
-//! dock entity, the sidebar view and opening a task's terminals in one update.
+//! and selection plans, `view` the render, `copy` the strings, `fixture` the
+//! visual-QA scenes. This file keeps the layout module and its narrow
+//! renderer, the per-window [`RailState`] with its controller methods and the
+//! dock slots. Since A-T2b the rail is on the layout kit only: the frame for
+//! reads, the host's slots for the warning shell, and [`LayoutActions`] for
+//! everything else (its state slot, change observation, the workbench dock,
+//! the current task, the sidebar view, UI intents).
 mod copy;
+mod fixture;
 mod model;
 mod view;
 
 use std::collections::{HashMap, HashSet};
+use std::rc::Rc;
 use std::sync::Arc;
 use std::sync::atomic::{AtomicBool, Ordering};
 
 use gpui_kit::component::button::Button;
 use gpui_kit::component::dock::{
-    BasePanelView, DockArea, DockEvent, DockLayout, DockPlacement, DockSkin, PaneNode, PaneRef,
-    PanelControl, PanelHandle, PanelId, PanelState, PanelStyle, PanelView, TabGroup, TitleStyle,
+    BasePanelView, DockArea, DockLayout, DockPlacement, DockSkin, PaneNode, PaneRef, PanelControl,
+    PanelHandle, PanelId, PanelState, PanelStyle, PanelView, TabGroup, TitleStyle,
 };
 use gpui_kit::component::menu::PopupMenu;
 use gpui_kit::*;
 
+pub use self::fixture::fixture_scene;
 use self::model::{
     AttentionTarget, Drawer, Owner, Shape, TaskRow, attention, plan, step, tab_tasks, task_rows,
 };
 use crate::layout_mode::{LayoutMode, LayoutModule};
-use crate::layouts::kit::{self, LayoutActions, LayoutFrame, UiIntent};
-use crate::workspace::Workspace;
+use crate::layouts::kit::{
+    self, HostChange, LayoutActions, LayoutFrame, LayoutHost, LayoutRenderer, UiIntent,
+};
 
 actions!(
     pod_rail,
@@ -77,13 +82,52 @@ impl LayoutModule for FocusRail {
     fn mode(&self) -> LayoutMode {
         LayoutMode::FocusRail
     }
+    fn renderer(&self) -> Rc<dyn LayoutRenderer> {
+        Rc::new(Renderer)
+    }
+}
+
+/// The rail's narrow renderer: the window's [`RailState`] (made on first use
+/// in the host's state slot) inside the kit's connection shell.
+struct Renderer;
+impl LayoutRenderer for Renderer {
     fn render_body(
         &self,
-        ws: &mut Workspace,
+        frame: &LayoutFrame<'_>,
+        host: &mut dyn LayoutHost,
         window: &mut Window,
-        cx: &mut Context<Workspace>,
+        cx: &mut App,
     ) -> AnyElement {
-        render_body(ws, window, cx)
+        let actions = host.actions();
+        let rail = match actions.state::<RailState>(cx) {
+            Some(r) => r,
+            None => {
+                let r = actions.state_or_insert_with(window, cx, |window, cx| {
+                    let actions = actions.clone();
+                    cx.new(|cx| RailState::new(actions, window, cx))
+                });
+                // The first frame has an empty rail dock: keep the focused panel focused.
+                let first = r.clone();
+                let focused = window.focused(cx);
+                window.defer(cx, move |window, cx| {
+                    first.update(cx, |r, cx| r.sync(window, cx));
+                    if let Some(f) = focused {
+                        window.focus(&f, cx);
+                    }
+                });
+                r
+            }
+        };
+        let hook_banner = host.slot(kit::Slot::HookBanner, window, cx);
+        let toasts = host
+            .slot(kit::Slot::Toasts, window, cx)
+            .unwrap_or_else(|| div().into_any_element());
+        view::shell(
+            frame.warning(),
+            hook_banner,
+            rail.into_any_element(),
+            toasts,
+        )
     }
 }
 
@@ -335,25 +379,14 @@ fn workbench_panels(area: &DockArea, f: &LayoutFrame<'_>, cx: &App) -> Workbench
     )
 }
 
-// ---- the rail state (one per workspace window) ------------------------------
-
-#[derive(Default)]
-struct RailStates(HashMap<EntityId, Entity<RailState>>);
-impl Global for RailStates {}
-
-/// The rail of workspace `ws`, if it was shown this session.
-pub(crate) fn state_of(ws: EntityId, cx: &App) -> Option<Entity<RailState>> {
-    cx.try_global::<RailStates>()
-        .and_then(|g| g.0.get(&ws).cloned())
-}
+// ---- the rail state (one per hosted window, in the kit's state slot) ---------
 
 pub struct RailState {
-    /// Legacy adapter: observed for changes, asked for the current task, the
-    /// sidebar view and a task's terminals (not in the kit yet).
-    ws: WeakEntity<Workspace>,
-    /// Reads (frame), focus slots and UI intents of the host.
+    /// The host: reads (frame), change observation, the current task, the
+    /// sidebar view, focus slots and UI intents.
     actions: LayoutActions,
-    workbench: Entity<DockArea>,
+    /// The workbench dock (the host's), which owns every panel.
+    workbench: WeakEntity<DockArea>,
     pub(crate) dock: Entity<DockArea>,
     pub(crate) current: Option<String>,
     pub(crate) drawer: Option<Drawer>,
@@ -396,33 +429,27 @@ pub(crate) enum RailButton {
 }
 
 impl RailState {
-    fn new(
-        ws: Entity<Workspace>,
-        workbench: Entity<DockArea>,
-        actions: LayoutActions,
-        window: &mut Window,
-        cx: &mut Context<Self>,
-    ) -> Self {
+    fn new(actions: LayoutActions, window: &mut Window, cx: &mut Context<Self>) -> Self {
+        let workbench = actions
+            .dock(cx)
+            .map(|d| d.downgrade())
+            .unwrap_or_else(WeakEntity::new_invalid);
         let (dock, skin) = DockSkin::dock_area("pod-rail", None, window, cx);
         skin.set_close_button_visible(true, cx);
         skin.set_panel_style(PanelStyle::Auto, cx);
-        let subs = vec![
-            cx.subscribe_in(
-                &workbench,
+        // The workbench dock's `LayoutChanged`, then the host's notify (tasks,
+        // terminals, statuses, gates): one subscription for both.
+        let subs = actions
+            .observe_in(
+                &[HostChange::DockLayout, HostChange::Data],
                 window,
-                |r: &mut Self, _, ev: &DockEvent, window, cx| {
-                    if let DockEvent::LayoutChanged = ev {
-                        r.sync(window, cx);
-                    }
-                },
-            ),
-            cx.observe_in(&ws, window, |r: &mut Self, _, window, cx| {
-                r.sync(window, cx)
-            }),
-        ];
+                cx,
+                |r: &mut Self, _, window, cx| r.sync(window, cx),
+            )
+            .into_iter()
+            .collect();
         let tab = |cx: &mut Context<Self>| cx.focus_handle().tab_stop(true);
         Self {
-            ws: ws.downgrade(),
             actions,
             workbench,
             dock,
@@ -465,10 +492,12 @@ impl RailState {
     /// Re-read the workbench dock and the workspace data, then show the current
     /// task's panels. Runs on change events only.
     pub(crate) fn sync(&mut self, window: &mut Window, cx: &mut Context<Self>) {
-        let Some(ws) = self.ws.upgrade() else { return };
+        let Some(workbench) = self.workbench.upgrade() else {
+            return;
+        };
         // Workbench panels and their owners; rows, 응답 대기 and the font.
         let Some(((inner, terminal_panels), rows, font)) = self.actions.read(cx, |f| {
-            let panels = workbench_panels(self.workbench.read(cx), f, cx);
+            let panels = workbench_panels(workbench.read(cx), f, cx);
             let open: HashSet<String> = panels
                 .0
                 .iter()
@@ -489,8 +518,9 @@ impl RailState {
         self.terminal_panels = terminal_panels;
         self.rows = rows;
         // Current task, tabs, 응답 대기.
+        let actions = self.actions.clone();
         self.current = model::keep_or_pick(self.current.take(), &self.rows, || {
-            ws.read(cx).current_task(window, cx)
+            actions.current_task(window, cx)
         });
         self.font = font;
         self.recent
@@ -510,7 +540,7 @@ impl RailState {
             if !self.slots.contains_key(id) && (terminals.contains(id) || others.contains(id)) {
                 let slot = Slot {
                     inner: inner.clone(),
-                    workbench: self.workbench.downgrade(),
+                    workbench: self.workbench.clone(),
                     quiet: self.quiet.clone(),
                 };
                 self.slots
@@ -624,12 +654,12 @@ impl RailState {
             .unwrap_or_default()
     }
 
-    /// Legacy adapter: the workspace's sidebar view for the 작업 공간 drawer
-    /// (the kit lends `Slot::Sidebar` only inside a host render).
+    /// The host's tree sidebar for the 작업 공간 drawer, drawn in the rail's
+    /// own render.
     fn sidebar(&self, cx: &App) -> Option<AnyElement> {
-        self.ws
-            .upgrade()
-            .map(|ws| ws.read(cx).sidebar.clone().into_any_element())
+        self.actions
+            .view(kit::Slot::Sidebar, cx)
+            .map(|v| v.into_any_element())
     }
 
     // ---- drawers ----
@@ -772,36 +802,32 @@ impl RailState {
 
     /// Open every running terminal of the current task (or start a shell when it has none), laid out fresh.
     ///
-    /// Legacy adapter: the shell and the terminals open inside one workspace
-    /// update, which a sequence of intents would split.
+    /// After this update: the host opens them in one update of its own
+    /// ([`UiIntent::OpenTaskTerminals`]); once its change events reached the
+    /// rail (the new panels synced), the rail rearranges and focuses.
+    /// Deferred on the window, not on the rail: the follow-up updates the rail
+    /// again (from the rail's own deferred update it was a double lease).
     pub(crate) fn open_task_terminals(&mut self, window: &mut Window, cx: &mut Context<Self>) {
-        let (Some(ws), Some(task)) = (self.ws.upgrade(), self.current.clone()) else {
+        let Some(task) = self.current.clone() else {
             return;
         };
+        let actions = self.actions.clone();
         let rail = cx.entity().downgrade();
-        cx.defer_in(window, move |_, window, cx| {
-            ws.update(cx, |w, cx| {
-                let ids: Vec<String> = w
-                    .task(&task)
-                    .map(|t| {
-                        t.terminals
-                            .iter()
-                            .filter(|id| w.terminal(id).is_some_and(|x| x.is_running()))
-                            .cloned()
-                            .collect()
-                    })
-                    .unwrap_or_default();
-                if ids.is_empty() {
-                    w.task_terminal(task.clone(), window, cx);
-                }
-                for id in ids.iter().rev() {
-                    w.open_terminal(id, false, window, cx);
-                }
-            });
-            let _ = rail.update(cx, |r, cx| {
-                r.rearrange(window, cx);
-                r.focus_content(window, cx);
-            });
+        window.defer(cx, move |window, cx| {
+            actions.dispatch_then(
+                UiIntent::OpenTaskTerminals { task },
+                window,
+                cx,
+                |window, cx| {
+                    // Behind the dock's `LayoutChanged` and the host's notify.
+                    window.defer(cx, move |window, cx| {
+                        let _ = rail.update(cx, |r, cx| {
+                            r.rearrange(window, cx);
+                            r.focus_content(window, cx);
+                        });
+                    });
+                },
+            );
         });
     }
 
@@ -856,77 +882,6 @@ impl RailState {
             self.switch_to(&next, !keep_strip, window, cx);
         }
     }
-}
-
-// ---- legacy adapter: the body through `LayoutModule::render_body` ----------
-
-/// The window body. The rail state is created on first use with the
-/// workspace (legacy adapter) and the host's [`LayoutActions`].
-fn render_body(ws: &mut Workspace, window: &mut Window, cx: &mut Context<Workspace>) -> AnyElement {
-    let id = cx.entity_id();
-    let rail = match state_of(id, cx) {
-        Some(r) => r,
-        None => {
-            let me = cx.entity();
-            let workbench = ws.dock.clone();
-            let actions = ws.layout_actions(cx);
-            let r = cx.new(|cx| RailState::new(me, workbench, actions, window, cx));
-            cx.default_global::<RailStates>().0.insert(id, r.clone());
-            // The first frame has an empty rail dock: keep the focused panel focused.
-            let first = r.clone();
-            let focused = window.focused(cx);
-            window.defer(cx, move |window, cx| {
-                first.update(cx, |r, cx| r.sync(window, cx));
-                if let Some(f) = focused {
-                    window.focus(&f, cx);
-                }
-            });
-            r
-        }
-    };
-    view::shell(
-        kit::connection_warning(&ws.conn),
-        ws.render_hook_banner(cx),
-        rail.into_any_element(),
-        ws.render_toasts(cx).into_any_element(),
-    )
-}
-
-// ---- fixture scenes (visual QA) ------------------------------------------------
-
-/// `--fixture-scene rail[-attention|-switcher|-workspace]`: task-000's three
-/// terminals laid out like the gallery mockup, two more task tabs, and the
-/// named drawer open.
-pub fn fixture_scene(
-    scene: &str,
-    w: &mut Workspace,
-    window: &mut Window,
-    cx: &mut Context<Workspace>,
-) {
-    for task in ["sample/task-002", "sample/task-001", "sample/task-000"] {
-        let ids: Vec<String> = w
-            .task(task)
-            .map(|t| t.terminals.clone())
-            .unwrap_or_default();
-        for id in ids.iter().rev() {
-            w.open_terminal(id, false, window, cx);
-        }
-    }
-    let ws = cx.entity_id();
-    let scene = scene.to_owned();
-    window.defer(cx, move |window, cx| {
-        let Some(rail) = state_of(ws, cx) else { return };
-        rail.update(cx, |r, cx| {
-            r.switch_to("sample/task-000", false, window, cx);
-            r.rearrange(window, cx);
-            match scene.as_str() {
-                "rail-attention" => r.toggle_drawer(Drawer::Attention, window, cx),
-                "rail-switcher" => r.toggle_drawer(Drawer::Tasks, window, cx),
-                "rail-workspace" => r.toggle_drawer(Drawer::Workspace, window, cx),
-                _ => r.focus_content(window, cx),
-            }
-        });
-    });
 }
 
 #[cfg(test)]

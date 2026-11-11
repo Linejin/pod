@@ -325,3 +325,101 @@ OWNED: `A/layout_mode.rs`, `A/layouts/kit.rs`, `A/layouts/rail.rs`, `A/layouts/q
 - **테스트 이동을 테스트 삭제로 숨기지 않는다.** native harness가 제품 API를 더 공개하게 만들지 않는다. fixture는 headless unit 지원과 release 캡처 지원을 구분한다. 프로세스 전역 env/clock 설정은 fixture 사이에서 누출되면 안 된다.
 - **그림만으로 동작 보존을 선언하지 않는다.** 36 baseline은 전체 레이아웃·실제 diff·IME coverage가 아니다. B/J/V 중 미실행·환경 부족·기존 실패를 명시하고 0 failures를 얻기 위해 기준을 덮어쓰지 않는다. 공유 컴포넌트 변경은 pod-editor, terminal 공개 API 변경은 pod-spike 소비 경로도 검토한다.
 - **병렬 UI 작업을 포함시키지 않는다.** 이 설계의 기준 SHA와 후속 구현 시 master 차이를 다시 확인하고 UI worker의 완성 변경만 별도 병합 이후 기준에 반영한다. 작업 파일 복구·일괄 stage·사용자 설정 접근·실데몬 실행으로 분석을 편하게 만들지 않는다.
+
+## A-T2a 구현: kit·host 확장 API
+
+A-T2a는 레이아웃을 옮기지 않고 kit와 host만 넓혔다. 레이아웃 카드 5장(A-P10~P14)의 legacy 어댑터가 Workspace에 직접 하던 일을 모두 `LayoutFrame`(읽기)과 `LayoutActions`(창 키·상태·관찰·dock·동작)로 할 수 있다. 제품 코드는 아직 쓰지 않는다(`layouts/mod.rs`의 A-F0 `dead_code` 허용은 A-T2z가 지운다). 구현: `layouts/kit/{model,host}.rs`, `workspace/layout_host.rs`. 테스트: kit 4개, `workspace::layout_host::tests` 11개(실제 Workspace).
+
+**프레임 읽기** (`LayoutFrame`, 매 프레임 빌려줌)
+
+| 새 항목 | 막는 빈 곳 |
+|---|---|
+| `labels` + `label_of(&TerminalVm)` | 터미널 라벨·저장한 이름(`Workspace::label_of`와 같은 결과): queue·dense·kanban·blocks·review |
+| `all_gates` | 결정된 것까지 이번 세션의 모든 gate(`OrchState::gates`): dense 로그 |
+| `toasts: FrameToasts` | toast를 데이터로(id·kind·title·body·at): dense 로그 |
+| `tree_selection` | 트리에서 고른 행 키(`Sidebar::selected`): dense |
+| `fixture` | `--ui-fixture` 소스 여부: blocks |
+| `mono_family` | toolkit 테마 mono 글꼴(`Theme::mono_font_family`). 설정 적용 전에는 `metrics.mono_font`과 다름: kanban 카드·blocks |
+| `panel_detail: PanelDetail` + `other_panels()` | 그룹·gates·agent tree 패널을 하나씩, mods·sessions·orch 페이지. `other_panels()`는 review의 dock signature 그대로, kanban은 여기에 `panels.reviews`를 더한다. `OpenPanels`는 바꾸지 않음 |
+
+현재 작업은 패널 focus를 읽어 창이 필요하므로 프레임이 아니라 `LayoutActions::current_task(window, cx)`에 있다.
+
+**창 키·상태 슬롯·관찰** (`kit/host.rs`)
+
+| 새 항목 | 막는 빈 곳 |
+|---|---|
+| `WindowKey`, `LayoutActions::window_key()` | 창별 view 전역 맵(RailStates·QueueViews·DenseViews)의 키 |
+| `LayoutActions::state::<T>()`, `state_or_insert_with(window, cx, make)` | 창마다 타입별 엔티티 하나. 처음 쓸 때 host 해제 hook을 한 번 걸고, host(Workspace)가 해제되면 그 창의 상태를 모두 버린다(명시 수명). blocks의 앱 전역 feed도 여기로 |
+| `kit::state(key)`, `state_in_window(AnyWindowHandle)`, `states::<T>()`, `release_window(key)` | 창에서 출발하는 앱 단축키(Ctrl+Shift+U/D, FocusQueue)가 `AppGlobals.workspace` 없이 상태를 찾음. `release_window`는 명시 해제 |
+| `HostChange::{Data, DockLayout, Tree}`, `LayoutActions::observe(changes, cx, f)`, `observe_in(changes, window, cx, f)` | `cx.observe(workspace)`·dock `LayoutChanged` 구독·sidebar 관찰 대신. 여러 변화를 Subscription 하나로 묶고, 버리면 모두 끝난다 |
+
+`LayoutRenderer`가 view를 만들 때는 `host.actions().state_or_insert_with(...)` 안에서 `observe_in`을 걸면 된다. host의 shell/Workspace 호출 지점은 바꾸지 않았다(관찰은 GPUI 구독이 host 쪽에서 직접 연결).
+
+**dock·패널 접근**
+
+| 새 항목 | 막는 빈 곳 |
+|---|---|
+| `LayoutActions::dock(cx)` | 살아 있는 `DockArea`: layout 읽기·`select_panel`·`remove_panel`·구독(rail) |
+| `LayoutActions::view(Slot::Dock / Slot::Sidebar, cx)` | host render 밖, 레이아웃 자신의 render에서 그릴 dock·사이드바 view(kanban 서랍, review 패널 view, rail 작업 공간 서랍). toast·hook banner는 host render에서만 빌려줌 |
+| `terminal_panels`, `terminal_panel(id)`, `terminal_focus(id)`, `review_panels` | `live_panels`/`live_reviews` 직접 읽기와 터미널 view의 focus handle(dense F6, review·blocks focus 확인) |
+| `new_terminal_panel(id, window, cx)`, `new_review_panel(task, window, cx)` | dock 밖 레이아웃 소유 패널 생성·등록(`WeakEntity<Workspace>` 필요 없음). 모르는 id, review capability 없음이면 `None`. review의 `set_split`·`agent_status`는 호출자가 계속 함 |
+| `LayoutActions::source(cx)` | podd 요청(`terminal.read`·`terminal.run`·attach·자기 gate 경로) |
+
+**동작**
+
+| 새 항목 | 막는 빈 곳 |
+|---|---|
+| `UiIntent::RevealTerminal { id }` | 패널을 앞으로만, focus는 그대로(queue `select`, dense 세부 링크). 패널이 없으면 아무것도 안 함 |
+| `UiIntent::OpenTaskTerminals { task }` + `LayoutActions::dispatch_then(intent, window, cx, then)` | 작업의 실행 중 터미널을 역순으로, 없으면 작업 셸 — 모두 Workspace update 한 번 안에서. `then`은 update가 끝난 뒤(rail의 재배치·focus). rail이 지금처럼 defer하려면 `window.defer` 안에서 부른다 |
+| `UiIntent::OpenFocusedReview` | 06 활동 막대의 변경 검토: 키와 같은 `OpenReview` action을 focus 경로로 보냄 |
+| `LayoutActions::resolve_gate(params, cx, done)` | 하나뿐인 gate 경로(`gates::resolve_gate`): 응답 병합+`touch`, 실패 toast(`COULD_NOT_RESOLVE_ID`), `done`으로 busy/error. queue·dense·kanban용. review·blocks의 자기 경로(고정 제목 toast, `notify`만)는 문구·갱신이 달라 합치지 않았다 — `source()`+`post([ApplyGate, Notify])`/`post([Toast, Notify])`로 그대로 옮긴다 |
+| `HostUpdate::{Notify, Touch, Toast, ApplyGate, AddTerminal, TerminalInput}` + `LayoutActions::post(updates, cx)` | 창 없는 async 결과 전달: 순서대로 host update 한 번. rerun의 터미널 추가·오류 toast, 창 없는 toast, workspace notify, gate 응답 병합, 터미널 입력(`source.input`). 이미 있는 터미널 id는 다시 넣지 않음 |
+| 06 제목줄 pill에서 열 만들기 | `title_bar_extra`에는 창이 없다: pill의 click handler(창 있음)에서 `state_or_insert_with`로 만든다 |
+
+host가 사라진 뒤에는 읽기 `None`/빈 목록, `post`·`resolve_gate`는 `false`(아무것도 보내지 않고 `done`도 부르지 않음), 상태는 만들어 돌려주되 보관하지 않는다. `post`·`dispatch`는 host update 안에서 부르지 않는다(재진입 금지는 그대로).
+
+**A-T2b-d에 남긴 것**: kit `Island`/`panel_header` 변형(review·kanban 값 차이), dense의 `ConnectionShell` 변형(가운데 섬 안 경고, 사이드바 아래 toast)은 표현 조합이라 각 레이아웃 카드에서 정한다. `layout_mode.rs` 테스트의 "queue still renders itself"는 queue가 renderer를 가지면 뒤집는다.
+
+## T2 구현 기록
+
+T2는 다섯 장으로 나눠 했다(README "A-T2 나누기"). A-T1(`27d1809`)이 먼저 병합되어, 아래 최종 검증은 T1·T2가 모두 들어간 HEAD 기준이다.
+
+| 카드 | 병합 | 내용 |
+|---|---|---|
+| A-T2a | `ad53256` | kit·host API(위 절). host 수정 `d8a0463`: 렌더 중(작업 공간 lease 안)에도 dock·사이드바·source·관찰을 쓸 수 있게 함 |
+| A-T2b | `9812a9e` | rail·queue를 `renderer()`로. 상태는 kit 상태 슬롯, legacy 어댑터 삭제. 레일 터미널 버튼의 이중 lease panic(4eed072부터)을 고치고 회귀 테스트를 더함 |
+| A-T2d | `869974d` | blocks·review를 `renderer()`로. feed/view는 창마다 하나(창을 닫으면 해제) |
+| A-T2c | `aff314e` | dense·kanban을 `renderer()`로. board·DenseView는 창 상태 슬롯 |
+| A-T2z | 이 브랜치 | 작업대 renderer, legacy hook 제거, fixture 장면 이동, 7개 모드 순환 검사, 재측정 |
+
+**A-T2z가 바꾼 것**
+
+- `layouts/workbench.rs`(새 파일): 작업대도 kit renderer로 그린다. 사이드바·dock·toast·hook 배너는 host 슬롯, 열린 패널·연결은 frame, 빈 화면 버튼은 `UiIntent::{OpenRepository, NewTask}`. `EmptyState`도 이 파일로 옮겼다. frame에 `repos`를 더했다.
+- `LayoutModule`은 `mode`·`status_counts`·`renderer`만 남았고 `renderer()`는 필수다. `render_body`·`title_bar_extra`(Workspace를 받던 legacy hook), shell의 본문 fallback, `Workspace::render_workbench_body`, 여섯 모드의 빈 stub을 지웠다. 모르는 id → 작업대, 다시 등록 → 교체는 그대로다.
+- fixture 장면: `rail…`·`queue`·`dense`의 작업 공간 데이터(gate snapshot, 상태, toast, dock 배치)는 `fixture_scenes.rs`가 맡는다. 편집기 장면처럼 작업 공간 update 안에서 도는 장면의 정직한 주인이 이 파일이기 때문이다. 레이아웃 쪽 절반(`rail/fixture.rs`, `queue/fixture.rs`, 새 `dense/fixture.rs`)은 `LayoutActions`와 빌린 frame만 받는다. `main.rs`는 `fixture_scenes::{rail, queue, dense}`를 부른다.
+- 시작 등록은 `main.rs`의 `install()` 한 곳이다. 레이아웃 등록부, 단축키, 패널 레지스트리를 등록하며 native QA도 같은 함수를 쓴다(등록부 global도 여기로 옮김). 화면에 나와야 의미가 있는 모드 키(kanban·blocks·review의 F6 등, queue의 Ctrl+Shift+Q)는 그대로 첫 렌더에서 앱당 한 번 묶는다. 시작 시점으로 옮기면 queue의 전역 Ctrl+Shift+Q가 queue를 보기 전에도 터미널 입력을 가로채서 동작이 바뀐다. 상태 슬롯의 해제 hook은 창마다 처음 쓸 때 한 번 건다.
+- `layouts/mod.rs`의 A-F0 `dead_code`·`unused_imports` 허용을 지웠다. 그 허용이 가리던 것 가운데 테스트 밖 호출자가 없는 API를 지웠다: `UiIntent::{TaskTerminal, ArrangeGrid, FocusRegion}`, `HostUpdate::{Touch, TerminalInput}`, `LayoutActions::terminal_focus`, `LayoutFrame::{mono_family, counts}`. 이 API만 확인하던 테스트 줄도 함께 지웠고 테스트 이름은 그대로다. `kit::{state, release_window}`는 테스트용으로만 재수출한다.
+- 새 검사 `native_qa/layout_contract.rs`: 실제 창 하나에서 7개 모드를 두 바퀴 돈다. 단계마다 그려진 본문, focus된 터미널·focus, 터미널 패널 수와 새로 만든 수(attach), Review·편집기 패널, dock JSON, 보낸 요청을 한 줄로 고정한다(18줄, `aff314e`에서 뽑았고 그 코드에서도 통과). 모드마다 같은 상태 엔티티를 쓰는지, 키를 한 번만 묶는지, 모르는 id fallback, 다시 등록을 확인한다. 두 번째 창은 자기 상태 6개를 갖고, 창을 닫으면 모두 해제되는지도 본다.
+
+**레이아웃 런타임의 Workspace 접근: 0.** `layout_mode.rs`와 `layouts/**`(테스트 파일 제외)는 `Workspace` 타입을 부르지 않는다. `workspace` 모듈에서 가져오는 것은 데이터 타입 `ToastKind`·`Toast`(frame의 toast)와 action `ArrangeGrid`(레일의 Ctrl+Shift+G)뿐이다. 테스트(`*_qa.rs`, `tests.rs`)는 실제 창을 만들기 위해 Workspace를 쓴다.
+
+**재측정** (§1과 같은 방법·스크립트. 테스트 포함, 파일을 최상위 모듈로 합침. 기준 `8b835ff`에서 §1의 수치를 그대로 재현함)
+
+| 범위 | `8b835ff`(§1) | `aff314e`(T2z 전) | A-T2z 뒤 |
+|---|---:|---:|---:|
+| pod-app 파일 / 줄 | 56 / 54,430 | 163 / 69,812 | 166 / 70,025 |
+| bare `pub` 항목 / 필드 / 제한 공개 | 1,516 / 439 / 257 | 1,602 / 457 / 901 | 1,604 / 457 / 901 |
+| workspace fan-in / out | 21 / 23 | 21 / 25 | 20 / 25 |
+| layouts fan-in / out | 2 / 22 | 5 / 22 | 7 / 23 |
+| layout_mode fan-in / out | 4 / 3 | 4 / 3 | 5 / 2 |
+| workspace 줄 / 제한 공개 | 4,327 / 76 | 6,349 / 122 | 6,124 / 117 |
+
+`layout_mode → workspace`가 끊겼다(out 3→2, workspace fan-in 21→20). layouts의 fan-in·out이 는 것은 테스트 때문이다. native_qa·ui_review_qa가 `layouts::workbench`를 부르고, dense 테스트가 `fixture_scenes::dense`를 부른다. 런타임 경로는 늘지 않았다.
+
+**검증**: B pod-app 391 통과(목록 = `aff314e` 390 + 순환 검사 1, 누락 0). J `wire_golden_matches_the_pre_split_source` 통과. V 릴리스 빌드에서 기본 `tools/visual/capture.ps1`로 8개 행렬을 `a-f0/before-12e3c76`과 비교: 56/56 통과, 바뀐 픽셀 0, PNG SHA-256 56/56이 contract.json과 같음. clippy `-p pod-app --all-targets -D warnings` 0, cargo deny `advisories ok, bans ok, licenses ok, sources ok`.
+
+**후속으로 남김(이 카드에서 바꾸지 않음)**
+
+- 블록 터미널에는 dock이 없어 그 모드에서 연 패널이 보이지 않는다. 칸반 서랍의 dock에서 F6을 눌러도 보드로 돌아가지 않는다.
+- `pod_ui::apply_theme`이 설정을 적용할 때마다 PodModal 키 3개를 다시 묶는다. 그래서 레이아웃·테마를 바꿀 때마다 keymap이 커진다(pod-ui). 순환 검사는 이 키를 빼고 센다.
+- 순환 중 focus가 블록 입력, 리뷰, 작업 공간 root 순으로 옮겨 간다. 작업대로 돌아와도 터미널 focus는 돌아오지 않는다. 기존 동작이라 고정만 해 두었다.

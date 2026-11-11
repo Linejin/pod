@@ -479,7 +479,7 @@ fn section_title(text: &'static str) -> Div {
 }
 
 /// The 세부 정보 column for the selected task or agent. `label` names a
-/// terminal as the workspace does (`Workspace::label_of`).
+/// terminal as the window does (`LayoutFrame::label_of`).
 fn details_column(
     view: &Entity<DenseView>,
     f: &LayoutFrame<'_>,

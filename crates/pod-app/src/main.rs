@@ -186,9 +186,14 @@ fn summarize(samples: &[stats::Window]) {
     );
 }
 
-/// Key bindings and the dock panel registry (shared by `main` and the
-/// headless native-QA tests, so both exercise the same bindings).
+/// The one startup registration, shared by `main` and the headless native-QA
+/// tests so both run the same: the layout modules, the key bindings and the
+/// dock panel registry. A layout mode binds keys that only matter once it is
+/// shown (kanban, blocks, review, queue) on its first render, once per app;
+/// its per-window state lives in the kit's state slot, released with the
+/// window (`layouts::kit`).
 fn install(cx: &mut App) {
+    cx.set_global(layout_mode::LayoutRegistry::new());
     chrome::bind_keys(cx);
     cx.bind_keys([
         KeyBinding::new("ctrl-shift-t", NewTerminal, None),
@@ -242,7 +247,6 @@ fn main() {
         for (path, reason) in theme::reload_themes() {
             eprintln!("pod-app: theme {} skipped: {reason}", path.display());
         }
-        cx.set_global(layout_mode::LayoutRegistry::new());
         let (settings, settings_notice) = theme::Settings::load();
         settings.apply(cx);
         install(cx);
@@ -329,10 +333,10 @@ fn main() {
                         else if scene == "inspect" { w.focused_terminal = Some("fixture-1".into()); w.open_inspector(window, cx); }
                         else if scene == "review" { w.open_review("sample/task-000", window, cx); }
                         else if scene == "hooks-preview" { w.request_hook_install(window, cx); }
-                        else if scene.starts_with("rail") { layouts::rail::fixture_scene(&scene, w, window, cx); }
+                        else if scene.starts_with("rail") { fixture_scenes::rail(&scene, w, window, cx); }
                         else if fixture_scenes::is_editor_scene(&scene) { fixture_scenes::run(&scene, w, window, cx); }
-                        else if scene == layouts::queue::FIXTURE_SCENE { layouts::queue::fixture_scene(w, window, cx); }
-                        else if scene == layouts::dense::FIXTURE_SCENE { layouts::dense::fixture_scene(w, window, cx); }
+                        else if scene == layouts::queue::FIXTURE_SCENE { fixture_scenes::queue(w, window, cx); }
+                        else if scene == layouts::dense::FIXTURE_SCENE { fixture_scenes::dense(w, window, cx); }
                         else { w.command(&scene, window, cx); }
                     });
                 }).detach();

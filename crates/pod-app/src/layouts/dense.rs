@@ -10,9 +10,9 @@
 //! - **No forked state.** Tree, dock, terminals, tasks, gates and toasts are
 //!   the workspace's. The layout keeps view state only ([`DenseView`]: panel
 //!   visibility, selection, the event log it recorded, a last-lines cache),
-//!   one per workspace in a global, so it survives layout switches.
+//!   one per window in the kit's state slot, so it survives layout switches.
 //! - **The log is recorded, not polled.** [`EventLog::observe`] diffs the
-//!   workspace's data against the previous snapshot on every workspace change
+//!   window's data against the previous snapshot on every host change
 //!   notification; the first observation seeds it with what needs attention.
 //! - **Switching is live.** The dock entity is the one every layout renders:
 //!   no panel is created, dropped or re-attached by switching.
@@ -22,37 +22,44 @@
 //!
 //! Files (docs/20-refactor/app.md A-P11): `log` holds the event log model,
 //! `model` the selection, keyboard, size and action plans, `view` the render,
-//! `copy` the strings. This file keeps the layout module, the per-window
-//! [`DenseView`] with its controller methods and the shortcuts. Reads go
-//! through the kit's frame (tasks, terminals, focused terminal, pending gates,
-//! open panels, fonts) and UI actions through [`LayoutActions`] (open a
-//! terminal, review, files or PR, the activity bar's commands, slot focus);
-//! what the kit does not carry yet stays a small legacy adapter over the
-//! workspace: observing it and its tree, the tree's selected row, every gate
-//! seen, the toasts, terminal labels, the podd source (last lines, gate
-//! decisions, 다시 실행), the terminal panels (F6, bringing one forward) and
-//! adding a re-run terminal.
+//! `copy` the strings, `fixture` the layout's half of the visual-QA scene.
+//! This file keeps the layout module with its narrow renderer, the per-window
+//! [`DenseView`] with its controller methods and the shortcuts.
+//!
+//! A-T2c: the body is drawn through `LayoutModule::renderer` and the view
+//! reaches the window only through the kit: the frame (tasks, terminals, the
+//! focused terminal, pending and all gates, toasts, labels, the tree's
+//! selected row, open panels, fonts), the host's slots (tree, dock, toasts,
+//! hook banner) and [`LayoutActions`] (the view as the window's state slot,
+//! change observation of the host and its tree, slot focus, the terminal
+//! panels, UI intents, the podd source for 마지막 줄 and 다시 실행, the gate
+//! path, window-less updates). Since T2 nothing here names the workspace:
+//! `fixture_scenes::dense` sets the scene's data up and lends a frame.
 pub mod copy;
+mod fixture;
 mod log;
 mod model;
 mod view;
 
-use std::collections::{BTreeMap, HashMap, HashSet};
+use std::collections::{HashMap, HashSet};
+use std::rc::Rc;
 
-use gpui_kit::component::dock::PanelId;
 use gpui_kit::*;
-use podd::protocol::{self as p, GateDecision, GateInfo, GateState};
+use podd::protocol::{self as p, GateDecision};
 
+pub(crate) use self::fixture::{fixture_select, fixture_view};
 pub use self::log::{EventLog, Inputs, LogEvent, ToastIn};
 // Named at its old path by the kit's tests (`layouts::kit::tests`).
 #[cfg(test)]
 pub(crate) use self::model::row_height;
 use self::model::{LogKey, Panel, Region, Sel};
 use crate::layout_mode::{LayoutMode, LayoutModule};
-use crate::layouts::kit::{Clock, LayoutActions, LayoutFrame, Slot, UiIntent};
-use crate::source::PoddSource;
-use crate::vm::{AgentState, Liveness, TerminalVm};
-use crate::workspace::{ToastKind, Workspace};
+use crate::layouts::kit::{
+    self, Clock, HostChange, HostUpdate, LayoutActions, LayoutFrame, LayoutHost, LayoutRenderer,
+    Slot, UiIntent,
+};
+use crate::vm::TerminalVm;
+use crate::workspace::ToastKind;
 
 actions!(
     pod_dense,
@@ -102,17 +109,14 @@ pub fn ui_font(cx: &App) -> f32 {
 struct LineRead {
     id: String,
     key: String,
-    source: PoddSource,
 }
 
 // ───────────────────────────── view state ─────────────────────────────
 
-/// View state of the layout (one per workspace, kept across layout switches).
+/// View state of the layout (one per window, kept across layout switches).
 pub struct DenseView {
-    /// Legacy adapter: observed for changes and read for what the kit does
-    /// not carry (see the file comment).
-    ws: WeakEntity<Workspace>,
-    /// Reads (frame), slot focus and UI intents of the host.
+    /// The host: frame reads, change observation, slot focus, panels,
+    /// intents, podd and updates.
     actions: LayoutActions,
     pub(crate) log: EventLog,
     pub(crate) selected: Option<Sel>,
@@ -137,73 +141,44 @@ pub struct DenseView {
     _subs: Vec<Subscription>,
 }
 
-#[derive(Default)]
-struct DenseViews(HashMap<EntityId, Entity<DenseView>>);
-impl Global for DenseViews {}
-
-/// The workspace's view state, created on first use.
-pub(crate) fn view(ws: &Workspace, cx: &mut Context<Workspace>) -> Entity<DenseView> {
-    let id = cx.entity_id();
-    if let Some(v) = cx
-        .try_global::<DenseViews>()
-        .and_then(|m| m.0.get(&id))
-        .cloned()
-    {
-        return v;
-    }
-    let me = cx.entity().downgrade();
-    let sidebar = ws.sidebar.clone();
-    let actions = ws.layout_actions(cx);
-    let v = cx.new(|cx| DenseView::new(me, &sidebar, actions, cx));
-    // The body is drawn by the workspace: redraw it when the view changes.
-    let sub = cx.observe(&v, |_, _, cx| cx.notify());
-    v.update(cx, |v, _| v._subs.push(sub));
-    cx.default_global::<DenseViews>().0.insert(id, v.clone());
-    v
+/// The window's view state, made on first use; it lives as long as the
+/// window's host (the kit's state slot).
+fn view(actions: &LayoutActions, window: &mut Window, cx: &mut App) -> Entity<DenseView> {
+    actions.state_or_insert_with(window, cx, |_, cx| {
+        let v = cx.new(|cx| DenseView::new(actions.clone(), cx));
+        // The body is drawn by the host: redraw it when the view changes.
+        let host = actions.clone();
+        let sub = cx.observe(&v, move |_, cx| {
+            host.post(vec![HostUpdate::Notify], cx);
+        });
+        v.update(cx, |v, _| v._subs.push(sub));
+        v
+    })
 }
 
-/// The view if the layout was ever shown.
+/// The view if the layout was ever shown in the window of host `ws`.
 #[cfg(test)]
 pub(crate) fn existing_view(ws: EntityId, cx: &App) -> Option<Entity<DenseView>> {
-    cx.try_global::<DenseViews>()
-        .and_then(|m| m.0.get(&ws))
-        .cloned()
+    kit::state::<DenseView>(kit::WindowKey(ws), cx)
 }
 
 impl DenseView {
-    fn new(
-        ws: WeakEntity<Workspace>,
-        sidebar: &Entity<crate::workspace::Sidebar>,
-        actions: LayoutActions,
-        cx: &mut Context<Self>,
-    ) -> Self {
-        let mut subs = Vec::new();
-        if let Some(w) = ws.upgrade() {
-            // Tasks, terminals, statuses, gates and toasts all notify the workspace: the only refresh.
-            subs.push(cx.observe(&w, |v, w, cx| {
-                let (changed, read) = {
-                    let w = w.read(cx);
-                    let pending = w.orch.pending();
-                    let frame = w.layout_frame(&pending, cx);
-                    let label = |t: &TerminalVm| w.label_of(t);
-                    v.absorb(&frame, ws_reads(w, &label, cx))
-                };
-                v.finish(changed, read, cx);
-            }));
-        }
-        // The tree's selection drives the details column.
-        subs.push(cx.observe(sidebar, |v, s, cx| {
-            let key = s.read(cx).selected.clone();
-            if key != v.seen_sidebar {
-                v.seen_sidebar = key.clone();
-                if let Some(sel) = key.as_deref().and_then(Sel::from_sidebar_key) {
-                    v.selected = Some(sel);
-                    cx.notify();
-                }
-            }
-        }));
+    fn new(actions: LayoutActions, cx: &mut Context<Self>) -> Self {
+        // Tasks, terminals, statuses, gates and toasts all notify the host:
+        // the only refresh. The tree's selection drives the details column.
+        let subs = actions
+            .observe(
+                &[HostChange::Data, HostChange::Tree],
+                cx,
+                |v, change, cx| match change {
+                    HostChange::Data => v.refresh(cx),
+                    HostChange::Tree => v.follow_tree(cx),
+                    HostChange::DockLayout => {}
+                },
+            )
+            .into_iter()
+            .collect();
         Self {
-            ws,
             actions,
             log: EventLog::default(),
             selected: None,
@@ -226,14 +201,37 @@ impl DenseView {
         }
     }
 
-    /// Record the workspace's changes and follow its focused terminal.
-    fn sync(&mut self, f: &LayoutFrame<'_>, ws: WsReads<'_>, cx: &mut Context<Self>) {
-        let (changed, read) = self.absorb(f, ws);
+    /// Record the window's changes and follow its focused terminal.
+    fn sync(&mut self, f: &LayoutFrame<'_>, cx: &mut Context<Self>) {
+        let (changed, read) = self.absorb(f);
         self.finish(changed, read, cx);
     }
 
-    /// [`Self::sync`] without touching the context (the workspace may be borrowed from it).
-    fn absorb(&mut self, f: &LayoutFrame<'_>, ws: WsReads<'_>) -> (bool, Option<LineRead>) {
+    /// [`Self::sync`] on a fresh frame after the host changed.
+    fn refresh(&mut self, cx: &mut Context<Self>) {
+        let actions = self.actions.clone();
+        if let Some((changed, read)) = actions.read(cx, |f| self.absorb(f)) {
+            self.finish(changed, read, cx);
+        }
+    }
+
+    /// The tree's selected row into the details column when it changed.
+    fn follow_tree(&mut self, cx: &mut Context<Self>) {
+        let key = self
+            .actions
+            .read(cx, |f| f.tree_selection.clone())
+            .flatten();
+        if key != self.seen_sidebar {
+            self.seen_sidebar = key.clone();
+            if let Some(sel) = key.as_deref().and_then(Sel::from_sidebar_key) {
+                self.selected = Some(sel);
+                cx.notify();
+            }
+        }
+    }
+
+    /// [`Self::sync`] without touching the context.
+    fn absorb(&mut self, f: &LayoutFrame<'_>) -> (bool, Option<LineRead>) {
         let mut changed = false;
         if f.focused_terminal != self.seen_focus.as_deref() {
             self.seen_focus = f.focused_terminal.map(str::to_owned);
@@ -243,17 +241,18 @@ impl DenseView {
             }
         }
         if self.selected.is_none()
-            && let Some(sel) = ws.sidebar_key.as_deref().and_then(Sel::from_sidebar_key)
+            && let Some(sel) = f.tree_selection.as_deref().and_then(Sel::from_sidebar_key)
         {
             self.selected = Some(sel);
             changed = true;
         }
+        let label = |t: &TerminalVm| f.label_of(t);
         let inputs = Inputs {
             terminals: f.terminals,
             tasks: f.tasks,
-            gates: ws.gates,
-            toasts: ws.toasts,
-            label: ws.label,
+            gates: f.all_gates,
+            toasts: toasts_in(f),
+            label: &label,
         };
         let at_tail = model::at_tail(self.log_sel, self.log.events().next_back().map(|e| e.seq));
         if self.log.observe(&inputs, self.clock.now_ms()) {
@@ -266,7 +265,7 @@ impl DenseView {
                 );
             }
         }
-        (changed, self.line_read(f, ws.source))
+        (changed, self.line_read(f))
     }
 
     fn finish(&mut self, changed: bool, read: Option<LineRead>, cx: &mut Context<Self>) {
@@ -291,7 +290,7 @@ impl DenseView {
     }
 
     /// The selected terminal's last lines need a read when its status key changed.
-    fn line_read(&self, f: &LayoutFrame<'_>, source: &PoddSource) -> Option<LineRead> {
+    fn line_read(&self, f: &LayoutFrame<'_>) -> Option<LineRead> {
         let Some(Sel::Terminal(id)) = &self.selected else {
             return None;
         };
@@ -303,12 +302,16 @@ impl DenseView {
         Some(LineRead {
             id: id.clone(),
             key,
-            source: source.clone(),
         })
     }
 
+    /// `terminal.read` of the selected terminal's last lines, through the
+    /// window's podd source.
     fn start_read(&mut self, r: LineRead, cx: &mut Context<Self>) {
-        let LineRead { id, key, source } = r;
+        let LineRead { id, key } = r;
+        let Some(source) = self.actions.source(cx) else {
+            return;
+        };
         if !self.reading.insert(id.clone()) {
             return;
         }
@@ -347,23 +350,12 @@ impl DenseView {
 
     pub(crate) fn select(&mut self, sel: Sel, cx: &mut Context<Self>) {
         self.selected = Some(sel);
-        // Legacy adapter: the podd source.
-        let read = self.ws.upgrade().and_then(|w| {
-            let w = w.read(cx);
-            self.actions
-                .read(cx, |f| self.line_read(f, &w.source))
-                .flatten()
-        });
+        let read = self.actions.read(cx, |f| self.line_read(f)).flatten();
         self.finish(true, read, cx);
     }
 
     /// The regions in F6 order that are shown now, with the handle to focus.
     fn regions(&self, window: &Window, cx: &App) -> Vec<(Region, FocusHandle, bool)> {
-        // Legacy adapter: the terminal panels and their views.
-        let Some(ws) = self.ws.upgrade() else {
-            return Vec::new();
-        };
-        let w = ws.read(cx);
         let (Some(tree), Some(dock)) = (
             self.actions.focus_handle(Slot::Sidebar, cx),
             self.actions.focus_handle(Slot::Dock, cx),
@@ -377,9 +369,11 @@ impl DenseView {
         }
         let dock_in = dock.contains_focused(window, cx);
         // Prefer the terminal the user worked in last.
-        let panels = w.live_panels();
-        let term = w
-            .focused_terminal
+        let panels = self.actions.terminal_panels(cx);
+        let term = self
+            .actions
+            .read(cx, |f| f.focused_terminal.map(str::to_owned))
+            .flatten()
             .as_ref()
             .and_then(|id| panels.iter().find(|p| &p.read(cx).terminal_id == id))
             .or(panels.first())
@@ -522,18 +516,10 @@ impl DenseView {
                 window,
                 cx,
             );
-        } else if let Some(ws) = self.ws.upgrade() {
-            // Legacy adapter: bringing a terminal's panel forward in the dock.
-            ws.update(cx, |w, cx| {
-                if let Some(p) = w
-                    .live_panels()
-                    .into_iter()
-                    .find(|p| p.read(cx).terminal_id == t)
-                {
-                    let pid = PanelId::from(p.entity_id());
-                    w.dock.update(cx, |a, cx| a.select_panel(pid, window, cx));
-                }
-            });
+        } else {
+            // Its panel forward in the dock; the keyboard stays in the log.
+            self.actions
+                .dispatch(UiIntent::RevealTerminal { id: t }, window, cx);
         }
     }
 
@@ -546,12 +532,10 @@ impl DenseView {
         window: &mut Window,
         cx: &mut Context<Self>,
     ) {
-        if self.busy.contains_key(&gate) {
+        // Nothing to decide with once the host is gone (its dock goes with it).
+        if self.busy.contains_key(&gate) || self.actions.dock(cx).is_none() {
             return;
         }
-        // Legacy adapter: the podd source and the gate controller's workspace.
-        let Some(ws) = self.ws.upgrade() else { return };
-        let source = ws.read(cx).source.clone();
         self.busy.insert(gate.clone(), decision);
         self.errors.remove(&gate);
         // The buttons go away when podd answers: keep the keyboard in the column.
@@ -564,7 +548,7 @@ impl DenseView {
             note: None,
             choice,
         };
-        crate::gates::resolve_gate(&source, self.ws.clone(), params, cx, move |r, cx| {
+        self.actions.resolve_gate(params, cx, move |r, cx| {
             let _ = me.update(cx, |v, cx| {
                 v.busy.remove(&id);
                 if let Err(e) = r {
@@ -578,37 +562,39 @@ impl DenseView {
 
     /// 다시 실행: the same command in the same folder and task (`terminal.run`).
     fn rerun(&mut self, id: &str, cx: &mut Context<Self>) {
-        // Legacy adapter: the podd source, adding the new terminal and the
-        // error toast (no window here for an intent).
-        let Some(ws) = self.ws.upgrade() else { return };
+        let Some(source) = self.actions.source(cx) else {
+            return;
+        };
         let Some(t) = self.actions.read(cx, |f| f.terminal(id).cloned()).flatten() else {
             return;
         };
-        let rx = ws.read(cx).source.run(model::rerun_spec(&t));
+        let rx = source.run(model::rerun_spec(&t));
         cx.spawn(async move |this, cx| {
             let r = rx.await;
             let _ = this.update(cx, |v, cx| {
+                // No window here for an intent: one host update each, as the
+                // workspace did them — the new terminal joins the list and the
+                // window redraws, or an error toast.
+                let error = |body: SharedString| HostUpdate::Toast {
+                    kind: ToastKind::Error,
+                    title: copy::COULD_NOT_RERUN.into(),
+                    body,
+                };
                 match r {
                     Ok(Ok(new)) => {
-                        ws.update(cx, |w, cx| {
-                            if !w.terminals.iter().any(|x| x.id == new.id) {
-                                w.terminals.push(new.clone());
-                            }
-                            cx.notify();
-                        });
+                        v.actions.post(
+                            vec![HostUpdate::AddTerminal(new.clone()), HostUpdate::Notify],
+                            cx,
+                        );
                         v.selected = Some(Sel::Terminal(new.id));
                     }
-                    Ok(Err(e)) => ws.update(cx, |w, cx| {
-                        w.raise_toast(ToastKind::Error, copy::COULD_NOT_RERUN, e.message, cx)
-                    }),
-                    Err(_) => ws.update(cx, |w, cx| {
-                        w.raise_toast(
-                            ToastKind::Error,
-                            copy::COULD_NOT_RERUN,
-                            crate::strings::PODD_CLIENT_STOPPED,
-                            cx,
-                        )
-                    }),
+                    Ok(Err(e)) => {
+                        v.actions.post(vec![error(e.message.into())], cx);
+                    }
+                    Err(_) => {
+                        v.actions
+                            .post(vec![error(crate::strings::PODD_CLIENT_STOPPED.into())], cx);
+                    }
                 }
                 cx.notify();
             });
@@ -627,13 +613,54 @@ impl LayoutModule for DenseLayout {
         LayoutMode::DenseDetails
     }
 
+    fn renderer(&self) -> Rc<dyn LayoutRenderer> {
+        Rc::new(DenseRenderer)
+    }
+}
+
+/// The window body over the kit: the frame, the host's slots and the view
+/// state go to the render.
+struct DenseRenderer;
+
+impl LayoutRenderer for DenseRenderer {
     fn render_body(
         &self,
-        ws: &mut Workspace,
+        frame: &LayoutFrame<'_>,
+        host: &mut dyn LayoutHost,
         window: &mut Window,
-        cx: &mut Context<Workspace>,
+        cx: &mut App,
     ) -> AnyElement {
-        render_body(ws, window, cx)
+        let view = view(&host.actions(), window, cx);
+        // First frame of a fresh view: record the current state (later changes arrive by observation).
+        if view.read(cx).log.is_empty() {
+            view.update(cx, |v, cx| v.sync(frame, cx));
+        }
+        // The app-level pages (extensions, sessions) count as open panels here.
+        let empty = frame.panels.dock_empty()
+            && !frame.panel_detail.mods_page
+            && !frame.panel_detail.sessions_page;
+        let mut slot = |slot: Slot| {
+            host.slot(slot, window, cx)
+                .unwrap_or_else(|| div().into_any_element())
+        };
+        let (toasts, sidebar, dock) = (slot(Slot::Toasts), slot(Slot::Sidebar), slot(Slot::Dock));
+        let hook_banner = host.slot(Slot::HookBanner, window, cx);
+        let label = |t: &TerminalVm| frame.label_of(t);
+        view::body(
+            view::Body {
+                view,
+                warning: frame.warning(),
+                hook_banner,
+                sidebar,
+                dock,
+                toasts,
+                empty,
+            },
+            frame,
+            &label,
+            window,
+            cx,
+        )
     }
 }
 
@@ -655,13 +682,13 @@ pub fn bind_keys(cx: &mut App) {
     });
 }
 
-/// Run `f` on the view of the active window's workspace when this layout is shown.
+/// Run `f` on the view of the active window when this layout is shown.
 fn with_active_view(cx: &mut App, f: fn(&mut DenseView, &mut Window, &mut Context<DenseView>)) {
-    let Some(window) = cx.active_window() else {
+    let Some(handle) = cx.active_window() else {
         return;
     };
     cx.defer(move |cx| {
-        let _ = window.update(cx, |_, window, cx| {
+        let _ = handle.update(cx, |_, window, cx| {
             let layout = cx
                 .try_global::<crate::theme::Settings>()
                 .map(|s| s.layout.clone())
@@ -669,13 +696,7 @@ fn with_active_view(cx: &mut App, f: fn(&mut DenseView, &mut Window, &mut Contex
             if layout != LayoutMode::DenseDetails.id() {
                 return;
             }
-            let ws = cx
-                .try_global::<crate::workspace::AppGlobals>()
-                .map(|g| g.workspace.entity_id());
-            let Some(v) = ws.and_then(|id| {
-                cx.try_global::<DenseViews>()
-                    .and_then(|m| m.0.get(&id).cloned())
-            }) else {
+            let Some(v) = kit::state_in_window::<DenseView>(handle, cx) else {
                 return;
             };
             v.update(cx, |v, cx| f(v, window, cx));
@@ -683,39 +704,9 @@ fn with_active_view(cx: &mut App, f: fn(&mut DenseView, &mut Window, &mut Contex
     });
 }
 
-// ───────────── legacy adapter: workspace → frame, reads and view ─────────────
-
-/// What one observation reads from the workspace beside the frame: the kit
-/// does not carry these yet.
-struct WsReads<'a> {
-    /// Every gate seen this session (`OrchState::gates`); the frame has only
-    /// the pending ones.
-    gates: &'a BTreeMap<String, GateInfo>,
-    toasts: Vec<ToastIn>,
-    /// Terminal labels (`Workspace::label_of`).
-    label: &'a dyn Fn(&TerminalVm) -> String,
-    /// The tree's selected row key.
-    sidebar_key: Option<String>,
-    /// For 마지막 줄 (`terminal.read`).
-    source: &'a PoddSource,
-}
-
-fn ws_reads<'a>(
-    w: &'a Workspace,
-    label: &'a dyn Fn(&TerminalVm) -> String,
-    cx: &App,
-) -> WsReads<'a> {
-    WsReads {
-        gates: &w.orch.gates,
-        toasts: toasts_of(w),
-        label,
-        sidebar_key: w.sidebar.read(cx).selected.clone(),
-        source: &w.source,
-    }
-}
-
-fn toasts_of(w: &Workspace) -> Vec<ToastIn> {
-    w.toasts
+/// The frame's toasts as the log reads them.
+fn toasts_in(f: &LayoutFrame<'_>) -> Vec<ToastIn> {
+    f.toasts
         .iter()
         .map(|t| ToastIn {
             id: t.id,
@@ -724,124 +715,6 @@ fn toasts_of(w: &Workspace) -> Vec<ToastIn> {
             body: t.body.to_string(),
         })
         .collect()
-}
-
-/// [`DenseView::sync`] from inside a workspace update (render, fixture scene).
-fn sync_view(
-    v: &Entity<DenseView>,
-    w: &Workspace,
-    frame: &LayoutFrame<'_>,
-    cx: &mut Context<Workspace>,
-) {
-    let label = |t: &TerminalVm| w.label_of(t);
-    let reads = ws_reads(w, &label, cx);
-    v.update(cx, |v, cx| v.sync(frame, reads, cx));
-}
-
-/// The window body through `LayoutModule::render_body`: the frame, the
-/// host's slots and the view state go to the render.
-fn render_body(ws: &mut Workspace, window: &mut Window, cx: &mut Context<Workspace>) -> AnyElement {
-    let view = view(ws, cx);
-    let pending = ws.orch.pending();
-    let frame = ws.layout_frame(&pending, cx);
-    // First frame of a fresh view: record the current state (later changes arrive by observation).
-    if view.read(cx).log.is_empty() {
-        sync_view(&view, ws, &frame, cx);
-    }
-    // The app-level pages (extensions, sessions) count as open panels here.
-    let empty = frame.panels.dock_empty()
-        && !crate::mods_ui::page_open(cx)
-        && !crate::sessions_ui::page_open(cx);
-    let toasts = ws.render_toasts(cx).into_any_element();
-    let hook_banner = ws.render_hook_banner(cx);
-    let label = |t: &TerminalVm| ws.label_of(t);
-    view::body(
-        view::Body {
-            view,
-            warning: frame.warning(),
-            hook_banner,
-            sidebar: ws.sidebar.clone().into_any_element(),
-            dock: ws.dock.clone().into_any_element(),
-            toasts,
-            empty,
-        },
-        &frame,
-        &label,
-        window,
-        cx,
-    )
-}
-
-/// Fixture scene `dense`: a pending gate on the blocked fixture-1, fixture-3
-/// asks a question, four panels in a grid, fixture-1 in the details column,
-/// a few status changes and a notification in the log (visual QA only).
-pub fn fixture_scene(w: &mut Workspace, window: &mut Window, cx: &mut Context<Workspace>) {
-    for id in ["fixture-0", "fixture-1", "fixture-2", "fixture-3"] {
-        w.open_terminal(id, false, window, cx);
-    }
-    w.arrange_grid(window, cx);
-    // The details column follows the focused terminal: end on fixture-1.
-    w.open_terminal("fixture-1", false, window, cx);
-    let v = view(w, cx);
-    {
-        let pending = w.orch.pending();
-        let frame = w.layout_frame(&pending, cx);
-        sync_view(&v, w, &frame, cx);
-    }
-    let now = v.read(cx).clock.now_ms();
-    // Live changes after the log started.
-    w.orch.merge_snapshot(vec![GateInfo {
-        id: "g1".into(),
-        title: "명령 실행 승인".into(),
-        message: "$ cargo clippy -p pod-ui -- -D warnings".into(),
-        task: Some("sample/task-000".into()),
-        group: None,
-        terminal: Some("fixture-1".into()),
-        state: GateState::Pending,
-        created_ms: now.saturating_sub(12_000),
-        resolved_ms: None,
-        note: None,
-        expires_ms: None,
-        run: None,
-        item: None,
-        options: Vec::new(),
-        choice: None,
-        requested_by: None,
-        decided_by: None,
-    }]);
-    if let Some(s) = w
-        .terminals
-        .iter_mut()
-        .find(|t| t.id == "fixture-3")
-        .and_then(|t| t.status.as_mut())
-    {
-        s.state = AgentState::Blocked;
-        s.kind = Some("question".into());
-    }
-    if let Some(t) = w.terminals.iter_mut().find(|t| t.id == "fixture-2") {
-        t.live = Liveness::Exited {
-            code: Some(1),
-            killed: false,
-        };
-    }
-    w.raise_toast(
-        ToastKind::Success,
-        "Worker 2 · 작업 완료",
-        "1분 12초 · 토큰 18.2k",
-        cx,
-    );
-    {
-        let pending = w.orch.pending();
-        let frame = w.layout_frame(&pending, cx);
-        let label = |t: &TerminalVm| w.label_of(t);
-        v.update(cx, |v, cx| {
-            // Not `select`: that reads the workspace, which this scene is updating.
-            v.selected = Some(Sel::Terminal("fixture-1".into()));
-            let reads = ws_reads(w, &label, cx);
-            v.sync(&frame, reads, cx);
-        });
-    }
-    w.touch(cx);
 }
 
 #[cfg(test)]

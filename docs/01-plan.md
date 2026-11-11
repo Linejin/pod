@@ -245,6 +245,7 @@ GPUI 채택으로 UI 단계가 길어짐. 대신 **P0와 UI 스파이크를 병�
 | 진행 | 워크트리 세션·오케스트레이션 `docs/19`: S1~S8 완료(v14~v18: 세션 만들기·설정·보관/재개, 코어·깨우기, 자원 한도·선택지 승인, 앱 실행 보드·받은 편지함, 안내·연동·한국어 문구), 세션 찾기 `docs/18` 완료, 실제 Claude·Codex 시험 1회 PASS(`docs/19` §17). 진행: 2026-11-10 리뷰 수정(`docs/review/2026-11-10`) | 오케스트레이션 | — |
 | 완료 | 전체 평가와 수정 2회(`docs/review/2026-11-10`): 6개 영역 평균 6.70 → 7.25, 1차 63건(해결 확인 52·부분 8) + 재평가 높음 4·중간 다수 수정(워커 커밋이 git filter/hook를 실행하던 탈출 차단, 외부 프로세스 트리·출력 제한, v19 unreachable holder), 전체 fmt·CI 파일(실행은 workflow 권한 필요), 기준 이미지 36장 0 실패 → master `643e6e6` (테스트 943) | 검증 | — |
 | 완료 | 공개 저장소 이전(2026-11-10): https://github.com/Linejin/pod `main`(새 이력, Linejin noreply 작성자, `publish-public.ps1 -Root`). 이전 SJin-Choi/pod는 그대로 둠 | P6 | — |
+| 완료 | 확장성 리팩터링(`docs/20-refactor`, 2026-11-10~11): 설계 3건(Codex Astra) → 카드 51장(워크트리 워커, 동시 빌드 3). 새 crate pod-protocol·pod-client·pod-process·pod-storage·pod-test-support, podd RPC 등록 표·server/git/status/holder/orch_runs 분할, pod-cli 명령 모듈, 편집기·LSP·orch·mods·discover·diff 분할, pod-app workspace/chrome/source/review/groups/orch_ui/mods/sessions 분할, 7개 레이아웃 전부 레이아웃 kit renderer(작업대 직접 접근 0). 동작 보존: 리팩터링 전 64e9530 기준 golden·계약 시험, 기준 화면 56장 0px. 덤으로 8.3 짧은 경로 버그·레일 터미널 버튼 패닉·holder 불안정 시험 수정 → master `73e698b` (테스트 1221) | P7 | — |
 | 대기 | P6-5 코드 서명: SignPath Foundation 오픈소스 신청(사용자 본인 신청 필요), 승인 후 GitHub Actions에서 설치 파일 서명 | P6 | 사용자 |
 
 ### 참고 출처

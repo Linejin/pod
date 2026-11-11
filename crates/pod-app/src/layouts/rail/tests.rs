@@ -445,10 +445,12 @@ fn set_layout(h: &mut Harness, layout: &str) {
     h.settle();
 }
 
+/// The window's rail state (the kit's state slot).
 fn rail(h: &mut Harness) -> gpui_kit::Entity<RailState> {
-    let ws = h.ws.clone();
-    h.cx.update(|_, cx| super::state_of(ws.entity_id(), cx))
-        .expect("the rail was rendered")
+    h.cx.update(|window, cx| {
+        crate::layouts::kit::state_in_window::<RailState>(window.window_handle(), cx)
+    })
+    .expect("the rail was rendered")
 }
 
 fn open(h: &mut Harness, id: &str) {
@@ -791,4 +793,45 @@ fn long_korean_titles_fit_at_175_percent_in_a_small_window() {
     let r = rail(&mut h);
     let total = h.cx.update(|_, cx| r.read(cx).tabs.len());
     assert!(total > 6, "{total} tabs");
+}
+
+/// 터미널 on a task with no panel open: its running terminals open in one
+/// host update (reverse task order, so the first ends in front), then the
+/// rail lays the task out fresh and focuses the first group's panel. No
+/// shell is started: the task has running terminals. (Before A-T2b the
+/// follow-up updated the rail from inside the rail's own deferred update.)
+#[test]
+fn terminal_button_opens_the_tasks_running_terminals_and_focuses_the_first() {
+    let mut h = Harness::new("rail-terminal-button", seed);
+    set_layout(&mut h, "focus-rail");
+    assert!(panels(&mut h).is_empty(), "nothing open yet");
+    assert_eq!(
+        current(&mut h).as_deref(),
+        Some("sample/로그인-수정"),
+        "no panel open: the first task"
+    );
+    let calls_before = h.backend.calls.len();
+    let r = rail(&mut h);
+    h.cx.update(|window, cx| {
+        r.update(cx, |r, cx| r.press(super::RailButton::Terminal, window, cx))
+    });
+    h.settle();
+    let mut open: Vec<String> = panels(&mut h).into_iter().map(|(t, _)| t).collect();
+    open.sort();
+    assert_eq!(open, ["w1", "w2", "w3"], "the task's running terminals");
+    let mut s = shown(&mut h);
+    s.sort();
+    assert_eq!(s, ["w1", "w2", "w3"], "the rail shows them");
+    assert_eq!(
+        h.focused_terminal().as_deref(),
+        Some("w1"),
+        "focus in the first group's panel"
+    );
+    assert!(
+        h.backend.calls[calls_before..]
+            .iter()
+            .all(|c| !c.starts_with("terminal.run")),
+        "no shell started: {:?}",
+        &h.backend.calls[calls_before..]
+    );
 }

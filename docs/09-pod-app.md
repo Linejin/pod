@@ -33,12 +33,15 @@
 ## 2. 구조
 
 ```
-main.rs        인자, 창(서브 모니터·테마·아이콘 에셋), 단축키, 패널 레지스트리 등록, --stats/--duration 측정 루프
+main.rs        인자, 창(서브 모니터·테마·아이콘 에셋), install(레이아웃 등록부·단축키·패널 레지스트리, native QA와 같은 함수), fixture 장면 분기, --stats/--duration 측정 루프
 vm.rs          뷰 모델: TerminalVm(+StatusVm 선택), TaskVm(+TaskGitVm), RepoVm, Capabilities, ConnState, counts()
 source.rs      데이터 소스 = podd와 말하는 유일한 모듈 (제어 연결, 폴링, 명령, 재연결, 기능 감지)
 attach.rs      패널마다 terminal.attach 스레드: 스냅샷 → seq 검사 라이브 바이트 → 재attach
 panel.rs       TerminalPanel(도크 패널) = TerminalView + PoddSink(InputSink) + AttachVt(응답 필터·리셋)
-workspace.rs   루트 뷰: 사이드바·도크·상태바·토스트·다이얼로그·레이아웃 저장/복원·Task UI
+workspace.rs   루트 뷰의 상태와 생성. workspace/: dock(패널·저장/복원), binding(이벤트), commands, dialogs, editor, notifications(토스트), sidebar, status_bar, shell(창 틀·제목), layout_host(레이아웃 kit의 host)
+layout_mode.rs 레이아웃 모드와 등록부: LayoutModule = 모드 + 상태줄 집계 여부 + kit renderer. 모르는 id는 작업대
+layouts/       모드마다 한 모듈(workbench=작업대, rail, queue, kanban, blocks, review, dense)과 kit(좁은 계약 LayoutFrame·LayoutHost·LayoutActions·LayoutRenderer, 공용 표현). 레이아웃 코드는 Workspace를 부르지 않는다
+fixture_scenes.rs --ui-fixture 장면(편집기·rail·queue·dense)의 작업 공간 데이터
 layout.rs      %APPDATA%\pod\pod-app\layout.json: 도크 상태 + 앱 로컬 라벨, 죽은 터미널 가지치기
 stats.rs       fps/페인트 카운터 (pod-spike와 같은 방법)
 review.rs      ReviewPanel(도크 패널, P4): 파일 목록 · Diff · 코멘트 사이드바 · Send to agent (§7)
@@ -387,7 +390,7 @@ orch.rs    OrchState(워크스페이스가 가짐): gates(BTreeMap), 열린 Grou
            Workspace::on_orch_event  — Gates 스냅샷 / Gate / GroupCheck / Delivery 이벤트 → 상태 갱신, 토스트, 패널에 전달
            Workspace::orch_data_changed — Task·터미널·상태가 바뀌면 Group 패널(git 요약 비교)과 트리를 다시 그림
            open_group / open_gates / open_agent_tree, 상태 → pod-ui 배지 변환(status_badge, summary_of …)
-groups.rs  AgentCounts·validate·check_argv(순수 함수, 테스트), New Group 다이얼로그, GroupPanel
+groups.rs  GroupPanel 등록과 facade. groups/: model(AgentCounts·validate·check_argv, 순수 함수), dialog(New Group), controller, view, copy
 gates.rs   GatesPanel, duration_text·expiry_text
 tree.rs    build(tasks, terminals, collapsed) -> Vec<Node> (순수 함수, 테스트), AgentTreePanel
 source.rs  상태 스트림이 gate.changed / group.check / review.delivery를 SourceEvent::{Gate, GroupCheck, Delivery}로,

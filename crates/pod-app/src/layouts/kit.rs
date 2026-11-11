@@ -2,10 +2,11 @@
 //! layout mode renders against, and the presentation pieces the modes share.
 //!
 //! Nothing here names the Workspace: `workspace/layout_host.rs` (A-F1)
-//! implements [`LayoutHost`] and [`ActionSink`] over it. Until a mode offers a
-//! [`LayoutRenderer`] through `LayoutModule::renderer`, it keeps rendering
-//! through `LayoutModule::render_body`; the modes move over one at a time.
+//! implements [`LayoutHost`] and [`ActionSink`] over it. Every mode (the
+//! workbench too) draws through the [`LayoutRenderer`] its
+//! `LayoutModule::renderer` returns (card T2).
 mod clock;
+mod host;
 mod metrics;
 mod model;
 #[cfg(test)]
@@ -13,10 +14,17 @@ mod tests;
 mod widgets;
 
 pub(crate) use clock::Clock;
-pub(crate) use metrics::{DEFAULT_FONT_SIZE, LayoutMetrics, color};
+pub(crate) use host::{
+    AppOnce, GateDone, HostChange, HostUpdate, OnChange, OnChangeIn, WindowKey, state_in_window,
+    states,
+};
+// The QA modules look a window's state up by key, and release one by hand.
+#[cfg(test)]
+pub(crate) use host::{release_window, state};
+pub(crate) use metrics::{LayoutMetrics, color};
 pub(crate) use model::{
-    ActionSink, LayoutActions, LayoutFrame, LayoutHost, LayoutRenderer, OpenPanels, Slot, UiIntent,
-    connection_warning,
+    ActionSink, FrameToasts, LayoutActions, LayoutFrame, LayoutHost, LayoutRenderer, OpenPanels,
+    PanelDetail, Slot, UiIntent,
 };
 pub(crate) use widgets::{
     BodyFlow, ConnectionShell, Island, ToastAnchor, panel_header, warning_banner,

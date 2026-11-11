@@ -8,14 +8,7 @@ pub mod dense;
 pub mod kanban;
 #[cfg(test)]
 mod kanban_qa;
-// The narrow layout contract (docs/20-refactor/app.md, card A-F0). The modes
-// still render through `LayoutModule::render_body`, so most of it has no
-// caller outside its tests yet.
-#[allow(
-    dead_code,
-    unused_imports,
-    reason = "A-F0 contract; callers arrive with A-F1 (workspace/layout_host.rs) and A-P10..A-P14; A-T2 removes this allow"
-)]
+// The narrow layout contract every mode renders through (docs/20-refactor/app.md).
 pub(crate) mod kit;
 pub mod queue;
 pub mod rail;
@@ -23,3 +16,4 @@ pub mod review;
 #[cfg(test)]
 mod review_qa;
 pub mod shell_integration;
+pub mod workbench;

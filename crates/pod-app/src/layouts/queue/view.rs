@@ -755,13 +755,9 @@ pub(super) fn title_pills(c: Counts, open: OpenSection) -> AnyElement {
 }
 
 /// 06: activity bar on the far left (queue toggle, agent tree, files, review,
-/// gates; settings at the bottom). `review` runs the review command.
-fn activity_bar(
-    column: &Entity<QueueColumn>,
-    actions: &LayoutActions,
-    review: Activate,
-    cx: &App,
-) -> AnyElement {
+/// gates; settings at the bottom). 변경 검토 runs the review command for the
+/// focused panel, as from the keyboard ([`UiIntent::OpenFocusedReview`]).
+fn activity_bar(column: &Entity<QueueColumn>, actions: &LayoutActions, cx: &App) -> AnyElement {
     let tk = crate::theme::tokens();
     let m = pod_ui::themes::metrics();
     let mode = crate::theme::mode();
@@ -830,7 +826,7 @@ fn activity_bar(
             Icon::GitCompareArrows,
             copy::REVIEW,
             copy::REVIEW_TIP,
-            review,
+            intent(UiIntent::OpenFocusedReview),
         ))
         .child(item(
             "activity-gates",
@@ -850,23 +846,21 @@ fn activity_bar(
         .into_any_element()
 }
 
-/// What the body shows around the column; the legacy adapter (`queue.rs`)
-/// gathers it from the workspace.
+/// What the body shows around the column; the renderer (`queue.rs`) gathers
+/// it from the frame and the host's slots.
 pub(super) struct Body {
     pub column: Entity<QueueColumn>,
     pub variant: Variant,
     /// Connection warning (`LayoutFrame::warning`).
     pub warning: Option<String>,
     pub hook_banner: Option<AnyElement>,
-    /// The workspace dock.
+    /// The host's dock (`Slot::Dock`).
     pub dock: AnyElement,
     /// Nothing open in the dock or beside it: the empty-dock hint.
     pub empty: bool,
     pub toasts: AnyElement,
     /// Activity-bar intents (06).
     pub actions: LayoutActions,
-    /// The activity bar's review command (06).
-    pub review: Activate,
 }
 
 /// The window body: [activity bar] · queue column (+ toasts) · dock.
@@ -886,7 +880,6 @@ pub(super) fn body(b: Body, cx: &App) -> AnyElement {
         empty,
         toasts,
         actions,
-        review,
     } = b;
     div()
         .id("queue-layout")
@@ -894,7 +887,7 @@ pub(super) fn body(b: Body, cx: &App) -> AnyElement {
         .flex_1()
         .min_h_0()
         .when(variant == Variant::Mission, |d| {
-            d.child(activity_bar(&column, &actions, review, cx))
+            d.child(activity_bar(&column, &actions, cx))
         })
         .child(
             div()

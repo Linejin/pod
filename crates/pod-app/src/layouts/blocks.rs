@@ -21,23 +21,24 @@
 //! Files (docs/20-refactor/app.md A-P13): [`super::blocks_model`] holds the
 //! pure model (output → blocks, and the feed on top), `controller` the
 //! [`Feed`] entity with its attach streams and event handlers, `view` the
-//! render, `copy` the strings. This file keeps the layout module, the app's
-//! one feed and the legacy adapter that renders it through
-//! `LayoutModule::render_body`. The feed reads through the kit's frame and
-//! hands UI intents to [`crate::layouts::kit::LayoutActions`]; what the kit
-//! does not carry yet stays on the workspace (see `controller`).
+//! render, `copy` the strings. This file keeps the layout module, its kit
+//! renderer ([`LayoutModule::renderer`], A-T2d) and the window's feed, kept
+//! in the kit's per-window state slot. The feed reaches the host only through
+//! [`crate::layouts::kit::LayoutActions`]: frame reads, UI intents, the podd
+//! source, the host's terminal panels and window-less updates.
 mod controller;
 pub mod copy;
 #[cfg(test)]
 mod tests;
 mod view;
 
+use std::rc::Rc;
+
 use gpui_kit::*;
 
 pub use self::controller::Feed;
 use crate::layout_mode::{LayoutMode, LayoutModule};
-use crate::layouts::kit;
-use crate::workspace::Workspace;
+use crate::layouts::kit::{LayoutFrame, LayoutHost, LayoutRenderer, Slot};
 
 actions!(
     pod_blocks,
@@ -55,58 +56,56 @@ impl LayoutModule for Blocks {
     fn mode(&self) -> LayoutMode {
         LayoutMode::BlockTerminal
     }
-    fn render_body(
-        &self,
-        ws: &mut Workspace,
-        window: &mut Window,
-        cx: &mut Context<Workspace>,
-    ) -> AnyElement {
-        render_body(ws, window, cx)
+    fn renderer(&self) -> Rc<dyn LayoutRenderer> {
+        Rc::new(BlocksRenderer)
     }
 }
 
 struct BlocksKeys;
 impl Global for BlocksKeys {}
-struct FeedGlobal(Entity<Feed>);
-impl Global for FeedGlobal {}
 
 #[cfg(test)]
-/// The feed of this app, if the layout was shown once (tests).
+/// The feed of the window that showed the layout (tests run one window).
 pub fn feed(cx: &App) -> Option<Entity<Feed>> {
-    cx.try_global::<FeedGlobal>().map(|g| g.0.clone())
+    crate::layouts::kit::states::<Feed>(cx).into_iter().next()
 }
 
-// ───────── legacy adapter: the body through `LayoutModule::render_body` ─────────
+/// The body through the layout kit: the window's feed in the shell.
+struct BlocksRenderer;
 
-/// The window body: the app's one feed in the shell. The feed is made once,
-/// with the workspace (legacy adapter) and the host's actions; whether the
-/// workspace runs on the read-only UI fixture is read then.
-fn render_body(ws: &mut Workspace, window: &mut Window, cx: &mut Context<Workspace>) -> AnyElement {
-    if cx.try_global::<BlocksKeys>().is_none() {
-        cx.bind_keys([
-            KeyBinding::new("f6", SwitchRegion, Some(KEY_CONTEXT)),
-            KeyBinding::new("tab", NextTarget, Some(INPUT_CONTEXT)),
-            KeyBinding::new("shift-tab", PrevTarget, Some(INPUT_CONTEXT)),
-            KeyBinding::new("escape", LeaveInput, Some(INPUT_CONTEXT)),
-        ]);
-        cx.set_global(BlocksKeys);
-    }
-    let feed = match cx.try_global::<FeedGlobal>().map(|g| g.0.clone()) {
-        Some(f) => f,
-        None => {
-            let weak = cx.entity().downgrade();
-            let actions = ws.layout_actions(cx);
-            let fixture = ws.source.pipe() == "ui-fixture-no-daemon";
-            let f = cx.new(|cx| Feed::new(weak, actions, fixture, window, cx));
-            // The app keeps the feed (and its view state) while it runs.
-            cx.set_global(FeedGlobal(f.clone()));
-            f
+impl LayoutRenderer for BlocksRenderer {
+    /// The keys are bound once per app. The feed is made on first use with
+    /// the host's actions and kept in the window's state slot (its view state
+    /// lives as long as the window); whether the window runs on the
+    /// read-only UI fixture is read then.
+    fn render_body(
+        &self,
+        frame: &LayoutFrame<'_>,
+        host: &mut dyn LayoutHost,
+        window: &mut Window,
+        cx: &mut App,
+    ) -> AnyElement {
+        if cx.try_global::<BlocksKeys>().is_none() {
+            cx.bind_keys([
+                KeyBinding::new("f6", SwitchRegion, Some(KEY_CONTEXT)),
+                KeyBinding::new("tab", NextTarget, Some(INPUT_CONTEXT)),
+                KeyBinding::new("shift-tab", PrevTarget, Some(INPUT_CONTEXT)),
+                KeyBinding::new("escape", LeaveInput, Some(INPUT_CONTEXT)),
+            ]);
+            cx.set_global(BlocksKeys);
         }
-    };
-    view::shell(
-        kit::connection_warning(&ws.conn),
-        ws.render_hook_banner(cx),
-        feed.into_any_element(),
-        ws.render_toasts(cx).into_any_element(),
-    )
+        let actions = host.actions();
+        let fixture = frame.fixture;
+        let feed = actions.state_or_insert_with(window, cx, {
+            let actions = actions.clone();
+            move |window, cx| cx.new(|cx| Feed::new(actions, fixture, window, cx))
+        });
+        view::shell(
+            frame.warning(),
+            host.slot(Slot::HookBanner, window, cx),
+            feed.into_any_element(),
+            host.slot(Slot::Toasts, window, cx)
+                .unwrap_or_else(|| div().into_any_element()),
+        )
+    }
 }

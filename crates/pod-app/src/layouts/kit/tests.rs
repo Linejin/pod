@@ -5,21 +5,24 @@
 //!
 //! Not `gpui_kit::*`: gpui's own `test` attribute would shadow the std one.
 use std::cell::RefCell;
+use std::collections::BTreeMap;
 use std::rc::Rc;
 use std::sync::Arc;
 
 use ::gpui::{TestAppContext, VisualTestContext};
 use gpui_kit::prelude::FluentBuilder as _;
 use gpui_kit::{
-    AnyElement, App, Bounds, Context, Div, FocusHandle, IntoElement, ParentElement, Pixels, Render,
-    Styled, Window, div, px, rgb, size,
+    AnyElement, App, AppContext as _, Bounds, Context, Div, EntityId, FocusHandle, IntoElement,
+    ParentElement, Pixels, Render, Styled, Window, div, px, rgb, size,
 };
 use pod_ui::themes::{Active, Metrics, Shadow, Surface, ThemeChoice};
 
+use super::metrics::DEFAULT_FONT_SIZE;
+use super::model::connection_warning;
 use super::{
-    ActionSink, BodyFlow, Clock, ConnectionShell, DEFAULT_FONT_SIZE, Island, LayoutActions,
-    LayoutFrame, LayoutMetrics, OpenPanels, Slot, ToastAnchor, UiIntent, color, connection_warning,
-    panel_header, warning_banner,
+    ActionSink, AppOnce, BodyFlow, Clock, ConnectionShell, FrameToasts, Island, LayoutActions,
+    LayoutFrame, LayoutMetrics, OpenPanels, PanelDetail, Slot, ToastAnchor, UiIntent, WindowKey,
+    color, panel_header, warning_banner,
 };
 use crate::qa_marks::QaId as _;
 use crate::source::TestBackend;
@@ -219,14 +222,24 @@ fn frame<'a>(
 ) -> LayoutFrame<'a> {
     LayoutFrame {
         tasks,
+        repos: &[],
         terminals,
         conn,
         gates: &[],
         focused_terminal: Some("t2"),
         panels: OpenPanels::default(),
+        panel_detail: PanelDetail::default(),
         metrics: LayoutMetrics::new(DEFAULT_FONT_SIZE, pod_ui::themes::metrics(), ""),
+        labels: &NO_LABELS,
+        all_gates: &NO_GATES,
+        toasts: FrameToasts(&[]),
+        tree_selection: None,
+        fixture: false,
     }
 }
+
+static NO_LABELS: BTreeMap<String, String> = BTreeMap::new();
+static NO_GATES: BTreeMap<String, podd::protocol::GateInfo> = BTreeMap::new();
 
 #[test]
 fn frame_reads_like_the_workspace_lookups() {
@@ -244,7 +257,6 @@ fn frame_reads_like_the_workspace_lookups() {
     assert!(f.terminal("nope").is_none());
     assert_eq!(f.task("k2").map(|t| t.title.as_str()), Some("second"));
     assert!(f.task("nope").is_none());
-    assert_eq!(f.counts(), crate::vm::counts(&terminals));
     assert_eq!(f.warning(), connection_warning(&conn));
     assert_eq!(f.focused_terminal, Some("t2"));
 }
@@ -284,6 +296,8 @@ struct Sink {
     gone: bool,
     focus: Option<FocusHandle>,
     log: RefCell<Vec<UiIntent>>,
+    /// Release hooks the kit registered, run by the test.
+    released: RefCell<Vec<AppOnce>>,
 }
 
 impl Sink {
@@ -296,6 +310,7 @@ impl Sink {
             gone,
             focus,
             log: RefCell::default(),
+            released: RefCell::default(),
         })
     }
 }
@@ -313,6 +328,15 @@ impl ActionSink for Sink {
     }
     fn dispatch(&self, intent: UiIntent, _: &mut Window, _: &mut App) {
         self.log.borrow_mut().push(intent);
+    }
+    fn window_key(&self) -> WindowKey {
+        WindowKey(EntityId::from(7u64))
+    }
+    fn on_release(&self, _: &mut App, f: AppOnce) -> bool {
+        if !self.gone {
+            self.released.borrow_mut().push(f);
+        }
+        !self.gone
     }
 }
 
@@ -375,6 +399,147 @@ fn dispatch_runs_at_once_and_defer_after_the_current_effects() {
         [open, UiIntent::OpenGates],
         "deferred intents run after the update that queued them"
     );
+    cx.update(|_, cx| cx.quit());
+}
+
+#[test]
+fn dispatch_then_runs_the_completion_after_the_intent() {
+    let mut app = TestAppContext::single();
+    let handle = app.add_window(|_, _| Blank);
+    let mut cx = VisualTestContext::from_window(handle.into(), &app);
+    let sink = Sink::new(false, None);
+    let actions = LayoutActions::new(sink.clone());
+    let task = UiIntent::OpenTaskTerminals { task: "k1".into() };
+    let seen = Rc::new(RefCell::new(Vec::new()));
+    cx.update(|window, cx| {
+        let (log, seen) = (sink.clone(), seen.clone());
+        actions.dispatch_then(task.clone(), window, cx, move |_, _| {
+            seen.borrow_mut().push(log.log.borrow().len());
+        });
+    });
+    assert_eq!(*seen.borrow(), [1], "the intent ran before the completion");
+    assert_eq!(*sink.log.borrow(), [task]);
+    cx.update(|_, cx| cx.quit());
+}
+
+#[test]
+fn label_of_prefers_the_saved_label_then_the_name_then_the_id() {
+    let (tasks, mut terminals) = fixture();
+    terminals[1].name = None;
+    let t1 = terminals[0].clone();
+    let labels = BTreeMap::from([(
+        crate::layout::label_key(&t1.id, t1.created_ms),
+        "저장한 이름".to_string(),
+    )]);
+    let conn = ConnState::Connecting;
+    let f = LayoutFrame {
+        labels: &labels,
+        ..frame(&tasks, &terminals, &conn)
+    };
+    assert_eq!(f.label_of(&terminals[0]), "저장한 이름");
+    assert_eq!(f.label_of(&terminals[1]), "t2", "no name: the id");
+    assert_eq!(f.label_of(&terminals[2]), "three");
+    // The key carries the creation time: a reused id is not renamed.
+    let mut again = t1.clone();
+    again.created_ms += 1;
+    assert_eq!(f.label_of(&again), "one");
+}
+
+#[test]
+fn other_panels_count_one_each_like_the_review_signature() {
+    let (tasks, terminals) = fixture();
+    let conn = ConnState::Connecting;
+    let base = frame(&tasks, &terminals, &conn);
+    assert_eq!(base.other_panels(), 0);
+    let f = LayoutFrame {
+        panels: OpenPanels {
+            // Terminals and reviews are not counted.
+            terminals: 3,
+            reviews: 2,
+            editors: 2,
+            orch: true,
+            settings: true,
+            inspector: true,
+        },
+        panel_detail: PanelDetail {
+            groups: 2,
+            gates_panel: true,
+            tree_panel: true,
+            mods_page: true,
+            sessions_page: true,
+            // The orchestration page is not part of the signature.
+            orch_page: true,
+        },
+        ..base.clone()
+    };
+    assert_eq!(f.other_panels(), 1 + 1 + 2 + 2 + 1 + 1 + 1 + 1);
+}
+
+#[test]
+fn state_slots_keep_one_entity_per_type_until_the_window_is_released() {
+    #[derive(Default)]
+    struct RailLike(u32);
+    #[derive(Default)]
+    struct QueueLike;
+
+    let mut app = TestAppContext::single();
+    let handle = app.add_window(|_, _| Blank);
+    let mut cx = VisualTestContext::from_window(handle.into(), &app);
+    let sink = Sink::new(false, None);
+    let actions = LayoutActions::new(sink.clone());
+    let made = Rc::new(RefCell::new(0));
+    let make = |made: &Rc<RefCell<u32>>| {
+        let made = made.clone();
+        move |_: &mut Window, cx: &mut App| {
+            *made.borrow_mut() += 1;
+            let n = *made.borrow();
+            cx.new(|_| RailLike(n))
+        }
+    };
+    let weak = cx.update(|window, cx| {
+        let a = actions.state_or_insert_with(window, cx, make(&made));
+        let b = actions
+            .clone()
+            .state_or_insert_with(window, cx, make(&made));
+        assert_eq!(a.entity_id(), b.entity_id(), "made on first use only");
+        assert_eq!(a.read(cx).0, 1);
+        let q = actions.state_or_insert_with(window, cx, |_, cx| cx.new(|_| QueueLike));
+        assert_ne!(q.entity_id(), a.entity_id(), "one slot per type");
+        assert_eq!(
+            super::state::<RailLike>(actions.window_key(), cx).map(|s| s.entity_id()),
+            Some(a.entity_id())
+        );
+        assert_eq!(
+            super::state_in_window::<RailLike>(window.window_handle(), cx).map(|s| s.entity_id()),
+            Some(a.entity_id()),
+            "app-level shortcuts find it from the window"
+        );
+        assert_eq!(super::states::<QueueLike>(cx).len(), 1);
+        a.downgrade()
+    });
+    assert_eq!(
+        sink.released.borrow().len(),
+        1,
+        "one release hook per window, not per state"
+    );
+    // The host goes away: its hook drops every state of the window.
+    let hooks = std::mem::take(&mut *sink.released.borrow_mut());
+    cx.update(|_, cx| {
+        for f in hooks {
+            f(cx);
+        }
+        assert!(actions.state::<RailLike>(cx).is_none());
+        assert!(actions.state::<QueueLike>(cx).is_none());
+    });
+    cx.run_until_parked();
+    assert!(weak.upgrade().is_none(), "the slot owned the only handle");
+    // A gone host: the state is made for the caller but not kept.
+    let gone = LayoutActions::new(Sink::new(true, None));
+    cx.update(|window, cx| {
+        let s = gone.state_or_insert_with(window, cx, make(&made));
+        assert_eq!(s.read(cx).0, 2);
+        assert!(gone.state::<RailLike>(cx).is_none());
+    });
     cx.update(|_, cx| cx.quit());
 }
 

@@ -9,38 +9,38 @@
 //! 06 ([`Variant::Mission`], chosen by the `mission` style) moves the counts
 //! into title-bar pills and adds an activity bar on the far left.
 //!
-//! The data is the workspace's (terminals, tasks, gates, the gate decision
-//! path in [`crate::gates::resolve_gate`]). The queue keeps view state only
-//! (selection, expanded sections, filter, dismissed failures) in one
-//! [`QueueColumn`] per workspace, held in a global so it survives layout
-//! switches. It re-renders on the workspace's change notifications; no timer.
+//! The data is the host's (terminals, tasks, gates, labels; the gate decision
+//! path through [`LayoutActions::resolve_gate`]). The queue keeps view state
+//! only (selection, expanded sections, filter, dismissed failures) in one
+//! [`QueueColumn`] per window, in the kit's state slot, so it survives layout
+//! switches. It re-renders on the host's change notifications; no timer.
 //!
 //! Files (docs/20-refactor/app.md A-P10): `model` holds the pure queue,
-//! selection and gate-button plans, `view` the render, `copy` the strings.
-//! This file keeps the layout module, the column with its controller methods
-//! and the legacy adapter. Reads go through the kit's frame and UI actions
-//! through [`LayoutActions`]; what the kit does not carry yet stays on the
-//! workspace: observing it, terminal labels, the gate decision, showing a
-//! terminal without focus and making the column from the title bar.
+//! selection and gate-button plans, `view` the render, `copy` the strings,
+//! `fixture` the visual-QA scene. This file keeps the layout module and its
+//! narrow renderer and the column with its controller methods. Since A-T2b
+//! the queue is on the layout kit only: the frame for reads, the host's slots
+//! for the dock, toasts and hook prompt, and [`LayoutActions`] for the rest.
 
 pub mod copy;
+mod fixture;
 mod model;
 mod view;
 
 use std::collections::{HashMap, HashSet};
 use std::rc::Rc;
 
-use gpui_kit::component::dock::PanelId;
 use gpui_kit::component::input::{InputEvent, InputState};
 use gpui_kit::*;
-use podd::protocol::{GateDecision, GateInfo, GateState};
+use podd::protocol::GateDecision;
 
+pub use self::fixture::fixture_scene;
 pub use self::model::{QueueModel, Section, Variant, age, build};
 
 use crate::layout_mode::{LayoutMode, LayoutModule};
-use crate::layouts::kit::{LayoutActions, LayoutFrame, UiIntent};
-use crate::vm::TerminalVm;
-use crate::workspace::Workspace;
+use crate::layouts::kit::{
+    self, HostChange, LayoutActions, LayoutFrame, LayoutHost, LayoutRenderer, Slot, UiIntent,
+};
 
 actions!(pod_queue, [FocusQueue]);
 
@@ -57,25 +57,24 @@ impl Variant {
     }
 }
 
-/// The queue for a frame. Terminal labels are the workspace's (`label_of`):
-/// the frame does not carry them yet.
-fn model_of(
-    f: &LayoutFrame<'_>,
-    label: &dyn Fn(&TerminalVm) -> String,
-    query: &str,
-    dismissed: &HashSet<(String, u64)>,
-) -> QueueModel {
-    build(f.terminals, f.tasks, f.gates, label, query, dismissed)
+/// The queue for a frame, with the terminals' saved labels.
+fn model_of(f: &LayoutFrame<'_>, query: &str, dismissed: &HashSet<(String, u64)>) -> QueueModel {
+    build(
+        f.terminals,
+        f.tasks,
+        f.gates,
+        &|t| f.label_of(t),
+        query,
+        dismissed,
+    )
 }
 
 // ───────────────────────────── the column view ─────────────────────────────
 
-/// View state of the queue column (one per workspace, kept across layout switches).
+/// View state of the queue column (one per window, kept across layout switches).
 pub struct QueueColumn {
-    /// Legacy adapter: observed for changes; terminal labels, the gate
-    /// decision and showing a panel without focus (not in the kit yet).
-    ws: WeakEntity<Workspace>,
-    /// Reads (frame) and UI intents of the host.
+    /// The host: reads (frame), change observation, the gate decision path
+    /// and UI intents.
     actions: LayoutActions,
     pub(crate) focus: FocusHandle,
     filter: Entity<InputState>,
@@ -97,49 +96,24 @@ pub struct QueueColumn {
     _subs: Vec<Subscription>,
 }
 
-/// One queue column per workspace window.
-#[derive(Default)]
-struct QueueViews(HashMap<EntityId, Entity<QueueColumn>>);
-impl Global for QueueViews {}
-
-/// The workspace's queue column, created on first use.
+/// The window's queue column (the kit's state slot), made on first use: by
+/// the body, or by a title-bar pill before the body showed it.
 pub(crate) fn column(
-    ws: &Workspace,
+    actions: &LayoutActions,
     window: &mut Window,
-    cx: &mut Context<Workspace>,
+    cx: &mut App,
 ) -> Entity<QueueColumn> {
-    let id = cx.entity_id();
-    if let Some(c) = cx
-        .try_global::<QueueViews>()
-        .and_then(|v| v.0.get(&id))
-        .cloned()
-    {
-        return c;
-    }
-    let me = cx.entity();
-    let actions = ws.layout_actions(cx);
-    let c = cx.new(|cx| QueueColumn::new(me, actions, window, cx));
-    cx.default_global::<QueueViews>().0.insert(id, c.clone());
-    c
-}
-
-/// The column if it was ever shown (title-bar pills of a workspace).
-fn existing_column(id: EntityId, cx: &App) -> Option<Entity<QueueColumn>> {
-    cx.try_global::<QueueViews>()
-        .and_then(|v| v.0.get(&id))
-        .cloned()
+    actions.state_or_insert_with(window, cx, |window, cx| {
+        let actions = actions.clone();
+        cx.new(|cx| QueueColumn::new(actions, window, cx))
+    })
 }
 
 struct KeysBound;
 impl Global for KeysBound {}
 
 impl QueueColumn {
-    fn new(
-        ws: Entity<Workspace>,
-        actions: LayoutActions,
-        window: &mut Window,
-        cx: &mut Context<Self>,
-    ) -> Self {
+    fn new(actions: LayoutActions, window: &mut Window, cx: &mut Context<Self>) -> Self {
         if cx.try_global::<KeysBound>().is_none() {
             cx.bind_keys([KeyBinding::new(FOCUS_QUEUE_KEY, FocusQueue, None)]);
             // App level: the shortcut must work wherever focus is (workspace root,
@@ -158,17 +132,12 @@ impl QueueColumn {
                         if layout != LayoutMode::Queue.id() {
                             return;
                         }
-                        let Some(views) = cx.try_global::<QueueViews>() else {
-                            return;
-                        };
-                        let cols: Vec<Entity<QueueColumn>> = views.0.values().cloned().collect();
-                        // The column whose workspace lives in this window.
-                        let ws = cx
-                            .try_global::<crate::workspace::AppGlobals>()
-                            .map(|g| g.workspace.entity_id());
-                        let col = ws
-                            .and_then(|id| views.0.get(&id).cloned())
-                            .or_else(|| (cols.len() == 1).then(|| cols[0].clone()));
+                        // The column of this window, else the only one.
+                        let col = kit::state_in_window::<QueueColumn>(window.window_handle(), cx)
+                            .or_else(|| {
+                                let cols = kit::states::<QueueColumn>(cx);
+                                (cols.len() == 1).then(|| cols[0].clone())
+                            });
                         if let Some(col) = col {
                             col.update(cx, |q, cx| q.focus_list(window, cx));
                         }
@@ -178,13 +147,13 @@ impl QueueColumn {
             cx.set_global(KeysBound);
         }
         let filter = cx.new(|cx| InputState::new(window, cx).placeholder(copy::SEARCH));
-        let subs = vec![
-            // Tasks, terminals, statuses and gates all notify the workspace: that is the only refresh.
-            cx.observe(&ws, |_, _, cx| cx.notify()),
-            cx.subscribe(&filter, |_, _, _: &InputEvent, cx| cx.notify()),
-        ];
+        // Tasks, terminals, statuses and gates all notify the host: that is the only refresh.
+        let mut subs: Vec<Subscription> = actions
+            .observe(&[HostChange::Data], cx, |_, _, cx| cx.notify())
+            .into_iter()
+            .collect();
+        subs.push(cx.subscribe(&filter, |_, _, _: &InputEvent, cx| cx.notify()));
         Self {
-            ws: ws.downgrade(),
             actions,
             // A tracked handle must be a tab stop itself (`.tab_index()` is for element-owned ones).
             focus: cx.focus_handle().tab_stop(true),
@@ -206,14 +175,8 @@ impl QueueColumn {
 
     fn model(&self, cx: &App) -> QueueModel {
         let query = self.filter.read(cx).value().to_string();
-        let Some(ws) = self.ws.upgrade() else {
-            return QueueModel::default();
-        };
-        let ws = ws.read(cx);
         self.actions
-            .read(cx, |f| {
-                model_of(f, &|t| ws.label_of(t), &query, &self.dismissed)
-            })
+            .read(cx, |f| model_of(f, &query, &self.dismissed))
             .unwrap_or_default()
     }
 
@@ -259,18 +222,9 @@ impl QueueColumn {
             self.scroll.scroll_to_item(*ix);
         }
         // Show the terminal if it already has a panel; keyboard focus stays here.
-        // Legacy adapter: the kit has no "show without focus" intent yet.
-        if let (Some(t), Some(ws)) = (terminal, self.ws.upgrade()) {
-            ws.update(cx, |w, cx| {
-                if let Some(p) = w
-                    .live_panels()
-                    .into_iter()
-                    .find(|p| p.read(cx).terminal_id == t)
-                {
-                    let pid = PanelId::from(p.entity_id());
-                    w.dock.update(cx, |a, cx| a.select_panel(pid, window, cx));
-                }
-            });
+        if let Some(t) = terminal {
+            self.actions
+                .dispatch(UiIntent::RevealTerminal { id: t.to_owned() }, window, cx);
         }
         cx.notify();
     }
@@ -297,10 +251,9 @@ impl QueueColumn {
         cx.notify();
     }
 
-    /// 이번만 허용 / 거부 through the one gate decision path.
-    ///
-    /// Legacy adapter: `resolve_gate` takes the workspace's source and the
-    /// workspace itself; the kit has no gate intent with a completion yet.
+    /// 이번만 허용 / 거부 through the host's one gate decision path
+    /// (`gates::resolve_gate`: the answer merged, or a failure toast); the
+    /// completion clears the card's busy state or keeps its error.
     fn decide(
         &mut self,
         gate: String,
@@ -312,8 +265,10 @@ impl QueueColumn {
         if self.busy.contains_key(&gate) {
             return;
         }
-        let Some(ws) = self.ws.upgrade() else { return };
-        let source = ws.read(cx).source.clone();
+        // No host (its window is gone): nothing to decide with.
+        if self.actions.source(cx).is_none() {
+            return;
+        }
         self.busy.insert(gate.clone(), decision);
         self.errors.remove(&gate);
         // The card goes away when podd answers: keep the keyboard in the queue.
@@ -326,7 +281,7 @@ impl QueueColumn {
             note: None,
             choice,
         };
-        crate::gates::resolve_gate(&source, self.ws.clone(), params, cx, move |r, cx| {
+        self.actions.resolve_gate(params, cx, move |r, cx| {
             let _ = me.update(cx, |q, cx| {
                 q.busy.remove(&id);
                 if let Err(e) = r {
@@ -386,132 +341,74 @@ impl LayoutModule for QueueLayout {
         LayoutMode::Queue
     }
 
-    fn render_body(
-        &self,
-        ws: &mut Workspace,
-        window: &mut Window,
-        cx: &mut Context<Workspace>,
-    ) -> AnyElement {
-        render_body(ws, window, cx)
-    }
-
-    fn title_bar_extra(&self, ws: &Workspace, cx: &mut Context<Workspace>) -> Option<AnyElement> {
-        (Variant::current(cx) == Variant::Mission).then(|| title_pills(ws, cx))
-    }
     fn status_counts(&self, cx: &App) -> bool {
         Variant::current(cx) != Variant::Mission
     }
-}
 
-// ───────────────────── legacy adapter: workspace → view ─────────────────────
-
-/// 06: status pills in the title bar; each jumps to its section. A pill makes
-/// the column when it was never shown, which needs the workspace.
-fn title_pills(ws: &Workspace, cx: &mut Context<Workspace>) -> AnyElement {
-    let gates = ws.orch.pending();
-    let counts = model_of(
-        &ws.layout_frame(&gates, cx),
-        &|t| ws.label_of(t),
-        "",
-        &HashSet::new(),
-    )
-    .counts;
-    let ws_id = cx.entity_id();
-    let ws_weak = cx.entity().downgrade();
-    let open: view::OpenSection = Rc::new(move |section, window, cx| {
-        let col = existing_column(ws_id, cx).or_else(|| {
-            ws_weak
-                .upgrade()
-                .map(|w| w.update(cx, |w, cx| column(w, window, cx)))
-        });
-        if let Some(col) = col {
-            col.update(cx, |q, cx| q.focus_section(section, window, cx));
-        }
-    });
-    view::title_pills(counts, open)
-}
-
-/// The window body: [activity bar] · queue column (+ toasts) · dock.
-pub fn render_body(
-    ws: &mut Workspace,
-    window: &mut Window,
-    cx: &mut Context<Workspace>,
-) -> AnyElement {
-    let column = column(ws, window, cx);
-    let variant = Variant::current(cx);
-    let toasts = ws.render_toasts(cx).into_any_element();
-    let hook_banner = ws.render_hook_banner(cx);
-    let actions = ws.layout_actions(cx);
-    // The activity bar's 변경 검토 runs the review command, as from the keyboard.
-    let ws_weak = cx.entity().downgrade();
-    let review: view::Activate = Box::new(move |window, cx| {
-        let _ = ws_weak.update(cx, |_, cx| {
-            window.dispatch_action(Box::new(crate::workspace::OpenReview), cx)
-        });
-    });
-    let gates = ws.orch.pending();
-    let frame = ws.layout_frame(&gates, cx);
-    // The app-level pages (extensions, sessions) count as open panels here.
-    let empty = frame.panels.dock_empty()
-        && !crate::mods_ui::page_open(cx)
-        && !crate::sessions_ui::page_open(cx);
-    view::body(
-        view::Body {
-            column,
-            variant,
-            warning: frame.warning(),
-            hook_banner,
-            dock: ws.dock.clone().into_any_element(),
-            empty,
-            toasts,
-            actions,
-            review,
-        },
-        cx,
-    )
-}
-
-/// Fixture scene `queue`: a pending gate on the blocked fixture-1, a question on
-/// fixture-3, four panels in a grid, the gate card selected (visual QA only).
-pub fn fixture_scene(w: &mut Workspace, window: &mut Window, cx: &mut Context<Workspace>) {
-    let now = crate::orch::now_ms();
-    w.orch.merge_snapshot(vec![GateInfo {
-        id: "g1".into(),
-        title: "명령 실행 승인".into(),
-        message: "$ cargo clippy -p pod-ui -- -D warnings".into(),
-        task: Some("sample/task-000".into()),
-        group: None,
-        terminal: Some("fixture-1".into()),
-        state: GateState::Pending,
-        created_ms: now.saturating_sub(12_000),
-        resolved_ms: None,
-        note: None,
-        expires_ms: None,
-        run: None,
-        item: None,
-        options: Vec::new(),
-        choice: None,
-        requested_by: None,
-        decided_by: None,
-    }]);
-    if let Some(s) = w
-        .terminals
-        .iter_mut()
-        .find(|t| t.id == "fixture-3")
-        .and_then(|t| t.status.as_mut())
-    {
-        s.kind = Some("question".into());
+    fn renderer(&self) -> Rc<dyn LayoutRenderer> {
+        Rc::new(Renderer)
     }
-    for id in ["fixture-0", "fixture-1", "fixture-2", "fixture-3"] {
-        w.open_terminal(id, false, window, cx);
+}
+
+/// The queue's narrow renderer: the body, and the 06 title-bar pills.
+struct Renderer;
+
+impl LayoutRenderer for Renderer {
+    /// The window body: [activity bar] · queue column (+ toasts) · dock.
+    fn render_body(
+        &self,
+        frame: &LayoutFrame<'_>,
+        host: &mut dyn LayoutHost,
+        window: &mut Window,
+        cx: &mut App,
+    ) -> AnyElement {
+        let actions = host.actions();
+        let column = column(&actions, window, cx);
+        let variant = Variant::current(cx);
+        let toasts = host
+            .slot(Slot::Toasts, window, cx)
+            .unwrap_or_else(|| div().into_any_element());
+        let hook_banner = host.slot(Slot::HookBanner, window, cx);
+        let dock = host
+            .slot(Slot::Dock, window, cx)
+            .unwrap_or_else(|| div().into_any_element());
+        // The app-level pages (extensions, sessions) count as open panels here.
+        let empty = frame.panels.dock_empty()
+            && !frame.panel_detail.mods_page
+            && !frame.panel_detail.sessions_page;
+        view::body(
+            view::Body {
+                column,
+                variant,
+                warning: frame.warning(),
+                hook_banner,
+                dock,
+                empty,
+                toasts,
+                actions,
+            },
+            cx,
+        )
     }
-    w.arrange_grid(window, cx);
-    w.touch(cx);
-    let col = column(w, window, cx);
-    col.update(cx, |q, cx| {
-        q.selected = Some("gate:g1".into());
-        q.focus_list(window, cx);
-    });
+
+    /// 06: status pills in the title bar; each jumps to its section. A pill
+    /// makes the column when the body never showed it.
+    fn title_bar_extra(
+        &self,
+        frame: &LayoutFrame<'_>,
+        actions: &LayoutActions,
+        cx: &mut App,
+    ) -> Option<AnyElement> {
+        (Variant::current(cx) == Variant::Mission).then(|| {
+            let counts = model_of(frame, "", &HashSet::new()).counts;
+            let actions = actions.clone();
+            let open: view::OpenSection = Rc::new(move |section, window, cx| {
+                let col = column(&actions, window, cx);
+                col.update(cx, |q, cx| q.focus_section(section, window, cx));
+            });
+            view::title_pills(counts, open)
+        })
+    }
 }
 
 #[cfg(test)]

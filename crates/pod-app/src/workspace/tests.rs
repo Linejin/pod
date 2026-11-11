@@ -1,12 +1,10 @@
 use std::cell::RefCell;
 use std::rc::Rc;
 
-use gpui_kit::{
-    AnyElement, App, Context, Focusable, IntoElement, ParentElement, Styled, Window, div,
-};
+use gpui_kit::{AnyElement, App, Focusable, IntoElement, ParentElement, Styled, Window, div};
 
+use super::ToastKind;
 use super::binding::watching;
-use super::{ToastKind, Workspace};
 use crate::layout_mode::{LayoutMode, LayoutModule, LayoutRegistry};
 use crate::layouts::kit::{
     LayoutActions, LayoutFrame, LayoutHost, LayoutMetrics, LayoutRenderer, OpenPanels, Slot,
@@ -123,7 +121,7 @@ fn task_name_carries_answer_and_failure_counts() {
 
 #[test]
 fn empty_workspace_offers_one_action_for_its_situation() {
-    use super::EmptyState::{self, *};
+    use crate::layouts::workbench::EmptyState::{self, *};
     assert_eq!(EmptyState::of(false, true, true), Connecting);
     assert_eq!(
         EmptyState::of(true, true, true),
@@ -209,16 +207,8 @@ impl LayoutModule for KitWorkbench {
     fn mode(&self) -> LayoutMode {
         LayoutMode::Workbench
     }
-    fn render_body(
-        &self,
-        ws: &mut Workspace,
-        window: &mut Window,
-        cx: &mut Context<Workspace>,
-    ) -> AnyElement {
-        ws.render_workbench_body(window, cx)
-    }
-    fn renderer(&self) -> Option<Rc<dyn LayoutRenderer>> {
-        Some(Rc::new(KitRenderer(self.0.clone())))
+    fn renderer(&self) -> Rc<dyn LayoutRenderer> {
+        Rc::new(KitRenderer(self.0.clone()))
     }
 }
 
@@ -291,7 +281,7 @@ fn the_shell_draws_a_kit_renderer_and_falls_back_without_one() {
         );
         assert_eq!(log.second_toasts, Some(false), "an element is lent once");
     }
-    // The built-in registry: no mode has a renderer, the module renders.
+    // The built-in registry: its own workbench renderer draws, not this one.
     let seen = (log.borrow().bodies, log.borrow().title_extras);
     h.cx.update(|_, cx| cx.set_global(LayoutRegistry::new()));
     h.settle();
@@ -381,11 +371,6 @@ fn layout_actions_run_intents_through_the_workspace() {
         assert_eq!(actions.focus_handle(Slot::Dock, cx), Some(dock));
         assert_eq!(actions.focus_handle(Slot::HookBanner, cx), None);
     });
-    for (slot, handle) in [(Slot::Sidebar, &sidebar), (Slot::Toasts, &toasts)] {
-        h.cx.update(|window, cx| actions.dispatch(UiIntent::FocusRegion(slot), window, cx));
-        h.settle();
-        assert!(h.is_focused(handle), "{slot:?}");
-    }
 
     h.cx.update(|window, cx| {
         actions.dispatch(

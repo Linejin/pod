@@ -610,3 +610,139 @@ fn frames_and_round_trips_neither_reattach_nor_resend() {
     assert_eq!(resolves(&h), 1);
     assert_eq!(h.backend.typed_text(&target), "ls\r");
 }
+
+/// A second window with its own workspace on its own scripted backend
+/// (seeded by `seed`), drawn until its data arrived (A-T2d slot tests).
+pub(super) struct SecondWindow {
+    pub(super) handle: AnyWindowHandle,
+    pub(super) key: crate::layouts::kit::WindowKey,
+    pub(super) workspace: WeakEntity<crate::workspace::Workspace>,
+}
+
+pub(super) fn second_window(h: &mut Harness, seed: impl FnOnce(&mut TestBackend)) -> SecondWindow {
+    let (source, events, mut backend) = crate::source::PoddSource::scripted();
+    seed(&mut backend);
+    backend.connect();
+    let (handle, workspace) = h.cx.update(|_, cx| {
+        let slot = std::cell::RefCell::new(None);
+        let handle = cx
+            .open_window(WindowOptions::default(), |window, cx| {
+                let ws = cx.new(|cx| {
+                    crate::workspace::Workspace::new(
+                        source,
+                        events,
+                        crate::workspace::StartOptions::default(),
+                        window,
+                        cx,
+                    )
+                });
+                *slot.borrow_mut() = Some(ws.downgrade());
+                cx.new(|cx| gpui_kit::base::Root::new(ws, window, cx))
+            })
+            .expect("second window");
+        (
+            AnyWindowHandle::from(handle),
+            slot.into_inner().expect("second workspace"),
+        )
+    });
+    for _ in 0..4 {
+        h.cx.run_until_parked();
+        backend.serve();
+        h.cx.run_until_parked();
+        h.cx.update(|_, cx| {
+            let _ = cx.update_window(handle, |_, window, cx| {
+                window.refresh();
+                let _ = window.draw(cx);
+            });
+        });
+    }
+    h.cx.run_until_parked();
+    SecondWindow {
+        handle,
+        key: crate::layouts::kit::WindowKey(workspace.entity_id()),
+        workspace,
+    }
+}
+
+impl SecondWindow {
+    /// Closes the window; its workspace (the host) is released with it.
+    pub(super) fn close(self, h: &mut Harness) {
+        h.cx.update(|_, cx| {
+            let _ = cx.update_window(self.handle, |_, window, _| window.remove_window());
+        });
+        h.settle();
+        assert!(
+            self.workspace.upgrade().is_none(),
+            "the second workspace is gone"
+        );
+    }
+}
+
+/// A-T2d: the layout draws through its kit renderer (no Workspace adapter)
+/// and the window's state slot keeps the feed: the same feed, attached to
+/// the same terminals, across a layout round trip; one feed per window,
+/// dropped (attach streams and all) with its window.
+#[test]
+fn the_kit_renderer_keeps_one_feed_per_window_in_its_state_slot() {
+    use crate::layout_mode::{LayoutMode, LayoutRegistry};
+    use crate::layouts::kit::{self, WindowKey};
+    assert_eq!(
+        LayoutRegistry::new()
+            .resolve(LayoutMode::BlockTerminal.id())
+            .mode(),
+        LayoutMode::BlockTerminal,
+        "the block terminal is registered (every module has a kit renderer)"
+    );
+    let mut h = Harness::new("blocks-slot", seed_review);
+    let key = WindowKey(h.ws.entity_id());
+    let in_slot = |h: &mut Harness, key| h.cx.update(|_, cx| kit::state::<Feed>(key, cx));
+    assert!(in_slot(&mut h, key).is_none(), "no feed before the layout");
+    set_layout(&mut h, "block-terminal");
+    assert!(h.bounds("blocks-layout").is_some(), "the renderer drew it");
+    let f = feed(&mut h);
+    assert_eq!(
+        in_slot(&mut h, key).map(|s| s.entity_id()),
+        Some(f.entity_id()),
+        "the feed sits in this window's slot"
+    );
+    let attached = h.cx.update(|_, cx| f.read(cx).attached());
+    assert_eq!(
+        attached,
+        ["w1"],
+        "the window's first task, read through the host"
+    );
+
+    set_layout(&mut h, "workbench");
+    assert_eq!(
+        in_slot(&mut h, key).map(|s| s.entity_id()),
+        Some(f.entity_id()),
+        "the slot keeps the feed while another layout shows"
+    );
+    assert!(h.cx.update(|_, cx| f.read(cx).attached().is_empty()));
+    set_layout(&mut h, "block-terminal");
+    assert_eq!(
+        feed(&mut h).entity_id(),
+        f.entity_id(),
+        "and shows it again"
+    );
+    assert_eq!(h.cx.update(|_, cx| f.read(cx).attached()), attached);
+
+    // A second window: its own feed over its own workspace, gone with it.
+    let second = second_window(&mut h, seed_review);
+    let other = in_slot(&mut h, second.key).expect("the second window's feed");
+    assert_ne!(other.entity_id(), f.entity_id(), "one feed per window");
+    assert_eq!(h.cx.update(|_, cx| other.read(cx).attached()), ["w1"]);
+    assert_eq!(h.cx.update(|_, cx| kit::states::<Feed>(cx).len()), 2);
+    let weak = other.downgrade();
+    drop(other);
+    let other = weak;
+    let second_key = second.key;
+    second.close(&mut h);
+    assert!(in_slot(&mut h, second_key).is_none(), "its slot is dropped");
+    assert!(other.upgrade().is_none(), "and its feed released");
+    assert_eq!(
+        in_slot(&mut h, key).map(|s| s.entity_id()),
+        Some(f.entity_id()),
+        "the first window keeps its feed"
+    );
+}

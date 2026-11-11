@@ -25,23 +25,23 @@
 //! Files (docs/20-refactor/app.md A-P12): `model` holds the cards, the board
 //! model (order, pins, selection, filters, keyboard), the card actions and
 //! the size formulas, `view` the render, `copy` the strings. This file keeps
-//! the layout module, the [`Board`] with its controller methods and the
-//! legacy adapter. Reads go through the kit's frame (terminals, tasks, gates,
-//! the focused terminal, the connection warning, font metrics), the dock's
-//! focus through the host's focus slot. What the kit does not carry yet stays
-//! on the workspace: terminal labels, its live terminal panels and dock
-//! entity, the count of open non-terminal panels, the podd source (gate
-//! decision, `terminal.run`, `terminal.read`), adding a rerun terminal,
-//! toasts without a window and the workspace notify.
+//! the layout module with its narrow renderer and the [`Board`] with its
+//! controller methods.
+//!
+//! A-T2c: the board is drawn through `LayoutModule::renderer` and reaches the
+//! window only through the kit: the frame (terminals, tasks, gates, labels,
+//! the focused terminal, the panel counts, the connection warning, fonts),
+//! the host's slots (hook banner, toasts) and [`LayoutActions`] (the board as
+//! the window's state slot, the dock's view and focus, the live terminal
+//! panels and a drawer-owned one, the podd source, the gate path, window-less
+//! updates for a rerun terminal, toasts and the redraw).
 pub mod copy;
 mod model;
 mod view;
 
-use std::cell::RefCell;
 use std::collections::{HashMap, HashSet};
 use std::rc::Rc;
 
-use gpui_kit::component::dock::DockArea;
 use gpui_kit::*;
 use podd::protocol::{self as p, GateDecision};
 
@@ -52,10 +52,12 @@ pub use self::model::{
 
 use self::model::{CardKey, card_key, dock_rose, follow_focus, nav_key, task_count};
 use crate::layout_mode::{LayoutMode, LayoutModule};
-use crate::layouts::kit::{self, LayoutActions, LayoutMetrics, Slot};
+use crate::layouts::kit::{
+    HostUpdate, LayoutActions, LayoutFrame, LayoutHost, LayoutMetrics, LayoutRenderer, Slot,
+};
 use crate::panel::TerminalPanel;
 use crate::source::RunSpec;
-use crate::workspace::{ToastKind, Workspace};
+use crate::workspace::ToastKind;
 
 actions!(pod_kanban, [SwitchRegion]);
 
@@ -71,45 +73,60 @@ impl LayoutModule for Kanban {
     fn mode(&self) -> LayoutMode {
         LayoutMode::Kanban
     }
-    fn render_body(
-        &self,
-        ws: &mut Workspace,
-        window: &mut Window,
-        cx: &mut Context<Workspace>,
-    ) -> AnyElement {
-        render_body(ws, window, cx)
+    fn renderer(&self) -> Rc<dyn LayoutRenderer> {
+        Rc::new(BoardRenderer)
     }
 }
 
 struct KanbanKeys;
 impl Global for KanbanKeys {}
-struct BoardGlobal(WeakEntity<Board>);
-impl Global for BoardGlobal {}
-struct BoardSlot(Rc<RefCell<Option<Entity<Board>>>>);
-impl Global for BoardSlot {}
 
-/// Strong owner of the board, per app (the board lives as long as the app).
-fn ws_board_slot(cx: &mut App) -> Rc<RefCell<Option<Entity<Board>>>> {
-    if cx.try_global::<BoardSlot>().is_none() {
-        cx.set_global(BoardSlot(Rc::default()));
+/// The window body over the kit: the board under the connection warning and
+/// the hook prompt, the toasts over it.
+struct BoardRenderer;
+
+impl LayoutRenderer for BoardRenderer {
+    fn render_body(
+        &self,
+        frame: &LayoutFrame<'_>,
+        host: &mut dyn LayoutHost,
+        window: &mut Window,
+        cx: &mut App,
+    ) -> AnyElement {
+        if cx.try_global::<KanbanKeys>().is_none() {
+            cx.bind_keys([KeyBinding::new("f6", SwitchRegion, Some(KEY_CONTEXT))]);
+            cx.set_global(KanbanKeys);
+        }
+        // The window's board, made on first use; it lives as long as the
+        // window's host, across layout switches.
+        let actions = host.actions();
+        let board = actions.state_or_insert_with(window, cx, |window, cx| {
+            let actions = actions.clone();
+            cx.new(|cx| Board::new(actions, window, cx))
+        });
+        let hook_banner = host.slot(Slot::HookBanner, window, cx);
+        let toasts = host
+            .slot(Slot::Toasts, window, cx)
+            .unwrap_or_else(|| div().into_any_element());
+        view::shell(
+            frame.warning(),
+            hook_banner,
+            board.into_any_element(),
+            toasts,
+        )
     }
-    cx.global::<BoardSlot>().0.clone()
 }
 
 #[cfg(test)]
-/// The board of this app, if the kanban layout was shown once (tests).
+/// The board of this app's window, if the kanban layout was shown once (tests).
 pub fn board(cx: &App) -> Option<Entity<Board>> {
-    cx.try_global::<BoardGlobal>().and_then(|g| g.0.upgrade())
+    crate::layouts::kit::states::<Board>(cx).into_iter().next()
 }
 
 // ───────────────────────────── board ─────────────────────────────
 
 pub struct Board {
-    /// Legacy adapter: terminal labels, live terminal panels, the dock entity
-    /// and its panel count, the podd source and the workspace notify (not in
-    /// the kit yet).
-    ws: WeakEntity<Workspace>,
-    /// Reads (frame) and focus slots of the host.
+    /// The host: frame reads, focus slots, panels, podd and updates.
     actions: LayoutActions,
     pub model: BoardModel,
     /// Focus of the board when it has no card.
@@ -142,17 +159,12 @@ struct Synced {
     cols: [Vec<Card>; 3],
     /// Tasks the terminals belong to.
     task_count: usize,
-    /// The workspace's dock, shown by the drawer's 패널 view.
-    dock: Entity<DockArea>,
+    /// The window's dock, shown by the drawer's 패널 view.
+    dock: AnyView,
 }
 
 impl Board {
-    fn new(
-        ws: WeakEntity<Workspace>,
-        actions: LayoutActions,
-        _window: &mut Window,
-        cx: &mut Context<Self>,
-    ) -> Self {
+    fn new(actions: LayoutActions, _window: &mut Window, cx: &mut Context<Self>) -> Self {
         // Leaving the layout drops the drawer-owned panel (its attach); the
         // dock and its panels were never touched.
         let subs = vec![
@@ -167,7 +179,6 @@ impl Board {
             }),
         ];
         Self {
-            ws,
             actions,
             model: BoardModel::default(),
             focus: cx.focus_handle().tab_stop(true),
@@ -201,64 +212,41 @@ impl Board {
             .clone()
     }
 
-    /// Cards of the frame's terminals, tasks and gates; labels are the
-    /// workspace's (`label_of`), which the frame does not carry yet.
+    /// Cards of the frame's terminals, tasks and gates, named as the window
+    /// names them (`LayoutFrame::label_of`).
     pub fn cards(&self, cx: &App) -> Vec<Card> {
-        let Some(ws) = self.ws.upgrade() else {
-            return Vec::new();
-        };
-        let w = ws.read(cx);
-        self.actions
-            .read(cx, |f| {
-                build_cards(f.terminals, f.tasks, f.gates, |t| w.label_of(t))
-            })
-            .unwrap_or_default()
+        self.actions.read(cx, Self::cards_of).unwrap_or_default()
+    }
+
+    fn cards_of(f: &LayoutFrame<'_>) -> Vec<Card> {
+        build_cards(f.terminals, f.tasks, f.gates, |t| f.label_of(t))
     }
 
     /// Panels other than terminals the dock holds (a rise switches the drawer
-    /// to them). Legacy adapter: the frame counts the orchestration panels as
-    /// one flag, not one each.
-    fn dock_signature(w: &Workspace, cx: &App) -> usize {
-        let live = |p: &Option<WeakEntity<crate::chrome::ChromePanel>>| {
-            p.as_ref().is_some_and(|p| p.upgrade().is_some()) as usize
-        };
-        live(&w.settings_panel)
-            + live(&w.inspector_panel)
-            + w.live_reviews().len()
-            + w.live_editors().len()
-            + w.orch.live_groups().len()
-            + w.orch
-                .gates_panel
-                .as_ref()
-                .is_some_and(|p| p.upgrade().is_some()) as usize
-            + w.orch
-                .tree_panel
-                .as_ref()
-                .is_some_and(|p| p.upgrade().is_some()) as usize
-            + crate::mods_ui::page_open(cx) as usize
-            + crate::sessions_ui::page_open(cx) as usize
+    /// to them): the frame's other panels, one each, and the reviews.
+    fn dock_signature(f: &LayoutFrame<'_>) -> usize {
+        f.other_panels() + f.panels.reviews
+    }
+
+    /// The host is still there (its dock goes with it).
+    fn hosted(&self, cx: &App) -> bool {
+        self.actions.dock(cx).is_some()
     }
 
     /// The frame's bookkeeping before the board draws: follow a terminal
     /// focused elsewhere, show panels opened meanwhile, keep the selection on
     /// a visible card, place focus once after entering, and make the cards'
-    /// focus handles. `None` once the workspace is gone.
+    /// focus handles. `None` once the host is gone.
     fn sync(&mut self, window: &mut Window, cx: &mut Context<Self>) -> Option<Synced> {
-        let ws = self.ws.upgrade()?;
-        let cards = self.cards(cx);
-        let (focused, task_count) = self
-            .actions
-            .read(cx, |f| {
-                (
-                    f.focused_terminal.map(str::to_owned),
-                    task_count(f.terminals),
-                )
-            })
-            .unwrap_or_default();
-        let (signature, dock) = {
-            let w = ws.read(cx);
-            (Self::dock_signature(w, cx), w.dock.clone())
-        };
+        let (cards, focused, task_count, signature) = self.actions.read(cx, |f| {
+            (
+                Self::cards_of(f),
+                f.focused_terminal.map(str::to_owned),
+                task_count(f.terminals),
+                Self::dock_signature(f),
+            )
+        })?;
+        let dock = self.actions.view(Slot::Dock, cx)?;
         // A terminal focused elsewhere (palette jump, new terminal) opens in the drawer.
         if follow_focus(
             &mut self.model,
@@ -299,11 +287,13 @@ impl Board {
         cx: &mut Context<Self>,
     ) -> Option<Entity<TerminalPanel>> {
         let id = self.model.opened.clone()?;
-        let ws = self.ws.upgrade()?;
+        if !self.hosted(cx) {
+            return None;
+        }
         let own = self.own_panel.as_ref().map(|p| p.entity_id());
-        let existing = ws
-            .read(cx)
-            .live_panels()
+        let existing = self
+            .actions
+            .terminal_panels(cx)
             .into_iter()
             .find(|p| Some(p.entity_id()) != own && p.read(cx).terminal_id == id);
         if let Some(p) = existing {
@@ -317,31 +307,17 @@ impl Board {
         {
             return Some(p.clone());
         }
-        self.actions
-            .read(cx, |f| f.terminal(&id).is_some())
-            .filter(|known| *known)?;
-        let g = cx.global::<crate::workspace::AppGlobals>();
-        let (source, panels) = (g.source.clone(), g.panels.clone());
-        let label: SharedString = g
-            .labels
-            .borrow()
-            .get(&id)
-            .cloned()
-            .unwrap_or_else(|| id.clone())
-            .into();
-        let weak = self.ws.clone();
-        let panel = cx.new(|cx| TerminalPanel::new(source, weak, id, label, window, cx));
-        // Registered like dock panels: labels, theme changes and "terminal in view" reach it.
-        panels.borrow_mut().push(panel.downgrade());
+        // A terminal the frame knows, registered like dock panels (labels,
+        // theme changes and "terminal in view" reach it); `None` otherwise.
+        let panel = self.actions.new_terminal_panel(&id, window, cx)?;
         self.own_panel = Some(panel.clone());
         Some(panel)
     }
 
+    /// Redraws the board and the window around it.
     fn notify_all(&self, cx: &mut Context<Self>) {
         cx.notify();
-        if let Some(ws) = self.ws.upgrade() {
-            ws.update(cx, |_, cx| cx.notify());
-        }
+        self.actions.post(vec![HostUpdate::Notify], cx);
     }
 
     pub fn select(&mut self, id: &str, window: &mut Window, cx: &mut Context<Self>) {
@@ -370,24 +346,21 @@ impl Board {
         self.notify_all(cx);
     }
 
-    /// The workspace's live terminal panel whose view holds the focus
-    /// (legacy adapter: the kit does not lend panels).
+    /// The window's live terminal panel whose view holds the focus.
     fn focused_panel(&self, window: &Window, cx: &App) -> Option<Entity<TerminalPanel>> {
-        self.ws.upgrade().and_then(|ws| {
-            ws.read(cx).live_panels().into_iter().find(|p| {
-                p.read(cx)
-                    .view
-                    .read(cx)
-                    .focus_handle(cx)
-                    .contains_focused(window, cx)
-            })
+        self.actions.terminal_panels(cx).into_iter().find(|p| {
+            p.read(cx)
+                .view
+                .read(cx)
+                .focus_handle(cx)
+                .contains_focused(window, cx)
         })
     }
 
     /// F6: board ↔ drawer.
     pub fn switch_region(&mut self, window: &mut Window, cx: &mut Context<Self>) {
         let in_drawer = self.drawer_open
-            && self.ws.upgrade().is_some()
+            && self.hosted(cx)
             && (self.focused_panel(window, cx).is_some()
                 || self.show_dock && !self.board_focused(window, cx));
         if in_drawer || !self.drawer_open {
@@ -528,11 +501,9 @@ impl Board {
         window: &mut Window,
         cx: &mut Context<Self>,
     ) {
-        let Some(ws) = self.ws.upgrade() else { return };
-        if !self.busy.insert(gate.clone()) {
+        if !self.hosted(cx) || !self.busy.insert(gate.clone()) {
             return;
         }
-        let source = ws.read(cx).source.clone();
         let me = cx.entity().downgrade();
         let window_handle = window.window_handle();
         let params = p::GateResolveParams {
@@ -541,7 +512,7 @@ impl Board {
             note: None,
             choice,
         };
-        crate::gates::resolve_gate(&source, ws.downgrade(), params, cx, move |_, cx| {
+        self.actions.resolve_gate(params, cx, move |_, cx| {
             let _ = window_handle.update(cx, |_, window, cx| {
                 let _ = me.update(cx, |b, cx| {
                     b.busy.remove(&gate);
@@ -558,7 +529,9 @@ impl Board {
 
     /// `다시 실행`: the same command in the same folder and task.
     pub fn rerun(&mut self, id: &str, cx: &mut Context<Self>) {
-        let Some(ws) = self.ws.upgrade() else { return };
+        let Some(source) = self.actions.source(cx) else {
+            return;
+        };
         let Some(t) = self.actions.read(cx, |f| f.terminal(id).cloned()).flatten() else {
             return;
         };
@@ -570,34 +543,35 @@ impl Board {
             rows: None,
             task: t.task_id.clone(),
         };
-        let rx = ws.read(cx).source.run(spec);
+        let rx = source.run(spec);
         cx.spawn(async move |this, cx| {
             let r = rx.await;
             let _ = this.update(cx, |b, cx| {
+                // One host update each, as the workspace did them: the new
+                // terminal joins the list and the window redraws, or a toast.
+                let error = |body: SharedString| HostUpdate::Toast {
+                    kind: ToastKind::Error,
+                    title: s::COULD_NOT_RERUN.into(),
+                    body,
+                };
                 match r {
                     Ok(Ok(new)) => {
-                        ws.update(cx, |w, cx| {
-                            if !w.terminals.iter().any(|x| x.id == new.id) {
-                                w.terminals.push(new.clone());
-                            }
-                            cx.notify();
-                        });
+                        b.actions.post(
+                            vec![HostUpdate::AddTerminal(new.clone()), HostUpdate::Notify],
+                            cx,
+                        );
                         b.model.selected = Some(new.id.clone());
                         b.model.opened = Some(new.id);
                         b.drawer_open = true;
                         b.show_dock = false;
                     }
-                    Ok(Err(e)) => ws.update(cx, |w, cx| {
-                        w.raise_toast(ToastKind::Error, s::COULD_NOT_RERUN, e.message, cx)
-                    }),
-                    Err(_) => ws.update(cx, |w, cx| {
-                        w.raise_toast(
-                            ToastKind::Error,
-                            s::COULD_NOT_RERUN,
-                            crate::strings::PODD_CLIENT_STOPPED,
-                            cx,
-                        )
-                    }),
+                    Ok(Err(e)) => {
+                        b.actions.post(vec![error(e.message.into())], cx);
+                    }
+                    Err(_) => {
+                        b.actions
+                            .post(vec![error(crate::strings::PODD_CLIENT_STOPPED.into())], cx);
+                    }
                 }
                 cx.notify();
             });
@@ -607,8 +581,9 @@ impl Board {
 
     /// Read the last line of visible cards whose status changed since the last read.
     fn want_lines(&mut self, wanted: Vec<(String, String)>, cx: &mut Context<Self>) {
-        let Some(ws) = self.ws.upgrade() else { return };
-        let source = ws.read(cx).source.clone();
+        let Some(source) = self.actions.source(cx) else {
+            return;
+        };
         for (id, key) in wanted {
             if self.reading.contains(&id) || self.lines.get(&id).is_some_and(|(k, _)| *k == key) {
                 continue;
@@ -652,35 +627,6 @@ impl Focusable for Board {
     fn focus_handle(&self, _: &App) -> FocusHandle {
         self.focus.clone()
     }
-}
-
-// ───────────────────── legacy adapter: `LayoutModule::render_body` ─────────────────────
-
-/// The window body. The board is made on first use with the workspace
-/// (legacy adapter) and the host's [`LayoutActions`]; the workspace owns it.
-fn render_body(ws: &mut Workspace, window: &mut Window, cx: &mut Context<Workspace>) -> AnyElement {
-    if cx.try_global::<KanbanKeys>().is_none() {
-        cx.bind_keys([KeyBinding::new("f6", SwitchRegion, Some(KEY_CONTEXT))]);
-        cx.set_global(KanbanKeys);
-    }
-    let board = match cx.try_global::<BoardGlobal>().and_then(|g| g.0.upgrade()) {
-        Some(b) => b,
-        None => {
-            let weak = cx.entity().downgrade();
-            let actions = ws.layout_actions(cx);
-            let b = cx.new(|cx| Board::new(weak, actions, window, cx));
-            // The workspace owns the board; the global only finds it again.
-            ws_board_slot(cx).replace(Some(b.clone()));
-            cx.set_global(BoardGlobal(b.downgrade()));
-            b
-        }
-    };
-    view::shell(
-        kit::connection_warning(&ws.conn),
-        ws.render_hook_banner(cx),
-        board.into_any_element(),
-        ws.render_toasts(cx).into_any_element(),
-    )
 }
 
 // ───────────────────────────── fixture ─────────────────────────────

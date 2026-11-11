@@ -187,8 +187,8 @@ fn empty_workspace_has_one_contextual_action() {
     });
     assert!(connected && repos == 1 && tasks == 0);
     assert_eq!(
-        crate::workspace::EmptyState::of(connected, repos == 0 && tasks == 0, tasks == 0),
-        crate::workspace::EmptyState::NoTask
+        crate::layouts::workbench::EmptyState::of(connected, repos == 0 && tasks == 0, tasks == 0),
+        crate::layouts::workbench::EmptyState::NoTask
     );
 }
 

@@ -43,10 +43,8 @@ pub use dock::{
 };
 pub(crate) use notifications::Toast;
 pub use notifications::ToastKind;
-// Named by the QA modules (`ui_review_qa`, `native_qa`) at their old path.
-#[cfg(test)]
-pub(crate) use shell::EmptyState;
 pub use sidebar::Sidebar;
+// Named by the QA modules (`ui_review_qa`, `native_qa`) at their old path.
 #[cfg(test)]
 pub(crate) use status_bar::StatusPlan;
 

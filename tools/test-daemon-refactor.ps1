@@ -68,6 +68,7 @@ $targetDir = if ($env:CARGO_TARGET_DIR) { $env:CARGO_TARGET_DIR } else { Join-Pa
 $profileName = if ($Release) { 'release' } else { 'debug' }
 $profileDir = Join-Path $targetDir $profileName
 $profileArgs = if ($Release) { @('--release') } else { @() }
+$exeIndex = Join-Path $profileDir 'podd-test-exes.json'
 
 function Wait-Resources {
   & (Join-Path $PSScriptRoot 'cpu-gate.ps1') -MaxPct $MaxCpu -MaxCargo 1
@@ -98,12 +99,17 @@ if (-not $SkipBuild) {
       }
     }
   } finally { Pop-Location }
+  # Remember which exe is podd's for each target: other crates can have a
+  # test target of the same name (pod-cli has refactor_acceptance too).
+  $known = @{}
+  if (Test-Path $exeIndex) { (Get-Content $exeIndex -Raw | ConvertFrom-Json).PSObject.Properties | ForEach-Object { $known[$_.Name] = $_.Value } }
+  foreach ($k in $exes.Keys) { $known[$k] = $exes[$k] }
+  $known | ConvertTo-Json | Set-Content $exeIndex -Encoding utf8
 } else {
-  foreach ($t in $Test) {
-    $found = Get-ChildItem (Join-Path $profileDir 'deps') -Filter "$t-*.exe" -ErrorAction SilentlyContinue |
-      Where-Object { $_.BaseName -match "^$([regex]::Escape($t))-[0-9a-f]{16}$" } |
-      Sort-Object LastWriteTime -Descending | Select-Object -First 1
-    if ($found) { $exes[$t] = $found.FullName }
+  # podd's own exes as recorded by the last build; never guess by file name.
+  if (Test-Path $exeIndex) {
+    $known = Get-Content $exeIndex -Raw | ConvertFrom-Json
+    foreach ($t in $Test) { $p = $known.$t; if ($p -and (Test-Path $p)) { $exes[$t] = $p } }
   }
 }
 

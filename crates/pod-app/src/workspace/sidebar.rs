@@ -223,7 +223,7 @@ impl SidebarItem {
 
 pub struct Sidebar {
     ws: WeakEntity<Workspace>,
-    focus: FocusHandle,
+    pub(super) focus: FocusHandle,
     pub(crate) selected: Option<String>,
     scroll: UniformListScrollHandle,
     filter: Entity<InputState>,
