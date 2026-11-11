@@ -694,8 +694,8 @@ fn daemon_flow_matches_the_baseline() {
             name: Some("demo".into()),
         },
     );
-    let task = f.step::<TaskCreate>(
-        "task.create",
+    let task = call::<TaskCreate>(
+        &mut f.c(),
         &TaskCreateParams {
             repo: "demo".into(),
             name: "coord".into(),
@@ -705,6 +705,17 @@ fn daemon_flow_matches_the_baseline() {
             ..Default::default()
         },
     );
+    // The live agent status in the create result races the agent's first
+    // OSC report (unknown on a slow CI runner, idle here); the idle state is
+    // pinned by the status.wait step below, so it is masked here.
+    let mut shown = task.clone();
+    shown["status"] = json!("<live>");
+    if let Some(ts) = shown["terminals"].as_array_mut() {
+        for t in ts {
+            t["info"]["status"] = json!("<live>");
+        }
+    }
+    f.rec("task.create", &shown);
     let coord = task["terminals"][0]["id"].as_str().unwrap().to_string();
     until("coordinator agent", 30, || {
         f.dir("coord").exists().then_some(())
@@ -1117,7 +1128,7 @@ unknown "": -32601 unknown method ""
 
 const FLOW_GOLDEN: &str = r##"
 repo.add {"added_ms":"<n>","default_base":"main","name":"demo","path":"<ROOT>\\pod repo","tasks":0}
-task.create {"agent":{"argv":["<BIN>\\examples/fake-agent.exe","orch-loop:<ROOT>\\agents"]},"agent_terminal":"t1","base":"main","base_commit":"<sha>","branch":"pod/coord","created_ms":"<n>","git":{"ahead":0,"behind":0,"branch":"pod/coord","dirty":0,"head":"<sha>","last_commit":{"author":"Pod Test","sha":"<sha>","summary":"init","time_ms":"<n>"},"unpushed":0},"id":"demo/coord","lifecycle":"active","name":"coord","repo":"demo","status":{"badge":"idle","state":"idle","terminal":"t1","terminals":1},"terminals":[{"id":"t1","info":{"argv":["<BIN>\\examples/fake-agent.exe","orch-loop:<ROOT>\\agents"],"attached":0,"cols":120,"conpty":"bundled:<BIN>\\conpty.dll","created_ms":"<n>","cwd":"<ROOT>\\state\\work trees\\demo\\coord","holder_pid":"<n>","id":"t1","killed":false,"lost":false,"name":"demo/coord","pid":"<n>","rows":30,"state":"running","status":{"badge":"idle","blocked_children":0,"confidence":0.8999999761581421,"hooks_accepted":0,"hooks_rejected":0,"records":0,"running_children":0,"since":"<n>","source":"osc","state":"idle","turn":"<n>"}}}],"worktree":"<ROOT>\\state\\work trees\\demo\\coord","worktree_exists":true}
+task.create {"agent":{"argv":["<BIN>\\examples/fake-agent.exe","orch-loop:<ROOT>\\agents"]},"agent_terminal":"t1","base":"main","base_commit":"<sha>","branch":"pod/coord","created_ms":"<n>","git":{"ahead":0,"behind":0,"branch":"pod/coord","dirty":0,"head":"<sha>","last_commit":{"author":"Pod Test","sha":"<sha>","summary":"init","time_ms":"<n>"},"unpushed":0},"id":"demo/coord","lifecycle":"active","name":"coord","repo":"demo","status":"<live>","terminals":[{"id":"t1","info":{"argv":["<BIN>\\examples/fake-agent.exe","orch-loop:<ROOT>\\agents"],"attached":0,"cols":120,"conpty":"bundled:<BIN>\\conpty.dll","created_ms":"<n>","cwd":"<ROOT>\\state\\work trees\\demo\\coord","holder_pid":"<n>","id":"t1","killed":false,"lost":false,"name":"demo/coord","pid":"<n>","rows":30,"state":"running","status":"<live>"}}],"worktree":"<ROOT>\\state\\work trees\\demo\\coord","worktree_exists":true}
 status.wait coord idle "matched"
 terminal.send {"bytes":17,"id":"t1","submit":{"entered_ms":"<n>","enters":1,"state":"unverifiable"}}
 terminal.wait outcome "matched"
