@@ -198,7 +198,7 @@ pod-hook install --dry-run [--agent claude|codex|all] [--home DIR | --claude-con
 
 ## 8. podd 연동 (P1 완료, 브랜치 `SJin-Choi/status-integration`)
 
-코드: `crates/podd/src/server/status.rs`(엔진 연결·훅·RPC), `src/status_protocol.rs`(와이어 타입, `protocol`에서 재수출), `src/osc_replay.rs`(스냅샷 재생), `crates/pod-cli/src/status.rs`(CLI). 공유 파일(`protocol.rs`, `server/mod.rs`, `server/tasks.rs`, `terminal.rs`, `vt.rs`, CLI `main.rs`)에는 몇 줄씩만 추가했다. 프로토콜 버전은 **4**다(v3 = P3 태스크, v4 = v3 + 상태 메서드).
+코드: `crates/podd/src/server/status.rs` + `status/{hub,ingest,stream}.rs`(엔진 연결·훅 수신·구독 스트림), `crates/pod-protocol/src/status_protocol.rs`(와이어 타입, podd가 옛 경로로 재수출), `src/osc_replay.rs`(스냅샷 재생), `crates/pod-cli/src/status.rs`(CLI). 공유 파일(`protocol.rs`, `server/mod.rs`, `server/tasks.rs`, `terminal.rs`, `vt.rs`, CLI `main.rs`)에는 몇 줄씩만 추가했다. 프로토콜 버전은 **4**다(v3 = P3 태스크, v4 = v3 + 상태 메서드).
 
 ### 8.1 입력 배선
 

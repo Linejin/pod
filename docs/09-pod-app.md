@@ -52,7 +52,7 @@ tools/review-demo.ps1  리뷰 데모 데이터(저장소 revdemo, fake-agent Tas
 tools/orch-demo.ps1    오케스트레이션 데모 데이터(저장소 orchdemo, OSC 상태를 보고하는 셸 멤버 스크립트, lead Task 안에서 만든 하위 그룹)
 ```
 
-의존성: gpui-kit 0.9, pod-terminal-view, pod-diff(§7), podd(`default-features = false`: 프로토콜 타입 + 블로킹 클라이언트만), futures, serde/serde_json, windows-sys(CancelIoEx). 모두 Apache/MIT. pod-terminal-view·podd·pod-cli·pod-spike는 고치지 않았다.
+의존성: gpui-kit 0.9, pod-terminal-view, pod-diff(§7), podd(= `pod-client` 별칭: 프로토콜 타입 + 블로킹 클라이언트만, docs/20-refactor D-T1), futures, serde/serde_json, windows-sys(CancelIoEx). 모두 Apache/MIT. pod-terminal-view·podd·pod-cli·pod-spike는 고치지 않았다.
 
 ### 2.1 데이터 소스 (`source.rs`)
 

@@ -6,11 +6,11 @@
 mod common;
 
 use std::path::{Path, PathBuf};
-use std::process::Command;
 use std::sync::mpsc;
 use std::time::{Duration, Instant};
 
 use common::*;
+use pod_test_support::git::git_ok;
 use podd::client::SubscribeEvent;
 use podd::protocol::*;
 
@@ -27,20 +27,6 @@ fn copy_dir(from: &Path, to: &Path) {
             std::fs::copy(e.path(), t).unwrap();
         }
     }
-}
-
-fn git(dir: &Path, args: &[&str]) {
-    let out = Command::new("git")
-        .arg("-C")
-        .arg(dir)
-        .args(args)
-        .output()
-        .expect("git");
-    assert!(
-        out.status.success(),
-        "git {args:?}: {}",
-        String::from_utf8_lossy(&out.stderr)
-    );
 }
 
 fn json_str(s: &str) -> String {
@@ -98,7 +84,7 @@ fn discovery_end_to_end() {
     let repo = scratch.join("live repo");
     let work = repo.join("sub dir");
     std::fs::create_dir_all(&work).unwrap();
-    git(&repo, &["init", "-q", "-b", "main"]);
+    git_ok(&repo, &["init", "-q", "-b", "main"]);
     let store = scratch.join("stores");
     stores(&store, &work);
     // Fake agent: prints its arguments, never a real Claude/Codex.
@@ -310,7 +296,7 @@ fn discovery_end_to_end() {
     // A session that ran at the root of a Pod task worktree resumes the way
     // `task.resume` does: the task's agent terminal, session recorded on the
     // task (source "discovery"). Fake `claude.cmd` on the task's PATH.
-    git(
+    git_ok(
         &repo,
         &[
             "-c",

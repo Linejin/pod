@@ -11,7 +11,7 @@ use std::path::Path;
 use std::process::Command;
 use std::time::Duration;
 
-use crate::bounded::{self, End, Keep};
+use pod_process::bounded::{self, End, Keep};
 
 /// After the process exits, how long its output pipes may stay open. A
 /// grandchild that inherited them (a credential helper, `start /b`) would
@@ -98,19 +98,6 @@ pub const ENV_GIT: &str = "POD_GIT";
 
 const CREATE_NO_WINDOW: u32 = 0x0800_0000;
 
-/// Variables that would point git somewhere other than the worktree.
-const GIT_ENV_OVERRIDES: &[&str] = &[
-    "GIT_DIR",
-    "GIT_WORK_TREE",
-    "GIT_INDEX_FILE",
-    "GIT_COMMON_DIR",
-    "GIT_OBJECT_DIRECTORY",
-    "GIT_ALTERNATE_OBJECT_DIRECTORIES",
-    "GIT_NAMESPACE",
-    "GIT_CEILING_DIRECTORIES",
-    "GIT_PREFIX",
-];
-
 #[derive(Debug, Clone, Default)]
 pub struct ProcessRunner;
 
@@ -140,9 +127,8 @@ impl ProcessRunner {
             .env("NO_COLOR", "1")
             .env("CLICOLOR", "0")
             .env("LC_ALL", "C");
-        for v in GIT_ENV_OVERRIDES {
-            cmd.env_remove(v);
-        }
+        // Variables that would point git somewhere other than the worktree.
+        pod_process::git::clear_overrides(&mut cmd);
         #[cfg(windows)]
         {
             use std::os::windows::process::CommandExt;
@@ -221,6 +207,69 @@ mod tests {
 
     fn here() -> std::path::PathBuf {
         std::env::temp_dir()
+    }
+
+    /// The argv, working folder and environment edits of a git and a gh
+    /// child, fixed before the git environment cleanup moved to
+    /// `pod_process::git` (refactor L1).
+    #[test]
+    fn command_line_and_environment_are_fixed() {
+        let dir = Path::new(r"C:\fixture\repo");
+        let gone = |k: &str| -> (String, Option<String>) { (k.into(), None) };
+        let set = |k: &str, v: &str| -> (String, Option<String>) { (k.into(), Some(v.into())) };
+        let env = [
+            set("CLICOLOR", "0"),
+            set("GCM_INTERACTIVE", "never"),
+            set("GH_NO_UPDATE_NOTIFIER", "1"),
+            set("GH_PROMPT_DISABLED", "1"),
+            set("GH_SPINNER_DISABLED", "1"),
+            gone("GIT_ALTERNATE_OBJECT_DIRECTORIES"),
+            gone("GIT_CEILING_DIRECTORIES"),
+            gone("GIT_COMMON_DIR"),
+            gone("GIT_DIR"),
+            gone("GIT_INDEX_FILE"),
+            gone("GIT_NAMESPACE"),
+            gone("GIT_OBJECT_DIRECTORY"),
+            gone("GIT_PREFIX"),
+            set("GIT_TERMINAL_PROMPT", "0"),
+            gone("GIT_WORK_TREE"),
+            set("LC_ALL", "C"),
+            set("NO_COLOR", "1"),
+        ];
+        let check = |program: &str, var: &str, args: &[&str], argv: &[&str]| {
+            let inv = Invocation::new(program, args, Duration::from_secs(5));
+            let cmd = ProcessRunner.command(dir, &inv);
+            let exe = std::env::var_os(var).unwrap_or_else(|| program.into());
+            assert_eq!(cmd.get_program(), exe.as_os_str());
+            let got: Vec<_> = cmd.get_args().map(|a| a.to_string_lossy()).collect();
+            assert_eq!(got, argv, "{program}");
+            assert_eq!(cmd.get_current_dir(), Some(dir), "{program}");
+            let mut got: Vec<(String, Option<String>)> = cmd
+                .get_envs()
+                .map(|(k, v)| {
+                    let v = v.map(|v| v.to_string_lossy().into_owned());
+                    (k.to_string_lossy().into_owned(), v)
+                })
+                .collect();
+            got.sort();
+            assert_eq!(got, env, "{program}");
+        };
+        check(
+            "git",
+            ENV_GIT,
+            &["status", "--porcelain"],
+            &[
+                "-C",
+                r"C:\fixture\repo",
+                "-c",
+                "core.longpaths=true",
+                "-c",
+                "core.quotepath=false",
+                "status",
+                "--porcelain",
+            ],
+        );
+        check("gh", ENV_GH, &["pr", "view"], &["pr", "view"]);
     }
 
     #[test]

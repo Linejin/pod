@@ -19,7 +19,12 @@ crates/podd/                 lib + bin "podd" + bin "pod-holder"
   src/env.rs                 터미널 환경 정리(런처 표식 제거)
   src/keys.rs                키 이름 → 바이트
   ── feature "server" ──
-  src/server/mod.rs          데몬: 레지스트리, RPC 처리, attach 스트리밍, holder 재발견
+  src/server/mod.rs          데몬 상태(레지스트리)와 하위 모듈 목록
+  src/server/runtime.rs      서버 시작·종료, 파이프 수락
+  src/server/connection.rs   연결 하나: 요청 읽기, attach·구독 스트리밍
+  src/server/rpc.rs          메서드 → 처리기 연결(dispatch)
+  src/server/terminal_ops.rs 터미널 run/rm/send 등
+  src/server/rediscover.rs   holder 재발견
   src/server/terminal.rs     데몬 쪽 터미널 = holder 연결 + VT 미러
   src/orch_run_protocol.rs   (v16) `orch.*` 타입(기록은 `crates/pod-orch`)
   src/server/orch_runs.rs    (v16) 오케스트레이션: 워커 시작·우편·깨우기·감독 → docs/19 §13
@@ -41,7 +46,7 @@ tools/fetch-conpty.ps1       Microsoft ConPTY NuGet 패키지 받기(버전·SHA
 deny.toml                    cargo-deny 라이선스/출처 정책
 ```
 
-CLI가 별도 크레이트인 이유는 v1과 같다. `pod-cli`는 `podd = { default-features = false }`로 프로토콜 타입과 클라이언트만 쓴다(tokio·alacritty 의존 없음).
+CLI가 별도 크레이트인 이유는 v1과 같다. `pod-cli`는 `podd = { package = "pod-client" }`로 프로토콜 타입과 블로킹 클라이언트만 쓴다(tokio·alacritty·데몬 코드 의존 없음, docs/20-refactor D-T1).
 
 ## 2. 프로세스 모델
 
@@ -192,7 +197,7 @@ v7 추가(모두 선택 필드, 프로토콜 번호 7): `parent_terminal`은 이
 - `task.removing {seq, id, worktree, force, grace_ms}`: `task.remove`가 검사(dirty/unpushed)를 통과하고 터미널을 죽이고 워크트리를 지우기 **직전**. 편집기는 그 워크트리의 파일을 저장하거나 닫는다. lifecycle 구독자가 있으면 데몬이 `grace_ms`(기본 300 ms, `POD_TASK_REMOVE_GRACE_MS`, 최대 10 s, 구독자가 없으면 0) 기다린 뒤, force가 아니면 **다시 검사한다**: 편집기가 그 사이 저장해서 dirty가 되면 `TASK_DIRTY`로 멈추고 워크트리는 남는다(이후 `removed`는 오지 않는다). `TaskRemoveParams`에는 필드를 더하지 않았다(pod-app이 구조체를 직접 만든다).
 - `task.touch {task, paths?}` → `{task, git?, git_error?, git_changed}`: 클라이언트가 워크트리에 파일을 저장했다고 알린다. 데몬은 git 사실을 바로 다시 계산하고(바뀌었으면 `task.changed git`), 이어서 `task.changed touched`를 보낸다. CLI: `pod task touch <task> [paths…]`.
 - Rust 클라이언트: `podd::client::SubscribeEvent::{Terminal, Task, TaskRemoving}`(enum은 `non_exhaustive`).
-- 코드: `server/lifecycle.rs`(태스크별 마지막 상태·git 값과 워커), 발행 지점은 `server/mod.rs`(run/rm), `server/terminal.rs`(종료), `server/tasks.rs`(create/remove/터미널 목록).
+- 코드: `server/lifecycle.rs`(태스크별 마지막 상태·git 값과 워커), 발행 지점은 `server/terminal_ops.rs`(run/rm), `server/terminal.rs`(종료), `server/tasks.rs`(create/remove/터미널 목록).
 - 테스트: `tests/lifecycle.rs::lifecycle_events_and_task_touch`(실제 podd/holder, 임시 git 저장소: 터미널 created→exited(코드 3)→removed와 seq 증가, task created(TaskInfo 포함), 파일 저장 + `task.touch` → `git_changed`, `git`(dirty 1) 다음 `touched`(paths), 변화 없는 touch는 `touched`만, Pod 밖 커밋은 폴링으로 `git`(ahead 1, dirty 0), 태스크 안 `terminal.run` → `terminals`, `task.removing` 뒤 grace 동안 저장 → `TASK_DIRTY`이고 파일 유지, force 삭제 → `removing`·터미널 `removed`·task `removed`, `lifecycle` 없는 구독자는 새 알림을 하나도 받지 않음), `lifecycle::tests`(git 기준값·변화, 상태 변화 판정).
 
 **pod-app이 폴링을 줄이는 방법(pod-app 후속, 이번 작업에서 pod-app은 고치지 않음)**: 지금 pod-app은 0.5 s마다 `terminal.list`, 3 s마다 `task.list`(git 계산 포함)를 부른다. (1) 상태 연결의 `status.subscribe`에 `lifecycle: true`를 더하고 `SubscribeEvent::Terminal/Task/TaskRemoving`을 처리한다. (2) 시작할 때와 `status.lagged`·재연결·`epoch` 변화 때만 `terminal.list`/`task.list`를 부르고, 이후는 이벤트로 모델을 고친다(`terminal.changed`의 `terminal`, `task.changed created`의 `task`, `status`/`git`/`terminals` 필드). 안전망으로 목록 폴링을 30–60 s로 늘려 남겨도 된다. (3) 편집기가 저장하면 `task.touch {task, paths}`를 부르고, 리뷰·diff 패널은 `touched`/`git`에서 `task.diff`를 다시 부른다. (4) `task.removing`을 받으면 그 워크트리의 편집기 버퍼를 저장/닫고 LSP를 멈춘다(앱 자신의 삭제 대화는 그대로). (5) 앱의 `ReplyFilter`(500 ms)는 데몬 쪽 차단과 겹쳐도 해가 없다. 붙은 패널이 여럿이어도 색 응답은 데몬이 하나만 통과시킨다. (6) `SendResult.dropped_replies`는 진단용(무시해도 됨).

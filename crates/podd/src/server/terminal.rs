@@ -738,7 +738,7 @@ impl Terminal {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::transport::sqos_probe::{IDENTIFICATION, pipe_name, serve_once};
+    use sqos_probe::{IDENTIFICATION, pipe_name, serve_once};
     use std::time::Instant;
     use tokio::net::windows::named_pipe::ServerOptions;
 
@@ -876,5 +876,81 @@ mod tests {
         assert!(timed_out(r), "a silent holder must time out");
         assert!(t0.elapsed() < Duration::from_secs(3), "{:?}", t0.elapsed());
         hold.abort();
+    }
+
+    /// Test support for security-01: a fake pipe server that reports how far
+    /// its client lets it impersonate (the same probe as pod-client's own
+    /// transport tests).
+    mod sqos_probe {
+        use windows_sys::Win32::Foundation::{CloseHandle, HANDLE, INVALID_HANDLE_VALUE};
+        use windows_sys::Win32::Security::{
+            GetTokenInformation, RevertToSelf, TOKEN_QUERY, TokenImpersonationLevel,
+        };
+        use windows_sys::Win32::Storage::FileSystem::{PIPE_ACCESS_DUPLEX, ReadFile};
+        use windows_sys::Win32::System::Pipes::{
+            ConnectNamedPipe, CreateNamedPipeW, ImpersonateNamedPipeClient, PIPE_READMODE_BYTE,
+            PIPE_TYPE_BYTE, PIPE_WAIT,
+        };
+        use windows_sys::Win32::System::Threading::{GetCurrentThread, OpenThreadToken};
+
+        /// `SecurityIdentification` (`SECURITY_IMPERSONATION_LEVEL`).
+        pub const IDENTIFICATION: i32 = 1;
+
+        /// Serve `name` once: wait for a client, read one byte, impersonate it and
+        /// return the impersonation level of the token we got (`-1` if none).
+        pub fn serve_once(name: &str) -> std::thread::JoinHandle<i32> {
+            let wide: Vec<u16> = name.encode_utf16().chain(Some(0)).collect();
+            // SAFETY: `wide` is NUL-terminated; default security.
+            let h = unsafe {
+                CreateNamedPipeW(
+                    wide.as_ptr(),
+                    PIPE_ACCESS_DUPLEX,
+                    PIPE_TYPE_BYTE | PIPE_READMODE_BYTE | PIPE_WAIT,
+                    1,
+                    4096,
+                    4096,
+                    0,
+                    std::ptr::null(),
+                )
+            };
+            assert_ne!(h, INVALID_HANDLE_VALUE, "CreateNamedPipeW");
+            let h = h as usize;
+            std::thread::spawn(move || {
+                let h = h as HANDLE;
+                let mut level = -1i32;
+                // SAFETY: plain Win32 calls on handles owned by this thread.
+                unsafe {
+                    ConnectNamedPipe(h, std::ptr::null_mut());
+                    let mut b = [0u8; 1];
+                    let mut n = 0u32;
+                    ReadFile(h, b.as_mut_ptr(), 1, &mut n, std::ptr::null_mut());
+                    if ImpersonateNamedPipeClient(h) != 0 {
+                        let mut tok: HANDLE = std::ptr::null_mut();
+                        if OpenThreadToken(GetCurrentThread(), TOKEN_QUERY, 1, &mut tok) != 0 {
+                            let mut len = 0u32;
+                            GetTokenInformation(
+                                tok,
+                                TokenImpersonationLevel,
+                                (&mut level as *mut i32).cast(),
+                                4,
+                                &mut len,
+                            );
+                            CloseHandle(tok);
+                        }
+                        RevertToSelf();
+                    }
+                    CloseHandle(h);
+                }
+                level
+            })
+        }
+
+        pub fn pipe_name(tag: &str) -> String {
+            let nanos = std::time::SystemTime::now()
+                .duration_since(std::time::UNIX_EPOCH)
+                .unwrap()
+                .as_nanos();
+            format!(r"\\.\pipe\pod-sqos-{tag}-{}-{nanos}", std::process::id())
+        }
     }
 }

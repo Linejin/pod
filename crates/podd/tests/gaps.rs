@@ -5,8 +5,6 @@
 //! are pipes served by this test.
 
 mod common;
-#[path = "../../../tools/test-support/require_tools.rs"]
-mod require_tools;
 
 use std::io::Write as _;
 
@@ -15,6 +13,7 @@ use std::sync::{Arc, Mutex, mpsc};
 use std::time::{Duration, Instant};
 
 use common::*;
+use pod_test_support::tools;
 use podd::client::{AttachEvent, Client};
 use podd::holder_proto::{ExitInfo, Frame, HolderRecord, read_frame};
 use podd::protocol::*;
@@ -521,7 +520,7 @@ fn attach_query_replies_are_not_duplicated() {
         assert_eq!(r.bytes, 25, "first color reply passes");
         assert_eq!(r.dropped_replies, None);
     } else {
-        require_tools::missing("OSC 11 query on the attach stream (bundled ConPTY)");
+        tools::missing("OSC 11 query on the attach stream (bundled ConPTY)");
     }
     let r = input(&mut c, b"a\x1b[?1;2;98cb\x1b]11;rgb:9/9/9\x07");
     assert_eq!(r.bytes, 2, "stray DA1 and color replies are dropped");

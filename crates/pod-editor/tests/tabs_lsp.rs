@@ -8,11 +8,12 @@
 use std::cell::RefCell;
 use std::path::{Path, PathBuf};
 use std::sync::Arc;
-use std::time::{Duration, Instant};
+use std::time::Duration;
 
 use ::gpui::{TestAppContext, TestDispatcher, VisualTestContext};
 use gpui_kit::*;
 use pod_editor::EditorWorkspace;
+use pod_test_support::wait::until;
 
 thread_local! {
     static TEXT_SYSTEM: Arc<dyn PlatformTextSystem> = gpui_kit::platform::current_platform(false).text_system();
@@ -73,17 +74,17 @@ impl Harness {
         self.cx.run_until_parked();
     }
 
-    /// Runs the scheduler until `done` holds (the server answers on its own threads).
-    fn wait(&mut self, what: &str, mut done: impl FnMut() -> bool) {
-        let end = Instant::now() + Duration::from_secs(30);
-        while Instant::now() < end {
-            self.cx.run_until_parked();
-            if done() {
-                return;
-            }
-            std::thread::sleep(Duration::from_millis(20));
+    /// Runs the scheduler until `probe` holds (the server answers on its own
+    /// threads): every poll pumps GPUI first. A timeout shows the last probe.
+    fn wait<O: std::fmt::Debug>(&mut self, what: &str, mut probe: impl FnMut() -> Result<(), O>) {
+        let cx = &mut self.cx;
+        let ready = until(Duration::from_secs(30), Duration::from_millis(20), || {
+            cx.run_until_parked();
+            probe()
+        });
+        if let Err(e) = ready {
+            panic!("waiting for {what}: {e}");
         }
-        panic!("timed out waiting for {what}");
     }
 
     fn tabs(&mut self) -> Vec<(String, bool)> {
@@ -124,6 +125,20 @@ fn counts(log: &Path, name: &str) -> (usize, usize) {
             .count()
     };
     (of("didOpen "), of("didClose "))
+}
+
+/// `(didOpen, didClose)` counts by file name.
+type Counts<'a> = Vec<(&'a str, (usize, usize))>;
+
+/// `Ok` when each file's `(didOpen, didClose)` counts are as given,
+/// otherwise the counts the log shows.
+fn logged<'a>(log: &Path, want: &[(&'a str, (usize, usize))]) -> Result<(), Counts<'a>> {
+    let seen: Vec<_> = want.iter().map(|&(n, _)| (n, counts(log, n))).collect();
+    if seen.as_slice() == want {
+        Ok(())
+    } else {
+        Err(seen)
+    }
 }
 
 fn worktree() -> (tempfile::TempDir, PathBuf, PathBuf) {
@@ -180,14 +195,14 @@ fn tabs_open_and_close_server_documents_exactly_once() {
     // Single click / quick open: preview tab, and the server starts.
     h.with(|e, w, cx| e.preview_file(&src.join("a.rs"), w, cx))
         .unwrap();
-    h.wait("didOpen a.rs", || counts(&log, "a.rs") == (1, 0));
+    h.wait("didOpen a.rs", || logged(&log, &[("a.rs", (1, 0))]));
     assert_eq!(h.tabs(), [("a.rs".to_string(), true)]);
 
     // Another preview replaces it in place: didClose a, didOpen b.
     h.with(|e, w, cx| e.preview_file(&src.join("b.rs"), w, cx))
         .unwrap();
     h.wait("preview replaced", || {
-        counts(&log, "a.rs") == (1, 1) && counts(&log, "b.rs") == (1, 0)
+        logged(&log, &[("a.rs", (1, 1)), ("b.rs", (1, 0))])
     });
     assert_eq!(h.tabs(), [("b.rs".to_string(), true)]);
 
@@ -196,7 +211,7 @@ fn tabs_open_and_close_server_documents_exactly_once() {
         .unwrap();
     h.with(|e, w, cx| e.open_file(&src.join("b.rs"), w, cx))
         .unwrap();
-    h.wait("didOpen c.rs", || counts(&log, "c.rs") == (1, 0));
+    h.wait("didOpen c.rs", || logged(&log, &[("c.rs", (1, 0))]));
     assert_eq!(
         h.tabs(),
         [("b.rs".to_string(), false), ("c.rs".to_string(), false)]
@@ -214,9 +229,9 @@ fn tabs_open_and_close_server_documents_exactly_once() {
         ]
     );
     h.with(|e, w, cx| e.close_active(w, cx));
-    h.wait("didClose a.rs (2)", || counts(&log, "a.rs") == (2, 2));
+    h.wait("didClose a.rs (2)", || logged(&log, &[("a.rs", (2, 2))]));
     assert!(h.with(|e, w, cx| e.reopen_closed(w, cx)));
-    h.wait("didOpen a.rs (3)", || counts(&log, "a.rs") == (3, 2));
+    h.wait("didOpen a.rs (3)", || logged(&log, &[("a.rs", (3, 2))]));
     assert_eq!(
         h.tabs(),
         [
@@ -229,7 +244,7 @@ fn tabs_open_and_close_server_documents_exactly_once() {
 
     // Host close (task removal path): didClose c.
     h.with(|e, w, cx| e.close_path(&src.join("c.rs"), true, w, cx));
-    h.wait("didClose c.rs", || counts(&log, "c.rs") == (1, 1));
+    h.wait("didClose c.rs", || logged(&log, &[("c.rs", (1, 1))]));
     assert!(
         h.with(|e, _, _| e.closed_paths().iter().all(|p| !p.ends_with("c.rs"))),
         "host closes are not offered by Ctrl+Shift+T"
@@ -311,6 +326,6 @@ fn restored_background_tabs_open_on_the_server_only_when_shown() {
             .map(|p| p.file_name().unwrap().to_string_lossy().into_owned())
     });
     assert_eq!(active.as_deref(), Some("c.rs"), "saved MRU order: b, c, a");
-    h.wait("didOpen c.rs", || counts(&log, "c.rs") == (1, 0));
+    h.wait("didOpen c.rs", || logged(&log, &[("c.rs", (1, 0))]));
     assert_eq!(counts(&log, "a.rs"), (0, 0), "a was never shown");
 }

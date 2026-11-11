@@ -1,20 +1,22 @@
 //! LSP process lifecycle against the scripted fake server
-//! (`pod-editor-fake-lsp`) and, when installed, a real rust-analyzer.
+//! (`pod-editor-fake-lsp`) and, when installed, a real rust-analyzer; and
+//! the JSON the store sends a server, compared with a golden.
 
-#[path = "../../../tools/test-support/require_tools.rs"]
-mod require_tools;
-
+use std::cell::RefCell;
 use std::path::{Path, PathBuf};
+use std::rc::Rc;
 use std::time::{Duration, Instant};
 
+use ::gpui::{AppContext as _, Entity, Task, TestAppContext};
 use futures::channel::mpsc::{UnboundedReceiver, unbounded};
 use lsp_types as lt;
-use pod_editor::lsp::ServerConfig;
 use pod_editor::lsp::registry::{Availability, ServerRegistry, check_available, which};
 use pod_editor::lsp::rpc::SERVER_GONE;
 use pod_editor::lsp::server::{ServerEvent, ServerProcess, initialize};
+use pod_editor::lsp::{FileEdit, LspStore, LspStoreEvent, ServerConfig, ServerState};
 use pod_editor::text::{self, PosEncoding};
 use pod_editor::uri::{path_to_uri_string, uri_str_to_path};
+use pod_test_support::{tools, wait::until};
 use serde_json::{Value, json};
 
 fn fake_cfg(args: &[&str]) -> (PathBuf, ServerConfig) {
@@ -195,24 +197,23 @@ fn dropping_a_server_kills_its_process_tree() {
     let (exe, cfg) = fake_cfg(&["--child-pid-file", pid_file.to_str().unwrap()]);
     let (tx, _rx) = unbounded();
     let p = ServerProcess::spawn(&exe, &cfg, dir.path(), tx, 1).unwrap();
-    let t = Instant::now();
-    while !pid_file.exists() && t.elapsed() < Duration::from_secs(10) {
-        std::thread::sleep(Duration::from_millis(50));
-    }
-    std::thread::sleep(Duration::from_millis(200));
-    let pid: u32 = std::fs::read_to_string(&pid_file)
-        .unwrap()
-        .trim()
-        .parse()
-        .unwrap();
-    assert!(pid_alive(pid), "grandchild started");
-    assert!(p.tree.active_processes() >= 2);
+    // The file may exist before its pid is written, and the grandchild may
+    // not be in the job yet: wait for a parsed, live pid inside the tree.
+    let pid = until(Duration::from_secs(10), Duration::from_millis(50), || {
+        let text = std::fs::read_to_string(&pid_file).unwrap_or_default();
+        let pid: Option<u32> = text.trim().parse().ok();
+        let active = p.tree.active_processes();
+        match pid {
+            Some(pid) if pid_alive(pid) && active >= 2 => Ok(pid),
+            _ => Err((text, active)),
+        }
+    })
+    .unwrap_or_else(|e| panic!("grandchild in the tree: {e}"));
     drop(p);
-    let t = Instant::now();
-    while pid_alive(pid) && t.elapsed() < Duration::from_secs(10) {
-        std::thread::sleep(Duration::from_millis(100));
-    }
-    assert!(!pid_alive(pid), "grandchild {pid} must die with the job");
+    let gone = until(Duration::from_secs(10), Duration::from_millis(100), || {
+        if pid_alive(pid) { Err(pid) } else { Ok(()) }
+    });
+    assert!(gone.is_ok(), "grandchild {pid} must die with the job");
 }
 
 #[test]
@@ -232,7 +233,7 @@ fn ra_available() -> Option<PathBuf> {
     match check_available(&cfg) {
         Availability::Installed(p) => Some(p),
         Availability::Missing(m) => {
-            require_tools::missing(&format!("rust-analyzer ({m})"));
+            tools::missing(&format!("rust-analyzer ({m})"));
             None
         }
     }
@@ -613,3 +614,481 @@ fn rust_analyzer_code_actions() {
     block(p.shutdown(timer(3)));
     assert!(p.exited());
 }
+
+// ---- the store's JSON on the wire ---------------------------------------------
+
+/// `(event, state of the server of root/a.rs)` in emit order.
+type Seen = Rc<RefCell<Vec<(LspStoreEvent, Option<ServerState>)>>>;
+
+/// An [`LspStore`] on the GPUI test platform whose only server is the fake,
+/// recording what it receives (`--wire`). Applies every `workspace/applyEdit`.
+struct StoreHarness {
+    cx: TestAppContext,
+    store: Entity<LspStore>,
+    events: Seen,
+    /// Pump timers (restart backoff) while waiting.
+    advance_clock: bool,
+    root: PathBuf,
+    wire: PathBuf,
+    _dir: tempfile::TempDir,
+}
+
+impl StoreHarness {
+    fn new(args: &[&str], backoff_scale: f32) -> Self {
+        let dir = tempfile::tempdir().unwrap();
+        // Space and Hangul in the root: percent-encoded URIs on the wire.
+        let root = dir.path().join("wire 저장소");
+        std::fs::create_dir_all(&root).unwrap();
+        let root = pod_editor::uri::simplify(&root.canonicalize().unwrap());
+        let wire = dir.path().join("wire.jsonl");
+        let wire_arg = wire.to_string_lossy().into_owned();
+        let mut all = vec!["--wire", wire_arg.as_str()];
+        all.extend_from_slice(args);
+        let (_, cfg) = fake_cfg(&all);
+        let cx = TestAppContext::single();
+        let registry = ServerRegistry { servers: vec![cfg] };
+        let store = cx.update(|cx| {
+            cx.new(|_| {
+                let mut s = LspStore::with_registry(root.clone(), registry, vec![]);
+                s.backoff_scale = backoff_scale;
+                s
+            })
+        });
+        let events: Seen = Rc::default();
+        let seen = events.clone();
+        let a = root.join("a.rs");
+        cx.update(|cx| {
+            cx.subscribe(&store, move |st, ev: &LspStoreEvent, cx| {
+                if let LspStoreEvent::ApplyEdit { reply, .. } = ev {
+                    reply.send(true);
+                }
+                let state = st.read(cx).status_for(&a).map(|s| s.state);
+                seen.borrow_mut().push((ev.clone(), state));
+            })
+            .detach()
+        });
+        StoreHarness {
+            cx,
+            store,
+            events,
+            advance_clock: false,
+            root,
+            wire,
+            _dir: dir,
+        }
+    }
+
+    fn with<R>(&mut self, f: impl FnOnce(&mut LspStore, &mut ::gpui::Context<LspStore>) -> R) -> R {
+        let store = self.store.clone();
+        let r = self.cx.update(|cx| store.update(cx, f));
+        self.cx.run_until_parked();
+        r
+    }
+
+    fn read<R>(&self, f: impl FnOnce(&LspStore) -> R) -> R {
+        self.cx.read(|cx| f(self.store.read(cx)))
+    }
+
+    /// Runs GPUI until `probe` holds (the server answers on its own threads).
+    fn wait<T, O: std::fmt::Debug>(
+        &mut self,
+        what: &str,
+        mut probe: impl FnMut(&LspStore, &[String]) -> Result<T, O>,
+    ) -> T {
+        let (cx, store) = (&self.cx, &self.store);
+        let (wire, root, advance) = (&self.wire, &self.root, self.advance_clock);
+        until(Duration::from_secs(30), Duration::from_millis(20), || {
+            if advance {
+                cx.executor().advance_clock(Duration::from_secs(1));
+            }
+            cx.run_until_parked();
+            let lines = wire_lines(wire, root);
+            cx.read(|cx| probe(store.read(cx), &lines))
+        })
+        .unwrap_or_else(|e| panic!("waiting for {what}: {e}"))
+    }
+
+    /// The output of a store task, running GPUI until it is done.
+    fn resolve<T: 'static>(&mut self, what: &str, task: Task<T>) -> T {
+        let out: Rc<RefCell<Option<T>>> = Rc::default();
+        let put = out.clone();
+        self.cx
+            .foreground_executor()
+            .spawn(async move { *put.borrow_mut() = Some(task.await) })
+            .detach();
+        self.wait(what, |_, _| out.borrow_mut().take().ok_or("pending"))
+    }
+
+    fn state(&self, path: &Path) -> Option<ServerState> {
+        self.read(|s| s.status_for(path).map(|s| s.state))
+    }
+
+    fn wire(&self) -> Vec<String> {
+        wire_lines(&self.wire, &self.root)
+    }
+}
+
+impl Drop for StoreHarness {
+    fn drop(&mut self) {
+        self.with(|s, _| s.kill_all());
+        self.cx.update(|cx| cx.quit());
+        self.cx.run_until_parked();
+    }
+}
+
+/// The `--wire` file as canonical JSON lines: object keys sorted, the root
+/// spelled `ROOT`, `processId` 0, the client version and capabilities
+/// replaced (the capabilities are compared on their own). Without `exit`:
+/// the client kills the tree right after sending it, so the server may die
+/// before reading it.
+fn wire_lines(wire: &Path, root: &Path) -> Vec<String> {
+    let text = std::fs::read_to_string(wire).unwrap_or_default();
+    let uri = path_to_uri_string(root);
+    let path = root.to_string_lossy().into_owned();
+    // Complete lines only (the server may be writing the last one).
+    let done = text.rfind('\n').map_or("", |n| &text[..n]);
+    done.lines()
+        .map(|l| serde_json::from_str::<Value>(l).expect("wire line is JSON"))
+        .filter(|v| v["method"] != "exit")
+        .map(|mut v| {
+            if v["method"] == "initialize" {
+                let p = &mut v["params"];
+                p["processId"] = json!(0);
+                p["clientInfo"]["version"] = json!("<version>");
+                assert_eq!(
+                    p["capabilities"],
+                    pod_editor::lsp::server::client_capabilities()
+                );
+                p["capabilities"] = json!("<client capabilities>");
+            }
+            canonical(v, &uri, &path).to_string()
+        })
+        .collect()
+}
+
+fn canonical(v: Value, uri: &str, path: &str) -> Value {
+    match v {
+        Value::String(s) => Value::String(s.replace(uri, "file:///ROOT").replace(path, "ROOT")),
+        Value::Array(a) => a.into_iter().map(|x| canonical(x, uri, path)).collect(),
+        Value::Object(m) => {
+            let mut kv: Vec<(String, Value)> = m.into_iter().collect();
+            kv.sort_by(|a, b| a.0.cmp(&b.0));
+            Value::Object(
+                kv.into_iter()
+                    .map(|(k, x)| (k, canonical(x, uri, path)))
+                    .collect(),
+            )
+        }
+        other => other,
+    }
+}
+
+fn method_of(line: &str) -> String {
+    let v: Value = serde_json::from_str(line).unwrap();
+    v["method"].as_str().unwrap_or("(response)").to_string()
+}
+
+/// Compares line by line and shows the whole received wire on a mismatch.
+fn assert_wire(got: &[String], want: &str) {
+    let want: Vec<&str> = want.lines().filter(|l| !l.trim().is_empty()).collect();
+    for (n, (g, w)) in got.iter().zip(&want).enumerate() {
+        assert_eq!(g, w, "wire line {n}; received:\n{}", got.join("\n"));
+    }
+    assert_eq!(
+        got.len(),
+        want.len(),
+        "wire length; received:\n{}",
+        got.join("\n")
+    );
+}
+
+const A_TEXT: &str = "fn alpha() {}\nlet s = \"😀한글\"; BAD();\nalpha();\n";
+
+/// What the store sends a server (incremental sync, UTF-16 columns) through
+/// open, edits, save, requests, `workspace/applyEdit`, close, LRU suspend and
+/// resume, manual restart and shutdown, against a golden taken before the
+/// store was split into modules (docs/20-refactor/libs.md L5).
+#[test]
+fn store_wire_matches_golden() {
+    let mut h = StoreHarness::new(&["--incremental"], 1.0);
+    let a = h.root.join("a.rs");
+    let b = h.root.join("b.rs");
+    std::fs::write(&a, A_TEXT).unwrap();
+    std::fs::write(&b, "fn beta() {}\nalpha();\n").unwrap();
+
+    // Open: check, spawn, initialize, didOpen; diagnostics in editor columns.
+    h.with(|s, cx| s.open_document(&a, A_TEXT.into(), cx));
+    let diags = h.wait("a.rs diagnostics", |s, _| {
+        let d = s.diagnostics_for(&a).to_vec();
+        if d.is_empty() { Err(d) } else { Ok(d) }
+    });
+    // Wire (1, 16): '😀' is two UTF-16 units; the editor counts chars.
+    let range =
+        |l0, c0, l1, c1| lt::Range::new(lt::Position::new(l0, c0), lt::Position::new(l1, c1));
+    assert_eq!(
+        diags.iter().map(|d| d.range).collect::<Vec<_>>(),
+        [range(1, 15, 1, 18)]
+    );
+    assert_eq!(h.state(&a), Some(ServerState::Running));
+    h.with(|s, cx| s.open_document(&b, "fn beta() {}\nalpha();\n".into(), cx));
+
+    // Edits: unchanged text sends nothing; full text; then ranged changes
+    // the server replays (its diagnostics land on the editor's text).
+    h.with(|s, _| s.change_document(&a, A_TEXT.into()));
+    let full = format!("{A_TEXT}// 끝\n");
+    h.with(|s, _| s.change_document(&a, full.clone()));
+    let after_emoji = full.find('한').unwrap();
+    h.with(|s, _| s.edit_document(&a, after_emoji, after_emoji, "x"));
+    h.with(|s, _| s.edit_document(&a, 0, 2, "pub fn"));
+    let end = h.read(|s| s.doc(&a).unwrap().text.len());
+    h.with(|s, _| s.edit_document(&a, end, end, "BAD\n"));
+    // Out of sync (inside '😀'): rejected, nothing sent, version unchanged.
+    let emoji = h.read(|s| s.doc(&a).unwrap().text.find('😀').unwrap());
+    h.with(|s, _| s.edit_document(&a, emoji + 1, emoji + 2, "?"));
+    let (text, version) = h.read(|s| {
+        let d = s.doc(&a).unwrap();
+        (d.text.clone(), d.version)
+    });
+    assert_eq!(
+        text,
+        "pub fn alpha() {}\nlet s = \"😀x한글\"; BAD();\nalpha();\n// 끝\nBAD\n"
+    );
+    assert_eq!(version, 4);
+    h.wait("diagnostics of version 4", |s, _| {
+        let got: Vec<_> = s.diagnostics_for(&a).iter().map(|d| d.range).collect();
+        if got == [range(1, 16, 1, 19), range(4, 0, 4, 3)] {
+            Ok(())
+        } else {
+            Err(got)
+        }
+    });
+    h.with(|s, _| s.save_document(&a));
+
+    // Requests, answered in editor columns.
+    let at = lt::Position::new(2, 1);
+    let t = h.with(|s, cx| s.hover(&a, at, cx));
+    let hover = h.resolve("hover", t).unwrap().expect("hover");
+    assert_eq!(
+        hover.contents,
+        lt::HoverContents::Markup(lt::MarkupContent {
+            kind: lt::MarkupKind::Markdown,
+            value: "fake hover: `alpha`".into()
+        })
+    );
+    let t = h.with(|s, cx| s.definition(&a, at, cx));
+    let def = h.resolve("definition", t).unwrap();
+    assert_eq!(def.len(), 1);
+    assert_eq!(
+        (def[0].path.clone(), def[0].range),
+        (a.clone(), range(0, 7, 0, 12))
+    );
+    let t = h.with(|s, cx| s.references(&a, at, cx));
+    let refs = h.resolve("references", t).unwrap();
+    let refs: Vec<_> = refs.into_iter().map(|l| (l.path, l.range)).collect();
+    assert_eq!(
+        refs,
+        [
+            (a.clone(), range(0, 7, 0, 12)),
+            (a.clone(), range(2, 0, 2, 5)),
+            (b.clone(), range(1, 0, 1, 5)),
+        ]
+    );
+    let ctx = lt::CompletionContext {
+        trigger_kind: lt::CompletionTriggerKind::INVOKED,
+        trigger_character: None,
+    };
+    let t = h.with(|s, cx| s.completion(&a, lt::Position::new(2, 3), ctx, cx));
+    let items = match h.resolve("completion", t).unwrap() {
+        lt::CompletionResponse::List(l) => l.items,
+        lt::CompletionResponse::Array(v) => v,
+    };
+    assert_eq!(
+        items.iter().map(|i| i.label.as_str()).collect::<Vec<_>>(),
+        ["alpha"]
+    );
+    assert_eq!(h.with(|s, _| s.take_completion(&a, 2, "alpha")), None);
+    let t = h.with(|s, cx| s.resolve_additional_edits(&a, items[0].clone(), cx));
+    assert!(
+        h.resolve("completionItem/resolve", t).is_err(),
+        "the fake has no resolve"
+    );
+    let t = h.with(|s, cx| s.rename(&a, at, "gamma".into(), cx));
+    let edits = h.resolve("rename", t).unwrap();
+    let per_file: Vec<_> = edits
+        .iter()
+        .map(|f| (f.path.clone(), f.edits.len()))
+        .collect();
+    assert_eq!(per_file, [(a.clone(), 2), (b.clone(), 1)]);
+    let t = h.with(|s, cx| s.code_actions(&a, range(1, 14, 1, 17), cx));
+    assert!(
+        h.resolve("codeAction", t).is_err(),
+        "the fake has no code actions"
+    );
+    let cmd = lt::Command {
+        title: "header".into(),
+        command: "fake.insertHeader".into(),
+        arguments: Some(vec![json!(path_to_uri_string(&a))]),
+    };
+    let t = h.with(|s, cx| s.execute_command(&a, cmd, cx));
+    h.resolve("executeCommand", t).unwrap();
+    let applied: Vec<_> = h
+        .events
+        .borrow()
+        .iter()
+        .filter_map(|(e, _)| match e {
+            LspStoreEvent::ApplyEdit { label, edits, .. } => Some((label.clone(), edits.clone())),
+            _ => None,
+        })
+        .collect();
+    let header = lt::TextEdit {
+        range: range(0, 0, 0, 0),
+        new_text: "// header\n".into(),
+    };
+    assert_eq!(
+        applied,
+        [(
+            Some("fake header".to_string()),
+            vec![FileEdit {
+                path: a.clone(),
+                edits: vec![header]
+            }]
+        )]
+    );
+    h.with(|s, _| s.close_document(&b));
+
+    // LRU: suspend (shutdown + exit), then touching a.rs restarts it.
+    let key = h.read(|s| s.running_servers());
+    assert_eq!(key.len(), 1);
+    let t = h.with(|s, cx| s.suspend(&key[0].key, cx));
+    h.resolve("suspend: shutdown, exit, kill", t);
+    assert_eq!(h.state(&a), Some(ServerState::Suspended));
+    assert!(
+        h.read(|s| s.diagnostics_for(&a).is_empty()),
+        "suspended: no diagnostics"
+    );
+    h.with(|s, cx| s.touch(&a, cx));
+    h.wait("resumed", |s, w| {
+        let running = s.status_for(&a).map(|s| s.state) == Some(ServerState::Running);
+        if running
+            && w.last()
+                .is_some_and(|l| method_of(l) == "textDocument/didOpen")
+        {
+            Ok(())
+        } else {
+            Err(w.len())
+        }
+    });
+
+    // Manual restart: the process is killed (nothing sent), a new one opens a.rs.
+    let before = h.wire().len();
+    h.with(|s, cx| s.restart(&a, cx));
+    h.wait("restarted", |s, w| {
+        let running = s.status_for(&a).map(|s| s.state) == Some(ServerState::Running);
+        if running
+            && w.len() > before
+            && w.last()
+                .is_some_and(|l| method_of(l) == "textDocument/didOpen")
+        {
+            Ok(())
+        } else {
+            Err(w.len())
+        }
+    });
+    assert_eq!(
+        h.read(|s| s.doc(&a).unwrap().version),
+        0,
+        "reopened from version 0"
+    );
+
+    let t = h.with(|s, cx| s.shutdown_all(cx));
+    h.resolve("shutdown_all", t);
+    h.wait("stopped", |s, _| match s.status_for(&a).map(|s| s.state) {
+        Some(ServerState::Stopped) => Ok(()),
+        other => Err(other),
+    });
+    assert_wire(&h.wire(), STORE_WIRE);
+}
+
+/// A server that crashes on every `didOpen` is restarted with backoff
+/// [`pod_editor::lsp::server::MAX_RESTARTS`] times (each run reopens the
+/// document), then reported failed.
+#[test]
+fn store_restarts_a_crashing_server_then_fails() {
+    // Backoff 50..800 ms of test-clock time; a run counts as stable after 3 s.
+    let mut h = StoreHarness::new(&["--crash-on-open"], 0.05);
+    h.advance_clock = true;
+    let a = h.root.join("a.rs");
+    std::fs::write(&a, A_TEXT).unwrap();
+    h.with(|s, cx| s.open_document(&a, A_TEXT.into(), cx));
+    let reason = h.wait("failed", |s, _| match s.status_for(&a).map(|s| s.state) {
+        Some(ServerState::Failed(r)) => Ok(r),
+        other => Err(other),
+    });
+    assert_eq!(reason, "서버가 예기치 않게 종료되었습니다");
+    let wire = h.wire();
+    let methods: Vec<String> = wire.iter().map(|l| method_of(l)).collect();
+    let run = ["initialize", "initialized", "textDocument/didOpen"];
+    let max = pod_editor::lsp::server::MAX_RESTARTS as usize;
+    assert_eq!(methods, run.repeat(max + 1));
+    // Every run opens the same document the same way.
+    let opens: std::collections::BTreeSet<_> = wire
+        .iter()
+        .filter(|l| method_of(l) == "textDocument/didOpen")
+        .collect();
+    assert_eq!(opens.len(), 1, "{opens:?}");
+    // States as the status bar saw them (consecutive repeats folded).
+    let mut states: Vec<ServerState> = Vec::new();
+    for s in h.events.borrow().iter().filter_map(|(_, s)| s.clone()) {
+        if states.last() != Some(&s) {
+            states.push(s);
+        }
+    }
+    let mut want = vec![
+        ServerState::Checking,
+        ServerState::Starting,
+        ServerState::Running,
+    ];
+    for attempt in 1..=max as u32 {
+        want.push(ServerState::Restarting {
+            attempt,
+            reason: "서버가 예기치 않게 종료되었습니다".into(),
+        });
+        want.push(ServerState::Running);
+    }
+    want.push(ServerState::Failed(
+        "서버가 예기치 않게 종료되었습니다".into(),
+    ));
+    assert_eq!(states, want);
+}
+
+/// Received by the fake server in `store_wire_matches_golden` (canonical
+/// JSON, see [`wire_lines`]).
+const STORE_WIRE: &str = r#"
+{"id":1,"jsonrpc":"2.0","method":"initialize","params":{"capabilities":"<client capabilities>","clientInfo":{"name":"pod-editor","version":"<version>"},"initializationOptions":null,"locale":"ko","processId":0,"rootPath":"ROOT","rootUri":"file:///ROOT","trace":"off","workspaceFolders":[{"name":"wire 저장소","uri":"file:///ROOT"}]}}
+{"jsonrpc":"2.0","method":"initialized","params":{}}
+{"jsonrpc":"2.0","method":"textDocument/didOpen","params":{"textDocument":{"languageId":"rust","text":"fn alpha() {}\nlet s = \"😀한글\"; BAD();\nalpha();\n","uri":"file:///ROOT/a.rs","version":0}}}
+{"jsonrpc":"2.0","method":"textDocument/didOpen","params":{"textDocument":{"languageId":"rust","text":"fn beta() {}\nalpha();\n","uri":"file:///ROOT/b.rs","version":0}}}
+{"jsonrpc":"2.0","method":"textDocument/didChange","params":{"contentChanges":[{"text":"fn alpha() {}\nlet s = \"😀한글\"; BAD();\nalpha();\n// 끝\n"}],"textDocument":{"uri":"file:///ROOT/a.rs","version":1}}}
+{"jsonrpc":"2.0","method":"textDocument/didChange","params":{"contentChanges":[{"range":{"end":{"character":11,"line":1},"start":{"character":11,"line":1}},"text":"x"}],"textDocument":{"uri":"file:///ROOT/a.rs","version":2}}}
+{"jsonrpc":"2.0","method":"textDocument/didChange","params":{"contentChanges":[{"range":{"end":{"character":2,"line":0},"start":{"character":0,"line":0}},"text":"pub fn"}],"textDocument":{"uri":"file:///ROOT/a.rs","version":3}}}
+{"jsonrpc":"2.0","method":"textDocument/didChange","params":{"contentChanges":[{"range":{"end":{"character":0,"line":4},"start":{"character":0,"line":4}},"text":"BAD\n"}],"textDocument":{"uri":"file:///ROOT/a.rs","version":4}}}
+{"jsonrpc":"2.0","method":"textDocument/didSave","params":{"textDocument":{"uri":"file:///ROOT/a.rs"}}}
+{"id":2,"jsonrpc":"2.0","method":"textDocument/hover","params":{"position":{"character":1,"line":2},"textDocument":{"uri":"file:///ROOT/a.rs"}}}
+{"id":3,"jsonrpc":"2.0","method":"textDocument/definition","params":{"position":{"character":1,"line":2},"textDocument":{"uri":"file:///ROOT/a.rs"}}}
+{"id":4,"jsonrpc":"2.0","method":"textDocument/references","params":{"context":{"includeDeclaration":true},"position":{"character":1,"line":2},"textDocument":{"uri":"file:///ROOT/a.rs"}}}
+{"id":5,"jsonrpc":"2.0","method":"textDocument/completion","params":{"context":{"triggerKind":1},"position":{"character":3,"line":2},"textDocument":{"uri":"file:///ROOT/a.rs"}}}
+{"id":6,"jsonrpc":"2.0","method":"completionItem/resolve","params":{"detail":"fn alpha()","kind":3,"label":"alpha"}}
+{"id":7,"jsonrpc":"2.0","method":"textDocument/rename","params":{"newName":"gamma","position":{"character":1,"line":2},"textDocument":{"uri":"file:///ROOT/a.rs"}}}
+{"id":8,"jsonrpc":"2.0","method":"textDocument/codeAction","params":{"context":{"diagnostics":[{"message":"BAD is not allowed","range":{"end":{"character":20,"line":1},"start":{"character":17,"line":1}},"severity":1,"source":"fake"}],"triggerKind":1},"range":{"end":{"character":18,"line":1},"start":{"character":15,"line":1}},"textDocument":{"uri":"file:///ROOT/a.rs"}}}
+{"id":9,"jsonrpc":"2.0","method":"workspace/executeCommand","params":{"arguments":["file:///ROOT/a.rs"],"command":"fake.insertHeader"}}
+{"id":"fake-apply-1","jsonrpc":"2.0","result":{"applied":true}}
+{"jsonrpc":"2.0","method":"textDocument/didClose","params":{"textDocument":{"uri":"file:///ROOT/b.rs"}}}
+{"id":10,"jsonrpc":"2.0","method":"shutdown","params":null}
+{"id":1,"jsonrpc":"2.0","method":"initialize","params":{"capabilities":"<client capabilities>","clientInfo":{"name":"pod-editor","version":"<version>"},"initializationOptions":null,"locale":"ko","processId":0,"rootPath":"ROOT","rootUri":"file:///ROOT","trace":"off","workspaceFolders":[{"name":"wire 저장소","uri":"file:///ROOT"}]}}
+{"jsonrpc":"2.0","method":"initialized","params":{}}
+{"jsonrpc":"2.0","method":"textDocument/didOpen","params":{"textDocument":{"languageId":"rust","text":"pub fn alpha() {}\nlet s = \"😀x한글\"; BAD();\nalpha();\n// 끝\nBAD\n","uri":"file:///ROOT/a.rs","version":4}}}
+{"id":1,"jsonrpc":"2.0","method":"initialize","params":{"capabilities":"<client capabilities>","clientInfo":{"name":"pod-editor","version":"<version>"},"initializationOptions":null,"locale":"ko","processId":0,"rootPath":"ROOT","rootUri":"file:///ROOT","trace":"off","workspaceFolders":[{"name":"wire 저장소","uri":"file:///ROOT"}]}}
+{"jsonrpc":"2.0","method":"initialized","params":{}}
+{"jsonrpc":"2.0","method":"textDocument/didOpen","params":{"textDocument":{"languageId":"rust","text":"pub fn alpha() {}\nlet s = \"😀x한글\"; BAD();\nalpha();\n// 끝\nBAD\n","uri":"file:///ROOT/a.rs","version":0}}}
+{"id":2,"jsonrpc":"2.0","method":"shutdown","params":null}
+"#;

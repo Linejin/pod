@@ -14,7 +14,7 @@ param(
  [string]$Style = '',
  # Layout mode id (docs/10 §D5.4, e.g. kanban); empty = the style's default. Adds a `-<layout>` file suffix.
  [string]$Layout = '',
- # UIA dump attempts per scene until the required nodes appear (uia-required.ps1).
+ # UIA dump attempts per scene until the required nodes of the scene in this layout appear (uia-required.ps1).
  [int]$UiaAttempts = 6,
  [string[]]$Scenes = @('workspace','palette','settings','agents','inspect','open-repo','new-task','terminal','new-group','gates','notifications','review','shortcuts','editor','orch-board','orch-inbox','orch-cleanup','orch-settings')
 )
@@ -37,6 +37,15 @@ public static class PodCapture {
  [DllImport("user32.dll")] public static extern bool PrintWindow(IntPtr h,IntPtr dc,uint flags);
  [DllImport("user32.dll")] public static extern bool ShowWindow(IntPtr h,int cmd);
  [DllImport("user32.dll")] public static extern bool SetWindowPos(IntPtr h,IntPtr after,int x,int y,int w,int height,uint flags);
+ [StructLayout(LayoutKind.Sequential)] public struct POINT { public int X,Y; }
+ [DllImport("user32.dll")] public static extern bool GetClientRect(IntPtr h,out RECT r);
+ [DllImport("user32.dll")] public static extern bool ClientToScreen(IntPtr h,ref POINT p);
+ [DllImport("user32.dll")] public static extern bool IsZoomed(IntPtr h);
+ // Client area in screen coordinates.
+ public static RECT ClientOnScreen(IntPtr h) {
+  RECT c; GetClientRect(h,out c); var p=new POINT(); ClientToScreen(h,ref p);
+  var r=new RECT(); r.L=p.X; r.T=p.Y; r.R=p.X+c.R; r.B=p.Y+c.B; return r;
+ }
  public static long Compare(string expected,string actual,string diff,int tolerance) {
   using(var a=new Bitmap(expected)) using(var b=new Bitmap(actual)) {
    if(a.Size!=b.Size) throw new Exception("Image dimensions differ: "+expected);
@@ -62,6 +71,31 @@ public static class PodCapture {
 }
 '@
 [void][PodCapture]::SetProcessDpiAwarenessContext([IntPtr](-4))
+
+# Restores the fixture window to $Width x $Height at the monitor's working
+# area +24 px, waits $SettleSeconds and returns its Rect and Client (screen).
+# The app opens maximized. Restoring before that maximize lands leaves the
+# window flagged maximized at the capture size, and the app then insets its
+# frame top (~11 px blank strip, content lower; about 1 capture in 50). So:
+# wait for the maximize (3 s at most), and place again until the window is
+# not zoomed and its client area starts at the window top (own title bar).
+function Set-PodCaptureWindow([IntPtr]$h, $monitor, [int]$Width, [int]$Height, [int]$SettleSeconds, [string]$scene) {
+ $zoomBy = [DateTime]::UtcNow.AddSeconds(3)
+ while (-not [PodCapture]::IsZoomed($h) -and [DateTime]::UtcNow -lt $zoomBy) { Start-Sleep -Milliseconds 50 }
+ $r = New-Object PodCapture+RECT
+ $client = New-Object PodCapture+RECT
+ for ($place = 1; $place -le 3; $place++) {
+  [void][PodCapture]::ShowWindow($h,4)
+  [void][PodCapture]::SetWindowPos($h,[IntPtr]::Zero,$monitor.WorkingArea.X+24,$monitor.WorkingArea.Y+24,$Width,$Height,0x14)
+  Start-Sleep -Seconds $SettleSeconds
+  [void][PodCapture]::GetWindowRect($h,[ref]$r)
+  $client = [PodCapture]::ClientOnScreen($h)
+  $zoomed = [PodCapture]::IsZoomed($h)
+  if (-not $zoomed -and $client.T -eq $r.T) { return @{ Rect = $r; Client = $client } }
+  Write-Host "Window of '$scene' not restored (zoomed $zoomed, client top $($client.T), window top $($r.T)); placing again"
+ }
+ throw "Window of '$scene' never restored (client top $($client.T), window top $($r.T))"
+}
 if ($HelpersOnly) { return }
 New-Item -ItemType Directory -Force $Output | Out-Null
 $results = @()
@@ -82,6 +116,8 @@ if ($Mode -eq 'compare') {
 $monitor = [Windows.Forms.Screen]::AllScreens | Where-Object {-not $_.Primary} | Select-Object -First 1
 if (-not $monitor) { throw 'Secondary monitor required' }
 if ($Width -gt $monitor.WorkingArea.Width -or $Height -gt $monitor.WorkingArea.Height) { throw 'Capture size exceeds secondary monitor' }
+# Unknown layout ids fail here, before any window opens.
+foreach ($scene in $Scenes) { [void](Get-PodUiaRequired $scene $Layout) }
 $exe = Join-Path $root 'target/release/pod-app.exe'
 $oldConfig = $env:POD_APP_CONFIG_DIR
 try {
@@ -101,11 +137,9 @@ try {
     do { Start-Sleep -Milliseconds 200; $app.Refresh() } until ($app.MainWindowHandle -ne 0 -or [DateTime]::UtcNow -gt $deadline)
     $h = $app.MainWindowHandle
     if ($h -eq 0) { throw 'App did not open a window' }
-    [void][PodCapture]::ShowWindow($h,4)
-    [void][PodCapture]::SetWindowPos($h,[IntPtr]::Zero,$monitor.WorkingArea.X+24,$monitor.WorkingArea.Y+24,$Width,$Height,0x14)
-    Start-Sleep -Seconds $SettleSeconds
-    $r = New-Object PodCapture+RECT
-    [void][PodCapture]::GetWindowRect($h,[ref]$r)
+    $placed = Set-PodCaptureWindow $h $monitor $Width $Height $SettleSeconds $scene
+    $r = $placed.Rect
+    $client = $placed.Client
     $name = if ($Style) { "$theme-$scene-$Style" } else { "$theme-$scene" }
     if ($Layout) { $name = "$name-$Layout" }
     $bitmap = New-Object Drawing.Bitmap ($r.R-$r.L),($r.B-$r.T)
@@ -119,9 +153,9 @@ try {
      $tree = orca computer get-app-state --app "pid:$appId" --no-screenshot --json | ConvertFrom-Json
      if (-not $tree.ok) { throw 'Accessibility snapshot failed' }
      $tree.result.snapshot.treeText
-    } -Attempts $UiaAttempts
+    } -Attempts $UiaAttempts -Layout $Layout
     $treeText | Set-Content -Encoding UTF8 (Join-Path $Output "$name.tree.txt")
-    $results += [pscustomobject]@{Image="$name.png"; DPI=[PodCapture]::GetDpiForWindow($h); Rect=@($r.L,$r.T,$r.R,$r.B); Scene=$scene; Theme=$theme; Style=$Style; Layout=$Layout; Fixture=$true; Font=$Font; TerminalFont=$TerminalFont; HighContrast=[bool]$HighContrast}
+    $results += [pscustomobject]@{Image="$name.png"; DPI=[PodCapture]::GetDpiForWindow($h); Rect=@($r.L,$r.T,$r.R,$r.B); Client=@($client.L,$client.T,$client.R,$client.B); Scene=$scene; Theme=$theme; Style=$Style; Layout=$Layout; Fixture=$true; Font=$Font; TerminalFont=$TerminalFont; HighContrast=[bool]$HighContrast}
    } finally {
     if (-not $app.HasExited) { [void]$app.CloseMainWindow(); if (-not $app.WaitForExit(5000)) { Stop-Process -Id $app.Id } }
    }

@@ -731,6 +731,34 @@ fn snapshot_serializes_to_json() {
     assert_eq!(v["agent"], json!("claude"));
 }
 
+/// Every public `engine::` path and tunable (refactor D-P7 keeps them on the
+/// facade).
+#[test]
+fn engine_public_paths_and_tunables() {
+    use pod_status::engine::{
+        ANSWER_OUTPUT_WINDOW_MS, CONF_ANSWERED, CONF_HOOK, CONF_MOD, CONF_OSC, CONF_PROCESS,
+        OutputResult, Snapshot, StatusConfig as Cfg, SubRecord, TerminalStatus as Engine,
+        Transition, aggregate_snapshots, is_answer_input,
+    };
+    assert_eq!(
+        [CONF_HOOK, CONF_OSC, CONF_MOD, CONF_ANSWERED, CONF_PROCESS],
+        [0.95, 0.9, 0.75, 0.6, 0.2]
+    );
+    assert_eq!(ANSWER_OUTPUT_WINDOW_MS, 3_000);
+    assert_eq!(
+        Cfg::default(),
+        Cfg {
+            hook_stale_ms: 120_000,
+            quiet_idle_ms: 3_000
+        }
+    );
+    let _: fn(&[u8]) -> bool = is_answer_input;
+    let _: Option<(SubRecord, Transition)> = None;
+    assert_eq!(OutputResult::default().queries, 0);
+    let s: Snapshot = Engine::new(0).snapshot();
+    assert_eq!(aggregate_snapshots([&s]), Unknown);
+}
+
 /// docs/12 B2: after the user approves a hook permission request, no hook
 /// arrives until the approved tool finishes (PostToolUse), so the state
 /// stayed `blocked:permission` while the command ran. An answer key typed
@@ -854,3 +882,575 @@ fn answer_keys() {
         assert!(!a(no), "{no:?}");
     }
 }
+
+// ───────────── pinned input traces (refactor D-P7) ─────────────
+//
+// Each trace drives one engine through a fixed list of timed inputs and
+// records, per step, the call's result (serialized `Transition`, or the
+// `OutputResult` fields) and the snapshot keys whose serialized value
+// changed. The golden lines were taken from the engine before it was split
+// into `engine/{evidence,input}.rs`; any difference is a behaviour change.
+
+enum Step {
+    Hook(HookAgent, &'static str, Value),
+    Out(Vec<u8>),
+    Input(&'static [u8]),
+    Title(&'static str),
+    Screen(&'static str),
+    Fg(Option<ProcessInfo>),
+    Exit,
+    Mod(Option<AgentState>, Option<&'static str>),
+    Ack,
+    Tick,
+    SetAgent(AgentKind),
+    RestoreTurn(u64),
+    RestoreAnswer(u64),
+    ResetRun,
+}
+
+fn label(step: &Step) -> String {
+    match step {
+        Step::Hook(a, ev, p) => format!("hook {}/{ev} {p}", a.as_str()),
+        Step::Out(b) => format!("out {:?}", String::from_utf8_lossy(b)),
+        Step::Input(b) => format!("input {:?}", String::from_utf8_lossy(b)),
+        Step::Title(t) => format!("title {t:?}"),
+        Step::Screen(s) => format!("screen {s:?}"),
+        Step::Fg(p) => format!("fg {:?}", p.as_ref().map(|p| p.name.clone())),
+        Step::Exit => "exit".into(),
+        Step::Mod(s, m) => format!("mod {} {m:?}", serde_json::to_string(s).unwrap()),
+        Step::Ack => "ack".into(),
+        Step::Tick => "tick".into(),
+        Step::SetAgent(a) => format!("set_agent {}", serde_json::to_string(a).unwrap()),
+        Step::RestoreTurn(n) => format!("restore_turn {n}"),
+        Step::RestoreAnswer(at) => format!("restore_answer {at}"),
+        Step::ResetRun => "reset_run".into(),
+    }
+}
+
+fn tr_json(tr: Option<pod_status::Transition>) -> String {
+    serde_json::to_string(&tr).unwrap()
+}
+
+/// Snapshot as a JSON object plus the derived values a UI reads.
+fn view(t: &TerminalStatus) -> serde_json::Map<String, Value> {
+    let s = t.snapshot();
+    let Value::Object(mut m) = serde_json::to_value(&s).unwrap() else {
+        unreachable!()
+    };
+    m.insert("badge".into(), json!(s.badge()));
+    m.insert(
+        "display_state".into(),
+        serde_json::to_value(s.display_state()).unwrap(),
+    );
+    m.insert("answer_inferred_at".into(), json!(t.answer_inferred_at()));
+    m
+}
+
+fn run_trace(steps: Vec<(u64, Step)>) -> Vec<String> {
+    let mut t = TerminalStatus::new(0);
+    let mut prev = view(&t);
+    let mut lines = vec![format!("start {}", Value::Object(prev.clone()))];
+    for (now, step) in steps {
+        let name = label(&step);
+        let res = match step {
+            Step::Hook(agent, ev, p) => tr_json(t.on_hook(&hook(agent, ev, p), now)),
+            Step::Out(bytes) => {
+                let r = t.feed_output(&bytes, now);
+                format!(
+                    "q={} inv={} changed={} tr={}",
+                    r.queries,
+                    r.invalid,
+                    r.changed,
+                    tr_json(r.transition)
+                )
+            }
+            Step::Input(bytes) => {
+                t.on_input(bytes, now);
+                "()".into()
+            }
+            Step::Title(s) => tr_json(t.on_title(s, now)),
+            Step::Screen(s) => tr_json(t.on_screen(s, now)),
+            Step::Fg(p) => tr_json(t.on_foreground(p.as_ref(), now)),
+            Step::Exit => tr_json(t.on_process_exit(now)),
+            Step::Mod(s, m) => tr_json(t.on_mod(s, m.map(str::to_string), now)),
+            Step::Ack => tr_json(t.ack(now)),
+            Step::Tick => tr_json(t.tick(now)),
+            Step::SetAgent(a) => tr_json(t.set_agent(a, now)),
+            Step::RestoreTurn(n) => {
+                t.restore_turn(n);
+                "()".into()
+            }
+            Step::RestoreAnswer(at) => tr_json(t.restore_answer(at, now)),
+            Step::ResetRun => {
+                t.reset_run(now);
+                "()".into()
+            }
+        };
+        let cur = view(&t);
+        let delta: serde_json::Map<String, Value> = cur
+            .iter()
+            .filter(|(k, v)| prev.get(*k) != Some(*v))
+            .map(|(k, v)| (k.clone(), v.clone()))
+            .collect();
+        lines.push(format!("{now} {name} => {res} | {}", Value::Object(delta)));
+        prev = cur;
+    }
+    lines
+}
+
+fn assert_trace(name: &str, actual: Vec<String>, golden: &str) {
+    let expected: Vec<&str> = golden
+        .lines()
+        .map(str::trim)
+        .filter(|l| !l.is_empty())
+        .collect();
+    if actual != expected {
+        let first = actual
+            .iter()
+            .zip(&expected)
+            .position(|(a, e)| a != e)
+            .unwrap_or(actual.len().min(expected.len()));
+        panic!(
+            "trace {name} differs at line {first}\n expected: {:?}\n   actual: {:?}\n\nactual trace:\n{}",
+            expected.get(first),
+            actual.get(first),
+            actual.join("\n")
+        );
+    }
+}
+
+fn claude_hook_trace() -> Vec<(u64, Step)> {
+    use HookAgent::Claude as C;
+    vec![
+        (0, Step::Fg(Some(claude_proc()))),
+        (
+            10,
+            Step::Hook(
+                C,
+                "SessionStart",
+                json!({"session_id":"s1","source":"startup"}),
+            ),
+        ),
+        (20, Step::Title("\u{2733} Claude Code")),
+        (
+            30,
+            Step::Hook(
+                C,
+                "UserPromptSubmit",
+                json!({"session_id":"s1","prompt":"fix it"}),
+            ),
+        ),
+        (40, Step::Out(b"thinking".to_vec())),
+        (
+            50,
+            Step::Hook(
+                C,
+                "PreToolUse",
+                json!({"session_id":"s1","tool_name":"Bash","tool_use_id":"tu1"}),
+            ),
+        ),
+        (
+            60,
+            Step::Hook(
+                C,
+                "SubagentStart",
+                json!({"session_id":"s1","agent_id":"a 1","agent_type":"Explore"}),
+            ),
+        ),
+        (
+            70,
+            Step::Hook(
+                C,
+                "PreToolUse",
+                json!({"session_id":"s1","agent_id":"a 1","tool_name":"Read"}),
+            ),
+        ),
+        (
+            80,
+            Step::Hook(
+                C,
+                "PermissionRequest",
+                json!({"session_id":"s1","tool_name":"Bash"}),
+            ),
+        ),
+        (90, Step::Input(b"\x1b[I")),
+        (100, Step::Out(b"x".to_vec())),
+        (110, Step::Input(b"1")),
+        (120, Step::Out(b"running".to_vec())),
+        (
+            130,
+            Step::Hook(
+                C,
+                "PostToolUse",
+                json!({"session_id":"s1","tool_name":"Bash"}),
+            ),
+        ),
+        (
+            140,
+            Step::Hook(
+                C,
+                "PreToolUse",
+                json!({"session_id":"s1","tool_name":"AskUserQuestion"}),
+            ),
+        ),
+        (150, Step::Input(b"\x1b")),
+        (160, Step::Input(b"2")),
+        (4000, Step::Out(b"late".to_vec())),
+        (
+            4010,
+            Step::Hook(
+                C,
+                "Elicitation",
+                json!({"session_id":"s1","message":"Pick a server"}),
+            ),
+        ),
+        (
+            4020,
+            Step::Hook(C, "ElicitationResult", json!({"session_id":"s1"})),
+        ),
+        (
+            4030,
+            Step::Hook(
+                C,
+                "SubagentStop",
+                json!({"session_id":"s1","agent_id":"a 1"}),
+            ),
+        ),
+        (4040, Step::Hook(C, "Stop", json!({"session_id":"s1"}))),
+        (4050, Step::Ack),
+        (
+            4060,
+            Step::Hook(C, "UserPromptSubmit", json!({"session_id":"s1"})),
+        ),
+        (
+            4070,
+            Step::Hook(
+                C,
+                "StopFailure",
+                json!({"session_id":"s1","error":"overloaded"}),
+            ),
+        ),
+        (
+            4080,
+            Step::Hook(C, "UserPromptSubmit", json!({"session_id":"s1"})),
+        ),
+        (
+            4090,
+            Step::Hook(C, "Stop", json!({"session_id":"s1","is_interrupt":true})),
+        ),
+        (
+            4100,
+            Step::Hook(
+                C,
+                "SessionStart",
+                json!({"session_id":"s1","source":"compact"}),
+            ),
+        ),
+        (4110, Step::Title("\u{2802} Working")),
+        (130_000, Step::Tick),
+        (
+            130_010,
+            Step::Hook(C, "Notification", json!({"session_id":"s1"})),
+        ),
+        (
+            130_020,
+            Step::Hook(C, "SessionEnd", json!({"session_id":"s1","reason":"exit"})),
+        ),
+        (130_030, Step::Exit),
+        (
+            130_040,
+            Step::Hook(
+                C,
+                "SessionStart",
+                json!({"session_id":"s2","source":"startup"}),
+            ),
+        ),
+        (130_050, Step::RestoreTurn(7)),
+        (
+            130_060,
+            Step::Hook(C, "UserPromptSubmit", json!({"session_id":"s2"})),
+        ),
+        (
+            130_070,
+            Step::Hook(
+                C,
+                "PermissionRequest",
+                json!({"session_id":"s2","tool_name":"Write"}),
+            ),
+        ),
+        (130_080, Step::RestoreAnswer(130_075)),
+        (130_090, Step::Hook(C, "Stop", json!({"session_id":"s2"}))),
+        (130_100, Step::Title("\u{2733} Claude Code")),
+        (260_000, Step::Tick),
+        (260_010, Step::Ack),
+    ]
+}
+
+fn codex_hook_trace() -> Vec<(u64, Step)> {
+    use HookAgent::Codex as X;
+    vec![
+        (0, Step::Fg(Some(codex_proc()))),
+        (100, Step::Title("\u{280b} codex")),
+        (
+            200,
+            Step::Hook(X, "SessionStart", json!({"session_id":"c1"})),
+        ),
+        (
+            300,
+            Step::Hook(
+                X,
+                "UserPromptSubmit",
+                json!({"session_id":"c1","turn_id":"t1"}),
+            ),
+        ),
+        (
+            400,
+            Step::Hook(
+                X,
+                "PreToolUse",
+                json!({"session_id":"c1","tool_name":"shell"}),
+            ),
+        ),
+        (
+            500,
+            Step::Hook(
+                X,
+                "PermissionRequest",
+                json!({"session_id":"c1","tool_name":"shell"}),
+            ),
+        ),
+        (
+            600,
+            Step::Screen("Would you like to run the following command?\n  cargo test"),
+        ),
+        (700, Step::Input(b"y")),
+        (800, Step::Out(b"ok".to_vec())),
+        (900, Step::Screen("")),
+        (
+            1000,
+            Step::Hook(
+                X,
+                "PreToolUse",
+                json!({"session_id":"c1","tool_name":"request_user_input"}),
+            ),
+        ),
+        (1100, Step::Hook(X, "Interrupt", json!({"session_id":"c1"}))),
+        (
+            1200,
+            Step::Hook(
+                X,
+                "UserPromptSubmit",
+                json!({"session_id":"c1","turn_id":"t2"}),
+            ),
+        ),
+        (
+            1300,
+            Step::Hook(
+                X,
+                "SubagentStart",
+                json!({"session_id":"c1","agent_id":"w1","agent_type":"worker"}),
+            ),
+        ),
+        (
+            1350,
+            Step::Hook(
+                X,
+                "PostToolUse",
+                json!({"session_id":"c1","tool_name":"shell"}),
+            ),
+        ),
+        (
+            1400,
+            Step::Hook(
+                X,
+                "SubagentStop",
+                json!({"session_id":"c1","agent_id":"w1"}),
+            ),
+        ),
+        (1500, Step::Hook(X, "Stop", json!({"session_id":"c1"}))),
+        (1600, Step::Title("codex")),
+        (5000, Step::Tick),
+        (200_000, Step::Tick),
+        (200_100, Step::Ack),
+        (200_200, Step::Out(osc("state=working:app=codex"))),
+        (200_300, Step::Fg(None)),
+        (200_400, Step::Fg(Some(codex_proc()))),
+        (200_500, Step::Tick),
+        (204_000, Step::Tick),
+    ]
+}
+
+fn osc_mod_trace() -> Vec<(u64, Step)> {
+    let working = format!(
+        "state=working:app=claude-code:progress=10:msg={}:title={}",
+        b64("compiling"),
+        b64("Build")
+    );
+    let split = osc("state=done:app=claude-code");
+    let (head, tail) = split.split_at(9);
+    vec![
+        (0, Step::Out(b"\x1b[>0q\x1b]7501;?\x07".to_vec())),
+        (10, Step::Out(osc("state=idle:app=claude-code"))),
+        (20, Step::Out(osc(&working))),
+        (30, Step::Out(head.to_vec())),
+        (31, Step::Out(tail.to_vec())),
+        (35, Step::Out(osc("state=working:app=claude-code"))),
+        (
+            40,
+            Step::Out(osc(&format!(
+                "state=working:id=sub1:title={}",
+                b64("child")
+            ))),
+        ),
+        (50, Step::Out(osc("state=blocked:id=sub1:kind=question"))),
+        (60, Step::Mod(Some(Done), Some("mod says done"))),
+        (
+            70,
+            Step::Hook(
+                HookAgent::Claude,
+                "PermissionRequest",
+                json!({"tool_name":"Bash"}),
+            ),
+        ),
+        (80, Step::Out(osc("state=working"))),
+        (90, Step::Out(osc("state=idle"))),
+        (100, Step::Out(osc("state=clear:id=sub1"))),
+        (110, Step::Out(osc("state=clear"))),
+        (115, Step::Hook(HookAgent::Claude, "SessionEnd", json!({}))),
+        (120, Step::Ack),
+        (130, Step::Mod(None, None)),
+        (140, Step::Out(osc("state=done:app=podtest"))),
+        (150, Step::Out(osc("state=working:progress=999"))),
+        (160, Step::SetAgent(AgentKind::Codex)),
+        (
+            170,
+            Step::Out(osc(&format!("state=error:msg={}", b64("boom")))),
+        ),
+        (180, Step::Exit),
+        (190, Step::Out(osc("state=idle:app=codex"))),
+        (200, Step::Title("\u{2802} x")),
+        (210, Step::Mod(Some(PERM), None)),
+        (220, Step::ResetRun),
+    ]
+}
+
+#[test]
+fn pinned_trace_claude_hooks() {
+    assert_trace("claude", run_trace(claude_hook_trace()), CLAUDE_TRACE);
+}
+
+#[test]
+fn pinned_trace_codex_hooks_and_screen() {
+    assert_trace("codex", run_trace(codex_hook_trace()), CODEX_TRACE);
+}
+
+#[test]
+fn pinned_trace_osc_and_mod() {
+    assert_trace("osc", run_trace(osc_mod_trace()), OSC_TRACE);
+}
+
+const CLAUDE_TRACE: &str = r##"
+start {"state":{"state":"unknown"},"final_state":null,"source":null,"confidence":0.0,"since":0,"turn":0,"agent":null,"app":null,"msg":null,"title":null,"progress":null,"outcome":null,"session_id":null,"tool_name":null,"records":[],"running_children":0,"blocked_children":0,"badge":"unknown","display_state":{"state":"unknown"},"answer_inferred_at":null}
+0 fg Some("claude.exe") => null | {"source":"process","confidence":0.20000000298023224,"agent":"claude"}
+10 hook claude/SessionStart {"session_id":"s1","source":"startup"} => {"from":{"state":"unknown"},"to":{"state":"idle"},"source":"hook","turn":0,"at":10} | {"state":{"state":"idle"},"source":"hook","confidence":0.949999988079071,"since":10,"session_id":"s1","badge":"idle","display_state":{"state":"idle"}}
+20 title "✳ Claude Code" => null | {}
+30 hook claude/UserPromptSubmit {"session_id":"s1","prompt":"fix it"} => {"from":{"state":"idle"},"to":{"state":"working"},"source":"hook","turn":0,"at":30} | {"state":{"state":"working"},"since":30,"badge":"working","display_state":{"state":"working"}}
+40 out "thinking" => q=0 inv=0 changed=false tr=null | {}
+50 hook claude/PreToolUse {"session_id":"s1","tool_name":"Bash","tool_use_id":"tu1"} => null | {"tool_name":"Bash"}
+60 hook claude/SubagentStart {"session_id":"s1","agent_id":"a 1","agent_type":"Explore"} => null | {"records":[{"id":"hook/a-1","state":{"state":"working"},"source":"hook","title":"Explore","msg":null,"progress":null,"since":60}],"running_children":1}
+70 hook claude/PreToolUse {"session_id":"s1","agent_id":"a 1","tool_name":"Read"} => null | {}
+80 hook claude/PermissionRequest {"session_id":"s1","tool_name":"Bash"} => {"from":{"state":"working"},"to":{"state":"blocked","kind":"permission"},"source":"hook","turn":1,"at":80} | {"state":{"state":"blocked","kind":"permission"},"since":80,"turn":1,"msg":"Bash","badge":"blocked:permission (+1 running)","display_state":{"state":"blocked","kind":"permission"}}
+90 input "\u{1b}[I" => () | {}
+100 out "x" => q=0 inv=0 changed=false tr=null | {}
+110 input "1" => () | {}
+120 out "running" => q=0 inv=0 changed=true tr={"from":{"state":"blocked","kind":"permission"},"to":{"state":"working"},"source":"heuristic","turn":1,"at":120} | {"state":{"state":"working"},"source":"heuristic","confidence":0.6000000238418579,"since":120,"msg":null,"badge":"working","display_state":{"state":"working"},"answer_inferred_at":120}
+130 hook claude/PostToolUse {"session_id":"s1","tool_name":"Bash"} => null | {"source":"hook","confidence":0.949999988079071,"answer_inferred_at":null}
+140 hook claude/PreToolUse {"session_id":"s1","tool_name":"AskUserQuestion"} => {"from":{"state":"working"},"to":{"state":"blocked","kind":"question"},"source":"hook","turn":2,"at":140} | {"state":{"state":"blocked","kind":"question"},"since":140,"turn":2,"msg":"AskUserQuestion","tool_name":"AskUserQuestion","badge":"blocked:question (+1 running)","display_state":{"state":"blocked","kind":"question"}}
+150 input "\u{1b}" => () | {}
+160 input "2" => () | {}
+4000 out "late" => q=0 inv=0 changed=false tr=null | {}
+4010 hook claude/Elicitation {"session_id":"s1","message":"Pick a server"} => null | {"msg":"Pick a server"}
+4020 hook claude/ElicitationResult {"session_id":"s1"} => {"from":{"state":"blocked","kind":"question"},"to":{"state":"working"},"source":"hook","turn":2,"at":4020} | {"state":{"state":"working"},"since":4020,"msg":null,"badge":"working","display_state":{"state":"working"}}
+4030 hook claude/SubagentStop {"session_id":"s1","agent_id":"a 1"} => null | {"records":[],"running_children":0}
+4040 hook claude/Stop {"session_id":"s1"} => {"from":{"state":"working"},"to":{"state":"done"},"source":"hook","turn":3,"at":4040} | {"state":{"state":"done"},"since":4040,"turn":3,"outcome":"completed","badge":"done","display_state":{"state":"done"}}
+4050 ack => {"from":{"state":"done"},"to":{"state":"idle"},"source":"hook","turn":3,"at":4050} | {"state":{"state":"idle"},"since":4050,"badge":"idle","display_state":{"state":"idle"}}
+4060 hook claude/UserPromptSubmit {"session_id":"s1"} => {"from":{"state":"idle"},"to":{"state":"working"},"source":"hook","turn":3,"at":4060} | {"state":{"state":"working"},"since":4060,"outcome":null,"badge":"working","display_state":{"state":"working"}}
+4070 hook claude/StopFailure {"session_id":"s1","error":"overloaded"} => {"from":{"state":"working"},"to":{"state":"error"},"source":"hook","turn":4,"at":4070} | {"state":{"state":"error"},"since":4070,"turn":4,"msg":"overloaded","outcome":"failed","badge":"error","display_state":{"state":"error"}}
+4080 hook claude/UserPromptSubmit {"session_id":"s1"} => {"from":{"state":"error"},"to":{"state":"working"},"source":"hook","turn":4,"at":4080} | {"state":{"state":"working"},"since":4080,"msg":null,"outcome":null,"badge":"working","display_state":{"state":"working"}}
+4090 hook claude/Stop {"session_id":"s1","is_interrupt":true} => {"from":{"state":"working"},"to":{"state":"idle"},"source":"hook","turn":5,"at":4090} | {"state":{"state":"idle"},"since":4090,"turn":5,"outcome":"cancelled","badge":"idle","display_state":{"state":"idle"}}
+4100 hook claude/SessionStart {"session_id":"s1","source":"compact"} => null | {}
+4110 title "⠂ Working" => null | {}
+130000 tick => {"from":{"state":"idle"},"to":{"state":"working"},"source":"heuristic","turn":5,"at":130000} | {"state":{"state":"working"},"source":"heuristic","confidence":0.6000000238418579,"since":130000,"outcome":null,"badge":"working","display_state":{"state":"working"}}
+130010 hook claude/Notification {"session_id":"s1"} => {"from":{"state":"working"},"to":{"state":"idle"},"source":"hook","turn":6,"at":130010} | {"state":{"state":"idle"},"source":"hook","confidence":0.949999988079071,"since":130010,"turn":6,"badge":"idle","display_state":{"state":"idle"}}
+130020 hook claude/SessionEnd {"session_id":"s1","reason":"exit"} => {"from":{"state":"idle"},"to":{"state":"working"},"source":"heuristic","turn":6,"at":130020} | {"state":{"state":"working"},"source":"heuristic","confidence":0.6000000238418579,"since":130020,"badge":"working","display_state":{"state":"working"}}
+130030 exit => {"from":{"state":"working"},"to":{"state":"exited"},"source":"process","turn":7,"at":130030} | {"state":{"state":"exited"},"final_state":{"state":"working"},"source":"process","confidence":1.0,"since":130030,"turn":7,"badge":"exited","display_state":{"state":"exited"}}
+130040 hook claude/SessionStart {"session_id":"s2","source":"startup"} => {"from":{"state":"unknown"},"to":{"state":"idle"},"source":"hook","turn":7,"at":130040} | {"state":{"state":"idle"},"final_state":null,"source":"hook","confidence":0.949999988079071,"since":130040,"session_id":"s2","tool_name":null,"badge":"idle","display_state":{"state":"idle"}}
+130050 restore_turn 7 => () | {}
+130060 hook claude/UserPromptSubmit {"session_id":"s2"} => {"from":{"state":"idle"},"to":{"state":"working"},"source":"hook","turn":7,"at":130060} | {"state":{"state":"working"},"since":130060,"badge":"working","display_state":{"state":"working"}}
+130070 hook claude/PermissionRequest {"session_id":"s2","tool_name":"Write"} => {"from":{"state":"working"},"to":{"state":"blocked","kind":"permission"},"source":"hook","turn":8,"at":130070} | {"state":{"state":"blocked","kind":"permission"},"since":130070,"turn":8,"msg":"Write","tool_name":"Write","badge":"blocked:permission","display_state":{"state":"blocked","kind":"permission"}}
+130080 restore_answer 130075 => {"from":{"state":"blocked","kind":"permission"},"to":{"state":"working"},"source":"heuristic","turn":8,"at":130080} | {"state":{"state":"working"},"source":"heuristic","confidence":0.6000000238418579,"since":130080,"msg":null,"badge":"working","display_state":{"state":"working"},"answer_inferred_at":130075}
+130090 hook claude/Stop {"session_id":"s2"} => {"from":{"state":"working"},"to":{"state":"done"},"source":"hook","turn":9,"at":130090} | {"state":{"state":"done"},"source":"hook","confidence":0.949999988079071,"since":130090,"turn":9,"outcome":"completed","badge":"done","display_state":{"state":"done"},"answer_inferred_at":null}
+130100 title "✳ Claude Code" => null | {}
+260000 tick => null | {"confidence":0.4749999940395355}
+260010 ack => {"from":{"state":"done"},"to":{"state":"idle"},"source":"heuristic","turn":9,"at":260010} | {"state":{"state":"idle"},"source":"heuristic","confidence":0.6000000238418579,"since":260010,"badge":"idle","display_state":{"state":"idle"}}
+"##;
+
+const CODEX_TRACE: &str = r##"
+start {"state":{"state":"unknown"},"final_state":null,"source":null,"confidence":0.0,"since":0,"turn":0,"agent":null,"app":null,"msg":null,"title":null,"progress":null,"outcome":null,"session_id":null,"tool_name":null,"records":[],"running_children":0,"blocked_children":0,"badge":"unknown","display_state":{"state":"unknown"},"answer_inferred_at":null}
+0 fg Some("codex.exe") => null | {"source":"process","confidence":0.20000000298023224,"agent":"codex"}
+100 title "⠋ codex" => {"from":{"state":"unknown"},"to":{"state":"working"},"source":"heuristic","turn":0,"at":100} | {"state":{"state":"working"},"source":"heuristic","confidence":0.6000000238418579,"since":100,"badge":"working","display_state":{"state":"working"}}
+200 hook codex/SessionStart {"session_id":"c1"} => {"from":{"state":"working"},"to":{"state":"idle"},"source":"hook","turn":0,"at":200} | {"state":{"state":"idle"},"source":"hook","confidence":0.949999988079071,"since":200,"session_id":"c1","badge":"idle","display_state":{"state":"idle"}}
+300 hook codex/UserPromptSubmit {"session_id":"c1","turn_id":"t1"} => {"from":{"state":"idle"},"to":{"state":"working"},"source":"hook","turn":0,"at":300} | {"state":{"state":"working"},"since":300,"badge":"working","display_state":{"state":"working"}}
+400 hook codex/PreToolUse {"session_id":"c1","tool_name":"shell"} => null | {"tool_name":"shell"}
+500 hook codex/PermissionRequest {"session_id":"c1","tool_name":"shell"} => {"from":{"state":"working"},"to":{"state":"blocked","kind":"permission"},"source":"hook","turn":1,"at":500} | {"state":{"state":"blocked","kind":"permission"},"since":500,"turn":1,"msg":"shell","badge":"blocked:permission","display_state":{"state":"blocked","kind":"permission"}}
+600 screen "Would you like to run the following command?\n  cargo test" => null | {}
+700 input "y" => () | {}
+800 out "ok" => q=0 inv=0 changed=true tr={"from":{"state":"blocked","kind":"permission"},"to":{"state":"working"},"source":"heuristic","turn":1,"at":800} | {"state":{"state":"working"},"source":"heuristic","confidence":0.6000000238418579,"since":800,"msg":null,"badge":"working","display_state":{"state":"working"},"answer_inferred_at":800}
+900 screen "" => null | {}
+1000 hook codex/PreToolUse {"session_id":"c1","tool_name":"request_user_input"} => {"from":{"state":"working"},"to":{"state":"blocked","kind":"question"},"source":"hook","turn":2,"at":1000} | {"state":{"state":"blocked","kind":"question"},"source":"hook","confidence":0.949999988079071,"since":1000,"turn":2,"msg":"request_user_input","tool_name":"request_user_input","badge":"blocked:question","display_state":{"state":"blocked","kind":"question"},"answer_inferred_at":null}
+1100 hook codex/Interrupt {"session_id":"c1"} => {"from":{"state":"blocked","kind":"question"},"to":{"state":"idle"},"source":"hook","turn":2,"at":1100} | {"state":{"state":"idle"},"since":1100,"msg":null,"outcome":"cancelled","badge":"idle","display_state":{"state":"idle"}}
+1200 hook codex/UserPromptSubmit {"session_id":"c1","turn_id":"t2"} => {"from":{"state":"idle"},"to":{"state":"working"},"source":"hook","turn":2,"at":1200} | {"state":{"state":"working"},"since":1200,"outcome":null,"badge":"working","display_state":{"state":"working"}}
+1300 hook codex/SubagentStart {"session_id":"c1","agent_id":"w1","agent_type":"worker"} => null | {"records":[{"id":"hook/w1","state":{"state":"working"},"source":"hook","title":"worker","msg":null,"progress":null,"since":1300}],"running_children":1}
+1350 hook codex/PostToolUse {"session_id":"c1","tool_name":"shell"} => null | {"tool_name":"shell"}
+1400 hook codex/SubagentStop {"session_id":"c1","agent_id":"w1"} => null | {"records":[],"running_children":0}
+1500 hook codex/Stop {"session_id":"c1"} => {"from":{"state":"working"},"to":{"state":"done"},"source":"hook","turn":3,"at":1500} | {"state":{"state":"done"},"since":1500,"turn":3,"outcome":"completed","badge":"done","display_state":{"state":"done"}}
+1600 title "codex" => null | {}
+5000 tick => null | {}
+200000 tick => null | {"source":"heuristic","confidence":0.4000000059604645}
+200100 ack => {"from":{"state":"done"},"to":{"state":"idle"},"source":"heuristic","turn":3,"at":200100} | {"state":{"state":"idle"},"since":200100,"badge":"idle","display_state":{"state":"idle"}}
+200200 out "\u{1b}]7501;state=working:app=codex\u{7}" => q=0 inv=0 changed=true tr={"from":{"state":"idle"},"to":{"state":"working"},"source":"osc","turn":3,"at":200200} | {"state":{"state":"working"},"source":"osc","confidence":0.8999999761581421,"since":200200,"app":"codex","outcome":null,"badge":"working","display_state":{"state":"working"}}
+200300 fg None => {"from":{"state":"working"},"to":{"state":"exited"},"source":"process","turn":4,"at":200300} | {"state":{"state":"exited"},"final_state":{"state":"working"},"source":"process","confidence":1.0,"since":200300,"turn":4,"badge":"exited","display_state":{"state":"exited"}}
+200400 fg Some("codex.exe") => null | {"state":{"state":"unknown"},"final_state":null,"confidence":0.20000000298023224,"since":200400,"app":null,"session_id":null,"tool_name":null,"badge":"unknown","display_state":{"state":"unknown"}}
+200500 tick => null | {}
+204000 tick => {"from":{"state":"unknown"},"to":{"state":"idle"},"source":"heuristic","turn":4,"at":204000} | {"state":{"state":"idle"},"source":"heuristic","confidence":0.4000000059604645,"since":204000,"badge":"idle","display_state":{"state":"idle"}}
+"##;
+
+const OSC_TRACE: &str = r##"
+start {"state":{"state":"unknown"},"final_state":null,"source":null,"confidence":0.0,"since":0,"turn":0,"agent":null,"app":null,"msg":null,"title":null,"progress":null,"outcome":null,"session_id":null,"tool_name":null,"records":[],"running_children":0,"blocked_children":0,"badge":"unknown","display_state":{"state":"unknown"},"answer_inferred_at":null}
+0 out "\u{1b}[>0q\u{1b}]7501;?\u{7}" => q=1 inv=0 changed=false tr=null | {}
+10 out "\u{1b}]7501;state=idle:app=claude-code\u{7}" => q=0 inv=0 changed=true tr={"from":{"state":"unknown"},"to":{"state":"idle"},"source":"osc","turn":0,"at":10} | {"state":{"state":"idle"},"source":"osc","confidence":0.8999999761581421,"since":10,"agent":"claude","app":"claude-code","badge":"idle","display_state":{"state":"idle"}}
+20 out "\u{1b}]7501;state=working:app=claude-code:progress=10:msg=Y29tcGlsaW5n:title=QnVpbGQ=\u{7}" => q=0 inv=0 changed=true tr={"from":{"state":"idle"},"to":{"state":"working"},"source":"osc","turn":0,"at":20} | {"state":{"state":"working"},"since":20,"msg":"compiling","title":"Build","progress":10,"badge":"working","display_state":{"state":"working"}}
+30 out "\u{1b}]7501;st" => q=0 inv=0 changed=false tr=null | {}
+31 out "ate=done:app=claude-code\u{7}" => q=0 inv=0 changed=true tr={"from":{"state":"working"},"to":{"state":"done"},"source":"osc","turn":1,"at":31} | {"state":{"state":"done"},"since":31,"turn":1,"msg":null,"progress":null,"badge":"done","display_state":{"state":"done"}}
+35 out "\u{1b}]7501;state=working:app=claude-code\u{7}" => q=0 inv=0 changed=true tr={"from":{"state":"done"},"to":{"state":"working"},"source":"osc","turn":1,"at":35} | {"state":{"state":"working"},"since":35,"badge":"working","display_state":{"state":"working"}}
+40 out "\u{1b}]7501;state=working:id=sub1:title=Y2hpbGQ=\u{7}" => q=0 inv=0 changed=true tr=null | {"records":[{"id":"sub1","state":{"state":"working"},"source":"osc","title":"child","msg":null,"progress":null,"since":40}],"running_children":1}
+50 out "\u{1b}]7501;state=blocked:id=sub1:kind=question\u{7}" => q=0 inv=0 changed=true tr=null | {"records":[{"id":"sub1","state":{"state":"blocked","kind":"question"},"source":"osc","title":"child","msg":null,"progress":null,"since":50}],"running_children":0,"blocked_children":1,"badge":"blocked:question","display_state":{"state":"blocked","kind":"question"}}
+60 mod {"state":"done"} Some("mod says done") => null | {}
+70 hook claude/PermissionRequest {"tool_name":"Bash"} => {"from":{"state":"working"},"to":{"state":"blocked","kind":"permission"},"source":"hook","turn":2,"at":70} | {"state":{"state":"blocked","kind":"permission"},"source":"hook","confidence":0.949999988079071,"since":70,"turn":2,"msg":"Bash","tool_name":"Bash","badge":"blocked:permission","display_state":{"state":"blocked","kind":"permission"}}
+80 out "\u{1b}]7501;state=working\u{7}" => q=0 inv=0 changed=true tr=null | {}
+90 out "\u{1b}]7501;state=idle\u{7}" => q=0 inv=0 changed=true tr={"from":{"state":"blocked","kind":"permission"},"to":{"state":"idle"},"source":"osc","turn":2,"at":90} | {"state":{"state":"idle"},"source":"osc","confidence":0.8999999761581421,"since":90,"msg":null,"badge":"blocked:question","display_state":{"state":"blocked","kind":"question"}}
+100 out "\u{1b}]7501;state=clear:id=sub1\u{7}" => q=0 inv=0 changed=true tr=null | {"records":[],"blocked_children":0,"badge":"idle","display_state":{"state":"idle"}}
+110 out "\u{1b}]7501;state=clear\u{7}" => q=0 inv=0 changed=true tr={"from":{"state":"idle"},"to":{"state":"blocked","kind":"permission"},"source":"hook","turn":2,"at":110} | {"state":{"state":"blocked","kind":"permission"},"source":"hook","confidence":0.949999988079071,"since":110,"msg":"Bash","badge":"blocked:permission","display_state":{"state":"blocked","kind":"permission"}}
+115 hook claude/SessionEnd {} => {"from":{"state":"blocked","kind":"permission"},"to":{"state":"done"},"source":"mod","turn":2,"at":115} | {"state":{"state":"done"},"source":"mod","confidence":0.75,"since":115,"msg":"mod says done","badge":"done","display_state":{"state":"done"}}
+120 ack => {"from":{"state":"done"},"to":{"state":"idle"},"source":"mod","turn":2,"at":120} | {"state":{"state":"idle"},"since":120,"badge":"idle","display_state":{"state":"idle"}}
+130 mod null None => {"from":{"state":"idle"},"to":{"state":"unknown"},"source":null,"turn":2,"at":130} | {"state":{"state":"unknown"},"source":null,"confidence":0.0,"since":130,"msg":null,"badge":"unknown","display_state":{"state":"unknown"}}
+140 out "\u{1b}]7501;state=done:app=podtest\u{7}" => q=0 inv=0 changed=true tr={"from":{"state":"unknown"},"to":{"state":"done"},"source":"osc","turn":2,"at":140} | {"state":{"state":"done"},"source":"osc","confidence":0.8999999761581421,"since":140,"app":"podtest","badge":"done","display_state":{"state":"done"}}
+150 out "\u{1b}]7501;state=working:progress=999\u{7}" => q=0 inv=1 changed=false tr=null | {}
+160 set_agent "codex" => null | {"agent":"codex"}
+170 out "\u{1b}]7501;state=error:msg=Ym9vbQ==\u{7}" => q=0 inv=0 changed=true tr={"from":{"state":"done"},"to":{"state":"error"},"source":"osc","turn":2,"at":170} | {"state":{"state":"error"},"since":170,"msg":"boom","badge":"error","display_state":{"state":"error"}}
+180 exit => {"from":{"state":"error"},"to":{"state":"exited"},"source":"process","turn":2,"at":180} | {"state":{"state":"exited"},"final_state":{"state":"error"},"source":"process","confidence":1.0,"since":180,"msg":null,"badge":"exited","display_state":{"state":"exited"}}
+190 out "\u{1b}]7501;state=idle:app=codex\u{7}" => q=0 inv=0 changed=true tr={"from":{"state":"unknown"},"to":{"state":"idle"},"source":"osc","turn":2,"at":190} | {"state":{"state":"idle"},"final_state":null,"source":"osc","confidence":0.8999999761581421,"since":190,"app":"codex","title":null,"tool_name":null,"badge":"idle","display_state":{"state":"idle"}}
+200 title "⠂ x" => null | {}
+210 mod {"state":"blocked","kind":"permission"} None => null | {}
+220 reset_run => () | {"state":{"state":"unknown"},"source":null,"confidence":0.0,"since":220,"agent":null,"app":null,"badge":"unknown","display_state":{"state":"unknown"}}
+"##;

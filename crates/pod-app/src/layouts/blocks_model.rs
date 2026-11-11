@@ -17,7 +17,19 @@
 //! Text comes from a headless VT (the same alacritty engine the terminal view
 //! uses) so cursor moves, redraws and ConPTY repaints read as the screen shows
 //! them. A closed block keeps its text; only the open block reads the grid.
+//!
+//! The feed (docs/20-refactor/app.md A-P13) is the pure projection on top:
+//! the blocks of a task's terminals as one chronological list with their
+//! gates, the header texts, the approval decisions and the keyboard plans.
+//! The layout's controller (`blocks/controller.rs`) feeds this model; its view
+//! draws what it returns.
+use std::collections::HashMap;
+
 use pod_terminal_view::vt::{AlacrittyVt, GridSize, VtEngine};
+use podd::protocol::{GateDecision, GateInfo};
+
+use super::blocks::copy as s;
+use crate::vm::{AgentState, TaskVm, TerminalVm};
 
 /// Lines of scrollback the headless VT keeps (only the open block needs it).
 const VT_SCROLLBACK: usize = 5000;
@@ -871,6 +883,315 @@ pub fn duration_text(ms: u64) -> String {
     } else {
         format!("{}시간 {}분", ms / 3_600_000, (ms % 3_600_000) / 60_000)
     }
+}
+
+// ───────────────────────────── feed ─────────────────────────────
+
+/// A block's identity in the feed.
+#[derive(Clone, Debug, PartialEq, Eq, Hash)]
+pub struct BlockKey {
+    pub terminal: String,
+    pub seq: u64,
+}
+
+impl BlockKey {
+    /// The block's part of element and QA ids.
+    pub(super) fn dom(&self) -> String {
+        format!("{}-{}", self.terminal, self.seq)
+    }
+}
+
+/// A block as the feed shows it.
+#[derive(Clone, Debug, PartialEq)]
+pub struct FeedBlock {
+    pub key: BlockKey,
+    /// `Claude · 구현`, `셸 · 빌드`.
+    pub who: String,
+    /// The terminal's agent (docs/10 §D5.11): the mark before `who`.
+    pub kind: crate::agent_kind::AgentKind,
+    pub block: Block,
+    /// A pending gate of this block's terminal (on its newest block only).
+    pub gate: Option<GateInfo>,
+    /// The newest block of its terminal.
+    pub last: bool,
+}
+
+const SHELLS: [&str; 6] = ["powershell", "pwsh", "cmd", "bash", "sh", "zsh"];
+
+pub fn is_shell(program: &str) -> bool {
+    SHELLS.contains(&program.to_ascii_lowercase().trim_end_matches(".exe"))
+}
+
+/// `Claude · 이름` for agents, `셸 · 이름` for shells.
+pub fn who(t: &TerminalVm, label: &str) -> String {
+    // The identified agent (hook/OSC/argv, docs/10 §D5.11) first, then the program name.
+    let kind = crate::agent_kind::identify(t, None).kind;
+    let agent = if kind.is_agent() {
+        kind.name()
+    } else if is_shell(&t.program) {
+        s::SHELL.to_string()
+    } else {
+        let mut c = t.program.chars();
+        c.next()
+            .map(|f| f.to_uppercase().collect::<String>() + c.as_str())
+            .unwrap_or_default()
+    };
+    format!("{agent} · {label}")
+}
+
+/// Step title for an agent state.
+pub fn state_label(st: AgentState) -> (&'static str, bool) {
+    match st {
+        AgentState::Working => (s::STEP_WORKING, false),
+        AgentState::Blocked => (s::NEEDS_YOU, false),
+        AgentState::Done => (s::DONE, true),
+        AgentState::Idle => (s::STEP_IDLE, true),
+        AgentState::Error => (s::STEP_ERROR, true),
+        AgentState::Unknown => (s::STEP_UNKNOWN, false),
+        AgentState::Exited => (s::STEP_EXITED, true),
+    }
+}
+
+/// The terminals of `task` in the task's order (then any others that name it).
+pub fn task_terminals<'a>(task: &TaskVm, terminals: &'a [TerminalVm]) -> Vec<&'a TerminalVm> {
+    let mut out: Vec<&TerminalVm> = task
+        .terminals
+        .iter()
+        .filter_map(|id| terminals.iter().find(|t| &t.id == id))
+        .collect();
+    for t in terminals
+        .iter()
+        .filter(|t| t.task_id.as_deref() == Some(task.id.as_str()))
+    {
+        if !out.iter().any(|x| x.id == t.id) {
+            out.push(t);
+        }
+    }
+    out
+}
+
+/// The pending gate per terminal: a terminal's own gate, else the task's on its first terminal.
+pub fn gates_by_terminal(
+    terms: &[&TerminalVm],
+    task: &str,
+    pending: &[GateInfo],
+) -> HashMap<String, GateInfo> {
+    let mut out = HashMap::new();
+    for g in pending {
+        if let Some(t) = g
+            .terminal
+            .as_deref()
+            .filter(|t| terms.iter().any(|x| x.id == *t))
+        {
+            out.entry(t.to_string()).or_insert_with(|| g.clone());
+        } else if g.terminal.is_none()
+            && g.task.as_deref() == Some(task)
+            && let Some(first) = terms.first()
+        {
+            out.entry(first.id.clone()).or_insert_with(|| g.clone());
+        }
+    }
+    out
+}
+
+/// The feed: every block of the task's terminals (or one terminal), oldest first.
+/// A terminal with a pending gate and no block yet gets an approval block.
+pub fn build_feed(
+    terms: &[&TerminalVm],
+    blocks: &HashMap<String, Vec<Block>>,
+    gates: &HashMap<String, GateInfo>,
+    filter: Option<&str>,
+    label: impl Fn(&TerminalVm) -> String,
+) -> Vec<FeedBlock> {
+    let mut out: Vec<(u64, usize, FeedBlock)> = Vec::new();
+    for (ti, t) in terms
+        .iter()
+        .enumerate()
+        .filter(|(_, t)| filter.is_none_or(|f| f == t.id))
+    {
+        let who = who(t, &label(t));
+        let kind = crate::agent_kind::identify(t, None).kind;
+        let empty = Vec::new();
+        let list = blocks.get(&t.id).unwrap_or(&empty);
+        let gate = gates.get(&t.id).cloned();
+        let n = list.len();
+        for (i, b) in list.iter().enumerate() {
+            let last = i + 1 == n;
+            out.push((
+                b.started_ms.or(b.ended_ms).unwrap_or(0),
+                ti,
+                FeedBlock {
+                    key: BlockKey {
+                        terminal: t.id.clone(),
+                        seq: b.seq,
+                    },
+                    who: who.clone(),
+                    kind: kind.clone(),
+                    block: b.clone(),
+                    gate: gate.clone().filter(|_| last),
+                    last,
+                },
+            ));
+        }
+        if n == 0
+            && let Some(g) = gate
+        {
+            let b = Block {
+                seq: u64::MAX,
+                kind: Kind::Step,
+                origin: Origin::Status,
+                title: s::APPROVAL.into(),
+                lines: Vec::new(),
+                dropped: 0,
+                started_ms: Some(g.created_ms),
+                ended_ms: None,
+                exit: None,
+                open: true,
+            };
+            out.push((
+                g.created_ms,
+                ti,
+                FeedBlock {
+                    key: BlockKey {
+                        terminal: t.id.clone(),
+                        seq: u64::MAX,
+                    },
+                    who: who.clone(),
+                    kind: kind.clone(),
+                    block: b,
+                    gate: Some(g),
+                    last: true,
+                },
+            ));
+        }
+    }
+    out.sort_by_key(|(at, ti, f)| (*at, *ti, f.block.seq));
+    out.into_iter().map(|(_, _, f)| f).collect()
+}
+
+/// Expanded unless the user folded it: running, waiting for approval, failed,
+/// or the newest block of its terminal. Other finished blocks start folded.
+pub fn default_expanded(f: &FeedBlock) -> bool {
+    f.block.open || f.gate.is_some() || f.block.failed() || f.last
+}
+
+/// The header's status text.
+pub fn status_text(f: &FeedBlock) -> String {
+    let b = &f.block;
+    if f.gate.is_some() {
+        return s::WAITING.into();
+    }
+    if b.kind == Kind::Tui {
+        return if b.open { s::TUI_LIVE } else { s::TUI_DONE }.into();
+    }
+    if b.open {
+        return s::RUNNING.into();
+    }
+    if b.origin == Origin::Earlier {
+        return s::EARLIER.into();
+    }
+    let tail = match (b.kind, b.exit) {
+        (_, Some(c)) => s::exit_code(c),
+        (Kind::Command, None) => s::ENDED.into(),
+        _ => s::DONE.into(),
+    };
+    match b.duration_ms() {
+        Some(ms) => format!("{} · {tail}", duration_text(ms)),
+        None => tail,
+    }
+}
+
+/// What the header names the block by.
+pub fn title_of(f: &FeedBlock) -> String {
+    match f.block.kind {
+        _ if !f.block.title.is_empty() => f.block.title.clone(),
+        Kind::Tui => s::TUI_LIVE.into(),
+        _ if f.block.origin == Origin::Earlier => s::EARLIER.into(),
+        _ => s::OUTPUT.into(),
+    }
+}
+
+/// The block's accessible name.
+pub fn block_name(f: &FeedBlock, expanded: bool) -> String {
+    let mut name = format!("{}, {}, {}", f.who, title_of(f), status_text(f));
+    if let Some(g) = &f.gate {
+        name.push_str(&format!(", {}: {}", s::APPROVAL, g.message));
+    }
+    name.push_str(if expanded { s::EXPANDED } else { s::COLLAPSED });
+    name
+}
+
+/// The three approval buttons.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum Approval {
+    Once,
+    Always,
+    Reject,
+}
+
+fn is_always(o: &str) -> bool {
+    let o = o.to_lowercase();
+    o.contains("always") || o.contains("항상") || o.contains("don't ask") || o.contains("다시 묻지")
+}
+
+/// The `gate.resolve` decision (and option) for a button; `None`: the gate
+/// does not offer it (항상 허용 without an "always" option).
+pub fn decision(g: &GateInfo, a: Approval) -> Option<(GateDecision, Option<String>)> {
+    match a {
+        Approval::Reject => Some((GateDecision::Reject, None)),
+        Approval::Once if g.options.is_empty() => Some((GateDecision::Approve, None)),
+        Approval::Once => {
+            let once = g.options.iter().find(|o| {
+                let l = o.to_lowercase();
+                !is_always(o)
+                    && (l.contains("once")
+                        || l.contains("이번")
+                        || l.contains("allow")
+                        || l.contains("허용")
+                        || l.contains("yes"))
+            });
+            once.or_else(|| g.options.iter().find(|o| !is_always(o)))
+                .map(|o| (GateDecision::Approve, Some(o.clone())))
+        }
+        Approval::Always => g
+            .options
+            .iter()
+            .find(|o| is_always(o))
+            .map(|o| (GateDecision::Approve, Some(o.clone()))),
+    }
+}
+
+/// Keyboard movement in the feed.
+pub fn nav(feed: &[FeedBlock], from: Option<&BlockKey>, key: &str) -> Option<BlockKey> {
+    let i = from.and_then(|k| feed.iter().position(|f| &f.key == k));
+    let j = match (key, i) {
+        (_, None) => feed.len().checked_sub(1),
+        ("up", Some(i)) => i.checked_sub(1),
+        ("down", Some(i)) => (i + 1 < feed.len()).then_some(i + 1),
+        ("home", _) => (!feed.is_empty()).then_some(0),
+        ("end", _) => feed.len().checked_sub(1),
+        _ => None,
+    }?;
+    Some(feed[j].key.clone())
+}
+
+/// Next input target among the running terminals (Tab / Shift+Tab).
+pub fn cycle_target(terms: &[&TerminalVm], current: Option<&str>, back: bool) -> Option<String> {
+    let live: Vec<&str> = terms
+        .iter()
+        .filter(|t| t.is_running())
+        .map(|t| t.id.as_str())
+        .collect();
+    if live.is_empty() {
+        return None;
+    }
+    let i = current.and_then(|c| live.iter().position(|x| *x == c));
+    let j = match (i, back) {
+        (None, _) => 0,
+        (Some(i), false) => (i + 1) % live.len(),
+        (Some(i), true) => (i + live.len() - 1) % live.len(),
+    };
+    Some(live[j].to_string())
 }
 
 #[cfg(test)]

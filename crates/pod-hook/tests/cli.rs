@@ -194,6 +194,192 @@ fn install_requires_dry_run_and_prints_blocks() {
     );
 }
 
+/// The CLI paths (help, version, install): stdin closed, stdout and stderr
+/// captured exactly. They never print the hook answer `{}`.
+fn run_cli(args: &[&str]) -> (String, String, i32) {
+    let out = base_cmd()
+        .args(args)
+        .stdin(Stdio::null())
+        .output()
+        .expect("spawn pod-hook");
+    (
+        String::from_utf8_lossy(&out.stdout).into_owned(),
+        String::from_utf8_lossy(&out.stderr).into_owned(),
+        out.status.code().unwrap_or(-1),
+    )
+}
+
+fn fresh_dir(tag: &str) -> std::path::PathBuf {
+    let nanos = std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .unwrap()
+        .as_nanos();
+    std::env::temp_dir().join(format!("pod-hook-{tag}-{}-{nanos}", std::process::id()))
+}
+
+/// Every file under `dir`, relative, sorted.
+fn tree(dir: &std::path::Path) -> Vec<String> {
+    let mut out = Vec::new();
+    let mut stack = vec![dir.to_path_buf()];
+    while let Some(d) = stack.pop() {
+        for e in std::fs::read_dir(&d).unwrap() {
+            let p = e.unwrap().path();
+            out.push(p.strip_prefix(dir).unwrap().display().to_string());
+            if p.is_dir() {
+                stack.push(p);
+            }
+        }
+    }
+    out.sort();
+    out
+}
+
+/// D-P8 pin: `--version`/`-V` and the help spellings print only their text.
+#[test]
+fn version_and_help_print_only_their_text() {
+    const USAGE: &str = "usage: pod-hook claude|codex <Event>   (hook JSON on stdin)\n       pod-hook install --dry-run [--agent claude|codex|all] [--home DIR | --claude-config-dir DIR --codex-home DIR] [--exe PATH] [--uninstall] [--block-only]\n";
+    let version = format!("pod-hook {}\n", env!("CARGO_PKG_VERSION"));
+    for flag in ["--version", "-V"] {
+        let (out, err, code) = run_cli(&[flag]);
+        assert_eq!(
+            (out.as_str(), err.as_str(), code),
+            (version.as_str(), "", 0)
+        );
+    }
+    for flag in ["--help", "-h", "help"] {
+        let (out, err, code) = run_cli(&[flag]);
+        assert_eq!((out.as_str(), err.as_str(), code), (USAGE, "", 0), "{flag}");
+    }
+}
+
+/// D-P8 pin: install's argument errors keep their text and exit code 2 and
+/// print nothing on stdout.
+#[test]
+fn install_argument_errors_keep_text_and_exit_code() {
+    let together = "pod-hook install: --claude-config-dir and --codex-home go together\n";
+    let cases: [(&[&str], &str); 6] = [
+        (
+            &["install"],
+            "pod-hook install: only --dry-run is supported; Pod never writes agent configuration from this CLI\n",
+        ),
+        (
+            &["install", "--dry-run", "--bogus"],
+            "pod-hook install: unknown option --bogus\n",
+        ),
+        (
+            &["install", "--dry-run", "--agent"],
+            "pod-hook install: --agent needs a value\n",
+        ),
+        (
+            &["install", "--dry-run", "--agent", "gemini"],
+            "pod-hook install: unknown agent gemini\n",
+        ),
+        (
+            &["install", "--dry-run", "--claude-config-dir", "x"],
+            together,
+        ),
+        (&["install", "--dry-run", "--codex-home", "x"], together),
+    ];
+    for (args, want) in cases {
+        let (out, err, code) = run_cli(args);
+        assert_eq!(
+            (out.as_str(), err.as_str(), code),
+            ("", want, 2),
+            "{args:?}"
+        );
+    }
+}
+
+/// D-P8 pin: a value missing after `--exe` is reported but not fatal; the
+/// plan then uses the running exe.
+#[test]
+fn install_missing_exe_value_is_reported_not_fatal() {
+    let (out, err, code) = run_cli(&["install", "--dry-run", "--block-only", "--exe"]);
+    assert_eq!(
+        (err.as_str(), code),
+        ("pod-hook install: --exe needs a value\n", 0)
+    );
+    let v: serde_json::Value = serde_json::from_str(&out).unwrap();
+    let cmd = v["codex"]["hooks"]["Stop"][0]["hooks"][0]["command"]
+        .as_str()
+        .unwrap();
+    assert!(
+        cmd.ends_with(" codex Stop") && cmd.contains("pod-hook"),
+        "{cmd}"
+    );
+}
+
+/// D-P8 pin: global scope under a temp home, install and uninstall plans,
+/// one agent each; nothing is written; a malformed config exits 1.
+#[test]
+fn install_dry_run_global_home_plans_and_errors() {
+    let home = fresh_dir("home");
+    std::fs::create_dir_all(&home).unwrap();
+    let h = home.to_str().unwrap();
+    let plan = |args: &[&str]| {
+        let mut all = vec!["install", "--dry-run", "--exe", "C:/pod/pod-hook.exe"];
+        all.extend_from_slice(&["--home", h]);
+        all.extend_from_slice(args);
+        run_cli(&all)
+    };
+
+    let (out, err, code) = plan(&["--agent", "codex"]);
+    assert_eq!((err.as_str(), code), ("", 0), "{out}");
+    let v: serde_json::Value = serde_json::from_str(&out).unwrap();
+    assert_eq!(v["scope"]["scope"], "global");
+    assert_eq!(v["files"].as_array().unwrap().len(), 1);
+    assert_eq!(v["files"][0]["agent"], "codex");
+    assert_eq!(v["files"][0]["existed"], false);
+    assert_eq!(v["launch_env"], serde_json::json!([]));
+    assert_eq!(v["notes"].as_array().unwrap().len(), 2);
+
+    let (out, err, code) = plan(&["--uninstall", "--agent", "claude"]);
+    assert_eq!((err.as_str(), code), ("", 0), "{out}");
+    let v: serde_json::Value = serde_json::from_str(&out).unwrap();
+    assert_eq!(v["files"][0]["agent"], "claude");
+    assert_eq!(v["files"][0]["content"], "{}\n");
+    assert_eq!(v["notes"].as_array().unwrap().len(), 1);
+    assert!(tree(&home).is_empty(), "dry run wrote {:?}", tree(&home));
+
+    std::fs::create_dir_all(home.join(".claude")).unwrap();
+    std::fs::write(home.join(".claude").join("settings.json"), "{ not json").unwrap();
+    let (out, err, code) = plan(&["--agent", "claude"]);
+    assert_eq!((out.as_str(), code), ("", 1), "{err}");
+    assert!(
+        err.starts_with("pod-hook install: ")
+            && err.contains("settings.json")
+            && err.ends_with('\n'),
+        "{err}"
+    );
+    let config = format!(".claude{}settings.json", std::path::MAIN_SEPARATOR);
+    assert_eq!(tree(&home), [".claude", config.as_str()]);
+    let _ = std::fs::remove_dir_all(&home);
+}
+
+/// D-P8 pin: hook mode answers exactly `{}\n` and writes nothing to stderr,
+/// with or without a daemon behind the pipe name.
+#[test]
+fn hook_mode_answer_is_exact_and_stderr_stays_empty() {
+    for with_env in [false, true] {
+        let mut c = base_cmd();
+        c.args(["codex", "Stop"]).stdin(Stdio::null());
+        if with_env {
+            c.env("POD_TERMINAL_ID", "t1")
+                .env("POD_SOCKET", missing_pipe());
+        }
+        let out = c.output().expect("spawn pod-hook");
+        assert_eq!(
+            (
+                out.stdout.as_slice(),
+                out.stderr.as_slice(),
+                out.status.code()
+            ),
+            (&b"{}\n"[..], &b""[..], Some(0)),
+            "env {with_env}"
+        );
+    }
+}
+
 #[test]
 fn install_dry_run_profile_writes_nothing() {
     let dir = std::env::temp_dir().join(format!("pod-hook-dry-{}", std::process::id()));

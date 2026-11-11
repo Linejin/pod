@@ -347,3 +347,40 @@ fn option_gates_approve_with_the_picked_choice() {
         "{call}"
     );
 }
+
+/// A panel opened while the board shows (settings) switches the drawer to its
+/// 패널 view; F6 from a card goes into the dock (through the host's focus slot).
+#[test]
+fn panels_opened_on_the_board_show_in_the_drawer_and_f6_reaches_the_dock() {
+    let mut h = Harness::new("kanban-panels", seed_two_tasks);
+    set_layout(&mut h, "kanban");
+    let b = board(&mut h);
+    assert!(card_focused(&mut h, "w1"), "first card focused on entry");
+    assert!(h.cx.update(|_, cx| !b.read(cx).show_dock));
+
+    let ws = h.ws.clone();
+    h.cx.update(|window, cx| ws.update(cx, |w, cx| w.open_settings(window, cx)));
+    h.settle();
+    assert!(
+        h.cx.update(|_, cx| b.read(cx).drawer_open && b.read(cx).show_dock),
+        "the drawer shows the panels"
+    );
+    assert!(h.bounds("kanban-drawer").is_some());
+
+    // From a card, F6 moves into the dock the drawer shows.
+    h.cx.update(|window, cx| b.update(cx, |b, cx| b.select("w1", window, cx)));
+    h.settle();
+    assert!(card_focused(&mut h, "w1"));
+    h.keys("f6");
+    let dock =
+        h.cx.update(|_, cx| ws.read(cx).dock.read(cx).focus_handle(cx));
+    assert!(
+        h.cx.update(|window, cx| dock.contains_focused(window, cx)),
+        "F6: the dock has focus"
+    );
+    assert!(!card_focused(&mut h, "w1"));
+    assert!(
+        h.cx.update(|_, cx| b.read(cx).show_dock),
+        "the drawer keeps showing the panels"
+    );
+}

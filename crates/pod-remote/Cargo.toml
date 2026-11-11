@@ -8,7 +8,9 @@ publish = false
 description = "Remote machines for Pod: SSH machine profiles and the system-ssh transport (docs/17 R3)"
 
 [dependencies]
-podd = { path = "../podd", default-features = false }
+# Client side only: pod-client under the old name, so `podd::client` still
+# reads (card D-T1).
+podd = { package = "pod-client", path = "../pod-client" }
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 

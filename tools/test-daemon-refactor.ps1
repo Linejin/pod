@@ -28,8 +28,8 @@
 # it and prints it). podd/pod-holder processes of this target dir started during
 # the run and still alive at the end are reported.
 #
-# Not runnable yet: `pr` and `status` still start cargo themselves; cards P5 and
-# P6 move them to the prebuilt fixtures (crates\podd\tests\common\fixtures.rs).
+# Every target uses the prebuilt fixtures (crates\podd\tests\common\fixtures.rs):
+# `pr` moved there in P5, `status` in P6.
 param(
   [string[]]$Test,
   [string]$Filter,
@@ -49,10 +49,8 @@ $repo = Split-Path -Parent $PSScriptRoot
 $podd = Join-Path $repo 'crates\podd'
 
 $targets = Get-ChildItem (Join-Path $podd 'tests') -Filter *.rs | ForEach-Object { $_.BaseName } | Sort-Object
-$blocked = @{
-  pr     = 'still runs cargo inside the test; card P5 moves it to the prebuilt fixtures'
-  status = 'still runs cargo inside the test; card P6 moves it to the prebuilt fixtures'
-}
+# Targets that cannot run here yet (name = reason); none since P6.
+$blocked = @{}
 if ($List) {
   foreach ($t in $targets) {
     if ($blocked.ContainsKey($t)) { "{0,-24} (not runnable: {1})" -f $t, $blocked[$t] } else { $t }
@@ -121,7 +119,10 @@ if ($missing) { throw "missing (build without -SkipBuild): $($missing -join ', '
 
 # --- 3. run ---
 $runId = "pod-rf-{0:yyyyMMddHHmmss}-{1}" -f (Get-Date), $PID
-$root = Join-Path ([IO.Path]::GetTempPath()) $runId
+# $env:TEMP as given (not GetTempPath, which expands 8.3 names), so a run under
+# tools/test-shortpath.ps1 really gives podd a short-name state directory.
+$tempBase = if ($env:TEMP) { $env:TEMP } else { [IO.Path]::GetTempPath() }
+$root = Join-Path $tempBase $runId
 $dirs = @{
   tmp = 'tmp'; home = 'home'; roaming = 'roaming'; local = 'local'
   worktrees = 'worktrees'; mods = 'mods'; claude = 'agents\claude'; codex = 'agents\codex'

@@ -176,10 +176,12 @@ fn write_json<T: Serialize>(path: &Path, v: &T) -> Result<(), String> {
         std::fs::create_dir_all(dir).map_err(|e| format!("{}: {e}", dir.display()))?;
     }
     let tmp = path.with_extension("json.tmp");
-    let res = serde_json::to_vec_pretty(v)
+    let res = pod_storage::json::to_pretty_bytes(v)
         .map_err(|e| e.to_string())
-        .and_then(|b| std::fs::write(&tmp, b).map_err(|e| e.to_string()))
-        .and_then(|_| std::fs::rename(&tmp, path).map_err(|e| e.to_string()));
+        .and_then(|b| {
+            pod_storage::replace::write_then_rename(path, &tmp, &b).map_err(|e| e.to_string())
+        });
+    // Also after a failed serialization: a stale temporary file goes too.
     if let Err(e) = res {
         let _ = std::fs::remove_file(&tmp);
         log(&format!("sessions: cannot write {}: {e}", path.display()));
@@ -1104,5 +1106,149 @@ mod tests {
         assert!(resolve(&found, "aaaa").is_err(), "ambiguous");
         assert!(resolve(&found, "").is_err());
         assert!(resolve(&found, "claude:bbbb").is_err());
+    }
+
+    fn temp_dir(tag: &str) -> PathBuf {
+        static SEQ: std::sync::atomic::AtomicU64 = std::sync::atomic::AtomicU64::new(0);
+        let seq = SEQ.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
+        let d = std::env::temp_dir().join(format!(
+            "podd-disc-{tag}-{}-{}-{seq}",
+            std::process::id(),
+            crate::now_ms()
+        ));
+        let _ = std::fs::remove_dir_all(&d);
+        std::fs::create_dir_all(&d).unwrap();
+        d
+    }
+
+    fn names(dir: &Path) -> Vec<String> {
+        let mut v: Vec<String> = std::fs::read_dir(dir)
+            .unwrap()
+            .map(|e| e.unwrap().file_name().to_string_lossy().into_owned())
+            .collect();
+        v.sort();
+        v
+    }
+
+    fn pinned_stored() -> Stored {
+        let mut s = Stored {
+            enabled: true,
+            preview: false,
+            ..Stored::default()
+        };
+        s.hidden.insert("codex:bbbb".into());
+        s.hidden.insert("claude:aaaa".into());
+        s.links.insert(
+            "claude:aaaa".into(),
+            CwdMatch {
+                repo: Some("demo".into()),
+                task: Some("demo/t".into()),
+            },
+        );
+        s.links.insert("codex:bbbb".into(), CwdMatch::default());
+        s
+    }
+
+    /// `sessions.json`'s bytes (pretty, two-space indent, no trailing
+    /// newline) and the temporary names `sessions.json.tmp` /
+    /// `cache.json.tmp`, pinned before the storage primitive took over the
+    /// write (docs/20-refactor/libs.md L2).
+    #[test]
+    fn write_json_bytes_and_temporary_names_are_pinned() {
+        let d = temp_dir("pin");
+        let st = State {
+            dir: d.join("sessions"),
+            stored: pinned_stored(),
+            ..State::default()
+        };
+        // A missing parent is created.
+        st.save_settings().unwrap();
+        let golden = r#"{
+  "version": 1,
+  "enabled": true,
+  "preview": false,
+  "hidden": [
+    "claude:aaaa",
+    "codex:bbbb"
+  ],
+  "links": {
+    "claude:aaaa": {
+      "repo": "demo",
+      "task": "demo/t"
+    },
+    "codex:bbbb": {}
+  }
+}"#;
+        let settings = st.dir.join("sessions.json");
+        assert_eq!(std::fs::read_to_string(&settings).unwrap(), golden);
+        assert_eq!(names(&st.dir), ["sessions.json"]);
+        // Stale temporary files from a crash are the ones written and renamed.
+        std::fs::write(st.dir.join("sessions.json.tmp"), b"stale").unwrap();
+        std::fs::write(st.dir.join("cache.json.tmp"), b"stale summary").unwrap();
+        st.save_settings().unwrap();
+        st.save_cache().unwrap();
+        assert_eq!(names(&st.dir), ["cache.json", "sessions.json"]);
+        assert_eq!(std::fs::read_to_string(&settings).unwrap(), golden);
+        assert_eq!(
+            std::fs::read(st.dir.join("cache.json")).unwrap(),
+            serde_json::to_vec_pretty(&Cache::default()).unwrap()
+        );
+        let back: Stored = read_json(&settings, false);
+        assert_eq!(serde_json::to_string_pretty(&back).unwrap(), golden);
+        let _ = std::fs::remove_dir_all(&d);
+    }
+
+    /// A failed write removes its temporary file (it may hold session
+    /// summaries), also a stale one when serializing fails; the error names
+    /// the destination (the directory when it cannot be created) and the
+    /// cause, as before the storage primitive.
+    #[test]
+    fn failed_writes_remove_the_summary_temporary_file() {
+        let d = temp_dir("fail");
+        // The rename fails (the destination is a non-empty directory).
+        let p = d.join("cache.json");
+        std::fs::create_dir_all(p.join("inner")).unwrap();
+        let e = write_json(&p, &pinned_stored()).unwrap_err();
+        let probe = d.join("probe.tmp");
+        std::fs::write(&probe, b"x").unwrap();
+        let os = std::fs::rename(&probe, &p).unwrap_err();
+        std::fs::remove_file(&probe).unwrap();
+        assert_eq!(e, format!("{}: {os}", p.display()));
+        assert!(p.join("inner").is_dir());
+        assert_eq!(names(&d), ["cache.json"]);
+
+        // Serializing fails: nothing is written and a stale temporary file
+        // is removed all the same.
+        let p = d.join("map.json");
+        std::fs::write(d.join("map.json.tmp"), b"stale summary").unwrap();
+        let mut bad = BTreeMap::new();
+        bad.insert((1u8, 2u8), 3u8);
+        assert_eq!(
+            write_json(&p, &bad).unwrap_err(),
+            format!("{}: key must be a string", p.display())
+        );
+        assert_eq!(names(&d), ["cache.json"]);
+
+        // The temporary file cannot be written (a directory holds its name):
+        // the destination keeps its old bytes.
+        let p = d.join("sessions.json");
+        std::fs::write(&p, b"old").unwrap();
+        std::fs::create_dir(d.join("sessions.json.tmp")).unwrap();
+        let e = write_json(&p, &pinned_stored()).unwrap_err();
+        let os = std::fs::write(d.join("sessions.json.tmp"), b"x").unwrap_err();
+        assert_eq!(e, format!("{}: {os}", p.display()));
+        assert_eq!(std::fs::read(&p).unwrap(), b"old");
+        assert!(d.join("sessions.json.tmp").is_dir());
+
+        // The parent cannot be created (a file holds its name).
+        let file = d.join("file");
+        std::fs::write(&file, b"f").unwrap();
+        let os = std::fs::create_dir_all(&file).unwrap_err();
+        assert_eq!(
+            write_json(&file.join("sessions.json"), &pinned_stored()).unwrap_err(),
+            format!("{}: {os}", file.display())
+        );
+        assert_eq!(std::fs::read(&file).unwrap(), b"f");
+        let _ = std::fs::remove_dir_all(&d);
     }
 }

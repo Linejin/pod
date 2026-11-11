@@ -194,3 +194,171 @@ fn worker_commit_refuses_nested_repos_links_and_bad_paths() {
     }
     assert!(!f.marker.exists());
 }
+
+/// Refactor D-P5 (docs/20-refactor/daemon.md): what the git layer returns
+/// for one fixture, written down before `git.rs` was split into modules and
+/// unchanged by the split. Names with spaces, Korean and a leading dash, a
+/// rename, `-z` status and diff output, a staged rename, binary and text
+/// untracked files, refs that look like options, the worktree listing and
+/// the refusal to remove a dirty worktree without force. No filter runs.
+#[test]
+fn git_results_are_pinned() {
+    let f = fixture("pin");
+    let (repo, wt) = (&f.repo, &f.wt);
+    let mut got: Vec<String> = Vec::new();
+    let mut rec = |s: String| got.push(s);
+
+    // Refs and queries; option-like revisions are refused before git runs.
+    let base = g(repo, &["rev-parse", "main"]).trim().to_string();
+    rec(format!("repo_root(repo) = {:?}", git::repo_root(repo)));
+    rec(format!("repo_root(wt) = {:?}", git::repo_root(wt)));
+    rec(format!("default_base = {}", git::default_base(repo)));
+    rec(format!(
+        "resolve_commit main = base: {}, -x: {:?}",
+        git::resolve_commit(repo, "main").as_deref() == Some(base.as_str()),
+        git::resolve_commit(repo, "-x"),
+    ));
+    rec(format!(
+        "branch_exists pod/w {}, nope {}; valid_branch_name bad..name {}, ok/x {}",
+        git::branch_exists(repo, "pod/w"),
+        git::branch_exists(repo, "nope"),
+        git::valid_branch_name(repo, "bad..name"),
+        git::valid_branch_name(repo, "ok/x"),
+    ));
+    rec(format!(
+        "ref_exists refs/heads/main {}, --all {}; is_ancestor main pod/w {}, -x main {}",
+        git::ref_exists(repo, "refs/heads/main"),
+        git::ref_exists(repo, "--all"),
+        git::is_ancestor(repo, "main", "pod/w"),
+        git::is_ancestor(repo, "-x", "main"),
+    ));
+    rec(format!(
+        "show_file main:keep.txt {:?}; --output=x {:?}",
+        git::show_file(repo, "main", "keep.txt"),
+        git::show_file(repo, "--output=x", "keep.txt"),
+    ));
+    rec(format!(
+        "base_rev gone = base: {}; merge_base = base: {}",
+        git::base_rev(wt, "gone", &base) == base,
+        git::merge_base(wt, "main", &base) == base,
+    ));
+
+    // Worker commits: odd names (pathspecs after `--`), then a rename.
+    std::fs::create_dir_all(wt.join("dir with space")).unwrap();
+    std::fs::write(wt.join("dir with space").join("a b.txt"), "a b\n").unwrap();
+    std::fs::write(wt.join("한글 é.txt"), "k\n").unwrap();
+    std::fs::write(wt.join("-dash.txt"), "d\n").unwrap();
+    let names = [
+        "dir with space/a b.txt".to_string(),
+        "한글 é.txt".into(),
+        "-dash.txt".into(),
+    ];
+    let r = git::commit_for_worker(wt, &f.no_hooks, "names", false, &names);
+    rec(format!("commit names = {:?}", r.map(|(_, s)| s)));
+    let shown = || {
+        g(
+            wt,
+            &["show", "--name-status", "-M", "-z", "--format=", "HEAD"],
+        )
+        .replace('\0', "|")
+    };
+    rec(format!("  HEAD files {}", shown()));
+    std::fs::rename(wt.join("keep.txt"), wt.join("kept name.txt")).unwrap();
+    let r = git::commit_for_worker(wt, &f.no_hooks, "rename\n\nbody", true, &[]);
+    rec(format!("commit rename = {:?}", r.map(|(_, s)| s)));
+    rec(format!("  HEAD files {}", shown()));
+
+    // A dirty tree: unstaged change, staged rename, untracked text and binary.
+    std::fs::write(wt.join("kept name.txt"), "keep\nmore\n").unwrap();
+    g(wt, &["mv", "--", "-dash.txt", "dash renamed.txt"]);
+    std::fs::write(wt.join("new file.bin"), [0u8, 1, 2, 0, 3]).unwrap();
+    std::fs::write(wt.join("notes 2.txt"), "1\n2\n3").unwrap();
+    let t = git::facts(wt, "main", &base).unwrap();
+    rec(format!(
+        "facts ahead {} behind {} dirty {} unpushed {} branch {:?} head {} last {:?}",
+        t.ahead,
+        t.behind,
+        t.dirty,
+        t.unpushed,
+        t.branch,
+        t.head == git::resolve_commit(wt, "HEAD"),
+        t.last_commit.map(|c| c.summary),
+    ));
+    let (mb, files) = git::diff(wt, "main", &base).unwrap();
+    rec(format!("diff merge base = base: {}", mb == base));
+    for d in files {
+        rec(format!(
+            "  {} {:?} {:?} +{:?} -{:?} binary {}",
+            d.status, d.path, d.old_path, d.added, d.deleted, d.binary
+        ));
+    }
+
+    // Worktrees: listing, refusal on a dirty tree, forced removal.
+    for w in git::worktree_list(repo).unwrap() {
+        rec(format!(
+            "worktree {} branch {:?} head {} bare {} detached {} prunable {} locked {}",
+            w.path.display(),
+            w.branch,
+            w.head.is_some(),
+            w.bare,
+            w.detached,
+            w.prunable,
+            w.locked,
+        ));
+    }
+    let e = git::worktree_remove(repo, wt, false).unwrap_err();
+    let (head, _git_says) = e.split_once(": ").unwrap_or((&e, ""));
+    rec(format!(
+        "remove dirty = Err({head}: …), kept {}",
+        wt.exists()
+    ));
+    rec(format!(
+        "remove --force = {:?}, kept {}",
+        git::worktree_remove(repo, wt, true),
+        wt.exists()
+    ));
+    rec(format!(
+        "prune {:?}, branch_delete {:?}, pod/w exists {}",
+        git::worktree_prune(repo),
+        git::branch_delete(repo, "pod/w"),
+        git::branch_exists(repo, "pod/w"),
+    ));
+    rec(format!("marker {}", f.marker.exists()));
+
+    // The temp root as written, as git prints it, and inside `{:?}` output.
+    let mut got = got.join("\n");
+    for r in [git::normalize(&f.root), f.root.clone()] {
+        let plain = r.display().to_string();
+        for spelling in [plain.replace('\\', r"\\"), plain, u(&r)] {
+            got = got.replace(&spelling, "<root>");
+        }
+    }
+    assert_eq!(got, PINNED, "\n--- got ---\n{got}\n");
+}
+
+const PINNED: &str = r#"repo_root(repo) = Ok("<root>\\repo")
+repo_root(wt) = Err("<root>\\wt is a linked worktree; add the main repository instead")
+default_base = main
+resolve_commit main = base: true, -x: None
+branch_exists pod/w true, nope false; valid_branch_name bad..name false, ok/x true
+ref_exists refs/heads/main true, --all false; is_ancestor main pod/w true, -x main false
+show_file main:keep.txt Ok("keep\n"); --output=x Err("invalid revision \"--output=x\"")
+base_rev gone = base: true; merge_base = base: true
+commit names = Ok("names")
+  HEAD files A|-dash.txt|A|dir with space/a b.txt|A|한글 é.txt|
+commit rename = Ok("rename")
+  HEAD files R100|keep.txt|kept name.txt|
+facts ahead 2 behind 0 dirty 4 unpushed 2 branch Some("pod/w") head true last Some("rename")
+diff merge base = base: true
+  A "dash renamed.txt" None +Some(1) -Some(0) binary false
+  A "dir with space/a b.txt" None +Some(1) -Some(0) binary false
+  R "kept name.txt" Some("keep.txt") +Some(1) -Some(0) binary false
+  ? "new file.bin" None +None -None binary true
+  ? "notes 2.txt" None +Some(3) -Some(0) binary false
+  A "한글 é.txt" None +Some(1) -Some(0) binary false
+worktree <root>\repo branch Some("main") head true bare false detached false prunable false locked false
+worktree <root>\wt branch Some("pod/w") head true bare false detached false prunable false locked false
+remove dirty = Err(git worktree remove <root>\wt: …), kept true
+remove --force = Ok(()), kept false
+prune Ok(()), branch_delete Ok(()), pod/w exists false
+marker false"#;

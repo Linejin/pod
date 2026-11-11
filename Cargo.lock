@@ -5134,13 +5134,13 @@ dependencies = [
  "futures",
  "gpui-kit",
  "gpui-pre",
+ "pod-client",
  "pod-diff",
  "pod-editor",
  "pod-forge",
  "pod-status",
  "pod-terminal-view",
  "pod-ui",
- "podd",
  "raw-window-handle",
  "rust-i18n",
  "serde",
@@ -5158,13 +5158,23 @@ dependencies = [
  "base64 0.22.1",
  "clap",
  "embed-resource",
+ "pod-client",
  "pod-remote",
  "pod-status",
  "pod-test-support",
- "podd",
  "serde",
  "serde_json",
  "toml_edit 0.22.27",
+ "windows-sys 0.61.2",
+]
+
+[[package]]
+name = "pod-client"
+version = "0.1.0"
+dependencies = [
+ "pod-protocol",
+ "serde",
+ "serde_json",
  "windows-sys 0.61.2",
 ]
 
@@ -5199,7 +5209,6 @@ dependencies = [
  "ignore",
  "lsp-types",
  "notify",
- "pod-forge",
  "pod-process",
  "pod-test-support",
  "pod-ui",
@@ -5220,7 +5229,6 @@ dependencies = [
  "schemars",
  "serde",
  "serde_json",
- "windows-sys 0.61.2",
 ]
 
 [[package]]
@@ -5282,8 +5290,8 @@ dependencies = [
 name = "pod-remote"
 version = "0.1.0"
 dependencies = [
+ "pod-client",
  "pod-test-support",
- "podd",
  "serde",
  "serde_json",
 ]
@@ -5353,6 +5361,7 @@ dependencies = [
  "anyhow",
  "base64 0.22.1",
  "embed-resource",
+ "pod-client",
  "pod-discover",
  "pod-forge",
  "pod-mods",

@@ -21,6 +21,8 @@ use std::path::Path;
 
 use anyhow::Result;
 
+use crate::model::git::git_command;
+
 /// How the clean conversion treats one path.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum Action {
@@ -164,7 +166,7 @@ pub fn attributes(repo: &Path, paths: &[&str]) -> Result<Vec<(String, String, St
     if paths.is_empty() {
         return Ok(Vec::new());
     }
-    let mut child = crate::model::git_command(repo)
+    let mut child = git_command(repo)
         .args(["check-attr", "-z", "--stdin", "text", "crlf", "eol"])
         .stdin(Stdio::piped())
         .stdout(Stdio::piped())
@@ -206,7 +208,7 @@ pub fn attributes(repo: &Path, paths: &[&str]) -> Result<Vec<(String, String, St
 
 /// `core.autocrlf` of the repository.
 pub fn autocrlf(repo: &Path) -> AutoCrlf {
-    let out = crate::model::git_command(repo)
+    let out = git_command(repo)
         .args(["config", "--get", "core.autocrlf"])
         .stdin(std::process::Stdio::null())
         .stderr(std::process::Stdio::null())

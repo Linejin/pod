@@ -1,0 +1,3256 @@
+{
+  "cases": [
+    {
+      "name": "help",
+      "args": [
+        "--help"
+      ],
+      "exit": 0,
+      "stdout": "Drive terminals owned by the podd daemon\n\nUsage: pod.exe [OPTIONS] <COMMAND>\n\nCommands:\n  run           Start a program in a new terminal (kept alive by a holder process) and print its id\n  ls            List terminals (exited ones only with --all)\n  keep          Keep an exited terminal from being removed by the retention policy (--unkeep returns it to the policy)\n  send          Type text into a terminal, followed by Enter unless --no-enter. Enter is pressed once the program has taken the text in; for an agent the daemon then checks that a turn started and presses Enter once more if not (a warning is printed when it still did not)\n  keys          Press named keys: enter, tab, esc, up, ctrl+c, alt+x, f5, ... or single characters\n  read          Print the screen (or scrollback + screen with --history)\n  wait          Wait until the program exits (default) or the output contains TEXT (the echo of text sent with `pod send` does not count), or for an agent status (--status, --turn-end)\n  resize        Resize a terminal (the most recent resize wins, also over attached clients)\n  attach        Attach this console to a terminal: raw input and output, Ctrl+] detaches\n  status        Show a terminal's agent status\n  ack           Acknowledge a terminal (the user saw it): done becomes idle\n  hooks         Agent hook configuration\n  kill          Kill a terminal's whole process tree\n  rm            Forget an exited terminal (ends its holder). --force kills it first\n  repo          Registered git repositories (tasks are created in them)\n  task          Tasks: a git worktree on branch pod/<name> plus the terminal(s) working in it\n  review        Review comments on a task's diff, sent to its agent (P4)\n  group         Fan-out groups: one prompt, several agents, compare and pick (P5)\n  orch          Orchestration for agents: runs, items, workers, mail (docs/19)\n  gate          Human approval gates (P5). Agents call `pod gate request` from their terminal\n  pr            A task's GitHub pull request: push, create, status, merge, open (docs/15)\n  sessions      Agent sessions found on this PC (Claude Code, Codex): list, resume, link (docs/18)\n  mobile        Paired phones: permissions per task, revoke, audit (docs/17; no network listener yet)\n  server        Daemon control\n  remote-stdio  Bridge stdin/stdout to this user's podd for a remote client (`ssh -T host pod remote-stdio`). Starts the installed podd if none runs. stdout carries protocol lines only; exits when either side closes, leaving the daemon and its terminals running\n  machine       SSH machine profiles for `pod --machine <name> …` (docs/17 R3)\n  guide         Guides for agents in Pod terminals, matched to this version (`pod guide orchestration`); no topic: the list\n  help          Print this message or the help of the given subcommand(s)\n\nOptions:\n      --json            Print machine-readable JSON instead of text\n      --pipe <PIPE>     Pipe name or path (default: $POD_SOCKET, else \\\\.\\pipe\\podd-<username>)\n      --machine <NAME>  Run the command on this SSH machine profile (`pod machine add`) instead of the local daemon\n  -h, --help            Print help\n  -V, --version         Print version\n",
+      "stderr": ""
+    },
+    {
+      "name": "help run",
+      "args": [
+        "run",
+        "--help"
+      ],
+      "exit": 0,
+      "stdout": "Start a program in a new terminal (kept alive by a holder process) and print its id\n\nUsage: pod.exe run [OPTIONS] -- <ARGV>...\n\nArguments:\n  <ARGV>...  Program and arguments\n\nOptions:\n      --json             Print machine-readable JSON instead of text\n      --name <NAME>      Unique name (among running terminals) usable instead of the id\n      --cwd <CWD>        Working directory (default: the task's worktree with --task, else the current directory)\n      --pipe <PIPE>      Pipe name or path (default: $POD_SOCKET, else \\\\.\\pipe\\podd-<username>)\n      --machine <NAME>   Run the command on this SSH machine profile (`pod machine add`) instead of the local daemon\n      --task <TASK>      Add the terminal to this task (<repo>/<name> or unique name); sets POD_TASK_ID\n      --env <KEY=VALUE>  Extra environment variable, KEY=VALUE (repeatable). Applied last\n      --inherit-env      Pass this shell's environment (minus launcher markers such as NO_COLOR, CLAUDECODE, parent-IDE variables) instead of the clean user environment\n      --cols <COLS>      \n      --rows <ROWS>      \n  -h, --help             Print help\n",
+      "stderr": ""
+    },
+    {
+      "name": "help ls",
+      "args": [
+        "ls",
+        "--help"
+      ],
+      "exit": 0,
+      "stdout": "List terminals (exited ones only with --all)\n\nUsage: pod.exe ls [OPTIONS]\n\nOptions:\n  -a, --all             Also show exited terminals\n      --json            Print machine-readable JSON instead of text\n      --pipe <PIPE>     Pipe name or path (default: $POD_SOCKET, else \\\\.\\pipe\\podd-<username>)\n      --machine <NAME>  Run the command on this SSH machine profile (`pod machine add`) instead of the local daemon\n  -h, --help            Print help\n",
+      "stderr": ""
+    },
+    {
+      "name": "help keep",
+      "args": [
+        "keep",
+        "--help"
+      ],
+      "exit": 0,
+      "stdout": "Keep an exited terminal from being removed by the retention policy (--unkeep returns it to the policy)\n\nUsage: pod.exe keep [OPTIONS] <TERMINAL>\n\nArguments:\n  <TERMINAL>  \n\nOptions:\n      --json            Print machine-readable JSON instead of text\n      --unkeep          \n      --pipe <PIPE>     Pipe name or path (default: $POD_SOCKET, else \\\\.\\pipe\\podd-<username>)\n      --machine <NAME>  Run the command on this SSH machine profile (`pod machine add`) instead of the local daemon\n  -h, --help            Print help\n",
+      "stderr": ""
+    },
+    {
+      "name": "help send",
+      "args": [
+        "send",
+        "--help"
+      ],
+      "exit": 0,
+      "stdout": "Type text into a terminal, followed by Enter unless --no-enter. Enter is pressed once the program has taken the text in; for an agent the daemon then checks that a turn started and presses Enter once more if not (a warning is printed when it still did not)\n\nUsage: pod.exe send [OPTIONS] <TERMINAL> <TEXT>\n\nArguments:\n  <TERMINAL>  Terminal id (t3) or name\n  <TEXT>      \n\nOptions:\n      --json            Print machine-readable JSON instead of text\n      --no-enter        \n      --no-confirm      Press Enter once, without checking that the agent took the text\n      --pipe <PIPE>     Pipe name or path (default: $POD_SOCKET, else \\\\.\\pipe\\podd-<username>)\n      --machine <NAME>  Run the command on this SSH machine profile (`pod machine add`) instead of the local daemon\n  -h, --help            Print help\n",
+      "stderr": ""
+    },
+    {
+      "name": "help keys",
+      "args": [
+        "keys",
+        "--help"
+      ],
+      "exit": 0,
+      "stdout": "Press named keys: enter, tab, esc, up, ctrl+c, alt+x, f5, ... or single characters\n\nUsage: pod.exe keys [OPTIONS] <TERMINAL> <KEYS>...\n\nArguments:\n  <TERMINAL>  \n  <KEYS>...   \n\nOptions:\n      --json            Print machine-readable JSON instead of text\n      --pipe <PIPE>     Pipe name or path (default: $POD_SOCKET, else \\\\.\\pipe\\podd-<username>)\n      --machine <NAME>  Run the command on this SSH machine profile (`pod machine add`) instead of the local daemon\n  -h, --help            Print help\n",
+      "stderr": ""
+    },
+    {
+      "name": "help read",
+      "args": [
+        "read",
+        "--help"
+      ],
+      "exit": 0,
+      "stdout": "Print the screen (or scrollback + screen with --history)\n\nUsage: pod.exe read [OPTIONS] <TERMINAL>\n\nArguments:\n  <TERMINAL>  \n\nOptions:\n      --history         \n      --json            Print machine-readable JSON instead of text\n      --lines <LINES>   Only the last N lines\n      --pipe <PIPE>     Pipe name or path (default: $POD_SOCKET, else \\\\.\\pipe\\podd-<username>)\n      --machine <NAME>  Run the command on this SSH machine profile (`pod machine add`) instead of the local daemon\n      --raw             Keep a grey prompt suggestion at the caret (Claude's suggested prompt, PSReadLine's prediction) in the text. By default it is left out and named on a separate line: nobody typed it\n  -h, --help            Print help\n",
+      "stderr": ""
+    },
+    {
+      "name": "help wait",
+      "args": [
+        "wait",
+        "--help"
+      ],
+      "exit": 0,
+      "stdout": "Wait until the program exits (default) or the output contains TEXT (the echo of text sent with `pod send` does not count), or for an agent status (--status, --turn-end)\n\nUsage: pod.exe wait [OPTIONS] [TERMINAL]\n\nArguments:\n  [TERMINAL]  Terminal id or name (not with --gate)\n\nOptions:\n      --gate <ID>        Wait until this gate is resolved: exit 0 approved, 1 rejected or timed out\n      --json             Print machine-readable JSON instead of text\n      --exit             \n      --pipe <PIPE>      Pipe name or path (default: $POD_SOCKET, else \\\\.\\pipe\\podd-<username>)\n      --machine <NAME>   Run the command on this SSH machine profile (`pod machine add`) instead of the local daemon\n      --output <TEXT>    \n      --status <STATUS>  Wait for this agent status (returns at once if already in it); any-change waits for the next state change [possible values: idle, working, done, blocked, error, exited, any-change]\n      --turn-end         Wait until the current (or next) turn ends: the turn counter advances and the agent is no longer working\n      --timeout <S>      Give up after S seconds (fractions allowed); exit code 1\n  -h, --help             Print help\n",
+      "stderr": ""
+    },
+    {
+      "name": "help resize",
+      "args": [
+        "resize",
+        "--help"
+      ],
+      "exit": 0,
+      "stdout": "Resize a terminal (the most recent resize wins, also over attached clients)\n\nUsage: pod.exe resize [OPTIONS] <TERMINAL> <COLS> <ROWS>\n\nArguments:\n  <TERMINAL>  \n  <COLS>      \n  <ROWS>      \n\nOptions:\n      --json            Print machine-readable JSON instead of text\n      --pipe <PIPE>     Pipe name or path (default: $POD_SOCKET, else \\\\.\\pipe\\podd-<username>)\n      --machine <NAME>  Run the command on this SSH machine profile (`pod machine add`) instead of the local daemon\n  -h, --help            Print help\n",
+      "stderr": ""
+    },
+    {
+      "name": "help attach",
+      "args": [
+        "attach",
+        "--help"
+      ],
+      "exit": 0,
+      "stdout": "Attach this console to a terminal: raw input and output, Ctrl+] detaches\n\nUsage: pod.exe attach [OPTIONS] <TERMINAL>\n\nArguments:\n  <TERMINAL>  \n\nOptions:\n      --json                     Print machine-readable JSON instead of text\n      --scrollback <SCROLLBACK>  Scrollback lines replayed on attach [default: 1000]\n      --no-resize                Do not resize the terminal to this console\n      --pipe <PIPE>              Pipe name or path (default: $POD_SOCKET, else \\\\.\\pipe\\podd-<username>)\n      --machine <NAME>           Run the command on this SSH machine profile (`pod machine add`) instead of the local daemon\n  -h, --help                     Print help\n",
+      "stderr": ""
+    },
+    {
+      "name": "help status",
+      "args": [
+        "status",
+        "--help"
+      ],
+      "exit": 0,
+      "stdout": "Show a terminal's agent status\n\nUsage: pod.exe status [OPTIONS] <TERMINAL>\n\nArguments:\n  <TERMINAL>  \n\nOptions:\n      --json            Print machine-readable JSON instead of text\n      --pipe <PIPE>     Pipe name or path (default: $POD_SOCKET, else \\\\.\\pipe\\podd-<username>)\n      --machine <NAME>  Run the command on this SSH machine profile (`pod machine add`) instead of the local daemon\n  -h, --help            Print help\n",
+      "stderr": ""
+    },
+    {
+      "name": "help ack",
+      "args": [
+        "ack",
+        "--help"
+      ],
+      "exit": 0,
+      "stdout": "Acknowledge a terminal (the user saw it): done becomes idle\n\nUsage: pod.exe ack [OPTIONS] <TERMINAL>\n\nArguments:\n  <TERMINAL>  \n\nOptions:\n      --json            Print machine-readable JSON instead of text\n      --pipe <PIPE>     Pipe name or path (default: $POD_SOCKET, else \\\\.\\pipe\\podd-<username>)\n      --machine <NAME>  Run the command on this SSH machine profile (`pod machine add`) instead of the local daemon\n  -h, --help            Print help\n",
+      "stderr": ""
+    },
+    {
+      "name": "help hooks",
+      "args": [
+        "hooks",
+        "--help"
+      ],
+      "exit": 0,
+      "stdout": "Agent hook configuration\n\nUsage: pod.exe hooks [OPTIONS] <COMMAND>\n\nCommands:\n  install    Install Pod's agent hooks: copy pod-hook.exe to the bin dir, merge the hooks into the agents' config (backups first, other tools' hooks kept), and trust Pod's Codex hooks via `codex app-server`\n  uninstall  Remove Pod's hook entries (backups first); everything else stays\n  status     Show what is installed\n  help       Print this message or the help of the given subcommand(s)\n\nOptions:\n      --json            Print machine-readable JSON instead of text\n      --pipe <PIPE>     Pipe name or path (default: $POD_SOCKET, else \\\\.\\pipe\\podd-<username>)\n      --machine <NAME>  Run the command on this SSH machine profile (`pod machine add`) instead of the local daemon\n  -h, --help            Print help\n",
+      "stderr": ""
+    },
+    {
+      "name": "help hooks install",
+      "args": [
+        "hooks",
+        "install",
+        "--help"
+      ],
+      "exit": 0,
+      "stdout": "Install Pod's agent hooks: copy pod-hook.exe to the bin dir, merge the hooks into the agents' config (backups first, other tools' hooks kept), and trust Pod's Codex hooks via `codex app-server`\n\nUsage: pod.exe hooks install [OPTIONS]\n\nOptions:\n      --json\n          Print machine-readable JSON instead of text\n\n      --scope <SCOPE>\n          global: ~/.claude/settings.json + ~/.codex/hooks.json (the decided policy). profile: separate CLAUDE_CONFIG_DIR / CODEX_HOME dirs\n\n          Possible values:\n          - global:  `~/.claude/settings.json` + `~/.codex/hooks.json` (env-guarded hooks)\n          - profile: Separate profile dirs, used via CLAUDE_CONFIG_DIR / CODEX_HOME\n          \n          [default: global]\n\n      --agent <AGENT>\n          [default: all]\n          [possible values: claude, codex, all]\n\n      --pipe <PIPE>\n          Pipe name or path (default: $POD_SOCKET, else \\\\.\\pipe\\podd-<username>)\n\n      --home <HOME>\n          Home directory for --scope global (default: %USERPROFILE%). Tests use a temporary one\n\n      --machine <NAME>\n          Run the command on this SSH machine profile (`pod machine add`) instead of the local daemon\n\n      --claude-config-dir <CLAUDE_CONFIG_DIR>\n          Claude profile dir for --scope profile (default: %LOCALAPPDATA%\\pod\\profiles\\default\\claude)\n\n      --codex-home <CODEX_HOME>\n          Codex profile dir for --scope profile (default: %LOCALAPPDATA%\\pod\\profiles\\default\\codex)\n\n      --bin-dir <BIN_DIR>\n          Stable directory the hooks run pod-hook.exe from (default: %LOCALAPPDATA%\\Pod\\bin)\n\n      --source <SOURCE>\n          pod-hook.exe to install (default: next to pod.exe)\n\n      --dry-run\n          Print what would change; write nothing\n\n      --no-codex-trust\n          Do not write Codex [hooks.state] trust entries\n\n  -h, --help\n          Print help (see a summary with '-h')\n",
+      "stderr": ""
+    },
+    {
+      "name": "help hooks uninstall",
+      "args": [
+        "hooks",
+        "uninstall",
+        "--help"
+      ],
+      "exit": 0,
+      "stdout": "Remove Pod's hook entries (backups first); everything else stays\n\nUsage: pod.exe hooks uninstall [OPTIONS]\n\nOptions:\n      --json\n          Print machine-readable JSON instead of text\n\n      --scope <SCOPE>\n          global: ~/.claude/settings.json + ~/.codex/hooks.json (the decided policy). profile: separate CLAUDE_CONFIG_DIR / CODEX_HOME dirs\n\n          Possible values:\n          - global:  `~/.claude/settings.json` + `~/.codex/hooks.json` (env-guarded hooks)\n          - profile: Separate profile dirs, used via CLAUDE_CONFIG_DIR / CODEX_HOME\n          \n          [default: global]\n\n      --agent <AGENT>\n          [default: all]\n          [possible values: claude, codex, all]\n\n      --pipe <PIPE>\n          Pipe name or path (default: $POD_SOCKET, else \\\\.\\pipe\\podd-<username>)\n\n      --home <HOME>\n          Home directory for --scope global (default: %USERPROFILE%). Tests use a temporary one\n\n      --machine <NAME>\n          Run the command on this SSH machine profile (`pod machine add`) instead of the local daemon\n\n      --claude-config-dir <CLAUDE_CONFIG_DIR>\n          Claude profile dir for --scope profile (default: %LOCALAPPDATA%\\pod\\profiles\\default\\claude)\n\n      --codex-home <CODEX_HOME>\n          Codex profile dir for --scope profile (default: %LOCALAPPDATA%\\pod\\profiles\\default\\codex)\n\n      --bin-dir <BIN_DIR>\n          Stable directory the hooks run pod-hook.exe from (default: %LOCALAPPDATA%\\Pod\\bin)\n\n      --source <SOURCE>\n          pod-hook.exe to install (default: next to pod.exe)\n\n      --dry-run\n          \n\n  -h, --help\n          Print help (see a summary with '-h')\n",
+      "stderr": ""
+    },
+    {
+      "name": "help hooks status",
+      "args": [
+        "hooks",
+        "status",
+        "--help"
+      ],
+      "exit": 0,
+      "stdout": "Show what is installed\n\nUsage: pod.exe hooks status [OPTIONS]\n\nOptions:\n      --json\n          Print machine-readable JSON instead of text\n\n      --scope <SCOPE>\n          global: ~/.claude/settings.json + ~/.codex/hooks.json (the decided policy). profile: separate CLAUDE_CONFIG_DIR / CODEX_HOME dirs\n\n          Possible values:\n          - global:  `~/.claude/settings.json` + `~/.codex/hooks.json` (env-guarded hooks)\n          - profile: Separate profile dirs, used via CLAUDE_CONFIG_DIR / CODEX_HOME\n          \n          [default: global]\n\n      --agent <AGENT>\n          [default: all]\n          [possible values: claude, codex, all]\n\n      --pipe <PIPE>\n          Pipe name or path (default: $POD_SOCKET, else \\\\.\\pipe\\podd-<username>)\n\n      --home <HOME>\n          Home directory for --scope global (default: %USERPROFILE%). Tests use a temporary one\n\n      --machine <NAME>\n          Run the command on this SSH machine profile (`pod machine add`) instead of the local daemon\n\n      --claude-config-dir <CLAUDE_CONFIG_DIR>\n          Claude profile dir for --scope profile (default: %LOCALAPPDATA%\\pod\\profiles\\default\\claude)\n\n      --codex-home <CODEX_HOME>\n          Codex profile dir for --scope profile (default: %LOCALAPPDATA%\\pod\\profiles\\default\\codex)\n\n      --bin-dir <BIN_DIR>\n          Stable directory the hooks run pod-hook.exe from (default: %LOCALAPPDATA%\\Pod\\bin)\n\n      --source <SOURCE>\n          pod-hook.exe to install (default: next to pod.exe)\n\n      --check-codex\n          Also ask `codex app-server` whether Pod's Codex hooks are trusted\n\n  -h, --help\n          Print help (see a summary with '-h')\n",
+      "stderr": ""
+    },
+    {
+      "name": "help kill",
+      "args": [
+        "kill",
+        "--help"
+      ],
+      "exit": 0,
+      "stdout": "Kill a terminal's whole process tree\n\nUsage: pod.exe kill [OPTIONS] <TERMINAL>\n\nArguments:\n  <TERMINAL>  \n\nOptions:\n      --json            Print machine-readable JSON instead of text\n      --pipe <PIPE>     Pipe name or path (default: $POD_SOCKET, else \\\\.\\pipe\\podd-<username>)\n      --machine <NAME>  Run the command on this SSH machine profile (`pod machine add`) instead of the local daemon\n  -h, --help            Print help\n",
+      "stderr": ""
+    },
+    {
+      "name": "help rm",
+      "args": [
+        "rm",
+        "--help"
+      ],
+      "exit": 0,
+      "stdout": "Forget an exited terminal (ends its holder). --force kills it first\n\nUsage: pod.exe rm [OPTIONS] <TERMINAL>\n\nArguments:\n  <TERMINAL>  \n\nOptions:\n      --force           \n      --json            Print machine-readable JSON instead of text\n      --pipe <PIPE>     Pipe name or path (default: $POD_SOCKET, else \\\\.\\pipe\\podd-<username>)\n      --machine <NAME>  Run the command on this SSH machine profile (`pod machine add`) instead of the local daemon\n  -h, --help            Print help\n",
+      "stderr": ""
+    },
+    {
+      "name": "help repo",
+      "args": [
+        "repo",
+        "--help"
+      ],
+      "exit": 0,
+      "stdout": "Registered git repositories (tasks are created in them)\n\nUsage: pod.exe repo [OPTIONS] <COMMAND>\n\nCommands:\n  add     Register a repository (the root of a git work tree)\n  ls      List registered repositories\n  rm      Unregister a repository (it must have no tasks). Nothing on disk changes\n  config  Show .pod/config.toml, its commands, hash and approval\n  trust   Approve the repository's commands (shown by `pod repo config`) for this content hash\n  set     Personal settings for a repository (no approval needed)\n  help    Print this message or the help of the given subcommand(s)\n\nOptions:\n      --json            Print machine-readable JSON instead of text\n      --pipe <PIPE>     Pipe name or path (default: $POD_SOCKET, else \\\\.\\pipe\\podd-<username>)\n      --machine <NAME>  Run the command on this SSH machine profile (`pod machine add`) instead of the local daemon\n  -h, --help            Print help\n",
+      "stderr": ""
+    },
+    {
+      "name": "help repo add",
+      "args": [
+        "repo",
+        "add",
+        "--help"
+      ],
+      "exit": 0,
+      "stdout": "Register a repository (the root of a git work tree)\n\nUsage: pod.exe repo add [OPTIONS] <PATH>\n\nArguments:\n  <PATH>  \n\nOptions:\n      --json            Print machine-readable JSON instead of text\n      --name <NAME>     Registry name (default: the directory name)\n      --pipe <PIPE>     Pipe name or path (default: $POD_SOCKET, else \\\\.\\pipe\\podd-<username>)\n      --machine <NAME>  Run the command on this SSH machine profile (`pod machine add`) instead of the local daemon\n  -h, --help            Print help\n",
+      "stderr": ""
+    },
+    {
+      "name": "help repo ls",
+      "args": [
+        "repo",
+        "ls",
+        "--help"
+      ],
+      "exit": 0,
+      "stdout": "List registered repositories\n\nUsage: pod.exe repo ls [OPTIONS]\n\nOptions:\n      --json            Print machine-readable JSON instead of text\n      --pipe <PIPE>     Pipe name or path (default: $POD_SOCKET, else \\\\.\\pipe\\podd-<username>)\n      --machine <NAME>  Run the command on this SSH machine profile (`pod machine add`) instead of the local daemon\n  -h, --help            Print help\n",
+      "stderr": ""
+    },
+    {
+      "name": "help repo rm",
+      "args": [
+        "repo",
+        "rm",
+        "--help"
+      ],
+      "exit": 0,
+      "stdout": "Unregister a repository (it must have no tasks). Nothing on disk changes\n\nUsage: pod.exe repo rm [OPTIONS] <REPO>\n\nArguments:\n  <REPO>  Name or path\n\nOptions:\n      --json            Print machine-readable JSON instead of text\n      --pipe <PIPE>     Pipe name or path (default: $POD_SOCKET, else \\\\.\\pipe\\podd-<username>)\n      --machine <NAME>  Run the command on this SSH machine profile (`pod machine add`) instead of the local daemon\n  -h, --help            Print help\n",
+      "stderr": ""
+    },
+    {
+      "name": "help repo config",
+      "args": [
+        "repo",
+        "config",
+        "--help"
+      ],
+      "exit": 0,
+      "stdout": "Show .pod/config.toml, its commands, hash and approval\n\nUsage: pod.exe repo config [OPTIONS] <REPO>\n\nArguments:\n  <REPO>  \n\nOptions:\n      --json            Print machine-readable JSON instead of text\n      --task <TASK>     Read the file from this task's worktree\n      --pipe <PIPE>     Pipe name or path (default: $POD_SOCKET, else \\\\.\\pipe\\podd-<username>)\n      --machine <NAME>  Run the command on this SSH machine profile (`pod machine add`) instead of the local daemon\n  -h, --help            Print help\n",
+      "stderr": ""
+    },
+    {
+      "name": "help repo trust",
+      "args": [
+        "repo",
+        "trust",
+        "--help"
+      ],
+      "exit": 0,
+      "stdout": "Approve the repository's commands (shown by `pod repo config`) for this content hash\n\nUsage: pod.exe repo trust [OPTIONS] <REPO> <HASH>\n\nArguments:\n  <REPO>  \n  <HASH>  The hash shown by `pod repo config`\n\nOptions:\n      --json            Print machine-readable JSON instead of text\n      --revoke          Withdraw the approval instead\n      --pipe <PIPE>     Pipe name or path (default: $POD_SOCKET, else \\\\.\\pipe\\podd-<username>)\n      --task <TASK>     \n      --machine <NAME>  Run the command on this SSH machine profile (`pod machine add`) instead of the local daemon\n  -h, --help            Print help\n",
+      "stderr": ""
+    },
+    {
+      "name": "help repo set",
+      "args": [
+        "repo",
+        "set",
+        "--help"
+      ],
+      "exit": 0,
+      "stdout": "Personal settings for a repository (no approval needed)\n\nUsage: pod.exe repo set [OPTIONS] <REPO>\n\nArguments:\n  <REPO>  \n\nOptions:\n      --json                  Print machine-readable JSON instead of text\n      --worktrees-root <DIR>  Worktree root for new tasks (\"\" = default)\n      --pipe <PIPE>           Pipe name or path (default: $POD_SOCKET, else \\\\.\\pipe\\podd-<username>)\n      --setup <SCRIPT>        Personal setup script (replaces the repository's)\n      --archive <SCRIPT>      Personal archive script\n      --machine <NAME>        Run the command on this SSH machine profile (`pod machine add`) instead of the local daemon\n      --clear-personal        Remove the personal settings\n  -h, --help                  Print help\n",
+      "stderr": ""
+    },
+    {
+      "name": "help task",
+      "args": [
+        "task",
+        "--help"
+      ],
+      "exit": 0,
+      "stdout": "Tasks: a git worktree on branch pod/<name> plus the terminal(s) working in it\n\nUsage: pod.exe task [OPTIONS] <COMMAND>\n\nCommands:\n  new           Create branch pod/<name> + a worktree, and start the agent in it\n  ls            List tasks with terminal state and git facts\n  show          Show one task\n  diff          Files changed against the base (committed, uncommitted and untracked)\n  touch         Tell the daemon files were saved in the task's worktree: git facts are refreshed now and `task.changed` events go out (editors, scripts)\n  rm            Kill the task's terminals, remove the worktree (and the branch with --delete-branch)\n  archive       Close the task's terminals (after the repository's archive script); worktree, branch and agent session stay\n  unarchive     Re-open an archived task and resume its agent session\n  resume        Start the task's agent again: `claude --resume <id>` / `codex resume <id>` for the recorded session, else a fresh agent\n  cleanup       Tasks by cleanup tier: protected, review, ready\n  suggest-name  Print a free task name for a repository\n  help          Print this message or the help of the given subcommand(s)\n\nOptions:\n      --json            Print machine-readable JSON instead of text\n      --pipe <PIPE>     Pipe name or path (default: $POD_SOCKET, else \\\\.\\pipe\\podd-<username>)\n      --machine <NAME>  Run the command on this SSH machine profile (`pod machine add`) instead of the local daemon\n  -h, --help            Print help\n",
+      "stderr": ""
+    },
+    {
+      "name": "help task new",
+      "args": [
+        "task",
+        "new",
+        "--help"
+      ],
+      "exit": 0,
+      "stdout": "Create branch pod/<name> + a worktree, and start the agent in it\n\nUsage: pod.exe task new [OPTIONS] <REPO> [NAME] [-- <ARGV>...]\n\nArguments:\n  <REPO>     Repository name or path\n  [NAME]     Task name (default: a suggested one)\n  [ARGV]...  Run this program instead of a named agent\n\nOptions:\n      --branch <BRANCH>    Branch instead of pod/<name> (an existing branch is checked out)\n      --json               Print machine-readable JSON instead of text\n      --brief <TEXT>       Task brief (any text): written to a file named by POD_BRIEF; the agent gets a short first line pointing at it\n      --pipe <PIPE>        Pipe name or path (default: $POD_SOCKET, else \\\\.\\pipe\\podd-<username>)\n      --brief-file <FILE>  Read the brief from a file (- = stdin)\n      --machine <NAME>     Run the command on this SSH machine profile (`pod machine add`) instead of the local daemon\n      --setup <SETUP>      Setup: run (if approved), skip, or inherit the repository's (default) [possible values: run, skip, inherit]\n      --wait-setup         Type the brief only after setup finished\n      --no-focus           Do not move the app's focus to the new task (a tab still opens)\n      --base <REF>         Starting point (default: the repository's default branch / HEAD)\n      --agent <AGENT>      Agent to start (default: shell). Ignored when an argv follows `--` [possible values: claude, codex, shell]\n      --prompt <TEXT>      Initial prompt for claude / codex\n      --cols <COLS>        \n      --rows <ROWS>        \n  -h, --help               Print help\n",
+      "stderr": ""
+    },
+    {
+      "name": "help task ls",
+      "args": [
+        "task",
+        "ls",
+        "--help"
+      ],
+      "exit": 0,
+      "stdout": "List tasks with terminal state and git facts\n\nUsage: pod.exe task ls [OPTIONS]\n\nOptions:\n      --json            Print machine-readable JSON instead of text\n      --repo <REPO>     Only this repository\n      --pipe <PIPE>     Pipe name or path (default: $POD_SOCKET, else \\\\.\\pipe\\podd-<username>)\n      --machine <NAME>  Run the command on this SSH machine profile (`pod machine add`) instead of the local daemon\n  -h, --help            Print help\n",
+      "stderr": ""
+    },
+    {
+      "name": "help task show",
+      "args": [
+        "task",
+        "show",
+        "--help"
+      ],
+      "exit": 0,
+      "stdout": "Show one task\n\nUsage: pod.exe task show [OPTIONS] <TASK>\n\nArguments:\n  <TASK>  \n\nOptions:\n      --json            Print machine-readable JSON instead of text\n      --pipe <PIPE>     Pipe name or path (default: $POD_SOCKET, else \\\\.\\pipe\\podd-<username>)\n      --machine <NAME>  Run the command on this SSH machine profile (`pod machine add`) instead of the local daemon\n  -h, --help            Print help\n",
+      "stderr": ""
+    },
+    {
+      "name": "help task diff",
+      "args": [
+        "task",
+        "diff",
+        "--help"
+      ],
+      "exit": 0,
+      "stdout": "Files changed against the base (committed, uncommitted and untracked)\n\nUsage: pod.exe task diff [OPTIONS] <TASK>\n\nArguments:\n  <TASK>  \n\nOptions:\n      --json            Print machine-readable JSON instead of text\n      --pipe <PIPE>     Pipe name or path (default: $POD_SOCKET, else \\\\.\\pipe\\podd-<username>)\n      --machine <NAME>  Run the command on this SSH machine profile (`pod machine add`) instead of the local daemon\n  -h, --help            Print help\n",
+      "stderr": ""
+    },
+    {
+      "name": "help task touch",
+      "args": [
+        "task",
+        "touch",
+        "--help"
+      ],
+      "exit": 0,
+      "stdout": "Tell the daemon files were saved in the task's worktree: git facts are refreshed now and `task.changed` events go out (editors, scripts)\n\nUsage: pod.exe task touch [OPTIONS] <TASK> [PATHS]...\n\nArguments:\n  <TASK>      \n  [PATHS]...  Saved paths (informational, passed on in the event)\n\nOptions:\n      --json            Print machine-readable JSON instead of text\n      --pipe <PIPE>     Pipe name or path (default: $POD_SOCKET, else \\\\.\\pipe\\podd-<username>)\n      --machine <NAME>  Run the command on this SSH machine profile (`pod machine add`) instead of the local daemon\n  -h, --help            Print help\n",
+      "stderr": ""
+    },
+    {
+      "name": "help task rm",
+      "args": [
+        "task",
+        "rm",
+        "--help"
+      ],
+      "exit": 0,
+      "stdout": "Kill the task's terminals, remove the worktree (and the branch with --delete-branch)\n\nUsage: pod.exe task rm [OPTIONS] <TASK>\n\nArguments:\n  <TASK>  \n\nOptions:\n      --force           Remove even with uncommitted changes or unpushed commits\n      --json            Print machine-readable JSON instead of text\n      --delete-branch   Also delete the branch pod/<name>, when it is merged into the base\n      --pipe <PIPE>     Pipe name or path (default: $POD_SOCKET, else \\\\.\\pipe\\podd-<username>)\n      --machine <NAME>  Run the command on this SSH machine profile (`pod machine add`) instead of the local daemon\n  -h, --help            Print help\n",
+      "stderr": ""
+    },
+    {
+      "name": "help task archive",
+      "args": [
+        "task",
+        "archive",
+        "--help"
+      ],
+      "exit": 0,
+      "stdout": "Close the task's terminals (after the repository's archive script); worktree, branch and agent session stay\n\nUsage: pod.exe task archive [OPTIONS] <TASK>\n\nArguments:\n  <TASK>  \n\nOptions:\n      --force                  Archive even while an agent is working or blocked\n      --json                   Print machine-readable JSON instead of text\n      --ignore-script-failure  Archive even when the archive script fails or is not approved\n      --pipe <PIPE>            Pipe name or path (default: $POD_SOCKET, else \\\\.\\pipe\\podd-<username>)\n      --machine <NAME>         Run the command on this SSH machine profile (`pod machine add`) instead of the local daemon\n  -h, --help                   Print help\n",
+      "stderr": ""
+    },
+    {
+      "name": "help task unarchive",
+      "args": [
+        "task",
+        "unarchive",
+        "--help"
+      ],
+      "exit": 0,
+      "stdout": "Re-open an archived task and resume its agent session\n\nUsage: pod.exe task unarchive [OPTIONS] <TASK>\n\nArguments:\n  <TASK>  \n\nOptions:\n      --json            Print machine-readable JSON instead of text\n      --no-agent        Only mark it active; start no agent\n      --pipe <PIPE>     Pipe name or path (default: $POD_SOCKET, else \\\\.\\pipe\\podd-<username>)\n      --machine <NAME>  Run the command on this SSH machine profile (`pod machine add`) instead of the local daemon\n  -h, --help            Print help\n",
+      "stderr": ""
+    },
+    {
+      "name": "help task resume",
+      "args": [
+        "task",
+        "resume",
+        "--help"
+      ],
+      "exit": 0,
+      "stdout": "Start the task's agent again: `claude --resume <id>` / `codex resume <id>` for the recorded session, else a fresh agent\n\nUsage: pod.exe task resume [OPTIONS] <TASK>\n\nArguments:\n  <TASK>  \n\nOptions:\n      --json               Print machine-readable JSON instead of text\n      --session <SESSION>  Session id to resume instead of the recorded one\n      --agent <AGENT>      Agent of --session (claude or codex)\n      --pipe <PIPE>        Pipe name or path (default: $POD_SOCKET, else \\\\.\\pipe\\podd-<username>)\n      --machine <NAME>     Run the command on this SSH machine profile (`pod machine add`) instead of the local daemon\n  -h, --help               Print help\n",
+      "stderr": ""
+    },
+    {
+      "name": "help task cleanup",
+      "args": [
+        "task",
+        "cleanup",
+        "--help"
+      ],
+      "exit": 0,
+      "stdout": "Tasks by cleanup tier: protected, review, ready\n\nUsage: pod.exe task cleanup [OPTIONS]\n\nOptions:\n      --json            Print machine-readable JSON instead of text\n      --repo <REPO>     \n      --days <DAYS>     Clean tasks idle this many days are ready (default 7)\n      --pipe <PIPE>     Pipe name or path (default: $POD_SOCKET, else \\\\.\\pipe\\podd-<username>)\n      --machine <NAME>  Run the command on this SSH machine profile (`pod machine add`) instead of the local daemon\n  -h, --help            Print help\n",
+      "stderr": ""
+    },
+    {
+      "name": "help task suggest-name",
+      "args": [
+        "task",
+        "suggest-name",
+        "--help"
+      ],
+      "exit": 0,
+      "stdout": "Print a free task name for a repository\n\nUsage: pod.exe task suggest-name [OPTIONS] <REPO>\n\nArguments:\n  <REPO>  \n\nOptions:\n      --json            Print machine-readable JSON instead of text\n      --pipe <PIPE>     Pipe name or path (default: $POD_SOCKET, else \\\\.\\pipe\\podd-<username>)\n      --machine <NAME>  Run the command on this SSH machine profile (`pod machine add`) instead of the local daemon\n  -h, --help            Print help\n",
+      "stderr": ""
+    },
+    {
+      "name": "help review",
+      "args": [
+        "review",
+        "--help"
+      ],
+      "exit": 0,
+      "stdout": "Review comments on a task's diff, sent to its agent (P4)\n\nUsage: pod.exe review [OPTIONS] <COMMAND>\n\nCommands:\n  add         Add a comment on a task's diff (or many with --from-json)\n  ls          List comments\n  send        Send comments to the task's agent (delivered when it is idle/done, queued while it works, refused while it waits on you)\n  resolve     Resolve (or --reopen) comments\n  rm          Delete comments\n  deliveries  Deliveries made by `review send`\n  cancel      Cancel a queued delivery\n  help        Print this message or the help of the given subcommand(s)\n\nOptions:\n      --json            Print machine-readable JSON instead of text\n      --pipe <PIPE>     Pipe name or path (default: $POD_SOCKET, else \\\\.\\pipe\\podd-<username>)\n      --machine <NAME>  Run the command on this SSH machine profile (`pod machine add`) instead of the local daemon\n  -h, --help            Print help\n",
+      "stderr": ""
+    },
+    {
+      "name": "help review add",
+      "args": [
+        "review",
+        "add",
+        "--help"
+      ],
+      "exit": 0,
+      "stdout": "Add a comment on a task's diff (or many with --from-json)\n\nUsage: pod.exe review add [OPTIONS] <TASK> [FILE] [LINE]\n\nArguments:\n  <TASK>  \n  [FILE]  File relative to the worktree root\n  [LINE]  1-based line\n\nOptions:\n      --end-line <END_LINE>  Last line of a range\n      --json                 Print machine-readable JSON instead of text\n      --pipe <PIPE>          Pipe name or path (default: $POD_SOCKET, else \\\\.\\pipe\\podd-<username>)\n      --side <SIDE>          `new` = worktree version (default), `old` = base version [default: new] [possible values: old, new]\n      --body <BODY>          \n      --machine <NAME>       Run the command on this SSH machine profile (`pod machine add`) instead of the local daemon\n      --from-json <FILE>     A review UI export: `{\"comments\": [{path|file, side, line, end_line?, body, code?}]}` or a bare array\n  -h, --help                 Print help\n",
+      "stderr": ""
+    },
+    {
+      "name": "help review ls",
+      "args": [
+        "review",
+        "ls",
+        "--help"
+      ],
+      "exit": 0,
+      "stdout": "List comments\n\nUsage: pod.exe review ls [OPTIONS] [TASK]\n\nArguments:\n  [TASK]  \n\nOptions:\n      --json            Print machine-readable JSON instead of text\n      --state <STATE>   [possible values: open, queued, sent, resolved]\n      --pipe <PIPE>     Pipe name or path (default: $POD_SOCKET, else \\\\.\\pipe\\podd-<username>)\n      --machine <NAME>  Run the command on this SSH machine profile (`pod machine add`) instead of the local daemon\n  -h, --help            Print help\n",
+      "stderr": ""
+    },
+    {
+      "name": "help review send",
+      "args": [
+        "review",
+        "send",
+        "--help"
+      ],
+      "exit": 0,
+      "stdout": "Send comments to the task's agent (delivered when it is idle/done, queued while it works, refused while it waits on you)\n\nUsage: pod.exe review send [OPTIONS] <TASK> [IDS]...\n\nArguments:\n  <TASK>    \n  [IDS]...  Comment ids (default with no ids: every open comment)\n\nOptions:\n      --all                          Also send every open comment\n      --json                         Print machine-readable JSON instead of text\n      --instructions <INSTRUCTIONS>  \n      --pipe <PIPE>                  Pipe name or path (default: $POD_SOCKET, else \\\\.\\pipe\\podd-<username>)\n      --machine <NAME>               Run the command on this SSH machine profile (`pod machine add`) instead of the local daemon\n      --terminal <TERMINAL>          Type into this terminal instead of the task's agent terminal\n      --dry-run                      Print the prompt; deliver nothing\n  -h, --help                         Print help\n",
+      "stderr": ""
+    },
+    {
+      "name": "help review resolve",
+      "args": [
+        "review",
+        "resolve",
+        "--help"
+      ],
+      "exit": 0,
+      "stdout": "Resolve (or --reopen) comments\n\nUsage: pod.exe review resolve [OPTIONS] <IDS>...\n\nArguments:\n  <IDS>...  \n\nOptions:\n      --json            Print machine-readable JSON instead of text\n      --note <NOTE>     \n      --pipe <PIPE>     Pipe name or path (default: $POD_SOCKET, else \\\\.\\pipe\\podd-<username>)\n      --reopen          \n      --machine <NAME>  Run the command on this SSH machine profile (`pod machine add`) instead of the local daemon\n  -h, --help            Print help\n",
+      "stderr": ""
+    },
+    {
+      "name": "help review rm",
+      "args": [
+        "review",
+        "rm",
+        "--help"
+      ],
+      "exit": 0,
+      "stdout": "Delete comments\n\nUsage: pod.exe review rm [OPTIONS] <IDS>...\n\nArguments:\n  <IDS>...  \n\nOptions:\n      --json            Print machine-readable JSON instead of text\n      --pipe <PIPE>     Pipe name or path (default: $POD_SOCKET, else \\\\.\\pipe\\podd-<username>)\n      --machine <NAME>  Run the command on this SSH machine profile (`pod machine add`) instead of the local daemon\n  -h, --help            Print help\n",
+      "stderr": ""
+    },
+    {
+      "name": "help review deliveries",
+      "args": [
+        "review",
+        "deliveries",
+        "--help"
+      ],
+      "exit": 0,
+      "stdout": "Deliveries made by `review send`\n\nUsage: pod.exe review deliveries [OPTIONS] [TASK]\n\nArguments:\n  [TASK]  \n\nOptions:\n      --json            Print machine-readable JSON instead of text\n      --pipe <PIPE>     Pipe name or path (default: $POD_SOCKET, else \\\\.\\pipe\\podd-<username>)\n      --machine <NAME>  Run the command on this SSH machine profile (`pod machine add`) instead of the local daemon\n  -h, --help            Print help\n",
+      "stderr": ""
+    },
+    {
+      "name": "help review cancel",
+      "args": [
+        "review",
+        "cancel",
+        "--help"
+      ],
+      "exit": 0,
+      "stdout": "Cancel a queued delivery\n\nUsage: pod.exe review cancel [OPTIONS] <ID>\n\nArguments:\n  <ID>  \n\nOptions:\n      --json            Print machine-readable JSON instead of text\n      --pipe <PIPE>     Pipe name or path (default: $POD_SOCKET, else \\\\.\\pipe\\podd-<username>)\n      --machine <NAME>  Run the command on this SSH machine profile (`pod machine add`) instead of the local daemon\n  -h, --help            Print help\n",
+      "stderr": ""
+    },
+    {
+      "name": "help group",
+      "args": [
+        "group",
+        "--help"
+      ],
+      "exit": 0,
+      "stdout": "Fan-out groups: one prompt, several agents, compare and pick (P5)\n\nUsage: pod.exe group [OPTIONS] <COMMAND>\n\nCommands:\n  new      Fan out: one task per agent from the same base and prompt. A command after `--` becomes the group's check (run by `group check`)\n  ls       List groups\n  show     Show a group with its members' status and git facts\n  compare  Per-member changed files, +/- totals and check results\n  check    Run the check command in every member worktree (exit 1 if any fails). A command after `--` replaces the stored check. The daemon runs it as a background job; this waits for it unless --no-wait\n  pick     Mark the winner; --remove-others removes the rest (safely unless --force)\n  rm       Forget a group (member tasks stay)\n  help     Print this message or the help of the given subcommand(s)\n\nOptions:\n      --json            Print machine-readable JSON instead of text\n      --pipe <PIPE>     Pipe name or path (default: $POD_SOCKET, else \\\\.\\pipe\\podd-<username>)\n      --machine <NAME>  Run the command on this SSH machine profile (`pod machine add`) instead of the local daemon\n  -h, --help            Print help\n",
+      "stderr": ""
+    },
+    {
+      "name": "help group new",
+      "args": [
+        "group",
+        "new",
+        "--help"
+      ],
+      "exit": 0,
+      "stdout": "Fan out: one task per agent from the same base and prompt. A command after `--` becomes the group's check (run by `group check`)\n\nUsage: pod.exe group new [OPTIONS] --prompt <PROMPT> --agent <AGENT> <REPO> <NAME> [-- <CHECK>...]\n\nArguments:\n  <REPO>      \n  <NAME>      \n  [CHECK]...  \n\nOptions:\n      --json             Print machine-readable JSON instead of text\n      --prompt <PROMPT>  \n      --agent <AGENT>    claude | codex | shell | a JSON argv array; repeatable, in order\n      --pipe <PIPE>      Pipe name or path (default: $POD_SOCKET, else \\\\.\\pipe\\podd-<username>)\n      --base <REF>       \n      --machine <NAME>   Run the command on this SSH machine profile (`pod machine add`) instead of the local daemon\n  -h, --help             Print help\n",
+      "stderr": ""
+    },
+    {
+      "name": "help group ls",
+      "args": [
+        "group",
+        "ls",
+        "--help"
+      ],
+      "exit": 0,
+      "stdout": "List groups\n\nUsage: pod.exe group ls [OPTIONS]\n\nOptions:\n      --json            Print machine-readable JSON instead of text\n      --repo <REPO>     \n      --pipe <PIPE>     Pipe name or path (default: $POD_SOCKET, else \\\\.\\pipe\\podd-<username>)\n      --machine <NAME>  Run the command on this SSH machine profile (`pod machine add`) instead of the local daemon\n  -h, --help            Print help\n",
+      "stderr": ""
+    },
+    {
+      "name": "help group show",
+      "args": [
+        "group",
+        "show",
+        "--help"
+      ],
+      "exit": 0,
+      "stdout": "Show a group with its members' status and git facts\n\nUsage: pod.exe group show [OPTIONS] <GROUP>\n\nArguments:\n  <GROUP>  \n\nOptions:\n      --json            Print machine-readable JSON instead of text\n      --pipe <PIPE>     Pipe name or path (default: $POD_SOCKET, else \\\\.\\pipe\\podd-<username>)\n      --machine <NAME>  Run the command on this SSH machine profile (`pod machine add`) instead of the local daemon\n  -h, --help            Print help\n",
+      "stderr": ""
+    },
+    {
+      "name": "help group compare",
+      "args": [
+        "group",
+        "compare",
+        "--help"
+      ],
+      "exit": 0,
+      "stdout": "Per-member changed files, +/- totals and check results\n\nUsage: pod.exe group compare [OPTIONS] <GROUP>\n\nArguments:\n  <GROUP>  \n\nOptions:\n      --json            Print machine-readable JSON instead of text\n      --pipe <PIPE>     Pipe name or path (default: $POD_SOCKET, else \\\\.\\pipe\\podd-<username>)\n      --machine <NAME>  Run the command on this SSH machine profile (`pod machine add`) instead of the local daemon\n  -h, --help            Print help\n",
+      "stderr": ""
+    },
+    {
+      "name": "help group check",
+      "args": [
+        "group",
+        "check",
+        "--help"
+      ],
+      "exit": 0,
+      "stdout": "Run the check command in every member worktree (exit 1 if any fails). A command after `--` replaces the stored check. The daemon runs it as a background job; this waits for it unless --no-wait\n\nUsage: pod.exe group check [OPTIONS] <GROUP> [-- <CHECK>...]\n\nArguments:\n  <GROUP>     \n  [CHECK]...  \n\nOptions:\n      --json            Print machine-readable JSON instead of text\n      --timeout <S>     Per-member time limit in seconds (default 600)\n      --no-wait         Start the job and print its id; results show up in `group show`\n      --pipe <PIPE>     Pipe name or path (default: $POD_SOCKET, else \\\\.\\pipe\\podd-<username>)\n      --cancel          Cancel the running check job of the group (kills its commands)\n      --machine <NAME>  Run the command on this SSH machine profile (`pod machine add`) instead of the local daemon\n  -h, --help            Print help\n",
+      "stderr": ""
+    },
+    {
+      "name": "help group pick",
+      "args": [
+        "group",
+        "pick",
+        "--help"
+      ],
+      "exit": 0,
+      "stdout": "Mark the winner; --remove-others removes the rest (safely unless --force)\n\nUsage: pod.exe group pick [OPTIONS] <GROUP> <TASK>\n\nArguments:\n  <GROUP>  \n  <TASK>   \n\nOptions:\n      --json            Print machine-readable JSON instead of text\n      --remove-others   \n      --force           \n      --pipe <PIPE>     Pipe name or path (default: $POD_SOCKET, else \\\\.\\pipe\\podd-<username>)\n      --delete-branch   \n      --machine <NAME>  Run the command on this SSH machine profile (`pod machine add`) instead of the local daemon\n  -h, --help            Print help\n",
+      "stderr": ""
+    },
+    {
+      "name": "help group rm",
+      "args": [
+        "group",
+        "rm",
+        "--help"
+      ],
+      "exit": 0,
+      "stdout": "Forget a group (member tasks stay)\n\nUsage: pod.exe group rm [OPTIONS] <GROUP>\n\nArguments:\n  <GROUP>  \n\nOptions:\n      --json            Print machine-readable JSON instead of text\n      --pipe <PIPE>     Pipe name or path (default: $POD_SOCKET, else \\\\.\\pipe\\podd-<username>)\n      --machine <NAME>  Run the command on this SSH machine profile (`pod machine add`) instead of the local daemon\n  -h, --help            Print help\n",
+      "stderr": ""
+    },
+    {
+      "name": "help orch",
+      "args": [
+        "orch",
+        "--help"
+      ],
+      "exit": 0,
+      "stdout": "Orchestration for agents: runs, items, workers, mail (docs/19)\n\nUsage: pod.exe orch [OPTIONS] <COMMAND>\n\nCommands:\n  run      Runs: one objective and its coordinator\n  item     Work items of a run (with dependencies)\n  worker   Start or supervise one worker (attempt)\n  workers  Workers of your run (or --run, or every run outside a Pod terminal)\n  queue    Workers waiting for resources (FIFO), the limits and measurements\n  limits   Resource limits of the worker queue (daemon settings; an environment variable still wins). No flags: show them\n  gate     Decision gates of a run (docs/19 §4.5)\n  send     Send a message (workers: to their coordinator by default)\n  check    Read your unread mail (marks it read)\n  reply    Answer a message (questions get an `answer`)\n  ask      Workers: ask the coordinator and wait for the answer\n  done     Workers: report completion, exactly once\n  wait     Workers: wait for other items of your run to finish (e.g. the one whose branch you build on), then end your turn. Not a missed done: Pod mails you when they all finished\n  commit   Workers: commit in your own worktree through Pod (hooks off). Codex workers use this instead of `git add`/`git commit`, which their sandbox does not allow\n  help     Print this message or the help of the given subcommand(s)\n\nOptions:\n      --json            Print machine-readable JSON instead of text\n      --pipe <PIPE>     Pipe name or path (default: $POD_SOCKET, else \\\\.\\pipe\\podd-<username>)\n      --machine <NAME>  Run the command on this SSH machine profile (`pod machine add`) instead of the local daemon\n  -h, --help            Print help\n",
+      "stderr": ""
+    },
+    {
+      "name": "help orch run",
+      "args": [
+        "orch",
+        "run",
+        "--help"
+      ],
+      "exit": 0,
+      "stdout": "Runs: one objective and its coordinator\n\nUsage: pod.exe orch run [OPTIONS] <COMMAND>\n\nCommands:\n  new   Create a run you coordinate\n  ls    \n  show  \n  help  Print this message or the help of the given subcommand(s)\n\nOptions:\n      --json            Print machine-readable JSON instead of text\n      --pipe <PIPE>     Pipe name or path (default: $POD_SOCKET, else \\\\.\\pipe\\podd-<username>)\n      --machine <NAME>  Run the command on this SSH machine profile (`pod machine add`) instead of the local daemon\n  -h, --help            Print help\n",
+      "stderr": ""
+    },
+    {
+      "name": "help orch run new",
+      "args": [
+        "orch",
+        "run",
+        "new",
+        "--help"
+      ],
+      "exit": 0,
+      "stdout": "Create a run you coordinate\n\nUsage: pod.exe orch run new [OPTIONS] --objective <OBJECTIVE>\n\nOptions:\n      --json                   Print machine-readable JSON instead of text\n      --objective <OBJECTIVE>  \n      --pipe <PIPE>            Pipe name or path (default: $POD_SOCKET, else \\\\.\\pipe\\podd-<username>)\n      --machine <NAME>         Run the command on this SSH machine profile (`pod machine add`) instead of the local daemon\n  -h, --help                   Print help\n",
+      "stderr": ""
+    },
+    {
+      "name": "help orch run ls",
+      "args": [
+        "orch",
+        "run",
+        "ls",
+        "--help"
+      ],
+      "exit": 0,
+      "stdout": "Usage: pod.exe orch run ls [OPTIONS]\n\nOptions:\n      --json            Print machine-readable JSON instead of text\n      --mine            Only runs you coordinate or work in\n      --pipe <PIPE>     Pipe name or path (default: $POD_SOCKET, else \\\\.\\pipe\\podd-<username>)\n      --machine <NAME>  Run the command on this SSH machine profile (`pod machine add`) instead of the local daemon\n  -h, --help            Print help\n",
+      "stderr": ""
+    },
+    {
+      "name": "help orch run show",
+      "args": [
+        "orch",
+        "run",
+        "show",
+        "--help"
+      ],
+      "exit": 0,
+      "stdout": "Usage: pod.exe orch run show [OPTIONS] [RUN]\n\nArguments:\n  [RUN]  \n\nOptions:\n      --json            Print machine-readable JSON instead of text\n      --pipe <PIPE>     Pipe name or path (default: $POD_SOCKET, else \\\\.\\pipe\\podd-<username>)\n      --machine <NAME>  Run the command on this SSH machine profile (`pod machine add`) instead of the local daemon\n  -h, --help            Print help\n",
+      "stderr": ""
+    },
+    {
+      "name": "help orch item",
+      "args": [
+        "orch",
+        "item",
+        "--help"
+      ],
+      "exit": 0,
+      "stdout": "Work items of a run (with dependencies)\n\nUsage: pod.exe orch item [OPTIONS] <COMMAND>\n\nCommands:\n  add     \n  ls      \n  reopen  Clear the start breaker / make a finished item ready again\n  help    Print this message or the help of the given subcommand(s)\n\nOptions:\n      --json            Print machine-readable JSON instead of text\n      --pipe <PIPE>     Pipe name or path (default: $POD_SOCKET, else \\\\.\\pipe\\podd-<username>)\n      --machine <NAME>  Run the command on this SSH machine profile (`pod machine add`) instead of the local daemon\n  -h, --help            Print help\n",
+      "stderr": ""
+    },
+    {
+      "name": "help orch item add",
+      "args": [
+        "orch",
+        "item",
+        "add",
+        "--help"
+      ],
+      "exit": 0,
+      "stdout": "Usage: pod.exe orch item add [OPTIONS]\n\nOptions:\n      --json              Print machine-readable JSON instead of text\n      --spec <SPEC>       \n      --pipe <PIPE>       Pipe name or path (default: $POD_SOCKET, else \\\\.\\pipe\\podd-<username>)\n      --spec-file <FILE>  \n      --machine <NAME>    Run the command on this SSH machine profile (`pod machine add`) instead of the local daemon\n      --title <TITLE>     \n      --deps <DEPS>       Items that must complete first, comma separated\n      --parent <PARENT>   \n      --run <RUN>         \n  -h, --help              Print help\n",
+      "stderr": ""
+    },
+    {
+      "name": "help orch item ls",
+      "args": [
+        "orch",
+        "item",
+        "ls",
+        "--help"
+      ],
+      "exit": 0,
+      "stdout": "Usage: pod.exe orch item ls [OPTIONS]\n\nOptions:\n      --json            Print machine-readable JSON instead of text\n      --ready           \n      --pipe <PIPE>     Pipe name or path (default: $POD_SOCKET, else \\\\.\\pipe\\podd-<username>)\n      --run <RUN>       \n      --machine <NAME>  Run the command on this SSH machine profile (`pod machine add`) instead of the local daemon\n  -h, --help            Print help\n",
+      "stderr": ""
+    },
+    {
+      "name": "help orch item reopen",
+      "args": [
+        "orch",
+        "item",
+        "reopen",
+        "--help"
+      ],
+      "exit": 0,
+      "stdout": "Clear the start breaker / make a finished item ready again\n\nUsage: pod.exe orch item reopen [OPTIONS] <ITEM>\n\nArguments:\n  <ITEM>  \n\nOptions:\n      --json            Print machine-readable JSON instead of text\n      --pipe <PIPE>     Pipe name or path (default: $POD_SOCKET, else \\\\.\\pipe\\podd-<username>)\n      --machine <NAME>  Run the command on this SSH machine profile (`pod machine add`) instead of the local daemon\n  -h, --help            Print help\n",
+      "stderr": ""
+    },
+    {
+      "name": "help orch worker",
+      "args": [
+        "orch",
+        "worker",
+        "--help"
+      ],
+      "exit": 0,
+      "stdout": "Start or supervise one worker (attempt)\n\nUsage: pod.exe orch worker [OPTIONS] <COMMAND>\n\nCommands:\n  start    Start a worker for an item or a new spec (creates a run if you have none)\n  show     \n  read     The worker's terminal output (or its archive after release)\n  stop     Kill the worker's process tree (stopped only when proven gone)\n  abandon  End the record; leave the terminal and worktree alone\n  keep     Never release it automatically\n  release  Close the terminal now (output archived, worktree kept)\n  pr       Push a finished worker's task branch and open its pull request (the `pod pr create` path, docs/15). Title: the item title; body: the worker's done report\n  help     Print this message or the help of the given subcommand(s)\n\nOptions:\n      --json            Print machine-readable JSON instead of text\n      --pipe <PIPE>     Pipe name or path (default: $POD_SOCKET, else \\\\.\\pipe\\podd-<username>)\n      --machine <NAME>  Run the command on this SSH machine profile (`pod machine add`) instead of the local daemon\n  -h, --help            Print help\n",
+      "stderr": ""
+    },
+    {
+      "name": "help orch worker start",
+      "args": [
+        "orch",
+        "worker",
+        "start",
+        "--help"
+      ],
+      "exit": 0,
+      "stdout": "Start a worker for an item or a new spec (creates a run if you have none)\n\nUsage: pod.exe orch worker start [OPTIONS]\n\nOptions:\n      --item <ITEM>            \n      --json                   Print machine-readable JSON instead of text\n      --pipe <PIPE>            Pipe name or path (default: $POD_SOCKET, else \\\\.\\pipe\\podd-<username>)\n      --spec <SPEC>            \n      --machine <NAME>         Run the command on this SSH machine profile (`pod machine add`) instead of the local daemon\n      --spec-file <FILE>       \n      --title <TITLE>          \n      --deps <DEPS>            \n      --agent <AGENT>          claude, codex, shell or a JSON argv array\n      --place <PLACE>          new (default), current (your worktree) or an existing task\n      --repo <REPO>            \n      --base <BASE>            \n      --name <NAME>            \n      --keep                   Never release it automatically\n      --retry-of <RETRY_OF>    \n      --run <RUN>              \n      --objective <OBJECTIVE>  \n  -h, --help                   Print help\n",
+      "stderr": ""
+    },
+    {
+      "name": "help orch worker show",
+      "args": [
+        "orch",
+        "worker",
+        "show",
+        "--help"
+      ],
+      "exit": 0,
+      "stdout": "Usage: pod.exe orch worker show [OPTIONS] <ATTEMPT>\n\nArguments:\n  <ATTEMPT>  \n\nOptions:\n      --json            Print machine-readable JSON instead of text\n      --pipe <PIPE>     Pipe name or path (default: $POD_SOCKET, else \\\\.\\pipe\\podd-<username>)\n      --machine <NAME>  Run the command on this SSH machine profile (`pod machine add`) instead of the local daemon\n  -h, --help            Print help\n",
+      "stderr": ""
+    },
+    {
+      "name": "help orch worker read",
+      "args": [
+        "orch",
+        "worker",
+        "read",
+        "--help"
+      ],
+      "exit": 0,
+      "stdout": "The worker's terminal output (or its archive after release)\n\nUsage: pod.exe orch worker read [OPTIONS] <ATTEMPT>\n\nArguments:\n  <ATTEMPT>  \n\nOptions:\n      --json            Print machine-readable JSON instead of text\n      --lines <LINES>   \n      --pipe <PIPE>     Pipe name or path (default: $POD_SOCKET, else \\\\.\\pipe\\podd-<username>)\n      --machine <NAME>  Run the command on this SSH machine profile (`pod machine add`) instead of the local daemon\n  -h, --help            Print help\n",
+      "stderr": ""
+    },
+    {
+      "name": "help orch worker stop",
+      "args": [
+        "orch",
+        "worker",
+        "stop",
+        "--help"
+      ],
+      "exit": 0,
+      "stdout": "Kill the worker's process tree (stopped only when proven gone)\n\nUsage: pod.exe orch worker stop [OPTIONS] <ATTEMPT>\n\nArguments:\n  <ATTEMPT>  \n\nOptions:\n      --json            Print machine-readable JSON instead of text\n      --pipe <PIPE>     Pipe name or path (default: $POD_SOCKET, else \\\\.\\pipe\\podd-<username>)\n      --machine <NAME>  Run the command on this SSH machine profile (`pod machine add`) instead of the local daemon\n  -h, --help            Print help\n",
+      "stderr": ""
+    },
+    {
+      "name": "help orch worker abandon",
+      "args": [
+        "orch",
+        "worker",
+        "abandon",
+        "--help"
+      ],
+      "exit": 0,
+      "stdout": "End the record; leave the terminal and worktree alone\n\nUsage: pod.exe orch worker abandon [OPTIONS] <ATTEMPT>\n\nArguments:\n  <ATTEMPT>  \n\nOptions:\n      --json            Print machine-readable JSON instead of text\n      --pipe <PIPE>     Pipe name or path (default: $POD_SOCKET, else \\\\.\\pipe\\podd-<username>)\n      --machine <NAME>  Run the command on this SSH machine profile (`pod machine add`) instead of the local daemon\n  -h, --help            Print help\n",
+      "stderr": ""
+    },
+    {
+      "name": "help orch worker keep",
+      "args": [
+        "orch",
+        "worker",
+        "keep",
+        "--help"
+      ],
+      "exit": 0,
+      "stdout": "Never release it automatically\n\nUsage: pod.exe orch worker keep [OPTIONS] <ATTEMPT>\n\nArguments:\n  <ATTEMPT>  \n\nOptions:\n      --json            Print machine-readable JSON instead of text\n      --pipe <PIPE>     Pipe name or path (default: $POD_SOCKET, else \\\\.\\pipe\\podd-<username>)\n      --machine <NAME>  Run the command on this SSH machine profile (`pod machine add`) instead of the local daemon\n  -h, --help            Print help\n",
+      "stderr": ""
+    },
+    {
+      "name": "help orch worker release",
+      "args": [
+        "orch",
+        "worker",
+        "release",
+        "--help"
+      ],
+      "exit": 0,
+      "stdout": "Close the terminal now (output archived, worktree kept)\n\nUsage: pod.exe orch worker release [OPTIONS] <ATTEMPT>\n\nArguments:\n  <ATTEMPT>  \n\nOptions:\n      --json            Print machine-readable JSON instead of text\n      --pipe <PIPE>     Pipe name or path (default: $POD_SOCKET, else \\\\.\\pipe\\podd-<username>)\n      --machine <NAME>  Run the command on this SSH machine profile (`pod machine add`) instead of the local daemon\n  -h, --help            Print help\n",
+      "stderr": ""
+    },
+    {
+      "name": "help orch worker pr",
+      "args": [
+        "orch",
+        "worker",
+        "pr",
+        "--help"
+      ],
+      "exit": 0,
+      "stdout": "Push a finished worker's task branch and open its pull request (the `pod pr create` path, docs/15). Title: the item title; body: the worker's done report\n\nUsage: pod.exe orch worker pr [OPTIONS] <ATTEMPT>\n\nArguments:\n  <ATTEMPT>  \n\nOptions:\n      --json            Print machine-readable JSON instead of text\n      --title <TITLE>   \n      --body <BODY>     \n      --pipe <PIPE>     Pipe name or path (default: $POD_SOCKET, else \\\\.\\pipe\\podd-<username>)\n      --draft           \n      --machine <NAME>  Run the command on this SSH machine profile (`pod machine add`) instead of the local daemon\n      --base <BASE>     Base branch on the remote (default: the task's base branch)\n      --no-push         \n      --force           Also for a worker that has not reported `succeeded`\n  -h, --help            Print help\n",
+      "stderr": ""
+    },
+    {
+      "name": "help orch workers",
+      "args": [
+        "orch",
+        "workers",
+        "--help"
+      ],
+      "exit": 0,
+      "stdout": "Workers of your run (or --run, or every run outside a Pod terminal)\n\nUsage: pod.exe orch workers [OPTIONS]\n\nOptions:\n      --json            Print machine-readable JSON instead of text\n      --run <RUN>       \n      --pipe <PIPE>     Pipe name or path (default: $POD_SOCKET, else \\\\.\\pipe\\podd-<username>)\n      --machine <NAME>  Run the command on this SSH machine profile (`pod machine add`) instead of the local daemon\n  -h, --help            Print help\n",
+      "stderr": ""
+    },
+    {
+      "name": "help orch queue",
+      "args": [
+        "orch",
+        "queue",
+        "--help"
+      ],
+      "exit": 0,
+      "stdout": "Workers waiting for resources (FIFO), the limits and measurements\n\nUsage: pod.exe orch queue [OPTIONS]\n\nOptions:\n      --json            Print machine-readable JSON instead of text\n      --run <RUN>       \n      --pipe <PIPE>     Pipe name or path (default: $POD_SOCKET, else \\\\.\\pipe\\podd-<username>)\n      --machine <NAME>  Run the command on this SSH machine profile (`pod machine add`) instead of the local daemon\n  -h, --help            Print help\n",
+      "stderr": ""
+    },
+    {
+      "name": "help orch limits",
+      "args": [
+        "orch",
+        "limits",
+        "--help"
+      ],
+      "exit": 0,
+      "stdout": "Resource limits of the worker queue (daemon settings; an environment variable still wins). No flags: show them\n\nUsage: pod.exe orch limits [OPTIONS]\n\nOptions:\n      --json             Print machine-readable JSON instead of text\n      --set <KEY=VALUE>  Save a limit, e.g. `--set max_workers=4 --set min_free_mem=4G --set cpu_max_pct=off`\n      --pipe <PIPE>      Pipe name or path (default: $POD_SOCKET, else \\\\.\\pipe\\podd-<username>)\n      --reset <KEY>      Return a limit to its default\n      --machine <NAME>   Run the command on this SSH machine profile (`pod machine add`) instead of the local daemon\n  -h, --help             Print help\n",
+      "stderr": ""
+    },
+    {
+      "name": "help orch gate",
+      "args": [
+        "orch",
+        "gate",
+        "--help"
+      ],
+      "exit": 0,
+      "stdout": "Decision gates of a run (docs/19 §4.5)\n\nUsage: pod.exe orch gate [OPTIONS] <COMMAND>\n\nCommands:\n  request  Ask for a decision. A worker's gate blocks its item and goes to the coordinator; a coordinator's gate goes to a person\n  decide   Decide a gate of your run (coordinator) or any gate (person)\n  help     Print this message or the help of the given subcommand(s)\n\nOptions:\n      --json            Print machine-readable JSON instead of text\n      --pipe <PIPE>     Pipe name or path (default: $POD_SOCKET, else \\\\.\\pipe\\podd-<username>)\n      --machine <NAME>  Run the command on this SSH machine profile (`pod machine add`) instead of the local daemon\n  -h, --help            Print help\n",
+      "stderr": ""
+    },
+    {
+      "name": "help orch gate request",
+      "args": [
+        "orch",
+        "gate",
+        "request",
+        "--help"
+      ],
+      "exit": 0,
+      "stdout": "Ask for a decision. A worker's gate blocks its item and goes to the coordinator; a coordinator's gate goes to a person\n\nUsage: pod.exe orch gate request [OPTIONS] --message <MESSAGE>\n\nOptions:\n      --json               Print machine-readable JSON instead of text\n      --message <MESSAGE>  \n      --pipe <PIPE>        Pipe name or path (default: $POD_SOCKET, else \\\\.\\pipe\\podd-<username>)\n      --title <TITLE>      \n      --machine <NAME>     Run the command on this SSH machine profile (`pod machine add`) instead of the local daemon\n      --option <TEXT>      A choice (repeat 2..=16 times); without options it is approve/reject\n      --item <ITEM>        The item to block (workers: their own item)\n      --run <RUN>          \n      --expires <S>        Expire after S seconds without a decision\n      --wait               Block until decided: exit 0 approved, 1 rejected, expired or timed out\n      --timeout <S>        \n  -h, --help               Print help\n",
+      "stderr": ""
+    },
+    {
+      "name": "help orch gate decide",
+      "args": [
+        "orch",
+        "gate",
+        "decide",
+        "--help"
+      ],
+      "exit": 0,
+      "stdout": "Decide a gate of your run (coordinator) or any gate (person)\n\nUsage: pod.exe orch gate decide [OPTIONS] <ID>\n\nArguments:\n  <ID>  \n\nOptions:\n      --choice <CHOICE>  \n      --json             Print machine-readable JSON instead of text\n      --pipe <PIPE>      Pipe name or path (default: $POD_SOCKET, else \\\\.\\pipe\\podd-<username>)\n      --reject           \n      --machine <NAME>   Run the command on this SSH machine profile (`pod machine add`) instead of the local daemon\n      --note <NOTE>      \n  -h, --help             Print help\n",
+      "stderr": ""
+    },
+    {
+      "name": "help orch send",
+      "args": [
+        "orch",
+        "send",
+        "--help"
+      ],
+      "exit": 0,
+      "stdout": "Send a message (workers: to their coordinator by default)\n\nUsage: pod.exe orch send [OPTIONS] --subject <SUBJECT>\n\nOptions:\n      --json                 Print machine-readable JSON instead of text\n      --to <TO>              run:<id>, attempt:<id>, @all, @idle, @claude, @codex\n      --pipe <PIPE>          Pipe name or path (default: $POD_SOCKET, else \\\\.\\pipe\\podd-<username>)\n      --type <KIND>          [default: status] [possible values: question, answer, escalation, status, handoff, heartbeat]\n      --machine <NAME>       Run the command on this SSH machine profile (`pod machine add`) instead of the local daemon\n      --subject <SUBJECT>    \n      --body <BODY>          \n      --body-file <FILE>     \n      --reply-to <REPLY_TO>  \n      --run <RUN>            Run for group addresses\n      --high                 \n  -h, --help                 Print help\n",
+      "stderr": ""
+    },
+    {
+      "name": "help orch check",
+      "args": [
+        "orch",
+        "check",
+        "--help"
+      ],
+      "exit": 0,
+      "stdout": "Read your unread mail (marks it read)\n\nUsage: pod.exe orch check [OPTIONS]\n\nOptions:\n      --json               Print machine-readable JSON instead of text\n      --wait               Block until mail arrives\n      --pipe <PIPE>        Pipe name or path (default: $POD_SOCKET, else \\\\.\\pipe\\podd-<username>)\n      --timeout <TIMEOUT>  Seconds to wait (default 600, at most 1800)\n      --machine <NAME>     Run the command on this SSH machine profile (`pod machine add`) instead of the local daemon\n      --no-ack             Leave the mail unread\n      --run <RUN>          \n  -h, --help               Print help\n",
+      "stderr": ""
+    },
+    {
+      "name": "help orch reply",
+      "args": [
+        "orch",
+        "reply",
+        "--help"
+      ],
+      "exit": 0,
+      "stdout": "Answer a message (questions get an `answer`)\n\nUsage: pod.exe orch reply [OPTIONS] --id <ID>\n\nOptions:\n      --id <ID>           \n      --json              Print machine-readable JSON instead of text\n      --body <BODY>       \n      --pipe <PIPE>       Pipe name or path (default: $POD_SOCKET, else \\\\.\\pipe\\podd-<username>)\n      --body-file <FILE>  \n      --machine <NAME>    Run the command on this SSH machine profile (`pod machine add`) instead of the local daemon\n  -h, --help              Print help\n",
+      "stderr": ""
+    },
+    {
+      "name": "help orch ask",
+      "args": [
+        "orch",
+        "ask",
+        "--help"
+      ],
+      "exit": 0,
+      "stdout": "Workers: ask the coordinator and wait for the answer\n\nUsage: pod.exe orch ask [OPTIONS] --question <QUESTION>\n\nOptions:\n      --json                 Print machine-readable JSON instead of text\n      --question <QUESTION>  \n      --pipe <PIPE>          Pipe name or path (default: $POD_SOCKET, else \\\\.\\pipe\\podd-<username>)\n      --subject <SUBJECT>    \n      --machine <NAME>       Run the command on this SSH machine profile (`pod machine add`) instead of the local daemon\n      --timeout <TIMEOUT>    Seconds to wait (default 600, at most 1800)\n  -h, --help                 Print help\n",
+      "stderr": ""
+    },
+    {
+      "name": "help orch done",
+      "args": [
+        "orch",
+        "done",
+        "--help"
+      ],
+      "exit": 0,
+      "stdout": "Workers: report completion, exactly once\n\nUsage: pod.exe orch done [OPTIONS] --outcome <OUTCOME>\n\nOptions:\n      --json               Print machine-readable JSON instead of text\n      --outcome <OUTCOME>  [possible values: succeeded, failed]\n      --body <BODY>        What you did / what you found / what is left\n      --pipe <PIPE>        Pipe name or path (default: $POD_SOCKET, else \\\\.\\pipe\\podd-<username>)\n      --body-file <FILE>   Read the report from a file: long text with quotes or line breaks, which Windows PowerShell 5.1 splits when it passes them to `pod` as one argument\n      --machine <NAME>     Run the command on this SSH machine profile (`pod machine add`) instead of the local daemon\n      --files <FILES>      Changed files, comma separated\n      --report <REPORT>    A report file to point at\n  -h, --help               Print help\n",
+      "stderr": ""
+    },
+    {
+      "name": "help orch wait",
+      "args": [
+        "orch",
+        "wait",
+        "--help"
+      ],
+      "exit": 0,
+      "stdout": "Workers: wait for other items of your run to finish (e.g. the one whose branch you build on), then end your turn. Not a missed done: Pod mails you when they all finished\n\nUsage: pod.exe orch wait [OPTIONS] --item <ITEMS>\n\nOptions:\n      --item <ITEMS>    An item to wait for (repeat, or comma separated)\n      --json            Print machine-readable JSON instead of text\n      --pipe <PIPE>     Pipe name or path (default: $POD_SOCKET, else \\\\.\\pipe\\podd-<username>)\n      --machine <NAME>  Run the command on this SSH machine profile (`pod machine add`) instead of the local daemon\n  -h, --help            Print help\n",
+      "stderr": ""
+    },
+    {
+      "name": "help orch commit",
+      "args": [
+        "orch",
+        "commit",
+        "--help"
+      ],
+      "exit": 0,
+      "stdout": "Workers: commit in your own worktree through Pod (hooks off). Codex workers use this instead of `git add`/`git commit`, which their sandbox does not allow\n\nUsage: pod.exe orch commit [OPTIONS] [PATHS]...\n\nArguments:\n  [PATHS]...  Stage these paths first\n\nOptions:\n      --json                 Print machine-readable JSON instead of text\n  -m, --message <MESSAGE>    The commit message\n      --message-file <FILE>  Read the message from a file\n      --pipe <PIPE>          Pipe name or path (default: $POD_SOCKET, else \\\\.\\pipe\\podd-<username>)\n  -a, --all                  Stage every change first\n      --machine <NAME>       Run the command on this SSH machine profile (`pod machine add`) instead of the local daemon\n  -h, --help                 Print help\n",
+      "stderr": ""
+    },
+    {
+      "name": "help gate",
+      "args": [
+        "gate",
+        "--help"
+      ],
+      "exit": 0,
+      "stdout": "Human approval gates (P5). Agents call `pod gate request` from their terminal\n\nUsage: pod.exe gate [OPTIONS] <COMMAND>\n\nCommands:\n  request  Ask the human for approval. Inside a Pod terminal the gate is tied to this terminal and its task; elsewhere pass --task or --group\n  ls       List gates\n  show     \n  approve  \n  reject   \n  help     Print this message or the help of the given subcommand(s)\n\nOptions:\n      --json            Print machine-readable JSON instead of text\n      --pipe <PIPE>     Pipe name or path (default: $POD_SOCKET, else \\\\.\\pipe\\podd-<username>)\n      --machine <NAME>  Run the command on this SSH machine profile (`pod machine add`) instead of the local daemon\n  -h, --help            Print help\n",
+      "stderr": ""
+    },
+    {
+      "name": "help gate request",
+      "args": [
+        "gate",
+        "request",
+        "--help"
+      ],
+      "exit": 0,
+      "stdout": "Ask the human for approval. Inside a Pod terminal the gate is tied to this terminal and its task; elsewhere pass --task or --group\n\nUsage: pod.exe gate request [OPTIONS] <MESSAGE>\n\nArguments:\n  <MESSAGE>  \n\nOptions:\n      --json            Print machine-readable JSON instead of text\n      --title <TITLE>   \n      --pipe <PIPE>     Pipe name or path (default: $POD_SOCKET, else \\\\.\\pipe\\podd-<username>)\n      --task <TASK>     \n      --group <GROUP>   \n      --machine <NAME>  Run the command on this SSH machine profile (`pod machine add`) instead of the local daemon\n      --expires <S>     Resolve the gate as expired after S seconds without a decision\n      --wait            Block until resolved: exit 0 approved, 1 rejected, expired or timed out\n      --timeout <S>     \n  -h, --help            Print help\n",
+      "stderr": ""
+    },
+    {
+      "name": "help gate ls",
+      "args": [
+        "gate",
+        "ls",
+        "--help"
+      ],
+      "exit": 0,
+      "stdout": "List gates\n\nUsage: pod.exe gate ls [OPTIONS]\n\nOptions:\n      --json            Print machine-readable JSON instead of text\n      --task <TASK>     \n      --group <GROUP>   \n      --pipe <PIPE>     Pipe name or path (default: $POD_SOCKET, else \\\\.\\pipe\\podd-<username>)\n      --machine <NAME>  Run the command on this SSH machine profile (`pod machine add`) instead of the local daemon\n      --pending         Only pending gates\n  -h, --help            Print help\n",
+      "stderr": ""
+    },
+    {
+      "name": "help gate show",
+      "args": [
+        "gate",
+        "show",
+        "--help"
+      ],
+      "exit": 0,
+      "stdout": "Usage: pod.exe gate show [OPTIONS] <ID>\n\nArguments:\n  <ID>  \n\nOptions:\n      --json            Print machine-readable JSON instead of text\n      --pipe <PIPE>     Pipe name or path (default: $POD_SOCKET, else \\\\.\\pipe\\podd-<username>)\n      --machine <NAME>  Run the command on this SSH machine profile (`pod machine add`) instead of the local daemon\n  -h, --help            Print help\n",
+      "stderr": ""
+    },
+    {
+      "name": "help gate approve",
+      "args": [
+        "gate",
+        "approve",
+        "--help"
+      ],
+      "exit": 0,
+      "stdout": "Usage: pod.exe gate approve [OPTIONS] <ID>\n\nArguments:\n  <ID>  \n\nOptions:\n      --json             Print machine-readable JSON instead of text\n      --note <NOTE>      \n      --choice <CHOICE>  The chosen option (gates with options)\n      --pipe <PIPE>      Pipe name or path (default: $POD_SOCKET, else \\\\.\\pipe\\podd-<username>)\n      --machine <NAME>   Run the command on this SSH machine profile (`pod machine add`) instead of the local daemon\n  -h, --help             Print help\n",
+      "stderr": ""
+    },
+    {
+      "name": "help gate reject",
+      "args": [
+        "gate",
+        "reject",
+        "--help"
+      ],
+      "exit": 0,
+      "stdout": "Usage: pod.exe gate reject [OPTIONS] <ID>\n\nArguments:\n  <ID>  \n\nOptions:\n      --json            Print machine-readable JSON instead of text\n      --note <NOTE>     \n      --pipe <PIPE>     Pipe name or path (default: $POD_SOCKET, else \\\\.\\pipe\\podd-<username>)\n      --machine <NAME>  Run the command on this SSH machine profile (`pod machine add`) instead of the local daemon\n  -h, --help            Print help\n",
+      "stderr": ""
+    },
+    {
+      "name": "help pr",
+      "args": [
+        "pr",
+        "--help"
+      ],
+      "exit": 0,
+      "stdout": "A task's GitHub pull request: push, create, status, merge, open (docs/15)\n\nUsage: pod.exe pr [OPTIONS] <COMMAND>\n\nCommands:\n  status  Show the task's pull request: remote, state, review, checks\n  create  Push the task branch and open a pull request\n  merge   Merge the task's pull request on GitHub\n  open    Open the pull request in the browser\n  help    Print this message or the help of the given subcommand(s)\n\nOptions:\n      --json            Print machine-readable JSON instead of text\n      --pipe <PIPE>     Pipe name or path (default: $POD_SOCKET, else \\\\.\\pipe\\podd-<username>)\n      --machine <NAME>  Run the command on this SSH machine profile (`pod machine add`) instead of the local daemon\n  -h, --help            Print help\n",
+      "stderr": ""
+    },
+    {
+      "name": "help pr status",
+      "args": [
+        "pr",
+        "status",
+        "--help"
+      ],
+      "exit": 0,
+      "stdout": "Show the task's pull request: remote, state, review, checks\n\nUsage: pod.exe pr status [OPTIONS] <TASK>\n\nArguments:\n  <TASK>  \n\nOptions:\n      --cached          Use the last known state; do not contact GitHub\n      --json            Print machine-readable JSON instead of text\n      --pipe <PIPE>     Pipe name or path (default: $POD_SOCKET, else \\\\.\\pipe\\podd-<username>)\n      --machine <NAME>  Run the command on this SSH machine profile (`pod machine add`) instead of the local daemon\n  -h, --help            Print help\n",
+      "stderr": ""
+    },
+    {
+      "name": "help pr create",
+      "args": [
+        "pr",
+        "create",
+        "--help"
+      ],
+      "exit": 0,
+      "stdout": "Push the task branch and open a pull request\n\nUsage: pod.exe pr create [OPTIONS] <TASK>\n\nArguments:\n  <TASK>  \n\nOptions:\n      --json              Print machine-readable JSON instead of text\n      --title <TITLE>     Title (default: the first line of the task prompt, else the task name)\n      --body <BODY>       \n      --pipe <PIPE>       Pipe name or path (default: $POD_SOCKET, else \\\\.\\pipe\\podd-<username>)\n      --body-file <FILE>  Read the body from a file (UTF-8)\n      --machine <NAME>    Run the command on this SSH machine profile (`pod machine add`) instead of the local daemon\n      --draft             Open as a draft\n      --base <BASE>       Base branch on the remote (default: the task's base branch)\n      --no-push           Do not push first (the branch is already on the remote)\n  -h, --help              Print help\n",
+      "stderr": ""
+    },
+    {
+      "name": "help pr merge",
+      "args": [
+        "pr",
+        "merge",
+        "--help"
+      ],
+      "exit": 0,
+      "stdout": "Merge the task's pull request on GitHub\n\nUsage: pod.exe pr merge [OPTIONS] --method <METHOD> <TASK>\n\nArguments:\n  <TASK>  \n\nOptions:\n      --json             Print machine-readable JSON instead of text\n      --method <METHOD>  [possible values: merge, squash, rebase]\n      --pipe <PIPE>      Pipe name or path (default: $POD_SOCKET, else \\\\.\\pipe\\podd-<username>)\n      --yes              Required: merging changes the remote repository\n      --machine <NAME>   Run the command on this SSH machine profile (`pod machine add`) instead of the local daemon\n  -h, --help             Print help\n",
+      "stderr": ""
+    },
+    {
+      "name": "help pr open",
+      "args": [
+        "pr",
+        "open",
+        "--help"
+      ],
+      "exit": 0,
+      "stdout": "Open the pull request in the browser\n\nUsage: pod.exe pr open [OPTIONS] <TASK>\n\nArguments:\n  <TASK>  \n\nOptions:\n      --json            Print machine-readable JSON instead of text\n      --print           Print the URL instead of opening it\n      --pipe <PIPE>     Pipe name or path (default: $POD_SOCKET, else \\\\.\\pipe\\podd-<username>)\n      --machine <NAME>  Run the command on this SSH machine profile (`pod machine add`) instead of the local daemon\n  -h, --help            Print help\n",
+      "stderr": ""
+    },
+    {
+      "name": "help sessions",
+      "args": [
+        "sessions",
+        "--help"
+      ],
+      "exit": 0,
+      "stdout": "Agent sessions found on this PC (Claude Code, Codex): list, resume, link (docs/18)\n\nUsage: pod.exe sessions [OPTIONS] <COMMAND>\n\nCommands:\n  list      List discovered sessions (newest first)\n  scan      Scan the agents' session stores and running processes now\n  settings  Show or change discovery settings\n  register  Link a session to its Pod task / repository\n  resume    Resume a session in a new Pod terminal (the agent's own resume command)\n  hide      Hide a session from the list (`--show` shows it again)\n  help      Print this message or the help of the given subcommand(s)\n\nOptions:\n      --json            Print machine-readable JSON instead of text\n      --pipe <PIPE>     Pipe name or path (default: $POD_SOCKET, else \\\\.\\pipe\\podd-<username>)\n      --machine <NAME>  Run the command on this SSH machine profile (`pod machine add`) instead of the local daemon\n  -h, --help            Print help\n",
+      "stderr": ""
+    },
+    {
+      "name": "help sessions list",
+      "args": [
+        "sessions",
+        "list",
+        "--help"
+      ],
+      "exit": 0,
+      "stdout": "List discovered sessions (newest first)\n\nUsage: pod.exe sessions list [OPTIONS]\n\nOptions:\n      --all             Include hidden sessions\n      --json            Print machine-readable JSON instead of text\n      --pipe <PIPE>     Pipe name or path (default: $POD_SOCKET, else \\\\.\\pipe\\podd-<username>)\n      --machine <NAME>  Run the command on this SSH machine profile (`pod machine add`) instead of the local daemon\n  -h, --help            Print help\n",
+      "stderr": ""
+    },
+    {
+      "name": "help sessions scan",
+      "args": [
+        "sessions",
+        "scan",
+        "--help"
+      ],
+      "exit": 0,
+      "stdout": "Scan the agents' session stores and running processes now\n\nUsage: pod.exe sessions scan [OPTIONS]\n\nOptions:\n      --enable          Turn discovery on first (it is off by default)\n      --json            Print machine-readable JSON instead of text\n      --pipe <PIPE>     Pipe name or path (default: $POD_SOCKET, else \\\\.\\pipe\\podd-<username>)\n      --machine <NAME>  Run the command on this SSH machine profile (`pod machine add`) instead of the local daemon\n  -h, --help            Print help\n",
+      "stderr": ""
+    },
+    {
+      "name": "help sessions settings",
+      "args": [
+        "sessions",
+        "settings",
+        "--help"
+      ],
+      "exit": 0,
+      "stdout": "Show or change discovery settings\n\nUsage: pod.exe sessions settings [OPTIONS]\n\nOptions:\n      --enabled <ENABLED>  Discovery on or off\n      --json               Print machine-readable JSON instead of text\n      --pipe <PIPE>        Pipe name or path (default: $POD_SOCKET, else \\\\.\\pipe\\podd-<username>)\n      --preview <PREVIEW>  Store and show each session's first prompt\n      --machine <NAME>     Run the command on this SSH machine profile (`pod machine add`) instead of the local daemon\n  -h, --help               Print help\n",
+      "stderr": ""
+    },
+    {
+      "name": "help sessions register",
+      "args": [
+        "sessions",
+        "register",
+        "--help"
+      ],
+      "exit": 0,
+      "stdout": "Link a session to its Pod task / repository\n\nUsage: pod.exe sessions register [OPTIONS] <SESSION>\n\nArguments:\n  <SESSION>  `claude:<id>`, `codex:<id>` or a unique id prefix\n\nOptions:\n      --json            Print machine-readable JSON instead of text\n      --task <TASK>     Link to this task instead of the one matching the session's folder\n      --add-repo        Register the session's git repository first if Pod does not know it\n      --pipe <PIPE>     Pipe name or path (default: $POD_SOCKET, else \\\\.\\pipe\\podd-<username>)\n      --machine <NAME>  Run the command on this SSH machine profile (`pod machine add`) instead of the local daemon\n  -h, --help            Print help\n",
+      "stderr": ""
+    },
+    {
+      "name": "help sessions resume",
+      "args": [
+        "sessions",
+        "resume",
+        "--help"
+      ],
+      "exit": 0,
+      "stdout": "Resume a session in a new Pod terminal (the agent's own resume command)\n\nUsage: pod.exe sessions resume [OPTIONS] <SESSION>\n\nArguments:\n  <SESSION>  \n\nOptions:\n      --json            Print machine-readable JSON instead of text\n      --name <NAME>     Terminal name\n      --pipe <PIPE>     Pipe name or path (default: $POD_SOCKET, else \\\\.\\pipe\\podd-<username>)\n      --machine <NAME>  Run the command on this SSH machine profile (`pod machine add`) instead of the local daemon\n  -h, --help            Print help\n",
+      "stderr": ""
+    },
+    {
+      "name": "help sessions hide",
+      "args": [
+        "sessions",
+        "hide",
+        "--help"
+      ],
+      "exit": 0,
+      "stdout": "Hide a session from the list (`--show` shows it again)\n\nUsage: pod.exe sessions hide [OPTIONS] <SESSION>\n\nArguments:\n  <SESSION>  \n\nOptions:\n      --json            Print machine-readable JSON instead of text\n      --show            \n      --pipe <PIPE>     Pipe name or path (default: $POD_SOCKET, else \\\\.\\pipe\\podd-<username>)\n      --machine <NAME>  Run the command on this SSH machine profile (`pod machine add`) instead of the local daemon\n  -h, --help            Print help\n",
+      "stderr": ""
+    },
+    {
+      "name": "help mobile",
+      "args": [
+        "mobile",
+        "--help"
+      ],
+      "exit": 0,
+      "stdout": "Paired phones: permissions per task, revoke, audit (docs/17; no network listener yet)\n\nUsage: pod.exe mobile [OPTIONS] <COMMAND>\n\nCommands:\n  devices   List paired devices, their per-task permissions and live sessions\n  revoke    Revoke a device (or all): its sessions end at once, its permissions are cleared\n  policy    Set what a device may do with one task (nothing is allowed by default)\n  audit     Show the mobile audit log (newest last)\n  settings  Show or change mobile settings\n  help      Print this message or the help of the given subcommand(s)\n\nOptions:\n      --json            Print machine-readable JSON instead of text\n      --pipe <PIPE>     Pipe name or path (default: $POD_SOCKET, else \\\\.\\pipe\\podd-<username>)\n      --machine <NAME>  Run the command on this SSH machine profile (`pod machine add`) instead of the local daemon\n  -h, --help            Print help\n",
+      "stderr": ""
+    },
+    {
+      "name": "help mobile devices",
+      "args": [
+        "mobile",
+        "devices",
+        "--help"
+      ],
+      "exit": 0,
+      "stdout": "List paired devices, their per-task permissions and live sessions\n\nUsage: pod.exe mobile devices [OPTIONS]\n\nOptions:\n      --json            Print machine-readable JSON instead of text\n      --pipe <PIPE>     Pipe name or path (default: $POD_SOCKET, else \\\\.\\pipe\\podd-<username>)\n      --machine <NAME>  Run the command on this SSH machine profile (`pod machine add`) instead of the local daemon\n  -h, --help            Print help\n",
+      "stderr": ""
+    },
+    {
+      "name": "help mobile revoke",
+      "args": [
+        "mobile",
+        "revoke",
+        "--help"
+      ],
+      "exit": 0,
+      "stdout": "Revoke a device (or all): its sessions end at once, its permissions are cleared\n\nUsage: pod.exe mobile revoke [OPTIONS] [DEVICE]\n\nArguments:\n  [DEVICE]  \n\nOptions:\n      --all             \n      --json            Print machine-readable JSON instead of text\n      --pipe <PIPE>     Pipe name or path (default: $POD_SOCKET, else \\\\.\\pipe\\podd-<username>)\n      --machine <NAME>  Run the command on this SSH machine profile (`pod machine add`) instead of the local daemon\n  -h, --help            Print help\n",
+      "stderr": ""
+    },
+    {
+      "name": "help mobile policy",
+      "args": [
+        "mobile",
+        "policy",
+        "--help"
+      ],
+      "exit": 0,
+      "stdout": "Set what a device may do with one task (nothing is allowed by default)\n\nUsage: pod.exe mobile policy [OPTIONS] <DEVICE> <TASK>\n\nArguments:\n  <DEVICE>  \n  <TASK>    \n\nOptions:\n      --allow <ALLOW>   Comma-separated: status, output, approve, message\n      --json            Print machine-readable JSON instead of text\n      --deny <DENY>     \n      --pipe <PIPE>     Pipe name or path (default: $POD_SOCKET, else \\\\.\\pipe\\podd-<username>)\n      --clear           Remove every permission for the task first\n      --machine <NAME>  Run the command on this SSH machine profile (`pod machine add`) instead of the local daemon\n  -h, --help            Print help\n",
+      "stderr": ""
+    },
+    {
+      "name": "help mobile audit",
+      "args": [
+        "mobile",
+        "audit",
+        "--help"
+      ],
+      "exit": 0,
+      "stdout": "Show the mobile audit log (newest last)\n\nUsage: pod.exe mobile audit [OPTIONS]\n\nOptions:\n      --device <DEVICE>  \n      --json             Print machine-readable JSON instead of text\n      --limit <LIMIT>    [default: 50]\n      --pipe <PIPE>      Pipe name or path (default: $POD_SOCKET, else \\\\.\\pipe\\podd-<username>)\n      --machine <NAME>   Run the command on this SSH machine profile (`pod machine add`) instead of the local daemon\n  -h, --help             Print help\n",
+      "stderr": ""
+    },
+    {
+      "name": "help mobile settings",
+      "args": [
+        "mobile",
+        "settings",
+        "--help"
+      ],
+      "exit": 0,
+      "stdout": "Show or change mobile settings\n\nUsage: pod.exe mobile settings [OPTIONS]\n\nOptions:\n      --audit-bodies <on|off>  Keep message text in the audit log (default off: length + SHA-256 only)\n      --json                   Print machine-readable JSON instead of text\n      --pipe <PIPE>            Pipe name or path (default: $POD_SOCKET, else \\\\.\\pipe\\podd-<username>)\n      --machine <NAME>         Run the command on this SSH machine profile (`pod machine add`) instead of the local daemon\n  -h, --help                   Print help\n",
+      "stderr": ""
+    },
+    {
+      "name": "help server",
+      "args": [
+        "server",
+        "--help"
+      ],
+      "exit": 0,
+      "stdout": "Daemon control\n\nUsage: pod.exe server [OPTIONS] <COMMAND>\n\nCommands:\n  status  Show whether the daemon runs and what it holds (does not start it)\n  stop    Stop the daemon. Terminals keep running in their holders unless --kill\n  schema  Print the protocol's JSON schema\n  help    Print this message or the help of the given subcommand(s)\n\nOptions:\n      --json            Print machine-readable JSON instead of text\n      --pipe <PIPE>     Pipe name or path (default: $POD_SOCKET, else \\\\.\\pipe\\podd-<username>)\n      --machine <NAME>  Run the command on this SSH machine profile (`pod machine add`) instead of the local daemon\n  -h, --help            Print help\n",
+      "stderr": ""
+    },
+    {
+      "name": "help server status",
+      "args": [
+        "server",
+        "status",
+        "--help"
+      ],
+      "exit": 0,
+      "stdout": "Show whether the daemon runs and what it holds (does not start it)\n\nUsage: pod.exe server status [OPTIONS]\n\nOptions:\n      --json            Print machine-readable JSON instead of text\n      --pipe <PIPE>     Pipe name or path (default: $POD_SOCKET, else \\\\.\\pipe\\podd-<username>)\n      --machine <NAME>  Run the command on this SSH machine profile (`pod machine add`) instead of the local daemon\n  -h, --help            Print help\n",
+      "stderr": ""
+    },
+    {
+      "name": "help server stop",
+      "args": [
+        "server",
+        "stop",
+        "--help"
+      ],
+      "exit": 0,
+      "stdout": "Stop the daemon. Terminals keep running in their holders unless --kill\n\nUsage: pod.exe server stop [OPTIONS]\n\nOptions:\n      --json            Print machine-readable JSON instead of text\n      --kill            \n      --pipe <PIPE>     Pipe name or path (default: $POD_SOCKET, else \\\\.\\pipe\\podd-<username>)\n      --machine <NAME>  Run the command on this SSH machine profile (`pod machine add`) instead of the local daemon\n  -h, --help            Print help\n",
+      "stderr": ""
+    },
+    {
+      "name": "help server schema",
+      "args": [
+        "server",
+        "schema",
+        "--help"
+      ],
+      "exit": 0,
+      "stdout": "Print the protocol's JSON schema\n\nUsage: pod.exe server schema [OPTIONS]\n\nOptions:\n      --json            Print machine-readable JSON instead of text\n      --pipe <PIPE>     Pipe name or path (default: $POD_SOCKET, else \\\\.\\pipe\\podd-<username>)\n      --machine <NAME>  Run the command on this SSH machine profile (`pod machine add`) instead of the local daemon\n  -h, --help            Print help\n",
+      "stderr": ""
+    },
+    {
+      "name": "help remote-stdio",
+      "args": [
+        "remote-stdio",
+        "--help"
+      ],
+      "exit": 0,
+      "stdout": "Bridge stdin/stdout to this user's podd for a remote client (`ssh -T host pod remote-stdio`). Starts the installed podd if none runs. stdout carries protocol lines only; exits when either side closes, leaving the daemon and its terminals running\n\nUsage: pod.exe remote-stdio [OPTIONS]\n\nOptions:\n      --json            Print machine-readable JSON instead of text\n      --pipe <PIPE>     Pipe name or path (default: $POD_SOCKET, else \\\\.\\pipe\\podd-<username>)\n      --machine <NAME>  Run the command on this SSH machine profile (`pod machine add`) instead of the local daemon\n  -h, --help            Print help\n",
+      "stderr": ""
+    },
+    {
+      "name": "help machine",
+      "args": [
+        "machine",
+        "--help"
+      ],
+      "exit": 0,
+      "stdout": "SSH machine profiles for `pod --machine <name> …` (docs/17 R3)\n\nUsage: pod.exe machine [OPTIONS] <COMMAND>\n\nCommands:\n  add     Add an SSH machine profile (host/user/port/key/known_hosts only)\n  list    List machine profiles\n  remove  Remove a machine profile (nothing on the remote side changes)\n  test    Connect over SSH and run the v12 handshake; prints the remote podd\n  help    Print this message or the help of the given subcommand(s)\n\nOptions:\n      --json            Print machine-readable JSON instead of text\n      --pipe <PIPE>     Pipe name or path (default: $POD_SOCKET, else \\\\.\\pipe\\podd-<username>)\n      --machine <NAME>  Run the command on this SSH machine profile (`pod machine add`) instead of the local daemon\n  -h, --help            Print help\n",
+      "stderr": ""
+    },
+    {
+      "name": "help machine add",
+      "args": [
+        "machine",
+        "add",
+        "--help"
+      ],
+      "exit": 0,
+      "stdout": "Add an SSH machine profile (host/user/port/key/known_hosts only)\n\nUsage: pod.exe machine add [OPTIONS] --host <HOST> <NAME>\n\nArguments:\n  <NAME>  \n\nOptions:\n      --host <HOST>           \n      --json                  Print machine-readable JSON instead of text\n      --pipe <PIPE>           Pipe name or path (default: $POD_SOCKET, else \\\\.\\pipe\\podd-<username>)\n      --user <USER>           \n      --machine <NAME>        Run the command on this SSH machine profile (`pod machine add`) instead of the local daemon\n      --port <PORT>           \n      --identity-file <PATH>  Private key file (absolute path). Default: ssh-agent / ssh's default keys\n      --known-hosts <PATH>    known_hosts file (absolute path). Default: ~/.ssh/known_hosts\n  -h, --help                  Print help\n",
+      "stderr": ""
+    },
+    {
+      "name": "help machine list",
+      "args": [
+        "machine",
+        "list",
+        "--help"
+      ],
+      "exit": 0,
+      "stdout": "List machine profiles\n\nUsage: pod.exe machine list [OPTIONS]\n\nOptions:\n      --json            Print machine-readable JSON instead of text\n      --pipe <PIPE>     Pipe name or path (default: $POD_SOCKET, else \\\\.\\pipe\\podd-<username>)\n      --machine <NAME>  Run the command on this SSH machine profile (`pod machine add`) instead of the local daemon\n  -h, --help            Print help\n",
+      "stderr": ""
+    },
+    {
+      "name": "help machine remove",
+      "args": [
+        "machine",
+        "remove",
+        "--help"
+      ],
+      "exit": 0,
+      "stdout": "Remove a machine profile (nothing on the remote side changes)\n\nUsage: pod.exe machine remove [OPTIONS] <NAME>\n\nArguments:\n  <NAME>  \n\nOptions:\n      --json            Print machine-readable JSON instead of text\n      --pipe <PIPE>     Pipe name or path (default: $POD_SOCKET, else \\\\.\\pipe\\podd-<username>)\n      --machine <NAME>  Run the command on this SSH machine profile (`pod machine add`) instead of the local daemon\n  -h, --help            Print help\n",
+      "stderr": ""
+    },
+    {
+      "name": "help machine test",
+      "args": [
+        "machine",
+        "test",
+        "--help"
+      ],
+      "exit": 0,
+      "stdout": "Connect over SSH and run the v12 handshake; prints the remote podd\n\nUsage: pod.exe machine test [OPTIONS] <NAME>\n\nArguments:\n  <NAME>  \n\nOptions:\n      --json            Print machine-readable JSON instead of text\n      --pipe <PIPE>     Pipe name or path (default: $POD_SOCKET, else \\\\.\\pipe\\podd-<username>)\n      --machine <NAME>  Run the command on this SSH machine profile (`pod machine add`) instead of the local daemon\n  -h, --help            Print help\n",
+      "stderr": ""
+    },
+    {
+      "name": "help guide",
+      "args": [
+        "guide",
+        "--help"
+      ],
+      "exit": 0,
+      "stdout": "Guides for agents in Pod terminals, matched to this version (`pod guide orchestration`); no topic: the list\n\nUsage: pod.exe guide [OPTIONS] [COMMAND]\n\nCommands:\n  orchestration  How to coordinate workers and report as a worker (docs/19)\n  install        Write a pointer to the guide into a repository: a Claude Code project skill (`.claude/skills/pod-orchestration/SKILL.md`) or a block in `AGENTS.md`. Prints a preview unless --write is given\n  help           Print this message or the help of the given subcommand(s)\n\nOptions:\n      --json            Print machine-readable JSON instead of text\n      --pipe <PIPE>     Pipe name or path (default: $POD_SOCKET, else \\\\.\\pipe\\podd-<username>)\n      --machine <NAME>  Run the command on this SSH machine profile (`pod machine add`) instead of the local daemon\n  -h, --help            Print help\n",
+      "stderr": ""
+    },
+    {
+      "name": "help guide orchestration",
+      "args": [
+        "guide",
+        "orchestration",
+        "--help"
+      ],
+      "exit": 0,
+      "stdout": "How to coordinate workers and report as a worker (docs/19)\n\nUsage: pod.exe guide orchestration [OPTIONS]\n\nOptions:\n      --json            Print machine-readable JSON instead of text\n      --lang <LANG>     ko, en or both (default) [default: both] [possible values: ko, en, both]\n      --pipe <PIPE>     Pipe name or path (default: $POD_SOCKET, else \\\\.\\pipe\\podd-<username>)\n      --machine <NAME>  Run the command on this SSH machine profile (`pod machine add`) instead of the local daemon\n  -h, --help            Print help\n",
+      "stderr": ""
+    },
+    {
+      "name": "help guide install",
+      "args": [
+        "guide",
+        "install",
+        "--help"
+      ],
+      "exit": 0,
+      "stdout": "Write a pointer to the guide into a repository: a Claude Code project skill (`.claude/skills/pod-orchestration/SKILL.md`) or a block in `AGENTS.md`. Prints a preview unless --write is given\n\nUsage: pod.exe guide install [OPTIONS] --repo <REPO> --target <TARGET>\n\nOptions:\n      --json\n          Print machine-readable JSON instead of text\n\n      --repo <REPO>\n          The repository (its root; must contain `.git`)\n\n      --pipe <PIPE>\n          Pipe name or path (default: $POD_SOCKET, else \\\\.\\pipe\\podd-<username>)\n\n      --target <TARGET>\n          Possible values:\n          - skill:     `.claude/skills/pod-orchestration/SKILL.md` in the repository\n          - agents-md: A marked block in the repository's `AGENTS.md` (Codex and others)\n\n      --machine <NAME>\n          Run the command on this SSH machine profile (`pod machine add`) instead of the local daemon\n\n      --write\n          Write the file (default: preview only)\n\n  -h, --help\n          Print help (see a summary with '-h')\n",
+      "stderr": ""
+    },
+    {
+      "name": "version",
+      "args": [
+        "--version"
+      ],
+      "exit": 0,
+      "stdout": "pod <VERSION>\n",
+      "stderr": ""
+    },
+    {
+      "name": "usage: no command",
+      "args": [],
+      "exit": 2,
+      "stdout": "",
+      "stderr": "Drive terminals owned by the podd daemon\n\nUsage: pod.exe [OPTIONS] <COMMAND>\n\nCommands:\n  run           Start a program in a new terminal (kept alive by a holder process) and print its id\n  ls            List terminals (exited ones only with --all)\n  keep          Keep an exited terminal from being removed by the retention policy (--unkeep returns it to the policy)\n  send          Type text into a terminal, followed by Enter unless --no-enter. Enter is pressed once the program has taken the text in; for an agent the daemon then checks that a turn started and presses Enter once more if not (a warning is printed when it still did not)\n  keys          Press named keys: enter, tab, esc, up, ctrl+c, alt+x, f5, ... or single characters\n  read          Print the screen (or scrollback + screen with --history)\n  wait          Wait until the program exits (default) or the output contains TEXT (the echo of text sent with `pod send` does not count), or for an agent status (--status, --turn-end)\n  resize        Resize a terminal (the most recent resize wins, also over attached clients)\n  attach        Attach this console to a terminal: raw input and output, Ctrl+] detaches\n  status        Show a terminal's agent status\n  ack           Acknowledge a terminal (the user saw it): done becomes idle\n  hooks         Agent hook configuration\n  kill          Kill a terminal's whole process tree\n  rm            Forget an exited terminal (ends its holder). --force kills it first\n  repo          Registered git repositories (tasks are created in them)\n  task          Tasks: a git worktree on branch pod/<name> plus the terminal(s) working in it\n  review        Review comments on a task's diff, sent to its agent (P4)\n  group         Fan-out groups: one prompt, several agents, compare and pick (P5)\n  orch          Orchestration for agents: runs, items, workers, mail (docs/19)\n  gate          Human approval gates (P5). Agents call `pod gate request` from their terminal\n  pr            A task's GitHub pull request: push, create, status, merge, open (docs/15)\n  sessions      Agent sessions found on this PC (Claude Code, Codex): list, resume, link (docs/18)\n  mobile        Paired phones: permissions per task, revoke, audit (docs/17; no network listener yet)\n  server        Daemon control\n  remote-stdio  Bridge stdin/stdout to this user's podd for a remote client (`ssh -T host pod remote-stdio`). Starts the installed podd if none runs. stdout carries protocol lines only; exits when either side closes, leaving the daemon and its terminals running\n  machine       SSH machine profiles for `pod --machine <name> …` (docs/17 R3)\n  guide         Guides for agents in Pod terminals, matched to this version (`pod guide orchestration`); no topic: the list\n  help          Print this message or the help of the given subcommand(s)\n\nOptions:\n      --json            Print machine-readable JSON instead of text\n      --pipe <PIPE>     Pipe name or path (default: $POD_SOCKET, else \\\\.\\pipe\\podd-<username>)\n      --machine <NAME>  Run the command on this SSH machine profile (`pod machine add`) instead of the local daemon\n  -h, --help            Print help\n  -V, --version         Print version\n"
+    },
+    {
+      "name": "usage: unknown command",
+      "args": [
+        "nope"
+      ],
+      "exit": 2,
+      "stdout": "",
+      "stderr": "error: unrecognized subcommand 'nope'\n\nUsage: pod.exe [OPTIONS] <COMMAND>\n\nFor more information, try '--help'.\n"
+    },
+    {
+      "name": "usage: keys without keys",
+      "args": [
+        "keys",
+        "t1"
+      ],
+      "exit": 2,
+      "stdout": "",
+      "stderr": "error: the following required arguments were not provided:\n  <KEYS>...\n\nUsage: pod.exe keys <TERMINAL> <KEYS>...\n\nFor more information, try '--help'.\n"
+    },
+    {
+      "name": "usage: wait without target",
+      "args": [
+        "wait"
+      ],
+      "exit": 2,
+      "stdout": "",
+      "stderr": "error: the following required arguments were not provided:\n  <TERMINAL>\n\nUsage: pod.exe wait <TERMINAL>\n\nFor more information, try '--help'.\n"
+    },
+    {
+      "name": "usage: wait exit and output",
+      "args": [
+        "wait",
+        "t1",
+        "--exit",
+        "--output",
+        "x"
+      ],
+      "exit": 2,
+      "stdout": "",
+      "stderr": "error: the argument '--exit' cannot be used with '--output <TEXT>'\n\nUsage: pod.exe wait --exit <TERMINAL>\n\nFor more information, try '--help'.\n"
+    },
+    {
+      "name": "usage: wait terminal and gate",
+      "args": [
+        "wait",
+        "t1",
+        "--gate",
+        "g1"
+      ],
+      "exit": 2,
+      "stdout": "",
+      "stderr": "error: the argument '[TERMINAL]' cannot be used with '--gate <ID>'\n\nUsage: pod.exe wait <TERMINAL>\n\nFor more information, try '--help'.\n"
+    },
+    {
+      "name": "usage: run without argv",
+      "args": [
+        "run"
+      ],
+      "exit": 2,
+      "stdout": "",
+      "stderr": "error: the following required arguments were not provided:\n  <ARGV>...\n\nUsage: pod.exe run -- <ARGV>...\n\nFor more information, try '--help'.\n"
+    },
+    {
+      "name": "usage: task new bad agent",
+      "args": [
+        "task",
+        "new",
+        "a",
+        "b",
+        "--agent",
+        "vim"
+      ],
+      "exit": 2,
+      "stdout": "",
+      "stderr": "error: invalid value 'vim' for '--agent <AGENT>'\n  [possible values: claude, codex, shell]\n\nFor more information, try '--help'.\n"
+    },
+    {
+      "name": "usage: pipe and machine",
+      "args": [
+        "--pipe",
+        "x",
+        "--machine",
+        "m",
+        "ls"
+      ],
+      "exit": 2,
+      "stdout": "",
+      "stderr": "error: the argument '--pipe <PIPE>' cannot be used with '--machine <NAME>'\n\nUsage: pod.exe --pipe <PIPE> <COMMAND>\n\nFor more information, try '--help'.\n"
+    },
+    {
+      "name": "usage: server without command",
+      "args": [
+        "server"
+      ],
+      "exit": 2,
+      "stdout": "",
+      "stderr": "Daemon control\n\nUsage: pod.exe server [OPTIONS] <COMMAND>\n\nCommands:\n  status  Show whether the daemon runs and what it holds (does not start it)\n  stop    Stop the daemon. Terminals keep running in their holders unless --kill\n  schema  Print the protocol's JSON schema\n  help    Print this message or the help of the given subcommand(s)\n\nOptions:\n      --json            Print machine-readable JSON instead of text\n      --pipe <PIPE>     Pipe name or path (default: $POD_SOCKET, else \\\\.\\pipe\\podd-<username>)\n      --machine <NAME>  Run the command on this SSH machine profile (`pod machine add`) instead of the local daemon\n  -h, --help            Print help\n"
+    },
+    {
+      "name": "usage: repo without command",
+      "args": [
+        "repo"
+      ],
+      "exit": 2,
+      "stdout": "",
+      "stderr": "Registered git repositories (tasks are created in them)\n\nUsage: pod.exe repo [OPTIONS] <COMMAND>\n\nCommands:\n  add     Register a repository (the root of a git work tree)\n  ls      List registered repositories\n  rm      Unregister a repository (it must have no tasks). Nothing on disk changes\n  config  Show .pod/config.toml, its commands, hash and approval\n  trust   Approve the repository's commands (shown by `pod repo config`) for this content hash\n  set     Personal settings for a repository (no approval needed)\n  help    Print this message or the help of the given subcommand(s)\n\nOptions:\n      --json            Print machine-readable JSON instead of text\n      --pipe <PIPE>     Pipe name or path (default: $POD_SOCKET, else \\\\.\\pipe\\podd-<username>)\n      --machine <NAME>  Run the command on this SSH machine profile (`pod machine add`) instead of the local daemon\n  -h, --help            Print help\n"
+    },
+    {
+      "name": "usage: task without command",
+      "args": [
+        "task"
+      ],
+      "exit": 2,
+      "stdout": "",
+      "stderr": "Tasks: a git worktree on branch pod/<name> plus the terminal(s) working in it\n\nUsage: pod.exe task [OPTIONS] <COMMAND>\n\nCommands:\n  new           Create branch pod/<name> + a worktree, and start the agent in it\n  ls            List tasks with terminal state and git facts\n  show          Show one task\n  diff          Files changed against the base (committed, uncommitted and untracked)\n  touch         Tell the daemon files were saved in the task's worktree: git facts are refreshed now and `task.changed` events go out (editors, scripts)\n  rm            Kill the task's terminals, remove the worktree (and the branch with --delete-branch)\n  archive       Close the task's terminals (after the repository's archive script); worktree, branch and agent session stay\n  unarchive     Re-open an archived task and resume its agent session\n  resume        Start the task's agent again: `claude --resume <id>` / `codex resume <id>` for the recorded session, else a fresh agent\n  cleanup       Tasks by cleanup tier: protected, review, ready\n  suggest-name  Print a free task name for a repository\n  help          Print this message or the help of the given subcommand(s)\n\nOptions:\n      --json            Print machine-readable JSON instead of text\n      --pipe <PIPE>     Pipe name or path (default: $POD_SOCKET, else \\\\.\\pipe\\podd-<username>)\n      --machine <NAME>  Run the command on this SSH machine profile (`pod machine add`) instead of the local daemon\n  -h, --help            Print help\n"
+    },
+    {
+      "name": "usage: resize without rows",
+      "args": [
+        "resize",
+        "t1",
+        "80"
+      ],
+      "exit": 2,
+      "stdout": "",
+      "stderr": "error: the following required arguments were not provided:\n  <ROWS>\n\nUsage: pod.exe resize <TERMINAL> <COLS> <ROWS>\n\nFor more information, try '--help'.\n"
+    },
+    {
+      "name": "usage: setup value",
+      "args": [
+        "task",
+        "new",
+        "a",
+        "--setup",
+        "maybe"
+      ],
+      "exit": 2,
+      "stdout": "",
+      "stderr": "error: invalid value 'maybe' for '--setup <SETUP>'\n  [possible values: run, skip, inherit]\n\nFor more information, try '--help'.\n"
+    },
+    {
+      "name": "remote: attach",
+      "args": [
+        "--machine",
+        "m",
+        "attach",
+        "t1"
+      ],
+      "exit": 2,
+      "stdout": "",
+      "stderr": "pod: --machine m: attach는 아직 원격을 지원하지 않습니다 (docs/17 R4)\n"
+    },
+    {
+      "name": "remote: remote-stdio",
+      "args": [
+        "--machine",
+        "m",
+        "remote-stdio"
+      ],
+      "exit": 2,
+      "stdout": "",
+      "stderr": "pod: --machine m: remote-stdio는 원격 쪽에서 ssh가 실행하는 명령입니다\n"
+    },
+    {
+      "name": "remote: hooks",
+      "args": [
+        "--machine",
+        "m",
+        "hooks",
+        "status"
+      ],
+      "exit": 2,
+      "stdout": "",
+      "stderr": "pod: --machine m: hooks는 이 PC의 에이전트 설정만 다룹니다\n"
+    },
+    {
+      "name": "remote: machine",
+      "args": [
+        "--machine",
+        "m",
+        "machine",
+        "ls"
+      ],
+      "exit": 2,
+      "stdout": "",
+      "stderr": "pod: --machine m: machine은 이 PC의 프로필만 다룹니다\n"
+    },
+    {
+      "name": "remote: server stop",
+      "args": [
+        "--machine",
+        "m",
+        "server",
+        "stop"
+      ],
+      "exit": 2,
+      "stdout": "",
+      "stderr": "pod: --machine m: 원격 데몬 중지는 지원하지 않습니다\n"
+    },
+    {
+      "name": "remote: inherit-env",
+      "args": [
+        "--machine",
+        "m",
+        "run",
+        "--inherit-env",
+        "--",
+        "cmd"
+      ],
+      "exit": 2,
+      "stdout": "",
+      "stderr": "pod: --machine m: --inherit-env는 이 PC의 환경 변수를 원격에 보내므로 쓸 수 없습니다\n"
+    },
+    {
+      "name": "remote: unknown machine ls",
+      "args": [
+        "--machine",
+        "m",
+        "ls"
+      ],
+      "exit": 2,
+      "stdout": "",
+      "stderr": "pod: 머신 \"m\"이(가) 없습니다 (`pod machine list`, `pod machine add`)\n"
+    },
+    {
+      "name": "remote: unknown machine server status",
+      "args": [
+        "--machine",
+        "m",
+        "server",
+        "status"
+      ],
+      "exit": 2,
+      "stdout": "",
+      "stderr": "pod: 머신 \"m\"이(가) 없습니다 (`pod machine list`, `pod machine add`)\n"
+    },
+    {
+      "name": "remote: unknown machine repo add",
+      "args": [
+        "--machine",
+        "m",
+        "repo",
+        "add",
+        "x"
+      ],
+      "exit": 2,
+      "stdout": "",
+      "stderr": "pod: 머신 \"m\"이(가) 없습니다 (`pod machine list`, `pod machine add`)\n"
+    },
+    {
+      "name": "guide",
+      "args": [
+        "--pipe",
+        "<RUN>",
+        "guide"
+      ],
+      "exit": 0,
+      "stdout": "Pod guides (pod <VERSION> · protocol v19)\n\n  pod guide orchestration  coordinate workers in new worktrees; ask / reply / check / done; gates; limits; etiquette\n\n  pod guide install --repo <path> --target skill|agents-md [--write]\n                       put a pointer to the guide into a repository (preview without --write)\n\n가이드는 이 pod 버전에 맞춰 출력됩니다. 에이전트는 `pod guide orchestration`을 읽고 따르세요.\n",
+      "stderr": ""
+    },
+    {
+      "name": "server schema",
+      "args": [
+        "--pipe",
+        "<RUN>",
+        "server",
+        "schema"
+      ],
+      "exit": 0,
+      "stdout": "<podd/tests/fixtures/schema-v19.json>",
+      "stderr": ""
+    },
+    {
+      "name": "machine ls",
+      "args": [
+        "--pipe",
+        "<RUN>",
+        "machine",
+        "ls"
+      ],
+      "exit": 0,
+      "stdout": "머신 없음 (pod machine add <name> --host <host>)\n",
+      "stderr": ""
+    },
+    {
+      "name": "machine ls json",
+      "args": [
+        "--pipe",
+        "<RUN>",
+        "--json",
+        "machine",
+        "ls"
+      ],
+      "exit": 0,
+      "stdout_json": {
+        "machines": []
+      },
+      "stderr": ""
+    },
+    {
+      "name": "server status, none",
+      "args": [
+        "--pipe",
+        "<RUN>",
+        "server",
+        "status"
+      ],
+      "exit": 3,
+      "stdout": "podd is not running (<PIPE>)\n",
+      "stderr": ""
+    },
+    {
+      "name": "server status json, none",
+      "args": [
+        "--pipe",
+        "<RUN>",
+        "--json",
+        "server",
+        "status"
+      ],
+      "exit": 3,
+      "stdout_json": {
+        "running": false,
+        "pipe": "<PIPE>"
+      },
+      "stderr": ""
+    },
+    {
+      "name": "server stop, none",
+      "args": [
+        "--pipe",
+        "<RUN>",
+        "server",
+        "stop"
+      ],
+      "exit": 3,
+      "stdout": "podd is not running (<PIPE>)\n",
+      "stderr": ""
+    },
+    {
+      "name": "server stop kill, none",
+      "args": [
+        "--pipe",
+        "<RUN>",
+        "server",
+        "stop",
+        "--kill"
+      ],
+      "exit": 3,
+      "stdout": "podd is not running (<PIPE>)\n",
+      "stderr": ""
+    },
+    {
+      "name": "server status, default pipe",
+      "args": [
+        "server",
+        "status"
+      ],
+      "exit": 3,
+      "stdout": "podd is not running (<DEFAULT_PIPE>)\n",
+      "stderr": ""
+    },
+    {
+      "name": "run bad env",
+      "args": [
+        "--pipe",
+        "<RUN>",
+        "run",
+        "--env",
+        "=x",
+        "--",
+        "cmd"
+      ],
+      "exit": 2,
+      "stdout": "",
+      "stderr": "pod: --env expects KEY=VALUE, got \"=x\"\n"
+    },
+    {
+      "name": "run bad env 2",
+      "args": [
+        "--pipe",
+        "<RUN>",
+        "run",
+        "--env",
+        "x",
+        "--",
+        "cmd"
+      ],
+      "exit": 2,
+      "stdout": "",
+      "stderr": "pod: --env expects KEY=VALUE, got \"x\"\n"
+    },
+    {
+      "name": "ls, empty",
+      "args": [
+        "--pipe",
+        "<RUN>",
+        "ls"
+      ],
+      "exit": 0,
+      "stdout": "no terminals\n",
+      "stderr": ""
+    },
+    {
+      "name": "ls json, empty",
+      "args": [
+        "--pipe",
+        "<RUN>",
+        "--json",
+        "ls"
+      ],
+      "exit": 0,
+      "stdout_json": {
+        "terminals": [],
+        "retention_ms": "<N>"
+      },
+      "stderr": ""
+    },
+    {
+      "name": "server status",
+      "args": [
+        "--pipe",
+        "<RUN>",
+        "server",
+        "status"
+      ],
+      "exit": 0,
+      "stdout": "podd <VERSION> running: pid <PID>, pipe <PIPE>, up <UP>, terminals 0 (0 running)\n",
+      "stderr": ""
+    },
+    {
+      "name": "server status json",
+      "args": [
+        "--pipe",
+        "<RUN>",
+        "--json",
+        "server",
+        "status"
+      ],
+      "exit": 0,
+      "stdout_json": {
+        "version": "<VERSION>",
+        "protocol": 19,
+        "pid": "<N>",
+        "pipe": "<PIPE>",
+        "started_ms": "<N>",
+        "uptime_ms": "<N>",
+        "terminals": 0,
+        "running": 0,
+        "state_dir": "<ROOT>\\local\\pod\\state\\<RUN>"
+      },
+      "stderr": ""
+    },
+    {
+      "name": "read unknown",
+      "args": [
+        "--pipe",
+        "<RUN>",
+        "read",
+        "nope"
+      ],
+      "exit": 2,
+      "stdout": "",
+      "stderr": "pod: no terminal nope\n"
+    },
+    {
+      "name": "status unknown",
+      "args": [
+        "--pipe",
+        "<RUN>",
+        "status",
+        "nope"
+      ],
+      "exit": 2,
+      "stdout": "",
+      "stderr": "pod: no terminal nope\n"
+    },
+    {
+      "name": "ack unknown",
+      "args": [
+        "--pipe",
+        "<RUN>",
+        "ack",
+        "nope"
+      ],
+      "exit": 2,
+      "stdout": "",
+      "stderr": "pod: no terminal nope\n"
+    },
+    {
+      "name": "kill unknown",
+      "args": [
+        "--pipe",
+        "<RUN>",
+        "kill",
+        "nope"
+      ],
+      "exit": 2,
+      "stdout": "",
+      "stderr": "pod: no terminal nope\n"
+    },
+    {
+      "name": "rm unknown",
+      "args": [
+        "--pipe",
+        "<RUN>",
+        "rm",
+        "nope"
+      ],
+      "exit": 2,
+      "stdout": "",
+      "stderr": "pod: no terminal nope\n"
+    },
+    {
+      "name": "keep unknown",
+      "args": [
+        "--pipe",
+        "<RUN>",
+        "keep",
+        "nope"
+      ],
+      "exit": 2,
+      "stdout": "",
+      "stderr": "pod: no terminal nope\n"
+    },
+    {
+      "name": "resize unknown",
+      "args": [
+        "--pipe",
+        "<RUN>",
+        "resize",
+        "nope",
+        "80",
+        "24"
+      ],
+      "exit": 2,
+      "stdout": "",
+      "stderr": "pod: no terminal nope\n"
+    },
+    {
+      "name": "send unknown",
+      "args": [
+        "--pipe",
+        "<RUN>",
+        "send",
+        "nope",
+        "x"
+      ],
+      "exit": 2,
+      "stdout": "",
+      "stderr": "pod: no terminal nope\n"
+    },
+    {
+      "name": "keys unknown",
+      "args": [
+        "--pipe",
+        "<RUN>",
+        "keys",
+        "nope",
+        "enter"
+      ],
+      "exit": 2,
+      "stdout": "",
+      "stderr": "pod: no terminal nope\n"
+    },
+    {
+      "name": "wait unknown",
+      "args": [
+        "--pipe",
+        "<RUN>",
+        "wait",
+        "nope",
+        "--timeout",
+        "1"
+      ],
+      "exit": 2,
+      "stdout": "",
+      "stderr": "pod: no terminal nope\n"
+    },
+    {
+      "name": "wait status unknown",
+      "args": [
+        "--pipe",
+        "<RUN>",
+        "wait",
+        "nope",
+        "--status",
+        "idle",
+        "--timeout",
+        "1"
+      ],
+      "exit": 2,
+      "stdout": "",
+      "stderr": "pod: no terminal nope\n"
+    },
+    {
+      "name": "wait gate unknown",
+      "args": [
+        "--pipe",
+        "<RUN>",
+        "wait",
+        "--gate",
+        "g9",
+        "--timeout",
+        "1"
+      ],
+      "exit": 2,
+      "stdout": "",
+      "stderr": "pod: no gate \"g9\"\n"
+    },
+    {
+      "name": "run bad cwd",
+      "args": [
+        "--pipe",
+        "<RUN>",
+        "run",
+        "--cwd",
+        "no-such-dir-here",
+        "--",
+        "cmd"
+      ],
+      "exit": 2,
+      "stdout": "",
+      "stderr": "pod: cwd <ROOT>\\tmp\\no-such-dir-here is not a directory\n"
+    },
+    {
+      "name": "run a",
+      "args": [
+        "--pipe",
+        "<RUN>",
+        "run",
+        "--name",
+        "a",
+        "--cols",
+        "80",
+        "--rows",
+        "24",
+        "--",
+        "cmd",
+        "/c",
+        "exit 3"
+      ],
+      "exit": 0,
+      "stdout": "t1\n",
+      "stderr": ""
+    },
+    {
+      "name": "wait a",
+      "args": [
+        "--pipe",
+        "<RUN>",
+        "wait",
+        "a",
+        "--timeout",
+        "60"
+      ],
+      "exit": 0,
+      "stdout": "t1 exited (code 3)\n",
+      "stderr": ""
+    },
+    {
+      "name": "wait a json",
+      "args": [
+        "--pipe",
+        "<RUN>",
+        "--json",
+        "wait",
+        "a",
+        "--timeout",
+        "60"
+      ],
+      "exit": 0,
+      "stdout_json": {
+        "outcome": "matched",
+        "terminal": {
+          "id": "t1",
+          "name": "a",
+          "argv": [
+            "cmd",
+            "/c",
+            "exit 3"
+          ],
+          "cwd": "<ROOT>\\tmp",
+          "state": "exited",
+          "exit_code": 3,
+          "pid": "<N>",
+          "holder_pid": "<N>",
+          "cols": 80,
+          "rows": 24,
+          "created_ms": "<N>",
+          "exited_ms": "<N>",
+          "killed": false,
+          "lost": false,
+          "attached": 0,
+          "conpty": "<CONPTY>",
+          "status": {
+            "state": "exited",
+            "source": "process",
+            "confidence": 1.0,
+            "since": "<N>",
+            "turn": 0,
+            "final_state": "unknown",
+            "badge": "exited",
+            "records": 0,
+            "running_children": 0,
+            "blocked_children": 0,
+            "hooks_accepted": 0,
+            "hooks_rejected": 0
+          }
+        },
+        "waited_ms": "<N>"
+      },
+      "stderr": ""
+    },
+    {
+      "name": "wait a output, exited",
+      "args": [
+        "--pipe",
+        "<RUN>",
+        "wait",
+        "a",
+        "--output",
+        "zzz",
+        "--timeout",
+        "5"
+      ],
+      "exit": 1,
+      "stdout": "t1 exited (code 3) without matching\n",
+      "stderr": ""
+    },
+    {
+      "name": "ls, hidden",
+      "args": [
+        "--pipe",
+        "<RUN>",
+        "ls"
+      ],
+      "exit": 0,
+      "stdout": "no terminals\n(1 exited terminal(s) hidden; pod ls --all)\n",
+      "stderr": ""
+    },
+    {
+      "name": "ls all",
+      "args": [
+        "--pipe",
+        "<RUN>",
+        "ls",
+        "--all"
+      ],
+      "exit": 0,
+      "stdout": "ID  NAME  STATE  STATUS  PID  SIZE  COMMAND  CWD\nt1  a  exited (code 3)  exited  <PID>  80x24  cmd /c exit 3  <ROOT>\\tmp\n",
+      "stderr": ""
+    },
+    {
+      "name": "ls all json",
+      "args": [
+        "--pipe",
+        "<RUN>",
+        "--json",
+        "ls",
+        "-a"
+      ],
+      "exit": 0,
+      "stdout_json": {
+        "terminals": [
+          {
+            "id": "t1",
+            "name": "a",
+            "argv": [
+              "cmd",
+              "/c",
+              "exit 3"
+            ],
+            "cwd": "<ROOT>\\tmp",
+            "state": "exited",
+            "exit_code": 3,
+            "pid": "<N>",
+            "holder_pid": "<N>",
+            "cols": 80,
+            "rows": 24,
+            "created_ms": "<N>",
+            "exited_ms": "<N>",
+            "killed": false,
+            "lost": false,
+            "attached": 0,
+            "conpty": "<CONPTY>",
+            "status": {
+              "state": "exited",
+              "source": "process",
+              "confidence": 1.0,
+              "since": "<N>",
+              "turn": 0,
+              "final_state": "unknown",
+              "badge": "exited",
+              "records": 0,
+              "running_children": 0,
+              "blocked_children": 0,
+              "hooks_accepted": 0,
+              "hooks_rejected": 0
+            }
+          }
+        ],
+        "retention_ms": "<N>",
+        "retention": [
+          {
+            "id": "t1",
+            "kept": false,
+            "expires_ms": "<N>"
+          }
+        ]
+      },
+      "stderr": ""
+    },
+    {
+      "name": "keep a",
+      "args": [
+        "--pipe",
+        "<RUN>",
+        "keep",
+        "a"
+      ],
+      "exit": 0,
+      "stdout": "t1 kept\n",
+      "stderr": ""
+    },
+    {
+      "name": "keep a json",
+      "args": [
+        "--pipe",
+        "<RUN>",
+        "--json",
+        "keep",
+        "a"
+      ],
+      "exit": 0,
+      "stdout_json": {
+        "id": "t1",
+        "kept": true
+      },
+      "stderr": ""
+    },
+    {
+      "name": "unkeep a",
+      "args": [
+        "--pipe",
+        "<RUN>",
+        "keep",
+        "a",
+        "--unkeep"
+      ],
+      "exit": 0,
+      "stdout": "t1 follows the retention policy\n",
+      "stderr": ""
+    },
+    {
+      "name": "status a",
+      "args": [
+        "--pipe",
+        "<RUN>",
+        "status",
+        "a"
+      ],
+      "exit": 0,
+      "stdout": "t1  exited  source=process confidence=1.00 since=<AGO> ago turn=0\n  final=unknown\n",
+      "stderr": ""
+    },
+    {
+      "name": "status a json",
+      "args": [
+        "--pipe",
+        "<RUN>",
+        "--json",
+        "status",
+        "a"
+      ],
+      "exit": 0,
+      "stdout_json": {
+        "state": "exited",
+        "source": "process",
+        "confidence": 1.0,
+        "since": "<N>",
+        "turn": 0,
+        "final_state": "unknown",
+        "badge": "exited",
+        "records": 0,
+        "running_children": 0,
+        "blocked_children": 0,
+        "hooks_accepted": 0,
+        "hooks_rejected": 0
+      },
+      "stderr": ""
+    },
+    {
+      "name": "ack a",
+      "args": [
+        "--pipe",
+        "<RUN>",
+        "ack",
+        "a"
+      ],
+      "exit": 0,
+      "stdout": "t1 exited\n",
+      "stderr": ""
+    },
+    {
+      "name": "ack a json",
+      "args": [
+        "--pipe",
+        "<RUN>",
+        "--json",
+        "ack",
+        "a"
+      ],
+      "exit": 0,
+      "stdout_json": {
+        "state": "exited",
+        "source": "process",
+        "confidence": 1.0,
+        "since": "<N>",
+        "turn": 0,
+        "final_state": "unknown",
+        "badge": "exited",
+        "records": 0,
+        "running_children": 0,
+        "blocked_children": 0,
+        "hooks_accepted": 0,
+        "hooks_rejected": 0
+      },
+      "stderr": ""
+    },
+    {
+      "name": "resize a, exited",
+      "args": [
+        "--pipe",
+        "<RUN>",
+        "resize",
+        "a",
+        "100",
+        "30"
+      ],
+      "exit": 2,
+      "stdout": "",
+      "stderr": "pod: terminal t1 has exited\n"
+    },
+    {
+      "name": "send a, exited",
+      "args": [
+        "--pipe",
+        "<RUN>",
+        "send",
+        "a",
+        "hi"
+      ],
+      "exit": 2,
+      "stdout": "",
+      "stderr": "pod: terminal t1 has exited\n"
+    },
+    {
+      "name": "keys a, exited",
+      "args": [
+        "--pipe",
+        "<RUN>",
+        "keys",
+        "a",
+        "enter"
+      ],
+      "exit": 2,
+      "stdout": "",
+      "stderr": "pod: terminal t1 has exited\n"
+    },
+    {
+      "name": "kill a, exited",
+      "args": [
+        "--pipe",
+        "<RUN>",
+        "kill",
+        "a"
+      ],
+      "exit": 0,
+      "stdout": "t1 exited (code 3)\n",
+      "stderr": ""
+    },
+    {
+      "name": "rm a",
+      "args": [
+        "--pipe",
+        "<RUN>",
+        "rm",
+        "a"
+      ],
+      "exit": 0,
+      "stdout": "t1 removed\n",
+      "stderr": ""
+    },
+    {
+      "name": "ls all, after rm",
+      "args": [
+        "--pipe",
+        "<RUN>",
+        "ls",
+        "--all"
+      ],
+      "exit": 0,
+      "stdout": "no terminals\n",
+      "stderr": ""
+    },
+    {
+      "name": "run b",
+      "args": [
+        "--pipe",
+        "<RUN>",
+        "--json",
+        "run",
+        "--name",
+        "b",
+        "--cwd",
+        "<ROOT>\\tmp",
+        "--",
+        "ping",
+        "-n",
+        "120",
+        "127.0.0.1"
+      ],
+      "exit": 0,
+      "stdout_json": {
+        "id": "t2",
+        "name": "b",
+        "argv": [
+          "ping",
+          "-n",
+          "120",
+          "127.0.0.1"
+        ],
+        "cwd": "<ROOT>\\tmp",
+        "state": "running",
+        "pid": "<N>",
+        "holder_pid": "<N>",
+        "cols": 120,
+        "rows": 30,
+        "created_ms": "<N>",
+        "killed": false,
+        "lost": false,
+        "attached": 0,
+        "conpty": "<CONPTY>",
+        "status": {
+          "state": "unknown",
+          "confidence": 0.0,
+          "since": "<N>",
+          "turn": 0,
+          "badge": "unknown",
+          "records": 0,
+          "running_children": 0,
+          "blocked_children": 0,
+          "hooks_accepted": 0,
+          "hooks_rejected": 0
+        }
+      },
+      "stderr": ""
+    },
+    {
+      "name": "wait b output timeout",
+      "args": [
+        "--pipe",
+        "<RUN>",
+        "wait",
+        "b",
+        "--output",
+        "zzz-never",
+        "--timeout",
+        "0.3"
+      ],
+      "exit": 1,
+      "stdout": "t2 timed out after <N> ms\n",
+      "stderr": ""
+    },
+    {
+      "name": "ls, running",
+      "args": [
+        "--pipe",
+        "<RUN>",
+        "ls"
+      ],
+      "exit": 0,
+      "stdout": "ID  NAME  STATE  STATUS  PID  SIZE  COMMAND  CWD\nt2  b  running  unknown  <PID>  120x30  ping -n 120 127.0.0.1  <ROOT>\\tmp\n",
+      "stderr": ""
+    },
+    {
+      "name": "send b no-enter",
+      "args": [
+        "--pipe",
+        "<RUN>",
+        "send",
+        "b",
+        "x",
+        "--no-enter"
+      ],
+      "exit": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "name": "keys b json",
+      "args": [
+        "--pipe",
+        "<RUN>",
+        "--json",
+        "keys",
+        "b",
+        "esc"
+      ],
+      "exit": 0,
+      "stdout_json": {
+        "id": "t2",
+        "bytes": 1
+      },
+      "stderr": ""
+    },
+    {
+      "name": "keys b",
+      "args": [
+        "--pipe",
+        "<RUN>",
+        "keys",
+        "b",
+        "backspace"
+      ],
+      "exit": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "name": "resize b",
+      "args": [
+        "--pipe",
+        "<RUN>",
+        "resize",
+        "b",
+        "100",
+        "30"
+      ],
+      "exit": 0,
+      "stdout": "t2 100x30\n",
+      "stderr": ""
+    },
+    {
+      "name": "resize b json",
+      "args": [
+        "--pipe",
+        "<RUN>",
+        "--json",
+        "resize",
+        "b",
+        "90",
+        "30"
+      ],
+      "exit": 0,
+      "stdout_json": {
+        "id": "t2",
+        "name": "b",
+        "argv": [
+          "ping",
+          "-n",
+          "120",
+          "127.0.0.1"
+        ],
+        "cwd": "<ROOT>\\tmp",
+        "state": "running",
+        "pid": "<N>",
+        "holder_pid": "<N>",
+        "cols": 90,
+        "rows": 30,
+        "created_ms": "<N>",
+        "killed": false,
+        "lost": false,
+        "attached": 0,
+        "conpty": "<CONPTY>",
+        "status": {
+          "state": "unknown",
+          "confidence": 0.0,
+          "since": "<N>",
+          "turn": 0,
+          "badge": "unknown",
+          "records": 0,
+          "running_children": 0,
+          "blocked_children": 0,
+          "hooks_accepted": 0,
+          "hooks_rejected": 0
+        }
+      },
+      "stderr": ""
+    },
+    {
+      "name": "rm b, running",
+      "args": [
+        "--pipe",
+        "<RUN>",
+        "rm",
+        "b"
+      ],
+      "exit": 2,
+      "stdout": "",
+      "stderr": "pod: terminal t2 is running (kill it first or use force)\n"
+    },
+    {
+      "name": "kill b",
+      "args": [
+        "--pipe",
+        "<RUN>",
+        "kill",
+        "b"
+      ],
+      "exit": 0,
+      "stdout": "t2 killed (code 1)\n",
+      "stderr": ""
+    },
+    {
+      "name": "wait b",
+      "args": [
+        "--pipe",
+        "<RUN>",
+        "wait",
+        "b",
+        "--exit",
+        "--timeout",
+        "60"
+      ],
+      "exit": 0,
+      "stdout": "t2 exited (code 1)\n",
+      "stderr": ""
+    },
+    {
+      "name": "rm b json",
+      "args": [
+        "--pipe",
+        "<RUN>",
+        "--json",
+        "rm",
+        "b"
+      ],
+      "exit": 0,
+      "stdout_json": {
+        "id": "t2"
+      },
+      "stderr": ""
+    },
+    {
+      "name": "run c",
+      "args": [
+        "--pipe",
+        "<RUN>",
+        "run",
+        "--name",
+        "c",
+        "--cwd",
+        "<ROOT>\\tmp",
+        "--",
+        "ping",
+        "-n",
+        "120",
+        "127.0.0.1"
+      ],
+      "exit": 0,
+      "stdout": "t3\n",
+      "stderr": ""
+    },
+    {
+      "name": "rm c force",
+      "args": [
+        "--pipe",
+        "<RUN>",
+        "rm",
+        "c",
+        "--force"
+      ],
+      "exit": 0,
+      "stdout": "t3 removed\n",
+      "stderr": ""
+    },
+    {
+      "name": "repo ls, empty",
+      "args": [
+        "--pipe",
+        "<RUN>",
+        "repo",
+        "ls"
+      ],
+      "exit": 0,
+      "stdout": "no repositories (pod repo add <path>)\n",
+      "stderr": ""
+    },
+    {
+      "name": "repo ls json, empty",
+      "args": [
+        "--pipe",
+        "<RUN>",
+        "--json",
+        "repo",
+        "ls"
+      ],
+      "exit": 0,
+      "stdout_json": {
+        "repos": []
+      },
+      "stderr": ""
+    },
+    {
+      "name": "repo add missing",
+      "args": [
+        "--pipe",
+        "<RUN>",
+        "repo",
+        "add",
+        "<ROOT>\\repo-missing"
+      ],
+      "exit": 2,
+      "stdout": "",
+      "stderr": "pod: <ROOT>\\repo-missing is not a directory\n"
+    },
+    {
+      "name": "repo add",
+      "args": [
+        "--pipe",
+        "<RUN>",
+        "repo",
+        "add",
+        "<ROOT>\\repo",
+        "--name",
+        "demo"
+      ],
+      "exit": 0,
+      "stdout": "demo <ROOT>\\repo (default base main)\n",
+      "stderr": ""
+    },
+    {
+      "name": "repo add again",
+      "args": [
+        "--pipe",
+        "<RUN>",
+        "repo",
+        "add",
+        "<ROOT>\\repo"
+      ],
+      "exit": 2,
+      "stdout": "",
+      "stderr": "pod: <ROOT>\\repo is already registered as \"demo\"\n"
+    },
+    {
+      "name": "repo ls",
+      "args": [
+        "--pipe",
+        "<RUN>",
+        "repo",
+        "ls"
+      ],
+      "exit": 0,
+      "stdout": "NAME  TASKS  BASE  PATH\ndemo  0      main  <ROOT>\\repo\n",
+      "stderr": ""
+    },
+    {
+      "name": "repo ls json",
+      "args": [
+        "--pipe",
+        "<RUN>",
+        "--json",
+        "repo",
+        "ls"
+      ],
+      "exit": 0,
+      "stdout_json": {
+        "repos": [
+          {
+            "name": "demo",
+            "path": "<ROOT>\\repo",
+            "added_ms": "<N>",
+            "default_base": "main",
+            "tasks": 0
+          }
+        ]
+      },
+      "stderr": ""
+    },
+    {
+      "name": "task ls, empty",
+      "args": [
+        "--pipe",
+        "<RUN>",
+        "task",
+        "ls"
+      ],
+      "exit": 0,
+      "stdout": "no tasks\n",
+      "stderr": ""
+    },
+    {
+      "name": "task ls json, empty",
+      "args": [
+        "--pipe",
+        "<RUN>",
+        "--json",
+        "task",
+        "ls",
+        "--repo",
+        "demo"
+      ],
+      "exit": 0,
+      "stdout_json": {
+        "tasks": []
+      },
+      "stderr": ""
+    },
+    {
+      "name": "task show unknown",
+      "args": [
+        "--pipe",
+        "<RUN>",
+        "task",
+        "show",
+        "demo/nope"
+      ],
+      "exit": 2,
+      "stdout": "",
+      "stderr": "pod: no task \"demo/nope\"\n"
+    },
+    {
+      "name": "task new unknown repo",
+      "args": [
+        "--pipe",
+        "<RUN>",
+        "task",
+        "new",
+        "nope",
+        "x"
+      ],
+      "exit": 2,
+      "stdout": "",
+      "stderr": "pod: no repository \"nope\" (see repo.list / pod repo add)\n"
+    },
+    {
+      "name": "task new brief and brief-file",
+      "args": [
+        "--pipe",
+        "<RUN>",
+        "task",
+        "new",
+        "demo",
+        "x",
+        "--brief",
+        "a",
+        "--brief-file",
+        "b"
+      ],
+      "exit": 2,
+      "stdout": "",
+      "stderr": "pod: give --brief or --brief-file, not both\n"
+    },
+    {
+      "name": "task new",
+      "args": [
+        "--pipe",
+        "<RUN>",
+        "task",
+        "new",
+        "demo",
+        "t1",
+        "--no-focus",
+        "--",
+        "ping",
+        "-n",
+        "120",
+        "127.0.0.1"
+      ],
+      "exit": 0,
+      "stdout": "demo/t1  t4  pod/t1  <ROOT>\\worktrees\\demo\\t1\n",
+      "stderr": ""
+    },
+    {
+      "name": "task new json",
+      "args": [
+        "--pipe",
+        "<RUN>",
+        "--json",
+        "task",
+        "new",
+        "demo",
+        "t2",
+        "--no-focus",
+        "--base",
+        "main",
+        "--",
+        "ping",
+        "-n",
+        "120",
+        "127.0.0.1"
+      ],
+      "exit": 0,
+      "stdout_json": {
+        "id": "demo/t2",
+        "repo": "demo",
+        "name": "t2",
+        "branch": "pod/t2",
+        "base": "main",
+        "base_commit": "ab0183c3e02432524c4c8fdd09c2dd72ac9c2503",
+        "worktree": "<ROOT>\\worktrees\\demo\\t2",
+        "agent": {
+          "argv": [
+            "ping",
+            "-n",
+            "120",
+            "127.0.0.1"
+          ]
+        },
+        "created_ms": "<N>",
+        "terminals": [
+          {
+            "id": "t5",
+            "info": {
+              "id": "t5",
+              "name": "demo/t2",
+              "argv": [
+                "ping",
+                "-n",
+                "120",
+                "127.0.0.1"
+              ],
+              "cwd": "<ROOT>\\worktrees\\demo\\t2",
+              "state": "running",
+              "pid": "<N>",
+              "holder_pid": "<N>",
+              "cols": 120,
+              "rows": 30,
+              "created_ms": "<N>",
+              "killed": false,
+              "lost": false,
+              "attached": 0,
+              "conpty": "<CONPTY>",
+              "status": {
+                "state": "unknown",
+                "confidence": 0.0,
+                "since": "<N>",
+                "turn": 0,
+                "badge": "unknown",
+                "records": 0,
+                "running_children": 0,
+                "blocked_children": 0,
+                "hooks_accepted": 0,
+                "hooks_rejected": 0
+              }
+            }
+          }
+        ],
+        "worktree_exists": true,
+        "git": {
+          "branch": "pod/t2",
+          "head": "ab0183c3e02432524c4c8fdd09c2dd72ac9c2503",
+          "ahead": 0,
+          "behind": 0,
+          "dirty": 0,
+          "unpushed": 0,
+          "last_commit": {
+            "sha": "ab0183c3e02432524c4c8fdd09c2dd72ac9c2503",
+            "summary": "init",
+            "author": "Pod Test",
+            "time_ms": "<N>"
+          }
+        },
+        "status": {
+          "state": "unknown",
+          "terminal": "t5",
+          "badge": "unknown",
+          "terminals": 1
+        },
+        "lifecycle": "active",
+        "agent_terminal": "t5"
+      },
+      "stderr": ""
+    },
+    {
+      "name": "task diff",
+      "args": [
+        "--pipe",
+        "<RUN>",
+        "task",
+        "diff",
+        "demo/t1"
+      ],
+      "exit": 0,
+      "stdout": "ST  ADDED  DELETED  PATH\n0 file(s), +0 -0 against main (ab0183c3e0)\n",
+      "stderr": ""
+    },
+    {
+      "name": "task diff json",
+      "args": [
+        "--pipe",
+        "<RUN>",
+        "--json",
+        "task",
+        "diff",
+        "demo/t1"
+      ],
+      "exit": 0,
+      "stdout_json": {
+        "task": "demo/t1",
+        "base": "main",
+        "merge_base": "ab0183c3e02432524c4c8fdd09c2dd72ac9c2503",
+        "files": [],
+        "added": 0,
+        "deleted": 0
+      },
+      "stderr": ""
+    },
+    {
+      "name": "task touch",
+      "args": [
+        "--pipe",
+        "<RUN>",
+        "task",
+        "touch",
+        "demo/t1",
+        "README.md"
+      ],
+      "exit": 0,
+      "stdout": "demo/t1: ahead 0 behind 0 dirty 0 unpushed 0\n",
+      "stderr": ""
+    },
+    {
+      "name": "task touch json",
+      "args": [
+        "--pipe",
+        "<RUN>",
+        "--json",
+        "task",
+        "touch",
+        "demo/t1"
+      ],
+      "exit": 0,
+      "stdout_json": {
+        "task": "demo/t1",
+        "git": {
+          "branch": "pod/t1",
+          "head": "ab0183c3e02432524c4c8fdd09c2dd72ac9c2503",
+          "ahead": 0,
+          "behind": 0,
+          "dirty": 0,
+          "unpushed": 0,
+          "last_commit": {
+            "sha": "ab0183c3e02432524c4c8fdd09c2dd72ac9c2503",
+            "summary": "init",
+            "author": "Pod Test",
+            "time_ms": "<N>"
+          }
+        },
+        "git_changed": false
+      },
+      "stderr": ""
+    },
+    {
+      "name": "task ls",
+      "args": [
+        "--pipe",
+        "<RUN>",
+        "task",
+        "ls"
+      ],
+      "exit": 0,
+      "stdout": "TASK     STATUS   TERMINALS   BRANCH  AHEAD  BEHIND  DIRTY  LAST COMMIT\ndemo/t1  unknown  t4:running  pod/t1  0      0       0      ab0183c3e0 init\ndemo/t2  unknown  t5:running  pod/t2  0      0       0      ab0183c3e0 init\n",
+      "stderr": ""
+    },
+    {
+      "name": "task show",
+      "args": [
+        "--pipe",
+        "<RUN>",
+        "task",
+        "show",
+        "demo/t1"
+      ],
+      "exit": 0,
+      "stdout": "task       demo/t1\nagent      ping -n 120 127.0.0.1\nbranch     pod/t1\nbase       main (created from ab0183c3e0)\nworktree   <ROOT>\\worktrees\\demo\\t1\nterminals  t4:running\nstatus     unknown\nstatus     0 ahead, 0 behind, 0 dirty, 0 unpushed\nlast       ab0183c3e0 init (Pod Test)\n",
+      "stderr": ""
+    },
+    {
+      "name": "task show json",
+      "args": [
+        "--pipe",
+        "<RUN>",
+        "--json",
+        "task",
+        "show",
+        "demo/t1"
+      ],
+      "exit": 0,
+      "stdout_json": {
+        "id": "demo/t1",
+        "repo": "demo",
+        "name": "t1",
+        "branch": "pod/t1",
+        "base": "main",
+        "base_commit": "ab0183c3e02432524c4c8fdd09c2dd72ac9c2503",
+        "worktree": "<ROOT>\\worktrees\\demo\\t1",
+        "agent": {
+          "argv": [
+            "ping",
+            "-n",
+            "120",
+            "127.0.0.1"
+          ]
+        },
+        "created_ms": "<N>",
+        "terminals": [
+          {
+            "id": "t4",
+            "info": {
+              "id": "t4",
+              "name": "demo/t1",
+              "argv": [
+                "ping",
+                "-n",
+                "120",
+                "127.0.0.1"
+              ],
+              "cwd": "<ROOT>\\worktrees\\demo\\t1",
+              "state": "running",
+              "pid": "<N>",
+              "holder_pid": "<N>",
+              "cols": 120,
+              "rows": 30,
+              "created_ms": "<N>",
+              "killed": false,
+              "lost": false,
+              "attached": 0,
+              "conpty": "<CONPTY>",
+              "status": {
+                "state": "unknown",
+                "confidence": 0.0,
+                "since": "<N>",
+                "turn": 0,
+                "badge": "unknown",
+                "records": 0,
+                "running_children": 0,
+                "blocked_children": 0,
+                "hooks_accepted": 0,
+                "hooks_rejected": 0
+              }
+            }
+          }
+        ],
+        "worktree_exists": true,
+        "git": {
+          "branch": "pod/t1",
+          "head": "ab0183c3e02432524c4c8fdd09c2dd72ac9c2503",
+          "ahead": 0,
+          "behind": 0,
+          "dirty": 0,
+          "unpushed": 0,
+          "last_commit": {
+            "sha": "ab0183c3e02432524c4c8fdd09c2dd72ac9c2503",
+            "summary": "init",
+            "author": "Pod Test",
+            "time_ms": "<N>"
+          }
+        },
+        "status": {
+          "state": "unknown",
+          "terminal": "t4",
+          "badge": "unknown",
+          "terminals": 1
+        },
+        "lifecycle": "active",
+        "agent_terminal": "t4"
+      },
+      "stderr": ""
+    },
+    {
+      "name": "repo rm, has tasks",
+      "args": [
+        "--pipe",
+        "<RUN>",
+        "repo",
+        "rm",
+        "demo"
+      ],
+      "exit": 2,
+      "stdout": "",
+      "stderr": "pod: repository \"demo\" still has 2 task(s); remove them first\n"
+    },
+    {
+      "name": "task rm",
+      "args": [
+        "--pipe",
+        "<RUN>",
+        "task",
+        "rm",
+        "demo/t1",
+        "--force",
+        "--delete-branch"
+      ],
+      "exit": 0,
+      "stdout": "demo/t1 removed (terminals: t4; worktree removed; branch deleted)\n",
+      "stderr": ""
+    },
+    {
+      "name": "task rm json",
+      "args": [
+        "--pipe",
+        "<RUN>",
+        "--json",
+        "task",
+        "rm",
+        "demo/t2",
+        "--force"
+      ],
+      "exit": 0,
+      "stdout_json": {
+        "id": "demo/t2",
+        "terminals": [
+          "t5"
+        ],
+        "worktree_removed": true,
+        "branch_deleted": false
+      },
+      "stderr": ""
+    },
+    {
+      "name": "task rm unknown",
+      "args": [
+        "--pipe",
+        "<RUN>",
+        "task",
+        "rm",
+        "demo/t1"
+      ],
+      "exit": 2,
+      "stdout": "",
+      "stderr": "pod: no task \"demo/t1\"\n"
+    },
+    {
+      "name": "repo rm",
+      "args": [
+        "--pipe",
+        "<RUN>",
+        "repo",
+        "rm",
+        "demo"
+      ],
+      "exit": 0,
+      "stdout": "demo unregistered\n",
+      "stderr": ""
+    },
+    {
+      "name": "repo rm json, unknown",
+      "args": [
+        "--pipe",
+        "<RUN>",
+        "--json",
+        "repo",
+        "rm",
+        "demo"
+      ],
+      "exit": 2,
+      "stdout": "",
+      "stderr": "pod: no repository \"demo\" (see repo.list / pod repo add)\n"
+    },
+    {
+      "name": "server stop json",
+      "args": [
+        "--pipe",
+        "<RUN>",
+        "--json",
+        "server",
+        "stop"
+      ],
+      "exit": 0,
+      "stdout_json": {
+        "stopping": true,
+        "killed": 0,
+        "detached": 0,
+        "stopped": true,
+        "pid": "<N>"
+      },
+      "stderr": ""
+    },
+    {
+      "name": "ls, restarted",
+      "args": [
+        "--pipe",
+        "<RUN>",
+        "ls",
+        "--all"
+      ],
+      "exit": 0,
+      "stdout": "no terminals\n",
+      "stderr": ""
+    },
+    {
+      "name": "server stop kill",
+      "args": [
+        "--pipe",
+        "<RUN>",
+        "server",
+        "stop",
+        "--kill"
+      ],
+      "exit": 0,
+      "stdout": "podd stopped (killed 0 running terminal(s))\n",
+      "stderr": ""
+    },
+    {
+      "name": "server status, stopped",
+      "args": [
+        "--pipe",
+        "<RUN>",
+        "server",
+        "status"
+      ],
+      "exit": 3,
+      "stdout": "podd is not running (<PIPE>)\n",
+      "stderr": ""
+    }
+  ]
+}

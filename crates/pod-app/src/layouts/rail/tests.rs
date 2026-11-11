@@ -4,9 +4,10 @@
 use core::prelude::v1::test;
 use std::collections::HashSet;
 
-use super::{
-    Drawer, RailState, Shape, attention, default_shape, fit_tabs, plan, step, tab_tasks, tab_width,
-    task_rows, text_width,
+use super::RailState;
+use super::model::{
+    Drawer, Shape, attention, default_shape, fit_tabs, plan, step, tab_tasks, tab_width, task_rows,
+    text_width,
 };
 use crate::native_qa::Harness;
 use crate::source::TestBackend;
@@ -197,6 +198,185 @@ fn tabs_are_open_recent_and_current_tasks_in_task_order() {
         ids(tab_tasks(&rows, &["r/a".into()], Some("r/d"))),
         ["r/a", "r/b", "r/d"]
     );
+}
+
+#[test]
+fn badges_marks_and_attention_targets_follow_what_waits() {
+    use super::model::{AttentionTarget, Badge, RowMark};
+    let mut rows = fixture_rows();
+    // a: a blocked agent; b: only a failure; d: nothing waits.
+    assert_eq!(rows[0].badge(), Some(Badge::Waiting(1)));
+    assert_eq!(rows[1].badge(), Some(Badge::Failed(1)));
+    assert_eq!(rows[3].badge(), None);
+    assert_eq!(rows[0].mark(false), RowMark::Waiting);
+    assert_eq!(
+        rows[1].mark(true),
+        RowMark::Failed,
+        "a failure outranks current"
+    );
+    assert_eq!(rows[3].mark(true), RowMark::Current);
+    assert_eq!(rows[3].mark(false), RowMark::Idle);
+    assert_eq!(
+        rows[0].attention_target(),
+        AttentionTarget::Terminal("a2".into())
+    );
+    assert_eq!(rows[3].attention_target(), AttentionTarget::Nothing);
+    // Gates without a waiting terminal open the inbox; a request outranks a failure.
+    rows[1].gates = 2;
+    rows[1].first_attention = None;
+    assert_eq!(rows[1].attention_target(), AttentionTarget::Gates);
+    assert_eq!(rows[1].badge(), Some(Badge::Waiting(2)));
+    assert_eq!(rows[1].mark(false), RowMark::Waiting);
+    assert_eq!(rows[1].attention_label(), "승인 요청 2 · 실패 1");
+}
+
+#[test]
+fn panels_belong_to_their_task_and_the_rest_is_global() {
+    use super::model::{Owner, panel_owner, task_panels};
+    let tasks = vec![TestBackend::task("r/a", "가", "r", &["a1"])];
+    let terminals = vec![
+        TestBackend::terminal("a1", "A1", Some("r/a"), "idle"),
+        TestBackend::terminal("x1", "X1", Some("r/x"), "idle"),
+    ];
+    let task = |t: &str| Owner::Task(t.into());
+    let term = crate::panel::PANEL_NAME;
+    assert_eq!(
+        panel_owner(term, Some("a1"), None, &tasks, &terminals),
+        task("r/a")
+    );
+    // Not listed by a task: the terminal's own task; unknown: global.
+    assert_eq!(
+        panel_owner(term, Some("x1"), None, &tasks, &terminals),
+        task("r/x")
+    );
+    assert_eq!(
+        panel_owner(term, Some("zz"), None, &tasks, &terminals),
+        Owner::Global
+    );
+    // Editor and review panels by their saved task; other panels are global.
+    let editor = crate::editor_panel::EDITOR_PANEL_NAME;
+    let review = crate::review::REVIEW_PANEL_NAME;
+    assert_eq!(
+        panel_owner(editor, None, Some("r/a"), &tasks, &terminals),
+        task("r/a")
+    );
+    assert_eq!(
+        panel_owner(review, None, Some("r/b"), &tasks, &terminals),
+        task("r/b")
+    );
+    assert_eq!(
+        panel_owner("pod-settings", None, Some("r/a"), &tasks, &terminals),
+        Owner::Global
+    );
+    assert_eq!(
+        panel_owner(editor, None, None, &tasks, &terminals),
+        Owner::Global
+    );
+    // The current task's terminals first, then its other panels, then the global ones.
+    let (a, b, g) = (task("r/a"), task("r/b"), Owner::Global);
+    let panels = [
+        (1, &g, false),
+        (2, &a, true),
+        (3, &b, true),
+        (4, &a, false),
+        (5, &a, true),
+        (6, &g, false),
+    ];
+    assert_eq!(
+        task_panels(panels.iter().copied(), Some("r/a")),
+        (vec![2, 5], vec![4, 1, 6])
+    );
+    assert_eq!(
+        task_panels(panels.iter().copied(), None),
+        (vec![], vec![1, 6])
+    );
+    assert_eq!(
+        task_panels(panels.iter().copied(), Some("r/z")),
+        (vec![], vec![1, 6])
+    );
+}
+
+#[test]
+fn current_task_is_kept_else_focused_open_or_first() {
+    use super::model::keep_or_pick;
+    let rows = fixture_rows();
+    let never = || -> Option<String> { panic!("not asked while the current task exists") };
+    assert_eq!(
+        keep_or_pick(Some("r/c".into()), &rows, never).as_deref(),
+        Some("r/c")
+    );
+    assert_eq!(
+        keep_or_pick(Some("r/gone".into()), &rows, || Some("r/d".into())).as_deref(),
+        Some("r/d")
+    );
+    // The focused task is unknown: the first task with panels (b), else the first.
+    assert_eq!(
+        keep_or_pick(None, &rows, || Some("r/zz".into())).as_deref(),
+        Some("r/b")
+    );
+    assert_eq!(
+        keep_or_pick(None, &rows[2..], || None).as_deref(),
+        Some("r/c")
+    );
+    assert_eq!(keep_or_pick(None, &[], || Some("r/a".into())), None);
+}
+
+#[test]
+fn recent_tasks_are_newest_first_without_duplicates_and_capped() {
+    use super::model::{RECENT_MAX, push_recent};
+    let mut recent = Vec::new();
+    for t in ["a", "b", "a"] {
+        push_recent(&mut recent, t.to_string());
+    }
+    assert_eq!(recent, ["a", "b"]);
+    for n in 0..20 {
+        push_recent(&mut recent, format!("t{n}"));
+    }
+    assert_eq!(recent.len(), RECENT_MAX);
+    assert_eq!(recent[0], "t19");
+}
+
+#[test]
+fn drawer_cursor_and_keys_step_within_the_list() {
+    use super::model::{KeyStep, drawer_cursor, key_step};
+    let rows = fixture_rows();
+    assert_eq!(drawer_cursor(Drawer::Tasks, &rows, Some("r/c")), 2);
+    assert_eq!(drawer_cursor(Drawer::Tasks, &rows, Some("r/zz")), 0);
+    assert_eq!(drawer_cursor(Drawer::Attention, &rows, Some("r/c")), 0);
+    let strip = |k: &str, at: usize| key_step(k, at, 3, "left", "right");
+    assert_eq!(strip("left", 0), Some(KeyStep::To(0)));
+    assert_eq!(strip("right", 1), Some(KeyStep::To(2)));
+    assert_eq!(strip("right", 2), Some(KeyStep::To(2)), "stops at the end");
+    assert_eq!(strip("home", 2), Some(KeyStep::To(0)));
+    assert_eq!(strip("end", 0), Some(KeyStep::To(2)));
+    assert_eq!(strip("enter", 1), Some(KeyStep::Activate));
+    assert_eq!(strip("space", 1), Some(KeyStep::Activate));
+    assert_eq!(strip("down", 1), None, "the strip ignores the list keys");
+    let list = |k: &str, at: usize| key_step(k, at, 3, "up", "down");
+    assert_eq!(list("down", 0), Some(KeyStep::To(1)));
+    assert_eq!(list("up", 0), Some(KeyStep::To(0)));
+    assert_eq!(list("left", 1), None);
+    assert_eq!(
+        key_step("end", 0, 0, "up", "down"),
+        Some(KeyStep::To(0)),
+        "empty list"
+    );
+}
+
+#[test]
+fn strip_room_leaves_the_rail_gaps_buttons_and_switcher() {
+    use super::model::strip_room;
+    let switcher = text_width(super::copy::SWITCHER, 13.) + 48.;
+    let close = |a: f32, b: f32| (a - b).abs() < 1e-3;
+    assert!(close(
+        strip_room(1000., 0., 13.),
+        1000. - 44. - 36. - 56. - switcher - 16.
+    ));
+    assert!(close(
+        strip_room(1000., 8., 13.),
+        strip_room(1000., 0., 13.) - 24.
+    ));
+    assert!(strip_room(100., 0., 13.) < 0., "the caller clamps");
 }
 
 // ---- headless GPUI flows ---------------------------------------------------------

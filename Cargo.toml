@@ -1,10 +1,10 @@
 [workspace]
 resolver = "3"
-members = ["crates/pod-spike", "crates/podd", "crates/pod-cli", "crates/pod-status", "crates/pod-hook", "crates/pod-terminal-view", "crates/pod-app", "crates/diff-spike", "crates/pod-ui", "crates/pod-diff", "crates/pod-editor", "crates/pod-forge", "crates/pod-mods", "crates/pod-remote", "crates/pod-discover", "crates/pod-orch", "crates/pod-process", "crates/pod-storage", "crates/pod-test-support", "crates/pod-protocol"]
+members = ["crates/pod-spike", "crates/podd", "crates/pod-cli", "crates/pod-status", "crates/pod-hook", "crates/pod-terminal-view", "crates/pod-app", "crates/diff-spike", "crates/pod-ui", "crates/pod-diff", "crates/pod-editor", "crates/pod-forge", "crates/pod-mods", "crates/pod-remote", "crates/pod-discover", "crates/pod-orch", "crates/pod-process", "crates/pod-storage", "crates/pod-test-support", "crates/pod-protocol", "crates/pod-client"]
 # The UI/diff spikes (docs/02, docs/05) stay buildable with `-p pod-spike` /
 # `-p diff-spike` but are left out of plain `cargo build/test/clippy` (and CI):
 # nothing ships them and they only add build time (quality-14).
-default-members = ["crates/podd", "crates/pod-cli", "crates/pod-status", "crates/pod-hook", "crates/pod-terminal-view", "crates/pod-app", "crates/pod-ui", "crates/pod-diff", "crates/pod-editor", "crates/pod-forge", "crates/pod-mods", "crates/pod-remote", "crates/pod-discover", "crates/pod-orch", "crates/pod-process", "crates/pod-storage", "crates/pod-test-support", "crates/pod-protocol"]
+default-members = ["crates/podd", "crates/pod-cli", "crates/pod-status", "crates/pod-hook", "crates/pod-terminal-view", "crates/pod-app", "crates/pod-ui", "crates/pod-diff", "crates/pod-editor", "crates/pod-forge", "crates/pod-mods", "crates/pod-remote", "crates/pod-discover", "crates/pod-orch", "crates/pod-process", "crates/pod-storage", "crates/pod-test-support", "crates/pod-protocol", "crates/pod-client"]
 
 [patch.crates-io]
 # Apache-2.0 toolkit; accessibility fixes are recorded in vendor/gpui-component/POD-PATCHES.md.

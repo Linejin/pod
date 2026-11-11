@@ -12,6 +12,7 @@ use std::path::PathBuf;
 use std::process::{Child, Command, Stdio};
 use std::time::{Duration, Instant};
 
+use pod_test_support::wait;
 use podd::client::{Client, ClientError};
 use podd::protocol::*;
 
@@ -112,14 +113,13 @@ impl Daemon {
             pipe,
             state_dir,
         };
-        let deadline = Instant::now() + Duration::from_secs(10);
-        while Instant::now() < deadline {
-            if Client::connect(&d.pipe).is_ok() {
-                return d;
-            }
-            std::thread::sleep(Duration::from_millis(20));
+        // Ready once a client connects; a failure names the last connect error.
+        if let Err(e) = wait::until(Duration::from_secs(10), Duration::from_millis(20), || {
+            Client::connect(&d.pipe).map(drop)
+        }) {
+            panic!("podd did not start listening on {}: {e}", d.pipe);
         }
-        panic!("podd did not start listening on {}", d.pipe);
+        d
     }
 
     pub fn client(&self) -> Client {

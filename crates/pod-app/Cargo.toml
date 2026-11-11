@@ -25,7 +25,8 @@ pod-status = { path = "../pod-status" }
 # P3 editing: file tree, quick open, editor tabs and LSP per task worktree.
 pod-editor = { path = "../pod-editor" }
 # Client side only: protocol types + blocking client with daemon auto-start.
-podd = { path = "../podd", default-features = false }
+# pod-client under the old name, so `podd::client` still reads (card D-T1).
+podd = { package = "pod-client", path = "../pod-client" }
 # P6 PR section fixtures (the fake forge; the app never runs gh itself).
 pod-forge = { path = "../pod-forge" }
 anyhow = "1"

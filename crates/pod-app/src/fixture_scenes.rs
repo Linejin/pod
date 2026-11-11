@@ -45,6 +45,8 @@ pub fn no_lsp() -> bool {
 
 /// Runs before the fixture source starts.
 pub fn prepare(scene: Option<&str>) {
+    // The dense layout's log prints wall-clock times: one fixed "now" in every fixture run.
+    crate::layouts::dense::freeze_fixture_clock();
     if let Some(s) = scene.filter(|s| crate::pr_panel::SCENES.contains(s)) {
         crate::pr_panel::set_fixture_scene(s);
     }

@@ -42,9 +42,9 @@ pub fn tokens() -> pod_ui::Tokens {
     pod_ui::Tokens::for_mode(mode())
 }
 
-/// Color from a design token.
+/// Color from a design token: the layout kit's [`color`](crate::layouts::kit::color).
 pub fn tc(hex: u32) -> Hsla {
-    pod_ui::tokens::color(hex)
+    crate::layouts::kit::color(hex)
 }
 
 /// Orchestration state owned by the workspace.
@@ -529,11 +529,9 @@ pub fn gate_state_label(s: GateState) -> &'static str {
     }
 }
 
+/// Now in epoch milliseconds: the layout kit's system [`Clock`](crate::layouts::kit::Clock).
 pub fn now_ms() -> u64 {
-    std::time::SystemTime::now()
-        .duration_since(std::time::UNIX_EPOCH)
-        .map(|d| d.as_millis() as u64)
-        .unwrap_or(0)
+    crate::layouts::kit::Clock::System.now_ms()
 }
 
 /// Status bar item: pending gate count, opens the inbox.

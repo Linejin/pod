@@ -52,7 +52,7 @@ These are functional observations under normal machine load, not performance ben
 
 Repro: create a Codex task; add a review comment; Send to agent while idle. Also queue another comment while a real turn runs. Expected: one new agent turn per delivery. Actual: d1/d2 mark comments sent and report delivered, but the entire multiline message stays in the input composer and hook status stays idle/done. An extra Enter submits it; both requested edits then succeed. Ordinary long `pod send` with its default Enter also left text unsubmitted once; subsequent test messages used `--no-enter` followed by delayed `pod keys … enter` as a documented workaround.
 
-Suspected: `crates/podd/src/server/review.rs:35` (`ENTER_DELAY_MS=250`), `paste_bytes`/delivery input around line 279, and `terminal.send` timing in `crates/podd/src/server/mod.rs`. The exact Codex/ConPTY timing cause was not isolated. Evidence: 15–17, review-final.json, cli.log. Marking transport delivery is not proof that an agent accepted the turn.
+Suspected: `crates/podd/src/server/review.rs:35` (`ENTER_DELAY_MS=250`), `paste_bytes`/delivery input around line 279, and `terminal.send` timing in `crates/podd/src/server/mod.rs` (now `server/terminal_ops.rs`). The exact Codex/ConPTY timing cause was not isolated. Evidence: 15–17, review-final.json, cli.log. Marking transport delivery is not proof that an agent accepted the turn.
 
 ### B2 — High: permission block persists after approval while command executes — **FIXED** (e2e-fix1)
 

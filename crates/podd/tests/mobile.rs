@@ -12,6 +12,8 @@ use std::process::{Command, Stdio};
 use std::time::Duration;
 
 use common::*;
+use pod_test_support::git::git_ok;
+use pod_test_support::wait;
 use podd::client::{Client, ClientError};
 use podd::protocol::*;
 use serde_json::{Value, json};
@@ -55,18 +57,18 @@ impl TempRepo {
         let root = std::env::temp_dir().join(unique("mobile-repo"));
         let path = root.join("pod repo");
         std::fs::create_dir_all(&path).unwrap();
-        git(&path, &["init", "-q", "-b", "main"]);
+        git_ok(&path, &["init", "-q", "-b", "main"]);
         for (k, v) in [
             ("user.name", "Pod Test"),
             ("user.email", "pod-test@example.invalid"),
             ("commit.gpgsign", "false"),
             ("core.autocrlf", "false"),
         ] {
-            git(&path, &["config", k, v]);
+            git_ok(&path, &["config", k, v]);
         }
         std::fs::write(path.join("README.md"), "hello\n").unwrap();
-        git(&path, &["add", "-A"]);
-        git(&path, &["commit", "-q", "-m", "init"]);
+        git_ok(&path, &["add", "-A"]);
+        git_ok(&path, &["commit", "-q", "-m", "init"]);
         Self { root, path }
     }
 }
@@ -75,16 +77,6 @@ impl Drop for TempRepo {
     fn drop(&mut self) {
         let _ = std::fs::remove_dir_all(&self.root);
     }
-}
-
-fn git(dir: &Path, args: &[&str]) {
-    let out = Command::new("git")
-        .arg("-C")
-        .arg(dir)
-        .args(args)
-        .output()
-        .expect("run git");
-    assert!(out.status.success(), "git {args:?}");
 }
 
 fn setup(c: &mut Client, repo: &TempRepo) {
@@ -283,7 +275,13 @@ fn mobile_messages_use_the_review_delivery_path() {
     assert_eq!(again["replayed"], true);
     let conflict = message(&mut c, &s1, "demo/idle", "something else", "op-1");
     assert_eq!(code(conflict), mobile_codes::OPERATION_CONFLICT);
-    std::thread::sleep(Duration::from_millis(1500));
+    wait::stays(Duration::from_millis(1500), POLL, || {
+        match log_text(&idle_log).matches(HEADER).count() {
+            n if n > 1 => Err(n),
+            _ => Ok(()),
+        }
+    })
+    .unwrap_or_else(|b| panic!("typed exactly once: {b}"));
     assert_eq!(
         log_text(&idle_log).matches(HEADER).count(),
         1,
@@ -307,8 +305,15 @@ fn mobile_messages_use_the_review_delivery_path() {
     )
     .unwrap();
     assert_eq!(r["state"], "queued", "{r}");
-    std::thread::sleep(Duration::from_millis(1000));
-    assert!(!log_text(&busy_log).contains("summarize"));
+    wait::stays(Duration::from_millis(1000), POLL, || {
+        let l = log_text(&busy_log);
+        if l.contains("summarize") {
+            Err(l)
+        } else {
+            Ok(())
+        }
+    })
+    .unwrap_or_else(|b| panic!("queued, not typed while working: {b}"));
     std::fs::write(&signal, b"go").unwrap();
     until("queued message delivered", 30, || {
         log_text(&busy_log)

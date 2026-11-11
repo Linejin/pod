@@ -26,8 +26,8 @@ podd ──attach──▶ TerminalView::feed(&[u8]) ──▶ VtEngine(alacritt
 | `sink.rs` | `InputSink` 트레잇, `TermSize`, `NullSink`, `FnSink` |
 | `vt/mod.rs` | `VtEngine` 트레잇 + 엔진 중립 데이터(`Snapshot`, `CellSnap`, `Modes`, `RowText`, `VtEvent`) |
 | `vt/alacritty.rs` | `AlacrittyVt`: alacritty_terminal 0.26의 `Term` + `vte::ansi::Processor` (PTY 없음) |
-| `view.rs` | `TerminalView` 엔티티: 키·마우스·IME(`EntityInputHandler`)·선택·클립보드·스크롤 |
-| `element.rs` | `TerminalElement`: 그리드 렌더러(스파이크 방식) + 선택 강조, 커서 모양, IME 프리에딧, 스크롤바, 마우스 리스너 |
+| `view.rs` + `view/{input,ime,links}.rs` | `TerminalView` 엔티티: 상태·입출력·선택·클립보드·스크롤·Render / 키·마우스 / IME(`EntityInputHandler`) / 화면 링크 |
+| `element.rs` + `element/{text,cursor,preedit}.rs` | `TerminalElement`: 그리드 그리기·선택 강조·스크롤바·마우스 리스너 / 글자 분할·모양·넓은 글자 맞춤 / 커서 / IME 프리에딧 |
 | `boxdraw.rs` | U+2500–259F 직접 그리기 + **대각선 ╱╲╳ (U+2571–2573) 추가** |
 | `keys.rs` / `mouse.rs` / `selection.rs` | 순수 함수 인코더·선택 모델 (GPUI 무관, 단위 테스트) |
 | `palette.rs`, `perf.rs` | 기본 색, 페인트 시간 훅(pod-spike 통계용) |

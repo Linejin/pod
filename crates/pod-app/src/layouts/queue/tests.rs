@@ -7,9 +7,11 @@ use super::*;
 use core::prelude::v1::test;
 use serde_json::json;
 
+use super::model::{COMPACT_ROWS, Counts, NeedKind};
 use crate::native_qa::Harness;
 use crate::source::{SourceEvent, TestBackend};
 use crate::theme::Settings;
+use crate::vm::{Liveness, TaskVm};
 
 fn term(id: &str, task: Option<&str>, state: &str) -> TerminalVm {
     TestBackend::terminal(id, &format!("작업자 {id}"), task, state)
@@ -227,6 +229,151 @@ fn ages_variants_and_presets() {
     let r = crate::layout_mode::LayoutRegistry::new();
     assert!(r.available(LayoutMode::Queue));
     assert_eq!(r.resolve("queue").mode(), LayoutMode::Queue);
+}
+
+#[test]
+fn selection_follows_the_item_that_took_the_decided_ones_place() {
+    use super::model::follow_selection;
+    let keys = |v: &[&str]| v.iter().map(|k| (k.to_string(), None)).collect::<Vec<_>>();
+    let (mut sel, mut ix) = (Some("b".to_string()), 0);
+    follow_selection(&mut sel, &mut ix, &keys(&["a", "b", "c"]));
+    assert_eq!(
+        (sel.as_deref(), ix),
+        (Some("b"), 1),
+        "listed: its index is kept"
+    );
+    follow_selection(&mut sel, &mut ix, &keys(&["a", "c"]));
+    assert_eq!(
+        (sel.as_deref(), ix),
+        (Some("c"), 1),
+        "gone: the item now at its index"
+    );
+    follow_selection(&mut sel, &mut ix, &keys(&["a"]));
+    assert_eq!(sel.as_deref(), Some("a"), "past the end: the last item");
+    follow_selection(&mut sel, &mut ix, &keys(&[]));
+    assert_eq!(sel, None, "nothing left");
+    let (mut none, mut ix): (Option<String>, usize) = (None, 3);
+    follow_selection(&mut none, &mut ix, &keys(&["a"]));
+    assert_eq!((none, ix), (None, 3), "nothing selected stays nothing");
+}
+
+#[test]
+fn list_keys_walk_the_items_and_enter_opens_the_selection() {
+    use super::model::{ListKey, list_key};
+    assert_eq!(list_key("down", None, 3), Some(ListKey::Select(0)));
+    assert_eq!(list_key("down", Some(1), 3), Some(ListKey::Select(2)));
+    assert_eq!(
+        list_key("down", Some(2), 3),
+        Some(ListKey::Select(2)),
+        "stops at the end"
+    );
+    assert_eq!(list_key("up", Some(0), 3), Some(ListKey::Select(0)));
+    assert_eq!(list_key("up", None, 3), Some(ListKey::Select(0)));
+    assert_eq!(list_key("home", Some(2), 3), Some(ListKey::Select(0)));
+    assert_eq!(list_key("end", None, 3), Some(ListKey::Select(2)));
+    assert_eq!(list_key("enter", Some(1), 3), Some(ListKey::Open(Some(1))));
+    assert_eq!(list_key("space", None, 3), Some(ListKey::Open(None)));
+    assert_eq!(list_key("tab", Some(1), 3), None, "Tab leaves the list");
+}
+
+#[test]
+fn gate_buttons_carry_the_choice_and_name_their_card() {
+    use super::model::{button_state, gate_buttons};
+    use pod_ui::{ControlState, Tone};
+    let plain = gate_buttons("g1", &[]);
+    let parts: Vec<_> = plain
+        .iter()
+        .map(|b| {
+            (
+                b.id.as_str(),
+                b.label.as_str(),
+                b.decision,
+                b.choice.clone(),
+            )
+        })
+        .collect();
+    assert_eq!(
+        parts,
+        [
+            (
+                "queue-allow-g1",
+                copy::ALLOW_ONCE,
+                GateDecision::Approve,
+                None
+            ),
+            ("queue-reject-g1", copy::REJECT, GateDecision::Reject, None),
+        ]
+    );
+    assert_eq!(
+        plain[0].accessible_name("로그인 수정"),
+        "이번만 허용: 로그인 수정"
+    );
+    assert_eq!(
+        (plain[0].tone(), plain[1].tone()),
+        (Tone::Success, Tone::Danger)
+    );
+    // A gate with options (v17): one approval per option, then 거부.
+    let options = gate_buttons("g3", &["main에 병합".into(), "PR만 열기".into()]);
+    assert_eq!(options.len(), 3);
+    assert_eq!(options[1].id, "queue-allow-g3-1");
+    assert_eq!(options[1].choice.as_deref(), Some("PR만 열기"));
+    assert_eq!(options[1].accessible_name("리뷰"), "선택: PR만 열기: 리뷰");
+    assert_eq!(options[2].decision, GateDecision::Reject);
+    assert_eq!(options[2].choice, None);
+    // One decision in flight: it loads, the others wait.
+    let (approve, reject) = (GateDecision::Approve, GateDecision::Reject);
+    assert_eq!(button_state(None, approve), ControlState::Ready);
+    assert_eq!(button_state(Some(approve), approve), ControlState::Loading);
+    assert_eq!(button_state(Some(approve), reject), ControlState::Disabled);
+}
+
+#[test]
+fn cards_and_rows_name_their_kind_agent_and_actions() {
+    use super::model::Need;
+    let question = Need {
+        key: "term:b2".into(),
+        kind: NeedKind::Question,
+        gate: None,
+        options: Vec::new(),
+        terminal: Some("b2".into()),
+        title: "리뷰 코멘트 정리".into(),
+        meta: "리뷰 봇 · 질문".into(),
+        detail: String::new(),
+        since: 0,
+        agent: None,
+    };
+    assert_eq!(
+        question.accessible_name(),
+        "리뷰 코멘트 정리, 질문, 리뷰 봇 · 질문"
+    );
+    assert!(!question.shows_actions(false), "buttons only when selected");
+    assert!(question.shows_actions(true));
+    let gated = Need {
+        gate: Some("g1".into()),
+        ..question.clone()
+    };
+    assert!(
+        gated.shows_actions(false),
+        "a gate card always has its buttons"
+    );
+    assert_eq!(NeedKind::Question.open_label(), copy::ANSWER);
+    assert_eq!(NeedKind::Approval.open_label(), copy::OPEN);
+    assert_eq!(NeedKind::Failed.open_label(), copy::OPEN);
+    // Rows: label, agent, section, task.
+    let (terminals, tasks) = fixture();
+    let m = build(&terminals, &tasks, &[], &label, "", &HashSet::new());
+    let r = m.working.first().expect("a working row");
+    assert_eq!(
+        r.accessible_name(false),
+        format!(
+            "{}, {}, {}, {}",
+            r.label,
+            r.agent.accessible_name(),
+            copy::WORKING,
+            r.task
+        )
+    );
+    assert!(r.accessible_name(true).contains(copy::DONE));
 }
 
 // ───────────────────────────── live layout ─────────────────────────────

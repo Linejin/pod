@@ -1,0 +1,442 @@
+{
+  "schema": 1,
+  "card": "A-F0",
+  "design": "docs/20-refactor/app.md §3 공통 완료 기준 (B/J/V)",
+  "summary": "UI 리팩터링(A-*) 카드가 비교할 '이전' 기준: 기준 커밋, 실행 환경, 테스트 목록, 캡처 장면, 산출물 경로와 해시. 산출물은 저장소 밖에 두고 tools/visual/baseline·crates/pod-app/qa의 추적 파일은 바꾸지 않는다. A-F0(64e9530)이 처음 동결했고 A-F0b가 현재 master 위에서 다시 동결했다.",
+  "base": {
+    "revision": "12e3c760a715aed1a3a5193a84c5dabf3cf0994b",
+    "master": "da3d11ad62e6693f09fd05ac7f00901297e25382",
+    "design_revision": "8b835ff3930c5bf08ff1e70596ae02b82614246a",
+    "what": "master da3d11a(astra-ui·A-F2·fix-shortpath·8.3 경로·D-F3 포함) + A-F0b: fixture 결정성(dense 고정 시계, editor fixture commit 날짜)과 capture 도구(레이아웃별 UIA 필수 노드, 창 배치). fixture 밖 동작은 master와 같다.",
+    "previous": {
+      "revision": "64e95306aaa6f5af1c29eeb7dfea98b7c2334af0",
+      "dir": "C:/ai/pod-target/refactor/a-f0/before-64e9530",
+      "vs_now": "56장 중 52장 바이트 동일, review 2장은 허용 오차 안(0px), dense 2장은 출력 로그·상태 기록의 시각 숫자만(3,185/3,231px, 고정 시계). astra-ui 등 그 사이 병합은 이 56장에서 허용 오차를 넘는 차이를 만들지 않았다."
+    },
+    "refreeze": "화면을 일부러 바꾸는 작업이 병합되면 코디네이터가 같은 명령으로 그 병합 커밋에서 B·V를 다시 동결하고(새 before-<sha> 디렉터리), 이후 카드는 그 기준과 비교한다. 두 기준 사이의 차이는 그 작업의 의도된 변경이며 리팩터링 카드가 승인하지 않는다. 다시 동결한 기준은 바로 두 번 다시 찍어 56/56 동일을 확인한다."
+  },
+  "environment": {
+    "os": "Windows 11 Home 10.0.26200",
+    "rustc": "1.99.1 (58cf8f9c3 2026-10-13)",
+    "cargo_prep": [
+      "Remove-Item Env:CARGO_TARGET_DIR -ErrorAction SilentlyContinue",
+      "$env:RUSTC_WRAPPER = '<sccache.exe>'",
+      "$env:CARGO_BUILD_JOBS = '2'",
+      "& C:\\ai\\ide\\tools\\cpu-gate.ps1 -MaxPct 70 -MaxCargo 1",
+      "free physical memory >= 8 GB"
+    ],
+    "binary": {
+      "build": "cargo build --release -p pod-app (worktree's own target/, vendor/conpty copied in) at base.revision",
+      "before_sha256": "f02d51c041aeac2baa01321d19221868ac26621bb105e0d180b1ba20e716c4fd",
+      "before_copy": "C:/ai/pod-target/refactor/a-f0/before-12e3c76/pod-app.exe"
+    },
+    "display": {
+      "monitor": "secondary (보조 모니터)",
+      "dpi": 144,
+      "window_physical": [
+        1440,
+        960
+      ],
+      "capture": "PrintWindow, DPI-aware process (tools/visual/capture.ps1). 앱의 시작 최대화가 끝난 뒤 창을 복원·배치하고, 최대화 표시가 남았거나 client 위쪽이 창 위쪽과 다르면 다시 배치한다(manifest.json의 Client)."
+    },
+    "fonts": {
+      "ui": "Malgun Gothic",
+      "terminal": "Cascadia Mono"
+    },
+    "settings": {
+      "reduced_motion": true,
+      "high_contrast": false,
+      "config": "화면마다 새 POD_APP_CONFIG_DIR (target/visual/<guid>)"
+    },
+    "data": "--ui-fixture --display secondary --no-sound --fixture-scene <scene>: 데몬·네트워크·사용자 설정 없음",
+    "clock": "--ui-fixture 실행: dense 레이아웃 시계 고정 2026-11-10 09:30:00 UTC(이 기계 KST에서 18:30:00), editor fixture 저장소 commit 날짜 2026-01-01T00:00:00Z(HEAD 59271e069). 실제 실행은 시스템 시계."
+  },
+  "artifacts": {
+    "root": "C:/ai/pod-target/refactor/a-f0",
+    "before": "C:/ai/pod-target/refactor/a-f0/before-12e3c76",
+    "after": "C:/ai/pod-target/refactor/a-f0/after-<commit>",
+    "layout": "<root>/<before|after>/<matrix>/<theme>-<scene>[-<style>][-<layout>].png + .tree.txt + manifest.json; hashes.json은 PNG SHA-256",
+    "rule": "추적하지 않는 격리 산출물. 해시는 아래 V.matrices[].sha256에 동결; 파일이 없거나 해시가 다르면 기준 커밋에서 같은 명령으로 다시 만든다.",
+    "evidence": "A-F0b: C:/ai/pod-target/refactor/a-f0b/{repeat-1,repeat-2}(기준과 56/56 0px·바이트 동일), sweep/(모든 장면 × 레이아웃 6종, dark), evidence/(창 배치 수정 전 동결·반복: 최대화 표시가 남은 캡처), vs-64e9530/(이전 기준과 비교). A-F0: before-64e9530의 review-unpinned·review-repeat·dense-details-repeat, after-e87b60d.",
+    "previous_before": "C:/ai/pod-target/refactor/a-f0/before-64e9530"
+  },
+  "B": {
+    "rule": "기존 테스트 이름·assertion 유지, 이동 전/후 목록 대응(누락 금지), entity·panel ID, focus 경로, detach≠kill, layout JSON, 알림·요청 횟수·순서 비교. 버그 수정·문구 변경 섞지 않음.",
+    "list_command": "cargo test -p <crate> -- --list --format terse",
+    "tests_before": {
+      "pod-app": 264,
+      "pod-terminal-view": 45,
+      "pod-ui": 36
+    },
+    "test_lists": {
+      "pod-app": {
+        "file": "C:/ai/pod-target/refactor/a-f0/before-12e3c76/tests-pod-app.txt",
+        "sha256": "e99ab8d9d684aaa7a77ab44ba4f87aabd80100710fbd3db29f358d8544a1b2bb"
+      },
+      "pod-terminal-view": {
+        "file": "C:/ai/pod-target/refactor/a-f0/before-12e3c76/tests-pod-terminal-view.txt",
+        "sha256": "a008ac8a2365f1bcbe45709ccf0096372b1fbb627f0221585792e8fe0f9c5b4a"
+      },
+      "pod-ui": {
+        "file": "C:/ai/pod-target/refactor/a-f0/before-12e3c76/tests-pod-ui.txt",
+        "sha256": "3467c49596345647fad8d8fb0c1b9d3692b42aa34dd7a8a91b8163c5e6218997"
+      }
+    },
+    "a_f0_proof_filters": [
+      "layout_mode::tests",
+      "layouts::kit::tests"
+    ],
+    "added_by_a_f0": [
+      "layout_mode::tests::modes_without_a_module_fall_back_to_the_workbench",
+      "layout_mode::tests::re_registering_replaces_the_module_and_its_renderer",
+      "layout_mode::tests::the_settings_layout_picks_the_module_and_its_renderer",
+      "layouts::kit::tests::actions_read_a_fresh_frame_and_nothing_once_the_window_is_gone",
+      "layouts::kit::tests::clock_is_the_system_epoch_or_a_frozen_instant",
+      "layouts::kit::tests::color_is_the_token_colour_of_every_copy",
+      "layouts::kit::tests::connection_shell_matches_the_kanban_and_rail_shells",
+      "layouts::kit::tests::dispatch_runs_at_once_and_defer_after_the_current_effects",
+      "layouts::kit::tests::dock_is_empty_only_without_any_panel",
+      "layouts::kit::tests::frame_reads_like_the_workspace_lookups",
+      "layouts::kit::tests::island_matches_the_bodies_island_closure",
+      "layouts::kit::tests::metrics_equal_the_modes_own_font_and_line",
+      "layouts::kit::tests::panel_header_matches_the_dense_header",
+      "layouts::kit::tests::ui_font_is_the_user_size_moved_by_density_and_clamped",
+      "layouts::kit::tests::warning_banner_matches_the_modes_banner_box",
+      "layouts::kit::tests::warning_text_is_the_modes_connection_banner"
+    ],
+    "vs_previous": "64e9530 → 12e3c76, 빠진 테스트 없음. pod-app 245 → 264: native_qa 테스트 24개는 native_qa/<영역>.rs로 옮겨져 경로만 바뀜(이름 같음), +16 A-F0(added_by_a_f0), +2 master(native_qa::focus::dock_activation_does_not_open_inspector, native_qa::keyboard::status_branch_tracks_task_and_hides_before_totals), +1 A-F0b. pod-ui 34 → 36(+2, 빠짐 없음), pod-terminal-view 45 그대로.",
+    "added_by_a_f0b": [
+      "layouts::dense::tests::fixture_runs_print_one_frozen_time_and_real_runs_the_system_clock",
+      "pod-editor fixture::tests::fixture_commit_has_a_fixed_date_and_hash (B 목록 밖 crate)"
+    ]
+  },
+  "J": {
+    "protocol_version": 19,
+    "where": "crates/podd/src/protocol.rs PROTOCOL_VERSION",
+    "a_f0": "wire 변경 없음: podd·protocol·source·vm 파일을 고치지 않음",
+    "owners": "UI 쪽 wire 고정 JSON은 A-P2(crates/pod-app/qa/refactor/wire.json), 데몬 쪽 golden은 D-F0"
+  },
+  "V": {
+    "tolerance": 8,
+    "a_f0_result": "after e87b60d: 56장 중 51장 첫 비교 0px. light-palette는 정착 전 캡처로 다시 찍어 0px, review 2장은 git 날짜 고정 뒤 0px, dense-details 2장은 벽시계 숫자만 다름(기준 binary 반복도 같음). 동작 차이 없음.",
+    "rule": "허용 오차를 올리거나 영역을 숨기거나 기준을 다시 찍어 차이를 승인하지 않는다. compare는 다시 캡처하지 않고 PNG만 비교한다.",
+    "capture": "powershell -NoProfile -Command \"& tools/visual/capture.ps1 -Output <root>/<before|after>/<matrix> <args>\"",
+    "compare": "powershell -NoProfile -Command \"& tools/visual/capture.ps1 -Mode compare -Output <root>/after-<commit>/<matrix> -Baseline C:/ai/pod-target/refactor/a-f0/before-12e3c76/<matrix>\"",
+    "matrices": [
+      {
+        "id": "default",
+        "preset": "workbench (기본 스타일)",
+        "args": "",
+        "scenes": [
+          "workspace",
+          "palette",
+          "settings",
+          "agents",
+          "inspect",
+          "open-repo",
+          "new-task",
+          "terminal",
+          "new-group",
+          "gates",
+          "notifications",
+          "review",
+          "shortcuts",
+          "editor",
+          "orch-board",
+          "orch-inbox",
+          "orch-cleanup",
+          "orch-settings"
+        ],
+        "themes": [
+          "dark",
+          "light"
+        ],
+        "images": 36,
+        "dpi": [
+          144
+        ],
+        "dir": "C:/ai/pod-target/refactor/a-f0/before-12e3c76/default",
+        "sha256": {
+          "dark-agents.png": "a07fe475f75361c6d21a41a6c89e60ec7fe7fe7e12b20d6baa29dc421ee8cd5d",
+          "dark-editor.png": "d4734d471422bc6e5534ad21e3c1566cbd79a21a48f7861a0fa5991057bd4902",
+          "dark-gates.png": "99e9645863002aa6299daf79b2cdd762e3cf7827493279391a89e4c7e108c1a6",
+          "dark-inspect.png": "74d5ed89e1aa68891f48af57cd966387da41fedd67384744eb656c9b2bbbf99d",
+          "dark-new-group.png": "c573598dfd1502add9740e858092472137b783cf5a30256cf417a71ca4526fe6",
+          "dark-new-task.png": "c98bc548eae376ee3aa5ebd1bdb6e3b5f90acd0ed57adcc16247e64ead5a4561",
+          "dark-notifications.png": "63d9188c3fb6d3a39d73ce3eefab63e8eaed53db16093d0727f293d94ed00688",
+          "dark-open-repo.png": "a66f25631f7e038a2676e5152c48bab133ebc6cd99bdfc933e81d32c944ffbde",
+          "dark-orch-board.png": "6c12feb3454496329325dac14b0bb0e543da30253f5a88e582e4055a01a52e8f",
+          "dark-orch-cleanup.png": "9a3508436310521377cc36efe400f3e2cb7a68ebfe03d50eca05a52f466c4ea5",
+          "dark-orch-inbox.png": "62f97624a66486302eb4954c7203fd95cbc971e9cabc03d0161a6ba9cd2e8a33",
+          "dark-orch-settings.png": "989b63887a52f9e5b60757cf3c20e1b0250546eb016597d797e12b7301eacb1e",
+          "dark-palette.png": "aef4938898d3471d02653a0e845f2c945d456fbab29aacfd636f48f82db38efb",
+          "dark-review.png": "11ce39036e40bf426c08343069dbb4677b97b74cea5497339639fbf56d187aa8",
+          "dark-settings.png": "2d5d9ad48bae7013f651d4c5920cae5f961e1ef5ef103f814821cf2bbd30b435",
+          "dark-shortcuts.png": "9d79476b42f012a67239dd462d895f9c3de8136b516ece9bf8563d427475a01a",
+          "dark-terminal.png": "a7893508b29cebb3c953ca29a579cd3c2254310a6a678051daaa6d4dd680785f",
+          "dark-workspace.png": "50fdebd373f4785c869998003905d6c7ce94788638e99e4efd0bd25714783d1e",
+          "light-agents.png": "a4bf2b4b3b874065012cddc254d6a85f3160433bfdbc3dc44aead306bd3882df",
+          "light-editor.png": "8e92672ea902988446ebe3b56c12c0c4dd03b35f1b7410d769f7f47f6b75fa8c",
+          "light-gates.png": "472ef2ac01e28fc2b7525eaf5dd0544a1fe22a4bb824ad804d54bda07dbb2597",
+          "light-inspect.png": "cc883400e606b0a279133f5b7d0d44039a83a614883501234c0c21b6ef87bd49",
+          "light-new-group.png": "e7bc3e4aac2c915a2a53657e7e46f012275517b54639081480aacb204b26d7bc",
+          "light-new-task.png": "81dc33c952ce1f3778ae930b627d44077204ee94477a6070420a8dd057c71ac5",
+          "light-notifications.png": "c8e0f363bd7e68b4284b2555ba8f86ea3ee6f1df6121cec2dca8be3e08ea9b23",
+          "light-open-repo.png": "c1cff9eb5143ad2ab6a8b93d42f296b8bf82c2281d8e3621973b6babec105e40",
+          "light-orch-board.png": "7f5fa00f298aa7e61104289bf0138f5595ac1956a13859e53632fcc43bbde107",
+          "light-orch-cleanup.png": "07e86602674caaaa248af5dc21ae38e3e0edeb9d8a98f5e83a724c057caad4a4",
+          "light-orch-inbox.png": "adffe5af57754cbb0cbec58a619d153858722da336f97b3a7beb70ee012f365d",
+          "light-orch-settings.png": "b5db2e21433101a2855d8fd31e4dd8b01b9117ad45e4ee1486ab7d7701e57236",
+          "light-palette.png": "128795175f09e7b6cb31e1cc8244c79a85a45d82c22b1271fda0038eee436eda",
+          "light-review.png": "3d0456cf779bc99717b58f7284baaaaf87c7adc0c6678579323101c1f1904619",
+          "light-settings.png": "95fdb6469d5f859473be7a0c0a1db004f388f0e52381cdce54222207beb235cf",
+          "light-shortcuts.png": "6cc280c2a33627db9edc5dc457dc4d489519419f36278382bedfcd5b338f2cb4",
+          "light-terminal.png": "f69946909127c01857d97dfda9c8e786d13797080c733d2f6618c4c82b3ab5f3",
+          "light-workspace.png": "9fbefadf4a04a3b5f64858369f8b421cb18b9a23374e65ba2f6dc81236b7983c"
+        },
+        "note": "추적 기준 tools/visual/baseline과 같은 18장면",
+        "refreeze_check": {
+          "repeats": [
+            "C:/ai/pod-target/refactor/a-f0b/repeat-1/default",
+            "C:/ai/pod-target/refactor/a-f0b/repeat-2/default"
+          ],
+          "failures": 0,
+          "changed_pixels": 0,
+          "byte_identical": true
+        }
+      },
+      {
+        "id": "focus-rail",
+        "preset": "02 focus-rail",
+        "args": "-Layout focus-rail -Style workbench -Scenes @('rail','rail-attention','rail-switcher','rail-workspace')",
+        "scenes": [
+          "rail",
+          "rail-attention",
+          "rail-switcher",
+          "rail-workspace"
+        ],
+        "themes": [
+          "dark",
+          "light"
+        ],
+        "images": 8,
+        "dpi": [
+          144
+        ],
+        "dir": "C:/ai/pod-target/refactor/a-f0/before-12e3c76/focus-rail",
+        "sha256": {
+          "dark-rail-attention-workbench-focus-rail.png": "6fc9a0d80a25cb9f21b4486d11ad2ed885b2b7bf472368553c2d180a4c5fed17",
+          "dark-rail-switcher-workbench-focus-rail.png": "32615572b71be0ddf12fefd597376e068bc4843153ccb2f7e26d35c59dfe8248",
+          "dark-rail-workbench-focus-rail.png": "cfe046245116fd08dda29acb9ee67d6ddb39c6f8ad32bb9486c7c4b82e9d7540",
+          "dark-rail-workspace-workbench-focus-rail.png": "473f3ab306f74d95389354d7bea0b65b3c6855f770b6d5910fd4a50501bfe95e",
+          "light-rail-attention-workbench-focus-rail.png": "3472c6d5f4d828ccadc212e69a17c4a99920fa07b44d499b664673347c780e9e",
+          "light-rail-switcher-workbench-focus-rail.png": "c5a5cfb5ab674494c07209907c72fc34d6b8480f8d7031e6a0e33daf75932b6b",
+          "light-rail-workbench-focus-rail.png": "7bcbf582819a78b0a71620b073d5d16cbe33361d0d9c022b973679504fbdf873",
+          "light-rail-workspace-workbench-focus-rail.png": "5b38b29b1c4d6d27a014c7e20af8da9d3b02cf4bd8966dddb004e671dfbd0043"
+        },
+        "refreeze_check": {
+          "repeats": [
+            "C:/ai/pod-target/refactor/a-f0b/repeat-1/focus-rail",
+            "C:/ai/pod-target/refactor/a-f0b/repeat-2/focus-rail"
+          ],
+          "failures": 0,
+          "changed_pixels": 0,
+          "byte_identical": true
+        }
+      },
+      {
+        "id": "queue-workbench",
+        "preset": "03 queue",
+        "args": "-Layout queue -Style workbench -Scenes @('queue')",
+        "scenes": [
+          "queue"
+        ],
+        "themes": [
+          "dark",
+          "light"
+        ],
+        "images": 2,
+        "dpi": [
+          144
+        ],
+        "dir": "C:/ai/pod-target/refactor/a-f0/before-12e3c76/queue-workbench",
+        "sha256": {
+          "dark-queue-workbench-queue.png": "3fdab98af20cafc5ad9bc808e4743fb745476c934e6d72426b1c0071a33e3404",
+          "light-queue-workbench-queue.png": "4f2ae1782b682178e49af5f64554f8f01d31e0247e46a311d4c9e3840d0f20e7"
+        },
+        "refreeze_check": {
+          "repeats": [
+            "C:/ai/pod-target/refactor/a-f0b/repeat-1/queue-workbench",
+            "C:/ai/pod-target/refactor/a-f0b/repeat-2/queue-workbench"
+          ],
+          "failures": 0,
+          "changed_pixels": 0,
+          "byte_identical": true
+        }
+      },
+      {
+        "id": "queue-mission",
+        "preset": "06 queue (mission)",
+        "args": "-Layout queue -Style mission -Scenes @('queue')",
+        "scenes": [
+          "queue"
+        ],
+        "themes": [
+          "dark",
+          "light"
+        ],
+        "images": 2,
+        "dpi": [
+          144
+        ],
+        "dir": "C:/ai/pod-target/refactor/a-f0/before-12e3c76/queue-mission",
+        "sha256": {
+          "dark-queue-mission-queue.png": "334cf43d885e78c35ea1d22cae1514ddeefa8d5f58dc8738974270bec716a3cd",
+          "light-queue-mission-queue.png": "f33c9c5cdd9193a7c454346decc4abf3a578d0a585f3e83664f65afd02390771"
+        },
+        "refreeze_check": {
+          "repeats": [
+            "C:/ai/pod-target/refactor/a-f0b/repeat-1/queue-mission",
+            "C:/ai/pod-target/refactor/a-f0b/repeat-2/queue-mission"
+          ],
+          "failures": 0,
+          "changed_pixels": 0,
+          "byte_identical": true
+        }
+      },
+      {
+        "id": "dense-details",
+        "preset": "07 dense-details",
+        "args": "-Layout dense-details -Style dense -Scenes @('dense')",
+        "scenes": [
+          "dense"
+        ],
+        "themes": [
+          "dark",
+          "light"
+        ],
+        "images": 2,
+        "dpi": [
+          144
+        ],
+        "dir": "C:/ai/pod-target/refactor/a-f0/before-12e3c76/dense-details",
+        "sha256": {
+          "dark-dense-dense-dense-details.png": "acd13e3d3ce1670e149bd233a83d9ccb5956e8a4c3dc1940ac01e6335eaf6d76",
+          "light-dense-dense-dense-details.png": "66cdd339d38fe5d84bcb8fc02134395af9b5cd6554f06345247549cc41062ca2"
+        },
+        "deterministic": true,
+        "note": "fixture 실행은 dense 시계를 고정한다(crates/pod-app/src/layouts/dense.rs FIXTURE_NOW): 출력 로그와 상태 기록이 18:30:00으로 같다. 이전 기준(64e9530)과는 그 시각 숫자만 다르다.",
+        "refreeze_check": {
+          "repeats": [
+            "C:/ai/pod-target/refactor/a-f0b/repeat-1/dense-details",
+            "C:/ai/pod-target/refactor/a-f0b/repeat-2/dense-details"
+          ],
+          "failures": 0,
+          "changed_pixels": 0,
+          "byte_identical": true
+        }
+      },
+      {
+        "id": "block-terminal",
+        "preset": "11 block-terminal",
+        "args": "-Layout block-terminal -Style blocks -Scenes @('workspace')",
+        "scenes": [
+          "workspace"
+        ],
+        "themes": [
+          "dark",
+          "light"
+        ],
+        "images": 2,
+        "dpi": [
+          144
+        ],
+        "dir": "C:/ai/pod-target/refactor/a-f0/before-12e3c76/block-terminal",
+        "sha256": {
+          "dark-workspace-blocks-block-terminal.png": "c970fbc225a004528c00fd49dbecc39d044e8c12714a8cd7e5c38ec0ccb39592",
+          "light-workspace-blocks-block-terminal.png": "9f00299faca8b868fe70192b517d82431057af69a433a4e87368918bbfd2bd5a"
+        },
+        "refreeze_check": {
+          "repeats": [
+            "C:/ai/pod-target/refactor/a-f0b/repeat-1/block-terminal",
+            "C:/ai/pod-target/refactor/a-f0b/repeat-2/block-terminal"
+          ],
+          "failures": 0,
+          "changed_pixels": 0,
+          "byte_identical": true
+        },
+        "note": "uia-required.ps1의 이 레이아웃 'workspace' 노드로 추적 capture.ps1이 그대로 찍는다(A-F0의 임시 사본 불필요)."
+      },
+      {
+        "id": "kanban",
+        "preset": "12 kanban",
+        "args": "-Layout kanban -Style kanban -Scenes @('workspace')",
+        "scenes": [
+          "workspace"
+        ],
+        "themes": [
+          "dark",
+          "light"
+        ],
+        "images": 2,
+        "dpi": [
+          144
+        ],
+        "dir": "C:/ai/pod-target/refactor/a-f0/before-12e3c76/kanban",
+        "sha256": {
+          "dark-workspace-kanban-kanban.png": "57346cba0c9e4b58267c57a9b648e2cab1b670a8c6f3c7c9ca3de4a0486af18d",
+          "light-workspace-kanban-kanban.png": "3d56f77a0536ab4280994c114f7fe7b090a71a1225c207a48f00c9245abbf9c7"
+        },
+        "refreeze_check": {
+          "repeats": [
+            "C:/ai/pod-target/refactor/a-f0b/repeat-1/kanban",
+            "C:/ai/pod-target/refactor/a-f0b/repeat-2/kanban"
+          ],
+          "failures": 0,
+          "changed_pixels": 0,
+          "byte_identical": true
+        },
+        "note": "uia-required.ps1의 이 레이아웃 'workspace' 노드로 추적 capture.ps1이 그대로 찍는다(A-F0의 임시 사본 불필요)."
+      },
+      {
+        "id": "review",
+        "preset": "13 review",
+        "args": "-Layout review -Style review -Scenes @('review-editor-layout')",
+        "scenes": [
+          "review-editor-layout"
+        ],
+        "themes": [
+          "dark",
+          "light"
+        ],
+        "images": 2,
+        "dpi": [
+          144
+        ],
+        "dir": "C:/ai/pod-target/refactor/a-f0/before-12e3c76/review",
+        "sha256": {
+          "dark-review-editor-layout-review-review.png": "3a1b26a375ca55d6d09fb8a9e269a780ef6ea1e167781eb6308d683e579677ec",
+          "light-review-editor-layout-review-review.png": "e1e6e8007fd23504ac66571b8d03118aee63c166dd0657dafe7a7445b44cc98e"
+        },
+        "note": "pod_editor::fixture가 commit 날짜를 2026-01-01로 고정해 diff 머리의 HEAD 해시(59271e069)가 매번 같다. env 고정 불필요.",
+        "refreeze_check": {
+          "repeats": [
+            "C:/ai/pod-target/refactor/a-f0b/repeat-1/review",
+            "C:/ai/pod-target/refactor/a-f0b/repeat-2/review"
+          ],
+          "failures": 0,
+          "changed_pixels": 0,
+          "byte_identical": true
+        }
+      }
+    ],
+    "not_frozen_here": [
+      "작은 창(-Width 1024 -Height 700), 큰 글자, 긴 한국어, 고대비(-HighContrast), selected/hover/focus 장면: 그 화면을 바꾸는 카드가 자기 기준 커밋에서 같은 방식으로 동결",
+      "125%/175% 실제 DPI: 이 기계의 보조 모니터는 144 DPI(150%)뿐이라 미검증",
+      "populated review·gate, 실제 terminal/IME: fixture가 비어 있음(tools/visual/README.md). B의 native QA 시험으로 대신"
+    ],
+    "a_f0b_result": "12e3c76 기준을 동결한 뒤 같은 binary로 두 번 연속 다시 찍어 두 번 모두 56/56 0px, PNG 바이트도 56장 모두 같음. 레이아웃 matrix도 추적 capture.ps1 그대로(임시 사본·env 고정 없음).",
+    "uia": "tools/visual/uia-required.ps1: 레이아웃별 필수 노드(capture.ps1 -Layout). 모든 장면 × 레이아웃 115개 트리 통과(uia-selftest.ps1 -Captures)."
+  },
+  "refrozen_by": "A-F0b"
+}

@@ -6,6 +6,12 @@
 //! dock and dialogs. Adding a mode = one module file + one `register` line in
 //! [`LayoutRegistry::new`]; nothing in the workbench module has to change.
 //! A mode without a module falls back to the workbench (the settings page says so).
+//!
+//! Refactor in progress (docs/20-refactor/app.md, card A-F0): a module may also
+//! offer a narrow [`LayoutRenderer`] over the layout kit (`layouts::kit`). The
+//! body is still drawn by [`LayoutModule::render_body`]; once the workspace
+//! hosts the kit (A-F1), a mode without a renderer keeps that path.
+use crate::layouts::kit::LayoutRenderer;
 use crate::workspace::Workspace;
 use gpui_kit::*;
 use std::rc::Rc;
@@ -82,6 +88,12 @@ pub trait LayoutModule {
     /// Whether the status bar shows 작업 중/응답/완료 (false where the title bar already does).
     fn status_counts(&self, _cx: &App) -> bool {
         true
+    }
+    /// The mode's narrow renderer over the layout kit. `None` (the default)
+    /// keeps [`Self::render_body`] and [`Self::title_bar_extra`]; with one,
+    /// the host draws the body and the title-bar extra through it.
+    fn renderer(&self) -> Option<Rc<dyn LayoutRenderer>> {
+        None
     }
 }
 
@@ -162,6 +174,16 @@ pub fn status_counts(cx: &App) -> bool {
     current(cx).status_counts(cx)
 }
 
+/// Narrow renderer of the layout in settings, if its mode has one. `None`:
+/// the caller keeps [`render_body`] and [`title_bar_extra`].
+#[allow(
+    dead_code,
+    reason = "A-F1 calls this from the workspace shell; A-T2 removes this allow"
+)]
+pub(crate) fn renderer(cx: &App) -> Option<Rc<dyn LayoutRenderer>> {
+    current(cx).renderer()
+}
+
 /// 작업대: the tree sidebar + dock (the base for every preset in this stage).
 struct Workbench;
 impl LayoutModule for Workbench {
@@ -181,9 +203,41 @@ impl LayoutModule for Workbench {
 #[cfg(test)]
 mod tests {
     // Not `super::*`: gpui's own `test` attribute would shadow the std one.
-    use super::{LayoutMode, LayoutModule, LayoutRegistry, Workspace};
-    use gpui_kit::{AnyElement, Context, IntoElement, Window, div};
+    use super::{LayoutMode, LayoutModule, LayoutRegistry, Workbench, Workspace};
+    use crate::layouts::kit::{LayoutFrame, LayoutHost, LayoutRenderer};
+    use gpui_kit::{AnyElement, App, Context, IntoElement, Window, div};
     use std::rc::Rc;
+
+    /// A mode moved onto the layout kit.
+    struct Migrated(LayoutMode);
+    impl LayoutModule for Migrated {
+        fn mode(&self) -> LayoutMode {
+            self.0
+        }
+        fn render_body(
+            &self,
+            _: &mut Workspace,
+            _: &mut Window,
+            _: &mut Context<Workspace>,
+        ) -> AnyElement {
+            div().into_any_element()
+        }
+        fn renderer(&self) -> Option<Rc<dyn LayoutRenderer>> {
+            Some(Rc::new(Narrow))
+        }
+    }
+    struct Narrow;
+    impl LayoutRenderer for Narrow {
+        fn render_body(
+            &self,
+            _: &LayoutFrame<'_>,
+            _: &mut dyn LayoutHost,
+            _: &mut Window,
+            _: &mut App,
+        ) -> AnyElement {
+            div().into_any_element()
+        }
+    }
 
     struct Fake(LayoutMode);
     impl LayoutModule for Fake {
@@ -225,6 +279,79 @@ mod tests {
         let n = r.modules.len();
         r.register(Rc::new(Fake(LayoutMode::Kanban)));
         assert_eq!(r.modules.len(), n, "re-registering replaces");
+    }
+
+    #[test]
+    fn modes_without_a_module_fall_back_to_the_workbench() {
+        let r = LayoutRegistry {
+            modules: vec![Rc::new(Workbench)],
+        };
+        for m in LayoutMode::ALL {
+            assert_eq!(r.available(m), m == LayoutMode::Workbench, "{m:?}");
+            assert_eq!(r.resolve(m.id()).mode(), LayoutMode::Workbench, "{m:?}");
+        }
+        for id in ["", "nonsense", "Kanban", " kanban"] {
+            assert_eq!(r.resolve(id).mode(), LayoutMode::Workbench, "{id:?}");
+        }
+    }
+
+    #[test]
+    fn re_registering_replaces_the_module_and_its_renderer() {
+        let mut r = LayoutRegistry::new();
+        let n = r.modules.len();
+        assert_eq!(n, LayoutMode::ALL.len(), "one module per mode");
+        assert!(
+            Fake(LayoutMode::Kanban).renderer().is_none(),
+            "no narrow renderer unless a mode offers one"
+        );
+        r.register(Rc::new(Migrated(LayoutMode::Kanban)));
+        assert_eq!(r.modules.len(), n);
+        assert_eq!(r.resolve("kanban").mode(), LayoutMode::Kanban);
+        assert!(
+            r.resolve("kanban").renderer().is_some(),
+            "the later module wins"
+        );
+        r.register(Rc::new(Fake(LayoutMode::Kanban)));
+        assert_eq!(r.modules.len(), n);
+        assert!(
+            r.resolve("kanban").renderer().is_none(),
+            "replacing the module drops its renderer too"
+        );
+        // The fallback is the workbench module as registered, renderer included.
+        r.register(Rc::new(Migrated(LayoutMode::Workbench)));
+        assert_eq!(r.resolve("nonsense").mode(), LayoutMode::Workbench);
+        assert!(r.resolve("nonsense").renderer().is_some());
+        // Other modes are untouched by either replacement.
+        for m in LayoutMode::ALL {
+            assert_eq!(r.resolve(m.id()).mode(), m, "{m:?}");
+        }
+    }
+
+    #[test]
+    fn the_settings_layout_picks_the_module_and_its_renderer() {
+        let cx = ::gpui::TestAppContext::single();
+        cx.update(|cx| {
+            // No settings, no registry global: the built-in registry, workbench.
+            assert_eq!(super::current(cx).mode(), LayoutMode::Workbench);
+            let layout = |id: &str| crate::theme::Settings {
+                layout: id.into(),
+                ..Default::default()
+            };
+            cx.set_global(layout("kanban"));
+            assert_eq!(super::current(cx).mode(), LayoutMode::Kanban);
+            let mut r = LayoutRegistry::new();
+            r.register(Rc::new(Migrated(LayoutMode::Kanban)));
+            cx.set_global(r);
+            assert_eq!(super::current(cx).mode(), LayoutMode::Kanban);
+            assert!(super::renderer(cx).is_some(), "the registry global is used");
+            cx.set_global(layout("queue"));
+            assert_eq!(super::current(cx).mode(), LayoutMode::Queue);
+            assert!(super::renderer(cx).is_none(), "queue still renders itself");
+            cx.set_global(layout("nonsense"));
+            assert_eq!(super::current(cx).mode(), LayoutMode::Workbench);
+            assert!(super::renderer(cx).is_none());
+        });
+        cx.update(|cx| cx.quit());
     }
 
     #[test]

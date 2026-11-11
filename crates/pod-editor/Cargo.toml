@@ -33,9 +33,6 @@ gpui-kit = { version = "=0.9.0", features = [
 ] }
 pod-ui = { path = "../pod-ui" }
 # Bounded runs (deadline incl. output drain, whole process tree): the LSP probe.
-pod-forge = { path = "../pod-forge" }
-# The same runner from its leaf crate; the pod-forge edge goes in the libs
-# refactor's T1 card (docs/20-refactor/libs.md).
 pod-process = { path = "../pod-process" }
 # MIT. Same version gpui-component's editor providers are written against.
 lsp-types = "0.97"

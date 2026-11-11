@@ -19,15 +19,15 @@ use serde::de::DeserializeOwned;
 
 use crate::model::MailLine;
 
-/// Write `value` as pretty JSON through a temporary file + rename.
+/// Write `value` as pretty JSON through a temporary file + rename. The
+/// parent is created first; a failure leaves the temporary file as it is.
 pub fn write_json<T: Serialize>(path: &Path, value: &T) -> std::io::Result<()> {
     if let Some(dir) = path.parent() {
         std::fs::create_dir_all(dir)?;
     }
     let tmp = path.with_extension("json.tmp");
-    let bytes = serde_json::to_vec_pretty(value).map_err(std::io::Error::other)?;
-    std::fs::write(&tmp, bytes)?;
-    std::fs::rename(&tmp, path)
+    let bytes = pod_storage::json::to_pretty_bytes(value).map_err(std::io::Error::other)?;
+    pod_storage::replace::write_then_rename(path, &tmp, &bytes)
 }
 
 /// Read JSON; a file that does not parse is moved aside
@@ -268,6 +268,127 @@ mod tests {
         write_json(&p, &serde_json::json!({"a": 1})).unwrap();
         let v: serde_json::Value = read_json(&p, 43, &mut notes).unwrap();
         assert_eq!(v["a"], 1);
+        let _ = std::fs::remove_dir_all(&d);
+    }
+
+    /// Shaped like `index.json` (counters + request results).
+    #[derive(Serialize)]
+    struct Snapshot {
+        counters: std::collections::BTreeMap<&'static str, u64>,
+        requests: Vec<Entry>,
+    }
+
+    #[derive(Serialize)]
+    struct Entry {
+        id: &'static str,
+        result: Option<&'static str>,
+        empty: Vec<u8>,
+    }
+
+    fn snapshot(id: &'static str) -> Snapshot {
+        Snapshot {
+            counters: [("mail", 3), ("run", 1)].into_iter().collect(),
+            requests: vec![Entry {
+                id,
+                result: None,
+                empty: vec![],
+            }],
+        }
+    }
+
+    fn names(dir: &Path) -> Vec<String> {
+        let mut v: Vec<String> = std::fs::read_dir(dir)
+            .unwrap()
+            .map(|e| e.unwrap().file_name().to_string_lossy().into_owned())
+            .collect();
+        v.sort();
+        v
+    }
+
+    /// The bytes on disk (pretty, two-space indent, no trailing newline) and
+    /// the temporary name `<name>.json.tmp`, pinned before the storage
+    /// primitive took over the write (docs/20-refactor/libs.md L2).
+    #[test]
+    fn write_json_bytes_and_temporary_name_are_pinned() {
+        let d = temp("pin");
+        // A missing parent is created.
+        let p = d.join("runs").join("r1").join("run.json");
+        write_json(&p, &snapshot("q-1")).unwrap();
+        let golden = "{\n  \"counters\": {\n    \"mail\": 3,\n    \"run\": 1\n  },\n  \"requests\": [\n    {\n      \"id\": \"q-1\",\n      \"result\": null,\n      \"empty\": []\n    }\n  ]\n}";
+        assert_eq!(std::fs::read_to_string(&p).unwrap(), golden);
+        let dir = p.parent().unwrap();
+        assert_eq!(names(dir), ["run.json"]);
+        // A stale temporary file from a crash is the one written and renamed.
+        std::fs::write(dir.join("run.json.tmp"), b"stale stale stale").unwrap();
+        write_json(&p, &snapshot("q-2")).unwrap();
+        assert_eq!(
+            std::fs::read_to_string(&p).unwrap(),
+            golden.replace("q-1", "q-2")
+        );
+        assert_eq!(names(dir), ["run.json"]);
+        // index.json goes through index.json.tmp.
+        let i = index_json(&d);
+        std::fs::write(d.join("index.json.tmp"), b"stale").unwrap();
+        write_json(&i, &snapshot("q-3")).unwrap();
+        assert_eq!(names(&d), ["index.json", "runs"]);
+        let _ = std::fs::remove_dir_all(&d);
+    }
+
+    struct Fails;
+    impl Serialize for Fails {
+        fn serialize<S: serde::Serializer>(&self, _: S) -> Result<S::Ok, S::Error> {
+            Err(serde::ser::Error::custom("refused"))
+        }
+    }
+
+    /// What a failed write leaves behind, step by step: the parent is created
+    /// before serializing, a serialization error is `ErrorKind::Other` with
+    /// serde_json's message, and nothing removes the temporary file.
+    #[test]
+    fn write_json_failures_keep_their_order_and_leftovers() {
+        let d = temp("fail");
+        // Serialization fails after the parent was created; nothing written.
+        let p = d.join("new").join("run.json");
+        let e = write_json(&p, &Fails).unwrap_err();
+        assert_eq!(e.kind(), std::io::ErrorKind::Other);
+        assert_eq!(e.to_string(), "refused");
+        assert!(p.parent().unwrap().is_dir());
+        assert!(names(p.parent().unwrap()).is_empty());
+        // A stale temporary file is not touched by a serialization error.
+        std::fs::write(p.with_extension("json.tmp"), b"stale").unwrap();
+        assert!(write_json(&p, &Fails).is_err());
+        assert_eq!(
+            std::fs::read(p.with_extension("json.tmp")).unwrap(),
+            b"stale"
+        );
+
+        // The rename fails (the destination is a non-empty directory): the
+        // temporary file stays with the full bytes, the destination as it was.
+        let p = d.join("blocked").join("run.json");
+        std::fs::create_dir_all(p.join("inner")).unwrap();
+        assert!(write_json(&p, &snapshot("q-1")).is_err());
+        let tmp = p.with_extension("json.tmp");
+        assert_eq!(
+            std::fs::read(&tmp).unwrap(),
+            serde_json::to_vec_pretty(&snapshot("q-1")).unwrap()
+        );
+        assert!(p.join("inner").is_dir());
+        assert_eq!(names(p.parent().unwrap()), ["run.json", "run.json.tmp"]);
+
+        // The temporary file cannot be written (a directory holds its name):
+        // the destination keeps its old bytes.
+        let p = d.join("tmpdir").join("run.json");
+        std::fs::create_dir_all(p.with_extension("json.tmp")).unwrap();
+        std::fs::write(&p, b"old").unwrap();
+        assert!(write_json(&p, &snapshot("q-1")).is_err());
+        assert_eq!(std::fs::read(&p).unwrap(), b"old");
+        assert!(p.with_extension("json.tmp").is_dir());
+
+        // The parent cannot be created (a file holds its name).
+        std::fs::write(d.join("file"), b"f").unwrap();
+        let p = d.join("file").join("run.json");
+        assert!(write_json(&p, &snapshot("q-1")).is_err());
+        assert_eq!(std::fs::read(d.join("file")).unwrap(), b"f");
         let _ = std::fs::remove_dir_all(&d);
     }
 }

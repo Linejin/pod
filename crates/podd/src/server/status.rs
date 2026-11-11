@@ -18,29 +18,49 @@
 //! `status.wait`, `status.subscribe` (`status.changed` events with a
 //! daemon-wide sequence number).
 //!
+//! The code is split by responsibility; this file keeps [`TermStatus`]
+//! (one engine per terminal: output, titles, ticker samples, the persisted
+//! status) and the paths the rest of the server uses (`start`, `handles`,
+//! `dispatch`, the `publish_*` functions, `subscribe`, `try_ingest_hook`,
+//! `stream_subscribe`):
+//! - `hub`: the daemon-wide event sequence and broadcast, the engine clock,
+//!   the state dir;
+//! - `ingest`: `pod-hook` lines and the per-terminal hook tokens;
+//! - `stream`: `status.wait` and the `status.subscribe` stream.
+//!
 //! Lock order: terminal stream state -> [`TermStatus`] -> hub publish lock.
 
-use std::collections::{BTreeMap, HashMap};
-use std::path::{Path, PathBuf};
-use std::sync::atomic::{AtomicUsize, Ordering as AtomicOrdering};
-use std::sync::{Arc, Mutex, OnceLock};
-use std::time::{Duration, Instant};
+mod hub;
+mod ingest;
+mod stream;
 
-use pod_status::hook::HOOK_MESSAGE_VERSION;
+use std::path::{Path, PathBuf};
+use std::sync::{Arc, Mutex};
+use std::time::Duration;
+
 use pod_status::{
     AgentKind, AgentState, BlockedKind, HookMessage, Millis, Outcome, ProcessInfo, Source,
     TerminalStatus,
 };
 use serde_json::Value;
-use tokio::io::BufReader;
-use tokio::net::windows::named_pipe::NamedPipeServer;
-use tokio::sync::broadcast;
 
 use super::terminal::Terminal;
-use super::{Daemon, err_response, log, notification, ok_response, params, to_value, write_json};
+use super::{Daemon, log, params, to_value};
 use crate::protocol::*;
+use hub::hub;
+use ingest::{load_token, same_secret, token_path};
+use stream::status_wait;
 
+pub use hub::now;
+pub(super) use hub::{
+    HubEvent, publish_delivery, publish_gate, publish_group_check, publish_mod,
+    publish_orch_changed, publish_orch_mail, publish_sessions, publish_task, publish_task_pr,
+    publish_task_removing, publish_terminal, set_state_dir, subscribe, task_event,
+};
+pub(crate) use ingest::new_token;
+pub(super) use ingest::{hook_env, try_ingest_hook};
 pub use pod_status::hook::ENV_HOOK_TOKEN;
+pub(super) use stream::{lifecycle_subscribers, stream_subscribe};
 
 /// Minimum time between two screen samples of one terminal.
 const SCREEN_INTERVAL_MS: Millis = 250;
@@ -48,271 +68,8 @@ const SCREEN_INTERVAL_MS: Millis = 250;
 const TICK_INTERVAL_MS: Millis = 1000;
 /// Window titles longer than this are ignored.
 const TITLE_MAX: usize = 1024;
-/// `status.subscribe` buffer; a slower subscriber gets `status.lagged`.
-const EVENT_CAPACITY: usize = 4096;
 
-// ───────────────────────────── hub ─────────────────────────────
-
-struct Hub {
-    /// Unix ms at `epoch`; engine time is `base_ms + epoch.elapsed()` (monotonic).
-    base_ms: u64,
-    epoch: Instant,
-    /// Last sequence number; held while sending so events go out in order.
-    last_seq: Mutex<u64>,
-    tx: broadcast::Sender<HubEvent>,
-    state_dir: OnceLock<PathBuf>,
-}
-
-/// What the hub broadcasts: status changes and (v5) gate changes, in one
-/// sequence.
-#[derive(Debug, Clone)]
-pub(super) enum HubEvent {
-    Status(StatusChangedEvent),
-    Gate(GateChangedEvent),
-    /// v6: background `group.check` progress.
-    GroupCheck(GroupCheckEvent),
-    /// A review delivery was recorded or changed state (`review.delivery`).
-    Delivery(ReviewDeliveryEvent),
-    /// v9 lifecycle events (only for `lifecycle` subscribers).
-    Terminal(TerminalChangedEvent),
-    Task(TaskChangedEvent),
-    TaskRemoving(TaskRemovingEvent),
-    /// v10 `task.pr.changed` (lifecycle subscribers only).
-    TaskPr(TaskPrChangedEvent),
-    /// v11 extensions (docs/16): `pod.notify` and mod state changes.
-    ModNotify(ModNotifyEvent),
-    ModChanged(ModChangedEvent),
-    /// v16 orchestration (docs/19 §7): unfiltered subscribers only.
-    OrchChanged(OrchChangedEvent),
-    OrchMail(OrchMailEvent),
-    /// Session discovery (docs/18), lifecycle subscribers only.
-    Sessions(SessionsChangedEvent),
-}
-
-fn hub() -> &'static Hub {
-    static HUB: OnceLock<Hub> = OnceLock::new();
-    HUB.get_or_init(|| Hub {
-        base_ms: crate::now_ms(),
-        epoch: Instant::now(),
-        last_seq: Mutex::new(0),
-        tx: broadcast::channel(EVENT_CAPACITY).0,
-        state_dir: OnceLock::new(),
-    })
-}
-
-/// Engine clock: monotonic within this daemon, close to unix ms (so `since`
-/// can be shown as a wall-clock time).
-pub fn now() -> Millis {
-    let h = hub();
-    h.base_ms + h.epoch.elapsed().as_millis() as u64
-}
-
-impl Hub {
-    fn publish(&self, id: &str, status: StatusInfo, from: Option<String>, removed: bool) -> u64 {
-        let mut seq = self.last_seq.lock().unwrap();
-        *seq += 1;
-        // No receivers is fine.
-        let _ = self.tx.send(HubEvent::Status(StatusChangedEvent {
-            seq: *seq,
-            id: id.to_string(),
-            status,
-            from,
-            removed,
-        }));
-        *seq
-    }
-}
-
-/// Announce a created or resolved gate on every `status.subscribe` stream.
-pub(super) fn publish_gate(gate: GateInfo) -> u64 {
-    let h = hub();
-    let mut seq = h.last_seq.lock().unwrap();
-    *seq += 1;
-    let _ =
-        h.tx.send(HubEvent::Gate(GateChangedEvent { seq: *seq, gate }));
-    *seq
-}
-
-/// Announce `group.check` job progress on every unfiltered `status.subscribe` stream.
-pub(super) fn publish_group_check(group: &str, job: CheckJob, member: Option<MemberCheck>) -> u64 {
-    let h = hub();
-    let mut seq = h.last_seq.lock().unwrap();
-    *seq += 1;
-    let _ = h.tx.send(HubEvent::GroupCheck(GroupCheckEvent {
-        seq: *seq,
-        group: group.to_string(),
-        job,
-        member,
-    }));
-    *seq
-}
-
-/// Announce a recorded or changed review delivery (`review.delivery`) on
-/// every `status.subscribe` stream that wants its terminal.
-pub(super) fn publish_delivery(delivery: DeliveryInfo, submit: Option<SubmitCheck>) -> u64 {
-    let h = hub();
-    let mut seq = h.last_seq.lock().unwrap();
-    *seq += 1;
-    let _ = h.tx.send(HubEvent::Delivery(ReviewDeliveryEvent {
-        seq: *seq,
-        delivery,
-        submit,
-    }));
-    *seq
-}
-
-/// Publish with the next sequence number (the closure gets it).
-fn publish_with(make: impl FnOnce(u64) -> HubEvent) -> u64 {
-    let h = hub();
-    let mut seq = h.last_seq.lock().unwrap();
-    *seq += 1;
-    let _ = h.tx.send(make(*seq));
-    *seq
-}
-
-/// v9 `terminal.changed`.
-pub(super) fn publish_terminal(
-    id: &str,
-    change: TerminalChange,
-    terminal: Option<TerminalInfo>,
-) -> u64 {
-    publish_with(|seq| {
-        HubEvent::Terminal(TerminalChangedEvent {
-            seq,
-            id: id.to_string(),
-            change,
-            terminal: terminal.map(Box::new),
-        })
-    })
-}
-
-/// v9 `task.changed`; `seq` in `ev` is replaced.
-pub(super) fn publish_task(mut ev: TaskChangedEvent) -> u64 {
-    publish_with(|seq| {
-        ev.seq = seq;
-        HubEvent::Task(ev)
-    })
-}
-
-/// A `task.changed` event of `change` with no payload (fill fields after).
-pub(super) fn task_event(id: &str, change: TaskChange) -> TaskChangedEvent {
-    TaskChangedEvent {
-        seq: 0,
-        id: id.to_string(),
-        change,
-        task: None,
-        status: None,
-        git: None,
-        terminals: Vec::new(),
-        paths: Vec::new(),
-        open_hint: None,
-    }
-}
-
-/// v9 `task.removing`.
-pub(super) fn publish_task_removing(id: &str, worktree: &str, force: bool, grace_ms: u64) -> u64 {
-    publish_with(|seq| {
-        HubEvent::TaskRemoving(TaskRemovingEvent {
-            seq,
-            id: id.to_string(),
-            worktree: worktree.to_string(),
-            force,
-            grace_ms,
-        })
-    })
-}
-
-/// v10 `task.pr.changed`.
-pub(super) fn publish_task_pr(id: &str, pr: Option<TaskPr>) -> u64 {
-    publish_with(|seq| {
-        HubEvent::TaskPr(TaskPrChangedEvent {
-            seq,
-            id: id.to_string(),
-            pr,
-        })
-    })
-}
-
-/// v11 `mod.notify` / `mod.changed`; the `seq` in `ev` is replaced.
-/// v13 `orch.changed`.
-pub(super) fn publish_orch_changed(run: &str, item: Option<&str>, attempt: Option<&str>) -> u64 {
-    publish_with(|seq| {
-        HubEvent::OrchChanged(OrchChangedEvent {
-            seq,
-            run: run.to_string(),
-            item: item.map(str::to_string),
-            attempt: attempt.map(str::to_string),
-        })
-    })
-}
-
-/// v13 `orch.mail` (subject only).
-pub(super) fn publish_orch_mail(m: &Mail) -> u64 {
-    publish_with(|seq| {
-        HubEvent::OrchMail(OrchMailEvent {
-            seq,
-            run: m.run.clone(),
-            to: m.to.clone(),
-            id: m.id.clone(),
-            kind: m.kind,
-            subject: m.subject.clone(),
-            text: m.text.clone(),
-            from: m.from.clone(),
-        })
-    })
-}
-
-pub(super) fn publish_mod(ev: HubEvent) -> u64 {
-    publish_with(|seq| match ev {
-        HubEvent::ModNotify(mut e) => {
-            e.seq = seq;
-            HubEvent::ModNotify(e)
-        }
-        HubEvent::ModChanged(mut e) => {
-            e.seq = seq;
-            HubEvent::ModChanged(e)
-        }
-        other => other,
-    })
-}
-
-pub(super) fn publish_sessions(mut ev: SessionsChangedEvent) -> u64 {
-    publish_with(|seq| {
-        ev.seq = seq;
-        HubEvent::Sessions(ev)
-    })
-}
-
-/// Connected `status.subscribe` streams that asked for lifecycle events.
-static LIFECYCLE_SUBSCRIBERS: AtomicUsize = AtomicUsize::new(0);
-
-pub(super) fn lifecycle_subscribers() -> usize {
-    LIFECYCLE_SUBSCRIBERS.load(AtomicOrdering::Relaxed)
-}
-
-struct LifecycleGuard;
-impl LifecycleGuard {
-    fn new() -> Self {
-        LIFECYCLE_SUBSCRIBERS.fetch_add(1, AtomicOrdering::Relaxed);
-        LifecycleGuard
-    }
-}
-impl Drop for LifecycleGuard {
-    fn drop(&mut self) {
-        LIFECYCLE_SUBSCRIBERS.fetch_sub(1, AtomicOrdering::Relaxed);
-    }
-}
-
-/// Receive every later hub event (status and gates).
-pub(super) fn subscribe() -> broadcast::Receiver<HubEvent> {
-    hub().tx.subscribe()
-}
-
-/// Remember the state dir (hook tokens, persisted status). Called by `serve`
-/// before terminals are re-attached.
-pub(super) fn set_state_dir(dir: &Path) {
-    let _ = hub().state_dir.set(dir.to_path_buf());
-}
+// ───────────────────────────── ticker ─────────────────────────────
 
 /// Called once by `serve`: start the ticker.
 pub(super) fn start(daemon: &Arc<Daemon>) {
@@ -331,69 +88,7 @@ pub(super) fn start(daemon: &Arc<Daemon>) {
     });
 }
 
-// ───────────────────────────── hook tokens ─────────────────────────────
-
-fn token_path(dir: &Path, id: &str) -> PathBuf {
-    dir.join(format!("{id}.token"))
-}
-
-/// 128 random bits as hex, from the system RNG.
-pub(crate) fn new_token() -> std::io::Result<String> {
-    use windows_sys::Win32::Security::Cryptography::{
-        BCRYPT_USE_SYSTEM_PREFERRED_RNG, BCryptGenRandom,
-    };
-    let mut b = [0u8; 16];
-    // SAFETY: valid buffer of the given length; no algorithm handle with the
-    // system-preferred-RNG flag.
-    let st = unsafe {
-        BCryptGenRandom(
-            std::ptr::null_mut(),
-            b.as_mut_ptr(),
-            b.len() as u32,
-            BCRYPT_USE_SYSTEM_PREFERRED_RNG,
-        )
-    };
-    if st != 0 {
-        return Err(std::io::Error::other(format!(
-            "BCryptGenRandom failed: {st:#x}"
-        )));
-    }
-    Ok(b.iter().map(|x| format!("{x:02x}")).collect())
-}
-
-/// Create the terminal's hook token (`<state dir>/<id>.token`, user-only
-/// like the rest of the state dir) and add `POD_HOOK_TOKEN` to its env. Set
-/// last, so `terminal.run` env overrides cannot replace it.
-pub(super) fn hook_env(
-    mut env: BTreeMap<String, String>,
-    dir: &Path,
-    id: &str,
-) -> Result<BTreeMap<String, String>, RpcError> {
-    let token = new_token()
-        .and_then(|t| std::fs::write(token_path(dir, id), &t).map(|_| t))
-        .map_err(|e| RpcError::new(codes::SPAWN_FAILED, format!("hook token: {e}")))?;
-    crate::env::set_var(&mut env, ENV_HOOK_TOKEN, token);
-    Ok(env)
-}
-
-fn load_token(id: &str) -> Option<String> {
-    let dir = hub().state_dir.get()?;
-    let t = std::fs::read_to_string(token_path(dir, id)).ok()?;
-    let t = t.trim().to_string();
-    (!t.is_empty()).then_some(t)
-}
-
-/// A hook for a terminal `terminal.run` is still starting: its token file
-/// exists already (written before the holder starts).
-fn early_hook_token_ok(msg: &HookMessage) -> bool {
-    if !is_terminal_id(&msg.terminal_id) {
-        return false;
-    }
-    match (load_token(&msg.terminal_id), &msg.token) {
-        (Some(want), Some(got)) => same_secret(&want, got),
-        _ => false,
-    }
-}
+// ───────────────────────────── terminal gone ─────────────────────────────
 
 /// Remove the token (and the persisted status) of a terminal that is gone.
 pub(super) fn remove_token(dir: &Path, id: &str) {
@@ -469,14 +164,6 @@ fn slim_hook(msg: &HookMessage) -> HookMessage {
         map.retain(|_, v| serde_json::to_string(v).is_ok_and(|s| s.len() <= PERSIST_FIELD_MAX));
     }
     m
-}
-
-fn same_secret(a: &str, b: &str) -> bool {
-    a.len() == b.len()
-        && a.bytes()
-            .zip(b.bytes())
-            .fold(0u8, |acc, (x, y)| acc | (x ^ y))
-            == 0
 }
 
 // ───────────────────────────── per terminal ─────────────────────────────
@@ -931,75 +618,6 @@ impl TitleScanner {
     }
 }
 
-// ───────────────────────────── hook ingestion ─────────────────────────────
-
-/// If `line` is a `pod-hook` message (not JSON-RPC), route it and return true.
-/// Hook lines get no reply: `pod-hook` writes one line and closes.
-pub(super) fn try_ingest_hook(daemon: &Daemon, line: &str) -> bool {
-    let Ok(Value::Object(obj)) = serde_json::from_str::<Value>(line) else {
-        return false;
-    };
-    if obj.contains_key("jsonrpc") || !obj.contains_key("terminal_id") || !obj.contains_key("v") {
-        return false;
-    }
-    let msg: HookMessage = match serde_json::from_value(Value::Object(obj)) {
-        Ok(m) => m,
-        Err(e) => {
-            log(&format!("hook: malformed message dropped: {e}"));
-            return true;
-        }
-    };
-    if msg.v != HOOK_MESSAGE_VERSION {
-        log(&format!("hook: unsupported version {} dropped", msg.v));
-        return true;
-    }
-    let term = daemon
-        .terminals
-        .lock()
-        .unwrap()
-        .iter()
-        .find(|t| t.id == msg.terminal_id)
-        .cloned();
-    match term {
-        // The holder may run the agent before `terminal.run` has connected
-        // to it: a hook with this terminal's token still gives its session
-        // id (kept until a task registers the terminal, sessions.rs).
-        None if early_hook_token_ok(&msg) => {
-            log(&format!(
-                "hook: {} {} for {} before its terminal was registered: session id kept, status dropped",
-                msg.agent.as_str(),
-                msg.event,
-                msg.terminal_id
-            ));
-            super::sessions::note_hook_session(
-                daemon,
-                &msg.terminal_id,
-                msg.agent.as_str(),
-                &msg.payload,
-            );
-        }
-        None => log(&format!(
-            "hook: {} {} for unknown terminal {:?} dropped",
-            msg.agent.as_str(),
-            msg.event,
-            msg.terminal_id
-        )),
-        Some(t) => match t.status.on_hook(&msg) {
-            Err(why) => log(&format!(
-                "hook: {} {} for {} rejected ({why})",
-                msg.agent.as_str(),
-                msg.event,
-                t.id
-            )),
-            // docs/19 §3.5: the task remembers the agent's session id.
-            Ok(()) => {
-                super::sessions::note_hook_session(daemon, &t.id, msg.agent.as_str(), &msg.payload)
-            }
-        },
-    }
-    true
-}
-
 // ───────────────────────────── RPC ─────────────────────────────
 
 /// Methods served by this module (besides `status.subscribe`, a stream).
@@ -1040,255 +658,6 @@ pub(super) fn on_removed(daemon: &Daemon, t: &Terminal) {
     t.status.removed();
 }
 
-const STATE_NAMES: &[&str] = &[
-    "unknown", "idle", "working", "blocked", "done", "error", "exited",
-];
-
-enum Want {
-    Any,
-    State(String),
-    AnyChange,
-}
-
-async fn status_wait(daemon: &Daemon, p: StatusWaitParams) -> Result<StatusWaitResult, RpcError> {
-    let want = match p.status.as_deref() {
-        None => Want::Any,
-        Some("any_change" | "any-change") => Want::AnyChange,
-        Some(s) if STATE_NAMES.contains(&s) => Want::State(s.to_string()),
-        Some(s) => {
-            return Err(RpcError::new(
-                codes::INVALID_PARAMS,
-                format!("unknown status {s:?} (expected one of {STATE_NAMES:?} or any_change)"),
-            ));
-        }
-    };
-    if matches!(want, Want::Any) && !p.turn_end {
-        return Err(RpcError::new(
-            codes::INVALID_PARAMS,
-            "status or turn_end is required",
-        ));
-    }
-    let t = daemon.resolve(&p.target)?;
-    // Subscribe before the first check so no change is missed.
-    let mut rx = hub().tx.subscribe();
-    let start = Instant::now();
-    let initial = t.status.info();
-    let deadline = p
-        .timeout_ms
-        .map(|ms| tokio::time::Instant::now() + Duration::from_millis(ms));
-    let outcome = loop {
-        let cur = t.status.info();
-        let state_ok = match &want {
-            Want::Any => true,
-            Want::State(s) => cur.state == *s,
-            Want::AnyChange => cur.state_label() != initial.state_label(),
-        };
-        let turn_ok = !p.turn_end || (cur.turn > initial.turn && cur.state != "working");
-        let running = t.is_running();
-        if state_ok && turn_ok && (running || matches!(&want, Want::State(s) if s == "exited")) {
-            break WaitOutcome::Matched;
-        }
-        if !running {
-            break WaitOutcome::Exited;
-        }
-        // Wait for an event of this terminal.
-        let next = async {
-            loop {
-                match rx.recv().await {
-                    Ok(HubEvent::Status(ev)) if ev.id == t.id => return,
-                    Ok(_) => {}
-                    Err(broadcast::error::RecvError::Lagged(_)) => return,
-                    Err(broadcast::error::RecvError::Closed) => std::future::pending::<()>().await,
-                }
-            }
-        };
-        match deadline {
-            Some(d) => {
-                if tokio::time::timeout_at(d, next).await.is_err() {
-                    break WaitOutcome::TimedOut;
-                }
-            }
-            None => next.await,
-        }
-    };
-    Ok(StatusWaitResult {
-        outcome,
-        status: t.status.info(),
-        terminal: t.info(),
-        waited_ms: start.elapsed().as_millis() as u64,
-    })
-}
-
-/// `status.subscribe`: reply with every terminal's current status, then
-/// stream `status.changed` until the client disconnects.
-pub(super) async fn stream_subscribe(
-    daemon: Arc<Daemon>,
-    id: Value,
-    p: Value,
-    mut reader: BufReader<tokio::io::ReadHalf<NamedPipeServer>>,
-    mut write: tokio::io::WriteHalf<NamedPipeServer>,
-) -> anyhow::Result<()> {
-    let p: StatusSubscribeParams = match params(p) {
-        Ok(p) => p,
-        Err(e) => return write_json(&mut write, &err_response(id, e)).await,
-    };
-    let wanted = |tid: &str| p.ids.is_empty() || p.ids.iter().any(|x| x == tid);
-    let mut rx = hub().tx.subscribe();
-    let _lifecycle = p.lifecycle.then(LifecycleGuard::new);
-    let terms: Vec<Arc<Terminal>> = daemon.terminals.lock().unwrap().clone();
-    let entries: Vec<StatusEntry> = terms
-        .iter()
-        .filter(|t| wanted(&t.id))
-        .map(|t| t.status.entry())
-        .collect();
-    // Events already reflected in the snapshot are skipped per terminal.
-    let mut seen: HashMap<String, u64> = entries.iter().map(|e| (e.id.clone(), e.seq)).collect();
-    let gate_wanted = |g: &GateInfo| p.ids.is_empty() || g.terminal.as_deref().is_some_and(wanted);
-    let gates: Vec<GateInfo> = daemon
-        .orch
-        .lock()
-        .unwrap()
-        .gates
-        .iter()
-        .filter(|g| g.state == GateState::Pending && gate_wanted(g))
-        .cloned()
-        .collect();
-    let result = StatusSubscribeResult {
-        epoch: hub().base_ms,
-        seq: entries.iter().map(|e| e.seq).max().unwrap_or(0),
-        terminals: entries,
-        gates,
-    };
-    write_json(&mut write, &ok_response(id, serde_json::to_value(result)?)).await?;
-
-    loop {
-        tokio::select! {
-            ev = rx.recv() => match ev {
-                Ok(HubEvent::Gate(ev)) => {
-                    if !gate_wanted(&ev.gate) {
-                        continue;
-                    }
-                    if write_json(&mut write, &notification(NOTIFY_GATE_CHANGED, ev)).await.is_err() {
-                        break;
-                    }
-                }
-                Ok(HubEvent::GroupCheck(ev)) => {
-                    // Not about a terminal: only for unfiltered subscribers.
-                    if !p.ids.is_empty() {
-                        continue;
-                    }
-                    if write_json(&mut write, &notification(NOTIFY_GROUP_CHECK, ev)).await.is_err() {
-                        break;
-                    }
-                }
-                Ok(HubEvent::Delivery(ev)) => {
-                    if !wanted(&ev.delivery.terminal) {
-                        continue;
-                    }
-                    if write_json(&mut write, &notification(NOTIFY_REVIEW_DELIVERY, ev)).await.is_err() {
-                        break;
-                    }
-                }
-                Ok(HubEvent::Terminal(ev)) => {
-                    if !p.lifecycle || !wanted(&ev.id) {
-                        continue;
-                    }
-                    if write_json(&mut write, &notification(NOTIFY_TERMINAL_CHANGED, ev)).await.is_err() {
-                        break;
-                    }
-                }
-                Ok(HubEvent::Task(ev)) => {
-                    if !p.lifecycle || !p.ids.is_empty() {
-                        continue;
-                    }
-                    if write_json(&mut write, &notification(NOTIFY_TASK_CHANGED, ev)).await.is_err() {
-                        break;
-                    }
-                }
-                Ok(HubEvent::TaskRemoving(ev)) => {
-                    if !p.lifecycle || !p.ids.is_empty() {
-                        continue;
-                    }
-                    if write_json(&mut write, &notification(NOTIFY_TASK_REMOVING, ev)).await.is_err() {
-                        break;
-                    }
-                }
-                Ok(HubEvent::TaskPr(ev)) => {
-                    if !p.lifecycle || !p.ids.is_empty() {
-                        continue;
-                    }
-                    if write_json(&mut write, &notification(NOTIFY_TASK_PR_CHANGED, ev)).await.is_err() {
-                        break;
-                    }
-                }
-                Ok(HubEvent::ModNotify(ev)) => {
-                    if !p.ids.is_empty() {
-                        continue;
-                    }
-                    if write_json(&mut write, &notification(NOTIFY_MOD_NOTIFY, ev)).await.is_err() {
-                        break;
-                    }
-                }
-                Ok(HubEvent::Sessions(ev)) => {
-                    if !p.lifecycle || !p.ids.is_empty() {
-                        continue;
-                    }
-                    if write_json(&mut write, &notification(NOTIFY_SESSIONS_CHANGED, ev)).await.is_err() {
-                        break;
-                    }
-                }
-                Ok(HubEvent::ModChanged(ev)) => {
-                    if !p.ids.is_empty() {
-                        continue;
-                    }
-                    if write_json(&mut write, &notification(NOTIFY_MOD_CHANGED, ev)).await.is_err() {
-                        break;
-                    }
-                }
-                Ok(HubEvent::OrchChanged(ev)) => {
-                    if !p.ids.is_empty() {
-                        continue;
-                    }
-                    if write_json(&mut write, &notification(NOTIFY_ORCH_CHANGED, ev)).await.is_err() {
-                        break;
-                    }
-                }
-                Ok(HubEvent::OrchMail(ev)) => {
-                    if !p.ids.is_empty() {
-                        continue;
-                    }
-                    if write_json(&mut write, &notification(NOTIFY_ORCH_MAIL, ev)).await.is_err() {
-                        break;
-                    }
-                }
-                Ok(HubEvent::Status(ev)) => {
-                    if !wanted(&ev.id) || ev.seq <= seen.get(&ev.id).copied().unwrap_or(0) {
-                        continue;
-                    }
-                    seen.insert(ev.id.clone(), ev.seq);
-                    if write_json(&mut write, &notification(NOTIFY_STATUS_CHANGED, ev)).await.is_err() {
-                        break;
-                    }
-                }
-                Err(broadcast::error::RecvError::Lagged(missed)) => {
-                    let n = notification(NOTIFY_STATUS_LAGGED, StatusLaggedEvent { missed });
-                    if write_json(&mut write, &n).await.is_err() {
-                        break;
-                    }
-                }
-                Err(broadcast::error::RecvError::Closed) => break,
-            },
-            // Anything the client sends is ignored; EOF ends the subscription.
-            r = super::discard_input(&mut reader) => {
-                if !matches!(r, Ok(n) if n > 0) {
-                    break;
-                }
-            }
-        }
-    }
-    Ok(())
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -1317,21 +686,5 @@ mod tests {
         let long = format!("\x1b]0;{}\x07", "x".repeat(TITLE_MAX + 5));
         assert!(s.feed(long.as_bytes()).is_empty());
         assert_eq!(s.feed(b"\x1b]2;next\x07"), vec!["next"]);
-    }
-
-    #[test]
-    fn secrets_compare() {
-        assert!(same_secret("abc", "abc"));
-        assert!(!same_secret("abc", "abd"));
-        assert!(!same_secret("abc", "abcd"));
-    }
-
-    #[test]
-    fn token_is_random_hex() {
-        let a = new_token().unwrap();
-        let b = new_token().unwrap();
-        assert_eq!(a.len(), 32);
-        assert!(a.bytes().all(|c| c.is_ascii_hexdigit()));
-        assert_ne!(a, b);
     }
 }

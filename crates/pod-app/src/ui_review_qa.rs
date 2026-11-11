@@ -191,3 +191,56 @@ fn empty_workspace_has_one_contextual_action() {
         crate::workspace::EmptyState::NoTask
     );
 }
+
+/// A-P1: a static command's key and its palette id run the same command
+/// (the chrome's command table): the same dialog, dock panel and focus.
+#[test]
+fn command_keys_and_palette_ids_open_the_same_thing() {
+    fn seen(h: &mut Harness) -> (bool, bool, bool, String) {
+        let ws = h.ws.clone();
+        let (settings, inspector) = h.cx.update(|_, cx| {
+            let w = ws.read(cx);
+            let live = |p: &Option<WeakEntity<crate::chrome::ChromePanel>>| {
+                p.as_ref().and_then(|p| p.upgrade()).is_some()
+            };
+            (live(&w.settings_panel), live(&w.inspector_panel))
+        });
+        (h.dialog_open(), settings, inspector, h.focus_name())
+    }
+    for (key, id, names) in [
+        (
+            "ctrl-,",
+            "settings",
+            ["ui-cmd-settings-key", "ui-cmd-settings-id"],
+        ),
+        (
+            "ctrl-shift-s",
+            "inspect",
+            ["ui-cmd-inspect-key", "ui-cmd-inspect-id"],
+        ),
+        (
+            "ctrl-shift-b",
+            "notifications",
+            ["ui-cmd-notifications-key", "ui-cmd-notifications-id"],
+        ),
+        (
+            "ctrl-n",
+            "new-task",
+            ["ui-cmd-new-task-key", "ui-cmd-new-task-id"],
+        ),
+    ] {
+        let mut h = Harness::new(names[0], seed_two_tasks);
+        h.keys(key);
+        let by_key = seen(&mut h);
+        let mut h = Harness::new(names[1], seed_two_tasks);
+        let ws = h.ws.clone();
+        h.cx.update(|window, cx| ws.update(cx, |w, cx| w.command(id, window, cx)));
+        h.settle();
+        let by_id = seen(&mut h);
+        assert!(
+            by_key.0 || by_key.1 || by_key.2,
+            "{key} opens something: {by_key:?}"
+        );
+        assert_eq!(by_key, by_id, "{key} and palette id {id}");
+    }
+}

@@ -17,7 +17,9 @@ name = "pod-fake-ssh"
 path = "src/bin/pod-fake-ssh.rs"
 
 [dependencies]
-podd = { path = "../podd", default-features = false }
+# Client side only: pod-client under the old name, so `podd::client` still
+# reads (card D-T1). Tests find podd.exe next to pod.exe, not through Cargo.
+podd = { package = "pod-client", path = "../pod-client" }
 pod-status = { path = "../pod-status" }
 pod-remote = { path = "../pod-remote" }
 anyhow = "1"

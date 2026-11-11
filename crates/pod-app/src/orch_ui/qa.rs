@@ -575,3 +575,117 @@ fn unconfirmed_wakeups_show_with_a_retry_and_choices_are_radios() {
             .is_some()
     );
 }
+
+/// A-P5 pin (before the controller split): a burst of events reads each run
+/// at most twice — one read in flight, the rest merged into one more —
+/// and the app only lists mail; it never checks (acknowledges) it.
+#[test]
+fn event_bursts_coalesce_per_run_and_mail_is_never_acknowledged() {
+    let mut calls = None;
+    let mut h = Harness::new("orch-board", |b| calls = Some(orch_backend(b)));
+    let calls = calls.unwrap();
+    let _ = h.backend.events.unbounded_send(SourceEvent::OrchResync);
+    h.settle();
+    assert_eq!(count(&calls, "orch.run.list"), 1);
+    let start = calls.borrow().len();
+    let after = |calls: &Calls, method: &str| -> Vec<Value> {
+        calls.borrow()[start..]
+            .iter()
+            .filter(|(m, _)| m == method)
+            .map(|(_, p)| p.clone())
+            .collect()
+    };
+    let changed = |seq: u64, run: &str| {
+        SourceEvent::OrchChanged(Box::new(OrchChangedEvent {
+            seq,
+            run: run.into(),
+            item: None,
+            attempt: None,
+        }))
+    };
+    let mail = |seq: u64, run: &str| {
+        SourceEvent::OrchMail(Box::new(OrchMailEvent {
+            seq,
+            run: run.into(),
+            to: format!("run:{run}"),
+            id: format!("m{}", 20 + seq),
+            kind: MailType::Status,
+            subject: "status".into(),
+            text: None,
+            from: "attempt:a1".into(),
+        }))
+    };
+    // Three changes of r1 and one of r2 before podd answers anything.
+    for ev in [
+        changed(1, "r1"),
+        changed(2, "r1"),
+        changed(3, "r1"),
+        changed(4, "r2"),
+    ] {
+        let _ = h.backend.events.unbounded_send(ev);
+    }
+    h.settle();
+    assert_eq!(
+        after(&calls, "orch.run.show"),
+        vec![
+            json!({"run": "r1"}),
+            json!({"run": "r2"}),
+            json!({"run": "r1"})
+        ],
+        "r1: one read in flight, the other two merged into one more"
+    );
+    assert_eq!(
+        after(&calls, "orch.worker.list").len(),
+        3,
+        "workers with each read"
+    );
+    assert!(after(&calls, "orch.run.list").is_empty(), "no full reload");
+    // Three mails of r1: its mail is listed twice, the same way.
+    for ev in [mail(5, "r1"), mail(6, "r1"), mail(7, "r1")] {
+        let _ = h.backend.events.unbounded_send(ev);
+    }
+    h.settle();
+    assert_eq!(
+        after(&calls, "orch.mail.list"),
+        vec![json!({"run": "r1"}), json!({"run": "r1"})]
+    );
+    // Quiet again: nothing more, however long we wait.
+    let before = calls.borrow().len();
+    for _ in 0..3 {
+        h.cx.executor()
+            .advance_clock(std::time::Duration::from_secs(30));
+        h.settle();
+    }
+    assert_eq!(
+        calls.borrow().len(),
+        before,
+        "nothing re-read without an event"
+    );
+    // Reading the inbox acknowledges nothing: only `orch.mail.list` ever,
+    // and no message changes its read mark.
+    let marks = |h: &mut Harness| {
+        h.cx.update(|_, cx| {
+            state(cx)
+                .runs
+                .values()
+                .flat_map(|r| r.mail.iter().map(|m| (m.id.clone(), m.read_ms)))
+                .collect::<Vec<_>>()
+        })
+    };
+    let unread = marks(&mut h);
+    assert!(unread.iter().any(|(_, r)| r.is_none()), "{unread:?}");
+    h.keys("ctrl-shift-m");
+    h.settle();
+    assert_eq!(marks(&mut h), unread, "read marks unchanged");
+    let mail_methods: std::collections::BTreeSet<String> = calls
+        .borrow()
+        .iter()
+        .filter(|(m, _)| m.starts_with("orch.mail."))
+        .map(|(m, _)| m.clone())
+        .collect();
+    assert_eq!(
+        mail_methods.into_iter().collect::<Vec<_>>(),
+        vec!["orch.mail.list".to_string()],
+        "the app lists mail and never checks it"
+    );
+}

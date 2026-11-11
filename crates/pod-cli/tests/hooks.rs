@@ -1,12 +1,10 @@
 //! `pod hooks install|uninstall|status` against a temporary home only: never
 //! the real `%USERPROFILE%\.claude` / `.codex`.
 
-#[path = "../../../tools/test-support/require_tools.rs"]
-mod require_tools;
-
 use std::path::{Path, PathBuf};
 use std::process::Command;
 
+use pod_test_support::tools;
 use serde_json::{Value, json};
 
 const POD: &str = env!("CARGO_BIN_EXE_pod");
@@ -322,7 +320,7 @@ fn status_reports_binary_paths_and_versions() {
         assert_eq!(st["bin_version"], json!(v), "{st:#}");
         assert_eq!(st["source_version"], json!(v));
     } else {
-        require_tools::missing("pod-hook.exe next to pod.exe (cargo build -p pod-hook)");
+        tools::missing("pod-hook.exe next to pod.exe (cargo build -p pod-hook)");
     }
     let _ = std::fs::remove_dir_all(&home);
     let _ = std::fs::remove_dir_all(&bin);
@@ -392,7 +390,7 @@ fn install_creates_missing_files_and_uninstall_does_not() {
 #[test]
 fn codex_hooks_trusted_via_app_server_in_temp_home() {
     if Command::new("codex").arg("--version").output().is_err() {
-        require_tools::missing("codex on PATH");
+        tools::missing("codex on PATH");
         return;
     }
     let real = std::env::var_os("USERPROFILE")

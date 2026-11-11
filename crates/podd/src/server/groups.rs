@@ -9,7 +9,7 @@ use std::sync::Arc;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::time::{Duration, Instant};
 
-use pod_forge::bounded::{self, End, Keep};
+use pod_process::bounded::{self, End, Keep};
 
 use super::orch_store::{GroupMemberRecord, GroupRecord};
 use super::status::{self, HubEvent};
@@ -84,7 +84,7 @@ pub fn run_check(
         cmd.env_remove(v);
     }
     // One process tree, a whole-call deadline and a bounded tail
-    // (pod_forge::bounded, shared with archive scripts and gh).
+    // (pod_process::bounded, shared with archive scripts and gh).
     let mut opts = bounded::Options::new(timeout, Keep::Tail(OUTPUT_TAIL));
     opts.merge = true;
     let o = match bounded::run(&mut cmd, &opts, Some(cancel)) {

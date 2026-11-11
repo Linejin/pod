@@ -189,7 +189,7 @@ demo/feat-1 removed (terminals: t1; worktree removed; branch deleted)
 
 | 메서드 | 동작 |
 |---|---|
-| `task.archive {task, force?, ignore_script_failure?}` | 에이전트가 working/blocked면 `TASK_BUSY`(-32070, force로 무시). archive 스크립트를 **먼저** 실행(10분, `POD_ARCHIVE_TIMEOUT_SECS`). 스크립트와 그 자식 전체가 한 Job Object 트리에 들어가고, 시간 제한은 출력 파이프를 잡은 남은 자식까지 포함한 호출 전체에 걸리며(끝나면 트리를 죽임), 출력은 읽는 동안 마지막 4 KiB만 남긴다(`pod_forge::bounded`, orch-03). 실패하거나 승인되지 않았으면 `ARCHIVE_FAILED`(-32071, `data {exit_code, output}`), 아무것도 바꾸지 않음. 그다음 터미널을 모두 닫고 `lifecycle: archived`. worktree·브랜치·세션 id는 남음 |
+| `task.archive {task, force?, ignore_script_failure?}` | 에이전트가 working/blocked면 `TASK_BUSY`(-32070, force로 무시). archive 스크립트를 **먼저** 실행(10분, `POD_ARCHIVE_TIMEOUT_SECS`). 스크립트와 그 자식 전체가 한 Job Object 트리에 들어가고, 시간 제한은 출력 파이프를 잡은 남은 자식까지 포함한 호출 전체에 걸리며(끝나면 트리를 죽임), 출력은 읽는 동안 마지막 4 KiB만 남긴다(`pod_process::bounded`, orch-03). 실패하거나 승인되지 않았으면 `ARCHIVE_FAILED`(-32071, `data {exit_code, output}`), 아무것도 바꾸지 않음. 그다음 터미널을 모두 닫고 `lifecycle: archived`. worktree·브랜치·세션 id는 남음 |
 | `task.unarchive {task, start_agent?}` | active로 돌리고 에이전트를 다시 시작(세션이 있으면 재개) |
 | `task.resume {task, session?, agent?}` | 에이전트 터미널이 살아 있으면 `TERMINAL_RUNNING`. 아니면 죽은 터미널을 지우고 새 에이전트 터미널(이름 = Task id, 첫 번째): 세션 id가 있으면 에이전트 자체 명령 `claude --resume <id>` / `codex [--no-daemon -c …] resume <id>`(둘 다 각 CLI의 `--help`로 확인), 없으면 새 에이전트. 세션 id는 `[A-Za-z0-9._:-]`만 |
 | `task.cleanup_candidates {repo?, inactive_days?=7}` | **protected**(working/blocked 에이전트, 잠긴·중첩 worktree, setup 진행 중, git 상태 모름, 최근 활동), **review**(dirty, unpushed, base 없음), **ready**(깨끗 + PR 병합 / 보관됨 / N일 비활성) |

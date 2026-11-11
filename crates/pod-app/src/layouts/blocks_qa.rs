@@ -7,7 +7,8 @@ use gpui_kit::*;
 use podd::protocol::{GateInfo, GateState};
 use serde_json::json;
 
-use super::blocks::{Approval, BlockKey, Feed, decision};
+use super::blocks::Feed;
+use super::blocks_model::{Approval, BlockKey, decision};
 use crate::attach::Chunk;
 use crate::native_qa::{Harness, seed_two_tasks};
 use crate::source::{SourceEvent, TestBackend};
@@ -507,4 +508,105 @@ fn preset_11_maps_to_the_block_terminal() {
         r.resolve(p.layout).mode(),
         crate::layout_mode::LayoutMode::BlockTerminal
     );
+}
+
+/// A-P13 (reads through the layout frame): frames, a status event and a
+/// layout round trip neither attach a terminal twice nor send a gate decision
+/// or the input twice.
+#[test]
+fn frames_and_round_trips_neither_reattach_nor_resend() {
+    let mut h = Harness::new("blocks-once", seed_review);
+    let _ = h
+        .backend
+        .events
+        .unbounded_send(SourceEvent::Gates(vec![pending_gate(
+            "g1",
+            "b1",
+            &["이번만 허용", "항상 허용"],
+        )]));
+    h.settle();
+    set_layout(&mut h, "block-terminal");
+    let f = feed(&mut h);
+    // F6: 블록 → 입력 → 작업; ↓ picks review-bot.
+    h.keys("f6");
+    h.keys("f6");
+    h.keys("down");
+    assert_eq!(h.cx.update(|_, cx| f.read(cx).attached()), ["b1", "b2"]);
+    output(
+        &mut h,
+        "b2",
+        &format!("{A}PS> {B}cargo build\r\n{C}   Compiling pod-ui\r\n"),
+    );
+    let build = |h: &mut Harness| {
+        h.cx.update(|_, cx| {
+            f.read(cx)
+                .feed(cx)
+                .into_iter()
+                .find(|b| b.key.terminal == "b2" && b.block.title == "cargo build")
+                .map(|b| (b.key.seq, b.block.lines))
+        })
+    };
+    let before = build(&mut h).expect("the command block");
+    assert_eq!(before.1, ["   Compiling pod-ui"]);
+
+    // Frames and a status event: the same streams (a new attach starts empty).
+    let ws = h.ws.clone();
+    let frames = |h: &mut Harness| {
+        for _ in 0..4 {
+            h.cx.update(|_, cx| ws.update(cx, |_, cx| cx.notify()));
+            h.settle();
+        }
+    };
+    frames(&mut h);
+    h.backend.set_status("b2", "blocked");
+    h.settle();
+    frames(&mut h);
+    assert_eq!(h.cx.update(|_, cx| f.read(cx).attached()), ["b1", "b2"]);
+    assert_eq!(
+        build(&mut h),
+        Some(before.clone()),
+        "the stream kept its blocks"
+    );
+
+    // Y on the approval: one gate.resolve, however many frames follow.
+    let gate_block = h.cx.update(|_, cx| {
+        f.read(cx)
+            .feed(cx)
+            .into_iter()
+            .find(|b| b.gate.is_some())
+            .expect("the gate sits on b1")
+            .key
+    });
+    h.cx.update(|window, cx| f.update(cx, |f, cx| f.select(&gate_block, window, cx)));
+    h.settle();
+    h.keys("y");
+    frames(&mut h);
+    let resolves = |h: &Harness| {
+        h.backend
+            .calls
+            .iter()
+            .filter(|c| c.starts_with("gate.resolve"))
+            .count()
+    };
+    assert_eq!(resolves(&h), 1, "{:?}", h.backend.calls);
+
+    // Enter in the input: the text goes once to the target.
+    h.keys("f6");
+    assert!(input_focused(&mut h));
+    let target =
+        h.cx.update(|_, cx| f.read(cx).target.clone())
+            .expect("a running terminal");
+    h.type_text("ls");
+    h.keys("enter");
+    frames(&mut h);
+    assert_eq!(h.backend.typed_text(&target), "ls\r");
+
+    // Away and back: one attach per terminal again, nothing sent again.
+    set_layout(&mut h, "workbench");
+    assert!(h.cx.update(|_, cx| f.read(cx).attached().is_empty()));
+    set_layout(&mut h, "block-terminal");
+    frames(&mut h);
+    assert_eq!(h.cx.update(|_, cx| f.read(cx).attached()), ["b1", "b2"]);
+    assert_eq!(resolves(&h), 1);
+    assert_eq!(h.backend.typed_text(&target), "ls\r");
 }

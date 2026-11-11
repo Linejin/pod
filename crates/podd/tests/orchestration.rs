@@ -5,12 +5,14 @@
 
 mod common;
 
-use std::path::{Path, PathBuf};
+use std::path::PathBuf;
 use std::process::{Command, Stdio};
 use std::sync::mpsc;
 use std::time::{Duration, Instant};
 
 use common::*;
+use pod_test_support::git::{git_ok, git_output};
+use pod_test_support::wait;
 use podd::client::{Client, StatusStreamEvent, SubscribeEvent};
 use podd::protocol::*;
 
@@ -30,14 +32,14 @@ impl TempRepo {
         let root = std::env::temp_dir().join(unique("orch-repo"));
         let path = root.join("pod repo");
         std::fs::create_dir_all(path.join("src")).unwrap();
-        git(&path, &["init", "-q", "-b", "main"]);
+        git_ok(&path, &["init", "-q", "-b", "main"]);
         for (k, v) in [
             ("user.name", "Pod Test"),
             ("user.email", "pod-test@example.invalid"),
             ("commit.gpgsign", "false"),
             ("core.autocrlf", "false"),
         ] {
-            git(&path, &["config", k, v]);
+            git_ok(&path, &["config", k, v]);
         }
         std::fs::write(
             path.join("src").join("lib.rs"),
@@ -45,8 +47,8 @@ impl TempRepo {
         )
         .unwrap();
         std::fs::write(path.join("README.md"), "hello\n").unwrap();
-        git(&path, &["add", "-A"]);
-        git(&path, &["commit", "-q", "-m", "init"]);
+        git_ok(&path, &["add", "-A"]);
+        git_ok(&path, &["commit", "-q", "-m", "init"]);
         Self { root, path }
     }
 }
@@ -55,21 +57,6 @@ impl Drop for TempRepo {
     fn drop(&mut self) {
         let _ = std::fs::remove_dir_all(&self.root);
     }
-}
-
-fn git(dir: &Path, args: &[&str]) -> String {
-    let out = Command::new("git")
-        .arg("-C")
-        .arg(dir)
-        .args(args)
-        .output()
-        .expect("run git");
-    assert!(
-        out.status.success(),
-        "git {args:?}: {}",
-        String::from_utf8_lossy(&out.stderr)
-    );
-    String::from_utf8_lossy(&out.stdout).into_owned()
 }
 
 fn add_repo(c: &mut Client, repo: &TempRepo) {
@@ -450,7 +437,9 @@ fn group_fan_out_compare_check_pick() {
         names,
         ["demo/fx-shell-1", "demo/fx-shell-2", "demo/fx-shell-3"]
     );
-    let base = git(&repo.path, &["rev-parse", "HEAD"]).trim().to_string();
+    let base = git_output(&repo.path, &["rev-parse", "HEAD"])
+        .trim()
+        .to_string();
     assert_eq!(g.base_commit, base);
     for m in &g.members {
         let info = m.info.as_ref().unwrap();
@@ -651,7 +640,7 @@ fn group_fan_out_compare_check_pick() {
     assert!(p.kept.is_empty());
     assert!(!wts[0].exists() && !wts[2].exists());
     assert!(wts[1].join("result.txt").exists());
-    let branches = git(&repo.path, &["branch", "--list", "pod/*"]);
+    let branches = git_output(&repo.path, &["branch", "--list", "pod/*"]);
     assert!(branches.contains("pod/fx-shell-2"));
     assert!(!branches.contains("pod/fx-shell-1") && !branches.contains("pod/fx-shell-3"));
     let shown = c
@@ -918,7 +907,15 @@ fn review_queue_is_prompt_for_terminals_without_turns() {
         let s = std::fs::read_to_string(&log).ok()?;
         (s.matches("<<<END").count() == 2).then_some(())
     });
-    std::thread::sleep(Duration::from_millis(2000));
+    wait::stays(
+        Duration::from_millis(2000),
+        POLL,
+        || match std::fs::read_to_string(&log) {
+            Ok(s) if s.matches("<<<END").count() != 2 => Err(s),
+            _ => Ok(()),
+        },
+    )
+    .unwrap_or_else(|b| panic!("exactly once each: {b}"));
     let text = std::fs::read_to_string(&log).unwrap();
     assert_eq!(
         text.matches("<<<END").count(),
@@ -1007,11 +1004,13 @@ fn gate_requested_in_terminal_subscribe_and_wait() {
         .stdin(Stdio::null())
         .spawn()
         .unwrap();
-    std::thread::sleep(Duration::from_millis(1500));
-    assert!(
-        waiter.try_wait().unwrap().is_none(),
-        "returned before approval"
-    );
+    wait::stays(Duration::from_millis(1500), POLL, || {
+        match waiter.try_wait().unwrap() {
+            None => Ok(()),
+            Some(st) => Err(st),
+        }
+    })
+    .unwrap_or_else(|b| panic!("returned before approval: {b}"));
     let out = pod(&d.pipe, &["gate", "approve", "g1", "--note", "go ahead"]);
     assert!(out.status.success());
     let st = until("pod wait --gate to return", 15, || {
@@ -1138,12 +1137,13 @@ fn queued_review_expires_with_an_event() {
         })
         .unwrap();
     assert_eq!(q.state, DeliveryState::Queued);
-    std::thread::sleep(Duration::from_millis(1000));
-    assert_eq!(
-        delivery(&mut c, &q.id).state,
-        DeliveryState::Queued,
-        "not before the timeout"
-    );
+    wait::stays(Duration::from_millis(1000), POLL, || {
+        match delivery(&mut c, &q.id).state {
+            DeliveryState::Queued => Ok(()),
+            other => Err(other),
+        }
+    })
+    .unwrap_or_else(|b| panic!("not before the timeout: {b}"));
 
     let expired = loop {
         let e = events
@@ -1270,7 +1270,15 @@ fn review_delivery_submits_to_a_lagging_paste_burst_tui() {
     assert_eq!(got.matches("<<<END").count(), 1, "{got}");
     let text = got.split("\n<<<END").next().unwrap();
     assert_eq!(text, sent.prompt.trim_end());
-    std::thread::sleep(Duration::from_millis(1_500));
+    wait::stays(
+        Duration::from_millis(1_500),
+        POLL,
+        || match std::fs::read_to_string(&log) {
+            Ok(s) if s.matches("<<<END").count() != 1 => Err(s),
+            _ => Ok(()),
+        },
+    )
+    .unwrap_or_else(|b| panic!("submitted once: {b}"));
     assert_eq!(
         std::fs::read_to_string(&log)
             .unwrap()
@@ -1342,15 +1350,20 @@ fn approved_permission_is_working_and_reviews_queue() {
         keys: vec!["down".into()],
     })
     .unwrap();
-    std::thread::sleep(Duration::from_millis(500));
-    assert_eq!(
-        c.call::<TerminalShow>(&TerminalRef::id(&term))
+    wait::stays(Duration::from_millis(500), POLL, || {
+        let state = c
+            .call::<TerminalShow>(&TerminalRef::id(&term))
             .unwrap()
             .status
             .unwrap()
-            .state,
-        "blocked"
-    );
+            .state;
+        if state == "blocked" {
+            Ok(())
+        } else {
+            Err(state)
+        }
+    })
+    .unwrap_or_else(|b| panic!("arrow keys do not answer the prompt: {b}"));
     // Approve.
     let approved_at = Instant::now();
     c.call::<TerminalKeys>(&KeysParams {

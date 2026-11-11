@@ -1,9 +1,12 @@
 //! Pod core daemon.
 //!
-//! Client side (always built):
+//! Client side (always built), from `pod-client` and `pod-protocol` under the
+//! old paths, as the same items (docs/20-refactor/daemon.md §2, cards D-F2
+//! and D-T1): `podd::client::Client` is `pod_client::client::Client`.
 //! - [`protocol`]: JSON-RPC 2.0 types shared by the daemon, the CLI and future UI,
 //!   re-exported from `pod-protocol` with the nine `*_protocol` domain modules.
 //! - [`client`]: blocking pipe client with daemon auto-start and attach streams.
+//! - [`transport`], [`endpoint`], `detach`: line framing, pipe names, detached spawn.
 //! - [`env`], [`keys`]: terminal environment hygiene, named keys -> bytes.
 //!
 //! Server side (feature `server`):
@@ -14,13 +17,13 @@
 //! - [`vt`], [`pty`], [`winsec`]: VT state + ANSI snapshots, ConPTY spawn,
 //!   user-only pipe DACL and the clean user environment.
 
-pub mod client;
+// The blocking client lives in `pod-client` (card D-T1). These are the
+// modules themselves, so every type keeps one identity across both paths.
 #[cfg(windows)]
-pub mod detach;
-pub mod endpoint;
+pub use pod_client::detach;
+pub use pod_client::{client, endpoint, now_ms, transport};
 pub mod env;
 pub mod keys;
-pub mod transport;
 
 // The wire modules live in `pod-protocol` (docs/20-refactor/daemon.md §2,
 // card D-F2). They stay reachable under their old paths, as the same modules:
@@ -47,10 +50,30 @@ pub mod vt;
 #[cfg(feature = "server")]
 pub mod winsec;
 
-/// Unix epoch milliseconds.
-pub fn now_ms() -> u64 {
-    std::time::SystemTime::now()
-        .duration_since(std::time::UNIX_EPOCH)
-        .map(|d| d.as_millis() as u64)
-        .unwrap_or(0)
+#[cfg(test)]
+mod client_shim_tests {
+    use std::any::TypeId;
+
+    /// D-T1: the old client paths name the pod-client items themselves, not
+    /// copies (a copy would be a second, incompatible type).
+    #[test]
+    fn old_client_paths_are_the_pod_client_types() {
+        assert_eq!(
+            TypeId::of::<crate::client::Client>(),
+            TypeId::of::<pod_client::client::Client>()
+        );
+        assert_eq!(
+            TypeId::of::<crate::transport::Transport>(),
+            TypeId::of::<pod_client::transport::Transport>()
+        );
+        #[cfg(windows)]
+        assert_eq!(
+            TypeId::of::<crate::detach::DetachedChild>(),
+            TypeId::of::<pod_client::detach::DetachedChild>()
+        );
+        assert_eq!(
+            TypeId::of::<crate::protocol::TaskInfo>(),
+            TypeId::of::<pod_client::protocol::TaskInfo>()
+        );
+    }
 }

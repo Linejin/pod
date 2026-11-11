@@ -1,13 +1,23 @@
 //! The mod thread end to end with a fake host: discovery, enable/grant
 //! persistence, event delivery, permission and scope checks, detectors,
 //! crash isolation and the shipped example mods.
+//!
+//! Needs the mod thread (feature `runtime`); without it only the wire types
+//! build and `wire_snapshots` checks them.
+#![cfg(feature = "runtime")]
 
 use std::path::{Path, PathBuf};
 use std::sync::{Arc, Mutex};
 use std::time::{Duration, Instant};
 
 use pod_mods::*;
+use pod_test_support::wait::{stays, until};
 use serde_json::json;
+
+/// How long a wait for something that should happen may take.
+const READY: Duration = Duration::from_secs(5);
+/// Probe interval of the waits.
+const POLL: Duration = Duration::from_millis(10);
 
 #[derive(Default)]
 struct Fake {
@@ -24,15 +34,14 @@ impl Fake {
     fn calls(&self) -> Vec<String> {
         self.calls.lock().unwrap().clone()
     }
+    /// The calls once `pred` holds, or as they are after [`READY`] (the
+    /// caller's assert shows them).
     fn wait_for(&self, pred: impl Fn(&[String]) -> bool) -> Vec<String> {
-        let deadline = Instant::now() + Duration::from_secs(5);
-        loop {
+        until(READY, POLL, || {
             let c = self.calls();
-            if pred(&c) || Instant::now() > deadline {
-                return c;
-            }
-            std::thread::sleep(Duration::from_millis(10));
-        }
+            if pred(&c) { Ok(c) } else { Err(c) }
+        })
+        .unwrap_or_else(|t| t.last)
     }
 }
 
@@ -247,6 +256,43 @@ fn discovery_enable_grant_and_persistence() {
             .unwrap()
             .contains("\"enabled\": false")
     );
+}
+
+/// pod-mods.json goes through `pod-mods.json.tmp` and a rename. A failed
+/// write is reported as `"<path>: <error>"`, the mods folder is never created
+/// for it, and the call's order stays: the change is made in memory, the save
+/// fails, the mod is not restarted.
+#[test]
+fn state_file_write_failures_are_reported() {
+    let tmp = tempfile::tempdir().unwrap();
+    let root = tmp.path().join("mods");
+    write(&root, "hello", manifest("hello", &["notify"]), "");
+    let (h, _fake) = start(&root);
+    let path = root.join(STATE_FILE);
+    let blocker = root.join("pod-mods.json.tmp");
+    std::fs::create_dir(&blocker).unwrap();
+    let err = h.set_enabled("hello", true).unwrap_err();
+    assert!(err.starts_with(&format!("{}: ", path.display())), "{err}");
+    assert!(!path.exists());
+    let m = info(&h.list().unwrap(), "hello").clone();
+    assert!(m.enabled, "changed in memory before the save");
+    assert_eq!(m.state, ModState::Disabled, "not started after the failure");
+
+    std::fs::remove_dir(&blocker).unwrap();
+    let m = h.set_enabled("hello", true).unwrap();
+    assert_eq!(m.state, ModState::Running);
+    assert_eq!(
+        std::fs::read_to_string(&path).unwrap(),
+        "{\n  \"mods\": {\n    \"hello\": {\n      \"enabled\": true,\n      \"granted\": [\n        \"notify\"\n      ]\n    }\n  }\n}"
+    );
+    assert!(!blocker.exists(), "the temporary file is renamed away");
+
+    // The mods folder is gone: saving does not create it again.
+    std::fs::remove_dir_all(&root).unwrap();
+    let err = h.set_enabled("hello", false).unwrap_err();
+    assert!(err.starts_with(&format!("{}: ", path.display())), "{err}");
+    assert!(!root.exists());
+    assert_eq!(info(&h.list().unwrap(), "hello").state, ModState::Running);
 }
 
 #[test]
@@ -635,12 +681,13 @@ fn queue_overflow_is_counted_not_blocking() {
         start.elapsed() < Duration::from_millis(500),
         "posting never blocks"
     );
-    let deadline = Instant::now() + Duration::from_secs(30);
-    let mut list = h.list().unwrap();
-    while list.dropped_events == 0 && Instant::now() < deadline {
-        list = h.list().unwrap();
-    }
-    assert!(list.dropped_events > 0);
+    let dropped = until(Duration::from_secs(30), Duration::ZERO, || {
+        match h.list().unwrap().dropped_events {
+            0 => Err(0),
+            n => Ok(n),
+        }
+    });
+    assert!(dropped.is_ok(), "{dropped:?}");
 }
 
 // ───────────────────────────── shipped examples ─────────────────────────────
@@ -793,15 +840,18 @@ fn log_msgs(h: &ModHandle, name: &str) -> Vec<String> {
         .collect()
 }
 
+/// [`log_msgs`] once `pred` holds, or as they are after [`READY`].
 fn wait_log(h: &ModHandle, name: &str, pred: impl Fn(&[String]) -> bool) -> Vec<String> {
-    let deadline = Instant::now() + Duration::from_secs(5);
-    loop {
+    until(READY, POLL, || {
         let l = log_msgs(h, name);
-        if pred(&l) || Instant::now() > deadline {
-            return l;
-        }
-        std::thread::sleep(Duration::from_millis(10));
-    }
+        if pred(&l) { Ok(l) } else { Err(l) }
+    })
+    .unwrap_or_else(|t| t.last)
+}
+
+/// Number of `msg` lines in a mod's log.
+fn count_log(h: &ModHandle, name: &str, msg: &str) -> usize {
+    log_msgs(h, name).iter().filter(|m| *m == msg).count()
 }
 
 #[test]
@@ -841,15 +891,17 @@ fn timers_fire_in_order_with_args_and_the_creating_scope() {
         "{:?}",
         t0.elapsed()
     );
-    std::thread::sleep(Duration::from_millis(250));
-    assert_eq!(
-        log_msgs(&h, "tm")
+    let held = stays(Duration::from_millis(250), POLL, || {
+        match log_msgs(&h, "tm")
             .iter()
             .filter(|m| m.starts_with("tick"))
-            .count(),
-        3,
-        "cleared interval stays cleared"
-    );
+            .count()
+        {
+            3 => Ok(()),
+            n => Err(n),
+        }
+    });
+    assert!(held.is_ok(), "cleared interval stays cleared: {held:?}");
 
     // A timer created in an event callback keeps that callback's task scope.
     deliver(
@@ -957,16 +1009,17 @@ fn looping_timer_callbacks_are_stopped_and_timers_die_with_the_mod() {
     for m in ["tloop", "tthrow", "tok"] {
         h.set_enabled(m, true).unwrap();
     }
-    let deadline = Instant::now() + Duration::from_secs(5);
-    let stopped = |h: &ModHandle| {
+    let list = until(READY, Duration::from_millis(20), || {
         let l = h.list().unwrap();
-        info(&l, "tloop").state == ModState::Stopped
+        if info(&l, "tloop").state == ModState::Stopped
             && info(&l, "tthrow").state == ModState::Stopped
-    };
-    while !stopped(&h) && Instant::now() < deadline {
-        std::thread::sleep(Duration::from_millis(20));
-    }
-    let list = h.list().unwrap();
+        {
+            Ok(l)
+        } else {
+            Err(l)
+        }
+    })
+    .unwrap_or_else(|t| t.last);
     assert_eq!(
         info(&list, "tloop").stop_reason,
         Some(StopReason::Cpu),
@@ -977,65 +1030,57 @@ fn looping_timer_callbacks_are_stopped_and_timers_die_with_the_mod() {
         Some(StopReason::Errors),
         "three failing ticks in a row"
     );
-    let ticks = fake
-        .calls()
-        .iter()
-        .filter(|c| c.contains("| tick |"))
-        .count();
-    assert!(ticks >= 1, "the interval ran before the loop");
-    std::thread::sleep(Duration::from_millis(350));
-    assert_eq!(
+    let notified = || {
         fake.calls()
             .iter()
             .filter(|c| c.contains("| tick |"))
-            .count(),
-        ticks,
-        "a stopped mod's interval no longer fires"
+            .count()
+    };
+    let ticks = notified();
+    assert!(ticks >= 1, "the interval ran before the loop");
+    let held = stays(Duration::from_millis(350), POLL, || match notified() {
+        n if n == ticks => Ok(()),
+        n => Err(n),
+    });
+    assert!(
+        held.is_ok(),
+        "a stopped mod's interval no longer fires: {held:?}"
     );
     assert_eq!(
         info(&h.list().unwrap(), "tok").state,
         ModState::Running,
         "other mods' timers keep running"
     );
-    assert!(
-        log_msgs(&h, "tok")
-            .iter()
-            .filter(|m| *m == "ok tick")
-            .count()
-            >= 3
-    );
+    assert!(count_log(&h, "tok", "ok tick") >= 3);
 
     // Disabling clears timers too; re-enabling starts from scratch.
     h.set_enabled("tok", false).unwrap();
-    let before = log_msgs(&h, "tok")
-        .iter()
-        .filter(|m| *m == "ok tick")
-        .count();
-    std::thread::sleep(Duration::from_millis(300));
-    assert_eq!(
-        log_msgs(&h, "tok")
-            .iter()
-            .filter(|m| *m == "ok tick")
-            .count(),
-        before,
-        "disabled mods' timers are gone"
-    );
+    let before = count_log(&h, "tok", "ok tick");
+    let held = stays(Duration::from_millis(300), POLL, || {
+        match count_log(&h, "tok", "ok tick") {
+            n if n == before => Ok(()),
+            n => Err(n),
+        }
+    });
+    assert!(held.is_ok(), "disabled mods' timers are gone: {held:?}");
     h.set_enabled("tok", true).unwrap();
     wait_log(&h, "tok", |l| {
         l.iter().filter(|m| *m == "ok tick").count() > before
     });
-    // Reload (re-scan) also starts timers fresh rather than doubling them.
+    // Reload (re-scan) also starts timers fresh rather than doubling them:
+    // the whole 550 ms are watched (never more than 7 ticks), then counted.
     h.reload(Some("tok")).unwrap();
-    let base = log_msgs(&h, "tok")
-        .iter()
-        .filter(|m| *m == "ok tick")
-        .count();
-    std::thread::sleep(Duration::from_millis(550));
-    let after = log_msgs(&h, "tok")
-        .iter()
-        .filter(|m| *m == "ok tick")
-        .count()
-        - base;
+    let base = count_log(&h, "tok", "ok tick");
+    let held = stays(
+        Duration::from_millis(550),
+        Duration::from_millis(50),
+        || match count_log(&h, "tok", "ok tick") - base {
+            n if n <= 7 => Ok(()),
+            n => Err(n),
+        },
+    );
+    assert!(held.is_ok(), "one interval after reload, not two: {held:?}");
+    let after = count_log(&h, "tok", "ok tick") - base;
     assert!(
         (3..=7).contains(&after),
         "one interval after reload, not two: {after} ticks in 550 ms"
@@ -1101,16 +1146,17 @@ fn orchestration_events_are_permission_checked() {
     let mail = json!({"run": "r1", "id": "m3", "from": "attempt:a2", "to": "run:r1", "type": "escalation",
         "subject": "worker a2 lost", "text": {"kind": "escalation.lost"}, "attempt": "a2", "task": "repo/b"});
     deliver(&h, "orch.mail", scope("repo/b", None), mail.clone());
-    std::thread::sleep(Duration::from_millis(100));
-    let calls = fake.calls();
-    assert!(
-        !calls.iter().any(|c| c.contains("| mail |")),
-        "not granted yet: {calls:?}"
-    );
-    assert!(
-        !calls.iter().any(|c| c.contains("| star | orch.")),
-        "\"*\" without orch sees nothing: {calls:?}"
-    );
+    let held = stays(Duration::from_millis(100), POLL, || {
+        let calls = fake.calls();
+        if calls.iter().any(|c| c.contains("| mail |")) {
+            Err(format!("not granted yet: {calls:?}"))
+        } else if calls.iter().any(|c| c.contains("| star | orch.")) {
+            Err(format!("\"*\" without orch sees nothing: {calls:?}"))
+        } else {
+            Ok(())
+        }
+    });
+    assert!(held.is_ok(), "{held:?}");
 
     h.grant("watch", Permission::Orch, true).unwrap();
     h.grant("watch", Permission::Check, true).unwrap();
@@ -1155,12 +1201,13 @@ fn orchestration_events_are_permission_checked() {
         scope("repo/b", None),
         json!({"run": "r1"}),
     );
-    std::thread::sleep(Duration::from_millis(100));
-    assert!(
-        !fake.calls()[before..]
-            .iter()
-            .any(|c| c.contains("| changed |")),
-        "{:?}",
-        fake.calls()
-    );
+    let held = stays(Duration::from_millis(100), POLL, || {
+        let calls = fake.calls();
+        if calls[before..].iter().any(|c| c.contains("| changed |")) {
+            Err(calls)
+        } else {
+            Ok(())
+        }
+    });
+    assert!(held.is_ok(), "{held:?}");
 }

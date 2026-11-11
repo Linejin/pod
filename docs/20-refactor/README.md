@@ -35,3 +35,15 @@
 | G3 검증 | 기준 이미지 비교·재촬영, 전체 fmt, Astra 재평가 | 마지막 |
 
 G1 안에서는 크기가 큰(L) 카드를 먼저 띄워, 작은 카드가 빈 자리를 채우게 한다.
+
+## A-T2 나누기 (2026-11-11)
+
+레이아웃 카드 5장(A-P10~P14)이 보고한 kit/host 부족분이 약 40가지라 A-T2 한 장으로는 작업 분배 기준(항목 8, 파일 15)을 넘는다. 다음처럼 나눈다.
+
+| 카드 | 내용 | 순서 |
+|---|---|---|
+| A-T2a | kit·host 보강: 창 키·관찰 연결, dock 접근, 프레임 읽기(라벨·현재 작업·트리 선택·패널 수), 동작(터미널 보이기·작업 터미널 열기·승인 결정·터미널 입력·알림) | 먼저 |
+| A-T2b | rail·queue를 renderer()로, legacy 어댑터 제거 | T2a 뒤 병렬 |
+| A-T2c | dense·kanban | T2a 뒤 병렬 |
+| A-T2d | blocks·review | T2a 뒤 병렬 |
+| A-T2z | 작업대 renderer, legacy hook 제거, `main.rs`·`native_qa/layout_contract.rs`, 7개 모드 순환 검사, fan-in/out 재측정 | 마지막 |

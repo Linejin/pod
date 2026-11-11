@@ -1,12 +1,14 @@
 //! Parser and scan tests over synthetic fixtures (tests/fixtures) that mirror
 //! the structure of the agents' stores. No real session content.
 
+use std::collections::HashMap;
 use std::path::{Path, PathBuf};
+use std::time::{Duration, UNIX_EPOCH};
 
 use pod_discover::claude::ClaudeSource;
 use pod_discover::codex::CodexSource;
 use pod_discover::time::parse_rfc3339_ms;
-use pod_discover::{Agent, Budget, Cache, Found, Limits, Source, scan};
+use pod_discover::{Agent, Budget, Cache, FileStamp, Found, Limits, SessionMeta, Source, scan};
 
 const C1: &str = "11111111-2222-4333-8444-555555555555";
 const C3: &str = "33333333-2222-4333-8444-555555555555";
@@ -378,5 +380,291 @@ fn counts_messages_in_spaced_json() {
         find(&out.sessions, Agent::Claude, id).meta.messages,
         Some(2)
     );
+    let _ = std::fs::remove_dir_all(&root);
+}
+
+// Scan orchestration over a synthetic store whose read costs are exact:
+// budget split, newest-first counting, de-duplication and cache reuse.
+
+/// Bytes [`Fake::parse`] takes from the budget (a head read).
+const PARSE_COST: u64 = 100;
+/// Bytes [`Fake::running_sessions`] takes from its budget.
+const RUNNING_COST: u64 = 700;
+
+/// A store of `*.s` files whose first line is `<id> <last_ms>`; lines with
+/// `msg` are messages.
+struct Fake {
+    agent: Agent,
+    root: PathBuf,
+    /// Records pid 7 as running `<agent>-run`.
+    running: bool,
+}
+
+fn fake(agent: Agent, root: PathBuf, running: bool) -> Box<dyn Source> {
+    Box::new(Fake {
+        agent,
+        root,
+        running,
+    })
+}
+
+impl Source for Fake {
+    fn agent(&self) -> Agent {
+        self.agent
+    }
+
+    fn root(&self) -> &Path {
+        &self.root
+    }
+
+    fn list(&self, _limits: &Limits) -> Vec<FileStamp> {
+        std::fs::read_dir(&self.root)
+            .into_iter()
+            .flatten()
+            .flatten()
+            .filter_map(|e| FileStamp::of(e.path()))
+            .collect()
+    }
+
+    fn parse(&self, file: &FileStamp, limits: &Limits, budget: &mut Budget) -> Option<SessionMeta> {
+        if !budget.take(PARSE_COST) {
+            return None;
+        }
+        let text = std::fs::read_to_string(&file.path).ok()?;
+        let mut words = text.split_whitespace();
+        Some(SessionMeta {
+            id: words.next()?.to_string(),
+            cwd: r"C:\w".into(),
+            last_ms: words.next()?.parse().ok(),
+            preview: limits.preview.then(|| "first prompt".to_string()),
+            ..SessionMeta::default()
+        })
+    }
+
+    fn message_markers(&self) -> &'static [&'static [u8]] {
+        &[b"msg"]
+    }
+
+    fn running_sessions(&self, budget: &mut Budget) -> HashMap<u32, String> {
+        if self.running && budget.take(RUNNING_COST) {
+            HashMap::from([(7, format!("{}-run", self.agent.as_str()))])
+        } else {
+            HashMap::new()
+        }
+    }
+}
+
+/// A fresh scratch directory.
+fn scratch(tag: &str) -> PathBuf {
+    let dir = std::env::temp_dir().join(
+        format!(
+            "pod-discover-{tag}-{}-{:?}",
+            std::process::id(),
+            std::time::SystemTime::now()
+        )
+        .replace([':', ' '], "_"),
+    );
+    std::fs::create_dir_all(&dir).unwrap();
+    dir
+}
+
+/// `<dir>/<id>.s`, see [`put_as`].
+fn put(dir: &Path, id: &str, last_ms: u64, size: usize, mtime_ms: u64) {
+    put_as(dir, id, id, last_ms, size, mtime_ms);
+}
+
+/// A [`Fake`] session file `<dir>/<file>.s` of exactly `size` bytes with one
+/// message line.
+fn put_as(dir: &Path, file: &str, id: &str, last_ms: u64, size: usize, mtime_ms: u64) {
+    let mut body = format!("{id} {last_ms} msg\n").into_bytes();
+    assert!(body.len() < size, "{id}: {size} bytes is too small");
+    body.resize(size - 1, b'x');
+    body.push(b'\n');
+    std::fs::create_dir_all(dir).unwrap();
+    let path = dir.join(format!("{file}.s"));
+    std::fs::write(&path, body).unwrap();
+    std::fs::File::options()
+        .write(true)
+        .open(&path)
+        .unwrap()
+        .set_modified(UNIX_EPOCH + Duration::from_millis(mtime_ms))
+        .unwrap();
+}
+
+/// (agent, id, last activity, messages) of a found session.
+type Row = (Agent, String, Option<u64>, Option<u64>);
+
+fn rows(out: &[Found]) -> Vec<Row> {
+    out.iter()
+        .map(|f| (f.agent, f.meta.id.clone(), f.meta.last_ms, f.meta.messages))
+        .collect()
+}
+
+fn row(agent: Agent, id: &str, last: u64, messages: Option<u64>) -> Row {
+    (agent, id.to_string(), Some(last), messages)
+}
+
+#[test]
+fn metadata_budget_is_split_between_sources() {
+    let root = scratch("share");
+    let (a, b) = (root.join("a"), root.join("b"));
+    put(&a, "a1", 300, 50, 3000);
+    put(&a, "a2", 200, 50, 2000);
+    put(&a, "a3", 100, 50, 1000);
+    put(&b, "b1", 50, 50, 500);
+    let mut sources = vec![fake(Agent::Claude, a, true), fake(Agent::Codex, b, false)];
+    // 1000 bytes: each source may spend 1000 / (2 sources * 2 phases) = 250
+    // on metadata, so the first store reads 2 of its 3 files and cannot take
+    // the second store's share; the counts share the other 500.
+    let limits = Limits {
+        read_bytes: 1000,
+        ..Limits::default()
+    };
+    let mut cache = Cache::default();
+    let out = scan(&mut sources, &mut cache, &limits);
+    assert_eq!(
+        rows(&out.sessions),
+        [
+            row(Agent::Claude, "a1", 300, Some(1)),
+            row(Agent::Claude, "a2", 200, Some(1)),
+            row(Agent::Codex, "b1", 50, Some(1)),
+        ]
+    );
+    assert!(out.truncated);
+    assert_eq!((out.parsed, out.cached), (3, 0));
+    // The pid records get the whole budget, not a share.
+    assert_eq!(
+        out.running_ids[&Agent::Claude],
+        HashMap::from([(7, "claude-run".to_string())])
+    );
+    assert!(out.running_ids[&Agent::Codex].is_empty());
+    assert_eq!(out.bytes_read, 3 * PARSE_COST + 3 * 50 + RUNNING_COST);
+    // A file never read is not remembered.
+    assert_eq!(cache.files.len(), 3);
+    assert!(!cache.files.keys().any(|k| k.ends_with("a3.s")));
+    let _ = std::fs::remove_dir_all(&root);
+}
+
+#[test]
+fn one_session_per_agent_and_id_keeps_the_newest_activity() {
+    let root = scratch("dedupe");
+    let (a, b) = (root.join("a"), root.join("b"));
+    // A copy of a session: the newer file holds the older activity.
+    put_as(&a, "dup-copy", "dup", 100, 50, 5000);
+    put(&a, "dup", 200, 50, 1000);
+    put(&a, "solo", 150, 50, 3000);
+    // The same id under another agent is another session.
+    put(&b, "dup", 50, 50, 1000);
+    let mut sources = vec![
+        fake(Agent::Claude, a.clone(), false),
+        fake(Agent::Codex, b, false),
+    ];
+    let mut cache = Cache::default();
+    let out = scan(&mut sources, &mut cache, &Limits::default());
+    assert_eq!(
+        rows(&out.sessions),
+        [
+            row(Agent::Claude, "dup", 200, Some(1)),
+            row(Agent::Claude, "solo", 150, Some(1)),
+            row(Agent::Codex, "dup", 50, Some(1)),
+        ]
+    );
+    assert_eq!(out.sessions[0].path, a.join("dup.s"));
+    // Both copies stay cached.
+    assert_eq!(cache.files.len(), 4);
+    let _ = std::fs::remove_dir_all(&root);
+}
+
+#[test]
+fn counts_go_newest_first_and_the_rest_is_retried() {
+    let root = scratch("recount");
+    let dir = root.join("a");
+    put(&dir, "f1", 2000, 300, 2000);
+    put(&dir, "f2", 1000, 300, 1000);
+    let mut sources = vec![fake(Agent::Claude, dir, false)];
+    // One source: metadata 500, counts 500 (room for one 300-byte file).
+    let limits = Limits {
+        read_bytes: 1000,
+        ..Limits::default()
+    };
+    let mut cache = Cache::default();
+    let out = scan(&mut sources, &mut cache, &limits);
+    assert_eq!(
+        rows(&out.sessions),
+        [
+            row(Agent::Claude, "f1", 2000, Some(1)),
+            row(Agent::Claude, "f2", 1000, None),
+        ]
+    );
+    assert!(out.truncated);
+    assert_eq!((out.parsed, out.cached), (2, 0));
+    assert_eq!(out.bytes_read, 2 * PARSE_COST + 300);
+    let counted: Vec<bool> = {
+        let mut v: Vec<_> = cache.files.iter().collect();
+        v.sort_by(|x, y| x.0.cmp(y.0));
+        v.iter().map(|(_, c)| c.counted).collect()
+    };
+    assert_eq!(counted, [true, false]);
+    // The next scan reuses both entries and counts what did not fit.
+    let out = scan(&mut sources, &mut cache, &limits);
+    assert_eq!(
+        rows(&out.sessions),
+        [
+            row(Agent::Claude, "f1", 2000, Some(1)),
+            row(Agent::Claude, "f2", 1000, Some(1)),
+        ]
+    );
+    assert!(!out.truncated);
+    assert_eq!((out.parsed, out.cached), (0, 2));
+    assert_eq!(out.bytes_read, 300);
+    let _ = std::fs::remove_dir_all(&root);
+}
+
+#[test]
+fn a_changed_file_the_budget_skips_keeps_its_cached_entry() {
+    let root = scratch("keep");
+    let dir = root.join("a");
+    put(&dir, "f1", 2000, 60, 2000);
+    put(&dir, "f2", 1000, 60, 1000);
+    let mut sources = vec![fake(Agent::Claude, dir.clone(), false)];
+    let mut cache = Cache::default();
+    let out = scan(&mut sources, &mut cache, &Limits::default());
+    assert_eq!(out.parsed, 2);
+    // The agent rewrites f1.
+    put(&dir, "f1", 3000, 80, 4000);
+    let old = [
+        row(Agent::Claude, "f1", 2000, Some(1)),
+        row(Agent::Claude, "f2", 1000, Some(1)),
+    ];
+    let f1 = dir.join("f1.s").display().to_string();
+    // Out of bytes, then out of time: f1 is not re-read and keeps what the
+    // first scan knew.
+    for limits in [
+        Limits {
+            read_bytes: 100,
+            ..Limits::default()
+        },
+        Limits {
+            time: Duration::ZERO,
+            ..Limits::default()
+        },
+    ] {
+        let out = scan(&mut sources, &mut cache, &limits);
+        assert_eq!(rows(&out.sessions), old);
+        assert!(out.truncated);
+        assert_eq!((out.parsed, out.cached, out.bytes_read), (0, 1, 0));
+        assert_eq!(cache.files[&f1].size, 60);
+    }
+    // With budget again it is re-read and re-counted.
+    let out = scan(&mut sources, &mut cache, &Limits::default());
+    assert_eq!(
+        rows(&out.sessions),
+        [
+            row(Agent::Claude, "f1", 3000, Some(1)),
+            row(Agent::Claude, "f2", 1000, Some(1)),
+        ]
+    );
+    assert_eq!((out.parsed, out.cached), (1, 1));
+    assert_eq!(cache.files[&f1].size, 80);
     let _ = std::fs::remove_dir_all(&root);
 }

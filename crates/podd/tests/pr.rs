@@ -8,12 +8,13 @@ mod common;
 
 use std::path::{Path, PathBuf};
 use std::process::Command;
-use std::sync::Mutex;
 use std::sync::mpsc;
 use std::time::{Duration, Instant};
 
 use common::*;
 use pod_forge::fake::FakeForge;
+use pod_test_support::git::{git_ok, git_output};
+use pod_test_support::wait;
 use podd::client::{Client, ClientError, SubscribeEvent};
 use podd::protocol::*;
 
@@ -27,21 +28,21 @@ impl TempRepo {
         let root = std::env::temp_dir().join(unique("pr-repo"));
         let path = root.join("pod repo");
         std::fs::create_dir_all(&path).unwrap();
-        git(&path, &["init", "-q", "-b", "main"]);
+        git_ok(&path, &["init", "-q", "-b", "main"]);
         for (k, v) in [
             ("user.name", "Pod Test"),
             ("user.email", "pod-test@example.invalid"),
             ("commit.gpgsign", "false"),
             ("core.autocrlf", "false"),
         ] {
-            git(&path, &["config", k, v]);
+            git_ok(&path, &["config", k, v]);
         }
         std::fs::write(path.join("README.md"), "hello\n").unwrap();
-        git(&path, &["add", "-A"]);
-        git(&path, &["commit", "-q", "-m", "init"]);
+        git_ok(&path, &["add", "-A"]);
+        git_ok(&path, &["commit", "-q", "-m", "init"]);
         if let Some(url) = remote {
             // Configuration only: nothing is fetched or pushed.
-            git(&path, &["remote", "add", "origin", url]);
+            git_ok(&path, &["remote", "add", "origin", url]);
         }
         Self { root, path }
     }
@@ -51,21 +52,6 @@ impl Drop for TempRepo {
     fn drop(&mut self) {
         let _ = std::fs::remove_dir_all(&self.root);
     }
-}
-
-fn git(dir: &Path, args: &[&str]) -> String {
-    let out = Command::new("git")
-        .arg("-C")
-        .arg(dir)
-        .args(args)
-        .output()
-        .expect("run git");
-    assert!(
-        out.status.success(),
-        "git {args:?} failed: {}",
-        String::from_utf8_lossy(&out.stderr)
-    );
-    String::from_utf8_lossy(&out.stdout).into_owned()
 }
 
 fn task(c: &mut Client, repo: &TempRepo, name: &str) -> TaskInfo {
@@ -92,8 +78,8 @@ fn task(c: &mut Client, repo: &TempRepo, name: &str) -> TaskInfo {
 fn commit_in(wt: &str, file: &str, text: &str) {
     let wt = Path::new(wt);
     std::fs::write(wt.join(file), text).unwrap();
-    git(wt, &["add", "-A"]);
-    git(wt, &["commit", "-q", "-m", &format!("add {file}")]);
+    git_ok(wt, &["add", "-A"]);
+    git_ok(wt, &["commit", "-q", "-m", &format!("add {file}")]);
 }
 
 fn status(c: &mut Client, task: &str) -> TaskPrInfo {
@@ -203,7 +189,7 @@ fn without_a_remote_status_is_empty_and_create_refuses() {
         "only remote detection: {calls:?}"
     );
     assert!(
-        git(&repo.path, &["remote"]).trim().is_empty(),
+        git_output(&repo.path, &["remote"]).trim().is_empty(),
         "no remote was added"
     );
     // Empty title / unknown task.
@@ -375,16 +361,19 @@ fn create_follow_checks_and_merge_through_the_fake_forge() {
     assert_eq!(e.code, orch_codes::INVALID_STATE, "{e:?}");
     assert!(e.message.contains("merged"), "{}", e.message);
 
-    // Merged pull requests are no longer polled.
+    // Merged pull requests are no longer polled. (The 300 ms lets a poll
+    // already in flight land before the count is taken.)
     std::thread::sleep(Duration::from_millis(300));
     let before = forge.state().calls.len();
-    std::thread::sleep(Duration::from_millis(2500));
-    assert_eq!(
-        forge.state().calls.len(),
-        before,
-        "no polling after merge: {:?}",
-        &forge.state().calls[before..]
-    );
+    wait::stays(Duration::from_millis(2500), POLL, || {
+        let mut calls = forge.state().calls;
+        if calls.len() == before {
+            Ok(())
+        } else {
+            Err(calls.split_off(before.min(calls.len())))
+        }
+    })
+    .unwrap_or_else(|b| panic!("no polling after merge: {b}"));
 
     // The record survives a daemon restart.
     let (pipe, dir) = daemon.stop(false);
@@ -659,28 +648,4 @@ fn pod_pr_cli() {
         "no merge state for a merged pull request: {out}"
     );
     let _ = std::fs::remove_file(&fake);
-}
-
-fn profile_dir() -> PathBuf {
-    PathBuf::from(env!("CARGO_BIN_EXE_podd"))
-        .parent()
-        .unwrap()
-        .to_path_buf()
-}
-
-/// `pod.exe` of this workspace (built once; already there after a workspace build).
-fn pod_exe() -> PathBuf {
-    static BUILT: Mutex<bool> = Mutex::new(false);
-    let mut built = BUILT.lock().unwrap();
-    let exe = profile_dir().join("pod.exe");
-    if !*built {
-        let mut cmd = Command::new(std::env::var("CARGO").unwrap_or_else(|_| "cargo".into()));
-        cmd.args(["build", "-p", "pod-cli", "--bin", "pod"]);
-        if profile_dir().file_name().and_then(|n| n.to_str()) == Some("release") {
-            cmd.arg("--release");
-        }
-        assert!(cmd.status().expect("cargo build").success());
-        *built = true;
-    }
-    exe
 }

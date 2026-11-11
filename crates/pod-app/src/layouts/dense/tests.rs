@@ -7,9 +7,15 @@ use super::*;
 use core::prelude::v1::test;
 use serde_json::json;
 
+use pod_ui::{ControlState, Icon, Tone};
+
+use super::log::{EventKind, LOG_CAP, SEED_CAP, clock, offset_between};
+use super::model::{Act, BarEntry, Link, Panel, details_width, output_height};
+use crate::agent_kind::AgentKind;
 use crate::native_qa::Harness;
 use crate::source::{SourceEvent, TestBackend};
 use crate::theme::Settings;
+use crate::vm::TaskVm;
 
 fn term(id: &str, task: Option<&str>, state: &str) -> TerminalVm {
     TestBackend::terminal(id, &format!("작업자 {id}"), task, state)
@@ -885,6 +891,62 @@ fn fixture_scene_runs_inside_a_workspace_update() {
 }
 
 #[test]
+fn fixture_runs_print_one_frozen_time_and_real_runs_the_system_clock() {
+    // A-F0b: the 출력 log and 상태 기록 print HH:MM:SS, so the fixture's capture
+    // changed with the wall clock. Real runs never freeze it.
+    assert_eq!(fixture_clock(), Clock::System);
+    let _config = Config::new();
+    let mut h = Harness::new("dense-fixture-clock", |b| {
+        b.tasks.push(TestBackend::task(
+            "sample/task-000",
+            "Task 000 - 한글 작업과 레이아웃",
+            "sample",
+            &["fixture-0", "fixture-1", "fixture-2", "fixture-3"],
+        ));
+        for (i, s) in ["working", "blocked", "done", "working"]
+            .into_iter()
+            .enumerate()
+        {
+            b.terminals.push(TestBackend::terminal(
+                &format!("fixture-{i}"),
+                &format!("Worker {i}"),
+                Some("sample/task-000"),
+                s,
+            ));
+        }
+    });
+    set_layout(&mut h, "dense-details");
+    let v = dense(&mut h);
+    assert_eq!(h.cx.update(|_, cx| v.read(cx).clock), Clock::System);
+    // As created by a fixture run (`freeze_fixture_clock`): frozen before the first observation.
+    h.cx.update(|_, cx| {
+        v.update(cx, |v, _| {
+            v.clock = Clock::Frozen(FIXTURE_NOW);
+            v.log = EventLog::default();
+        })
+    });
+    let ws = h.ws.clone();
+    h.cx.update(|window, cx| ws.update(cx, |w, cx| fixture_scene(w, window, cx)));
+    h.settle();
+    let events: Vec<(EventKind, u64)> =
+        h.cx.update(|_, cx| v.read(cx).log.events().map(|e| (e.kind, e.at)).collect());
+    for k in [EventKind::GateRequested, EventKind::Exit, EventKind::Notice] {
+        assert!(events.iter().any(|(e, _)| *e == k), "{k:?} in {events:?}");
+    }
+    // The scene's gate is 12 s old; everything else happens "now".
+    for (kind, at) in &events {
+        assert!(
+            *at == FIXTURE_NOW || *at == FIXTURE_NOW - 12_000,
+            "{kind:?} at {at}"
+        );
+    }
+    let gate =
+        h.cx.update(|_, cx| ws.read(cx).orch.gates.get("g1").map(|g| g.created_ms));
+    assert_eq!(gate, Some(FIXTURE_NOW - 12_000));
+    assert_eq!(clock(FIXTURE_NOW, 0), "09:30:00");
+}
+
+#[test]
 fn no_seed_before_the_terminal_list_and_first_reports_are_quiet() {
     // Launch: the layout renders before podd's lists arrive.
     let mut log = EventLog::default();
@@ -1016,4 +1078,394 @@ fn log_lines_and_details_carry_the_agent_mark() {
             .is_some(),
         "log row: Codex mark"
     );
+}
+
+// ─────────────── model (A-P11): the plans the render used to inline ───────────────
+
+#[test]
+fn inline_gate_is_the_terminals_pending_gate_with_the_lowest_id() {
+    // Before the split the column took the first pending gate of the session's
+    // gate map (`BTreeMap` by id); the frame's pending list is oldest first.
+    let mut done = gate("g0", Some("b1"), None, 0);
+    done.state = GateState::Approved;
+    let gates = vec![
+        gate("g3", Some("b1"), None, 1),
+        gate("g10", Some("b1"), None, 5),
+        gate("g1", Some("w1"), None, 0),
+        done,
+    ];
+    let map: BTreeMap<String, GateInfo> = gates.iter().map(|g| (g.id.clone(), g.clone())).collect();
+    let by_map = map
+        .values()
+        .find(|g| g.state == GateState::Pending && g.terminal.as_deref() == Some("b1"))
+        .map(|g| g.id.clone());
+    assert_eq!(by_map.as_deref(), Some("g10"));
+    for order in [gates.clone(), gates.iter().rev().cloned().collect()] {
+        assert_eq!(
+            model::pending_gate(&order, "b1").map(|g| g.id.clone()),
+            by_map
+        );
+    }
+    assert_eq!(
+        model::pending_gate(&gates, "w1").map(|g| g.id.as_str()),
+        Some("g1")
+    );
+    assert!(model::pending_gate(&gates, "d1").is_none());
+}
+
+#[test]
+fn gate_buttons_keep_their_ids_labels_names_and_busy_states() {
+    let plain = gate("g1", Some("b1"), None, 1);
+    let row = |b: &model::GateButton| {
+        (
+            b.decision,
+            b.label.clone(),
+            b.id.clone(),
+            b.choice.clone(),
+            b.tone,
+            b.name.clone(),
+        )
+    };
+    let title = plain.title.clone();
+    assert_eq!(
+        model::gate_buttons(&plain)
+            .iter()
+            .map(row)
+            .collect::<Vec<_>>(),
+        [
+            (
+                GateDecision::Approve,
+                "이번만 허용".to_string(),
+                "dense-allow-g1".to_string(),
+                None,
+                Tone::Success,
+                format!("이번만 허용: {title}"),
+            ),
+            (
+                GateDecision::Reject,
+                "거부".to_string(),
+                "dense-reject-g1".to_string(),
+                None,
+                Tone::Danger,
+                format!("거부: {title}"),
+            ),
+        ]
+    );
+    let mut options = gate("g2", Some("b1"), None, 1);
+    options.options = vec!["main에 병합".into(), "초안으로".into()];
+    assert_eq!(
+        model::gate_buttons(&options)
+            .iter()
+            .map(row)
+            .collect::<Vec<_>>(),
+        [
+            (
+                GateDecision::Approve,
+                "main에 병합".to_string(),
+                "dense-allow-g2-0".to_string(),
+                Some("main에 병합".to_string()),
+                Tone::Success,
+                format!("선택: main에 병합: {title}"),
+            ),
+            (
+                GateDecision::Approve,
+                "초안으로".to_string(),
+                "dense-allow-g2-1".to_string(),
+                Some("초안으로".to_string()),
+                Tone::Success,
+                format!("선택: 초안으로: {title}"),
+            ),
+            (
+                GateDecision::Reject,
+                "거부".to_string(),
+                "dense-reject-g2".to_string(),
+                None,
+                Tone::Danger,
+                format!("거부: {title}"),
+            ),
+        ]
+    );
+    let (approve, reject) = (GateDecision::Approve, GateDecision::Reject);
+    assert_eq!(model::button_state(None, approve), ControlState::Ready);
+    assert_eq!(
+        model::button_state(Some(approve), approve),
+        ControlState::Loading
+    );
+    assert_eq!(
+        model::button_state(Some(approve), reject),
+        ControlState::Disabled
+    );
+}
+
+#[test]
+fn log_keys_walk_lines_and_regions_cycle() {
+    use model::{LogKey::*, at_tail, cycle_step, log_key};
+    assert_eq!(log_key("down", None, 0), None, "an empty log takes no key");
+    assert_eq!(log_key("down", None, 10), Some(Select(9)));
+    assert_eq!(log_key("down", Some(3), 10), Some(Select(4)));
+    assert_eq!(log_key("down", Some(9), 10), Some(Select(9)));
+    assert_eq!(log_key("up", None, 10), Some(Select(9)));
+    assert_eq!(log_key("up", Some(0), 10), Some(Select(0)));
+    assert_eq!(log_key("home", Some(5), 10), Some(Select(0)));
+    assert_eq!(log_key("end", Some(5), 10), Some(Select(9)));
+    assert_eq!(log_key("pagedown", Some(1), 10), Some(Select(1 + LOG_ROWS)));
+    assert_eq!(log_key("pagedown", Some(8), 10), Some(Select(9)));
+    assert_eq!(log_key("pagedown", None, 10), Some(Select(9)));
+    assert_eq!(log_key("pageup", Some(8), 10), Some(Select(8 - LOG_ROWS)));
+    assert_eq!(log_key("pageup", None, 10), Some(Select(0)));
+    assert_eq!(
+        log_key("enter", Some(2), 10),
+        Some(Activate {
+            line: Some(2),
+            open: true
+        })
+    );
+    assert_eq!(
+        log_key("space", None, 10),
+        Some(Activate {
+            line: None,
+            open: false
+        })
+    );
+    assert_eq!(log_key("tab", Some(2), 10), None);
+    // F6 from outside the regions starts at the first; both ways wrap.
+    assert_eq!(cycle_step(None, 4, true), 0);
+    assert_eq!(cycle_step(None, 4, false), 0);
+    assert_eq!(cycle_step(Some(1), 4, true), 2);
+    assert_eq!(cycle_step(Some(3), 4, true), 0);
+    assert_eq!(cycle_step(Some(0), 4, false), 3);
+    // The log follows new lines unless an older line is selected.
+    assert!(at_tail(None, None));
+    assert!(at_tail(None, Some(4)));
+    assert!(at_tail(Some(4), Some(4)));
+    assert!(at_tail(Some(3), None));
+    assert!(!at_tail(Some(3), Some(4)));
+}
+
+#[test]
+fn activity_bar_entries_keep_their_order_tips_and_commands() {
+    let rows: Vec<(&str, &str, Option<Panel>, Option<UiIntent>)> = model::activity_bar()
+        .into_iter()
+        .map(|e| match e {
+            BarEntry::Toggle { panel, id, tip, .. } => (id, tip, Some(panel), None),
+            BarEntry::Command {
+                id, tip, intent, ..
+            } => (id, tip, None, Some(intent)),
+            BarEntry::Spacer => ("", "", None, None),
+        })
+        .collect();
+    assert_eq!(
+        rows,
+        [
+            (
+                "dense-toggle-tree",
+                "작업 탐색 보이기/숨기기",
+                Some(Panel::Tree),
+                None
+            ),
+            (
+                "dense-files",
+                "파일 (Ctrl+P)",
+                None,
+                Some(UiIntent::QuickOpenFiles { quick_open: true })
+            ),
+            (
+                "dense-agents",
+                "에이전트 트리 (Ctrl+Shift+E)",
+                None,
+                Some(UiIntent::OpenAgentTree)
+            ),
+            (
+                "dense-search",
+                "작업, 터미널, 명령 검색 (Ctrl+K)",
+                None,
+                Some(UiIntent::OpenJump)
+            ),
+            (
+                "dense-gates",
+                "승인 요청 (Ctrl+Shift+I)",
+                None,
+                Some(UiIntent::OpenGates)
+            ),
+            ("", "", None, None),
+            (
+                "dense-toggle-output",
+                "출력 패널 (Ctrl+Shift+U)",
+                Some(Panel::Output),
+                None
+            ),
+            (
+                "dense-toggle-details",
+                "세부 정보 (Ctrl+Shift+D)",
+                Some(Panel::Details),
+                None
+            ),
+            (
+                "dense-settings",
+                "설정 (Ctrl+,)",
+                None,
+                Some(UiIntent::OpenSettings)
+            ),
+        ]
+    );
+}
+
+#[test]
+fn details_actions_text_and_selection() {
+    // 터미널 열기 while it runs, else 다시 실행 with the same command, folder and task.
+    let w = term("w1", Some("sample/a"), "working");
+    assert_eq!(
+        model::terminal_link(&w, "로그인 작업"),
+        Link {
+            id: "dense-open-terminal",
+            label: "터미널 열기",
+            name: "터미널 열기: 로그인 작업".into(),
+            icon: Icon::SquareTerminal,
+            act: Act::Intent(UiIntent::OpenTerminal {
+                id: "w1".into(),
+                another: false
+            }),
+        }
+    );
+    let mut x = w.clone();
+    x.live = Liveness::Exited {
+        code: Some(1),
+        killed: false,
+    };
+    assert_eq!(
+        model::terminal_link(&x, "로그인 작업"),
+        Link {
+            id: "dense-rerun",
+            label: "다시 실행",
+            name: "다시 실행: 로그인 작업".into(),
+            icon: Icon::RotateCcw,
+            act: Act::Rerun("w1".into()),
+        }
+    );
+    let spec = model::rerun_spec(&x);
+    assert_eq!(spec.argv, x.argv);
+    assert_eq!(spec.cwd.as_deref(), Some(x.cwd.as_str()));
+    assert_eq!(spec.task.as_deref(), Some("sample/a"));
+    assert!(spec.name.is_none() && spec.cols.is_none() && spec.rows.is_none());
+    // 변경 검토 · 파일 열기 (with a worktree) · PR 보기.
+    let mut k = TestBackend::task("sample/a", "로그인 수정", "sample", &["w1"]);
+    k.worktree = None;
+    k.worktree_exists = false;
+    let ids = |k: &TaskVm| {
+        model::task_links(k)
+            .iter()
+            .map(|l| l.id)
+            .collect::<Vec<_>>()
+    };
+    assert_eq!(ids(&k), ["dense-review", "dense-pr"]);
+    k.worktree_exists = true;
+    assert_eq!(ids(&k), ["dense-review", "dense-files-open", "dense-pr"]);
+    k.worktree_exists = false;
+    k.worktree = Some("C:/fixtures/worktrees/a".into());
+    assert_eq!(
+        model::task_links(&k)
+            .into_iter()
+            .map(|l| (l.label, l.name, l.icon, l.act))
+            .collect::<Vec<_>>(),
+        [
+            (
+                "변경 검토",
+                "변경 검토: 로그인 수정".to_string(),
+                Icon::GitCompareArrows,
+                Act::Intent(UiIntent::OpenReview {
+                    task: "sample/a".into()
+                })
+            ),
+            (
+                "파일 열기",
+                "파일 열기: 로그인 수정".to_string(),
+                Icon::FileText,
+                Act::Intent(UiIntent::OpenEditor {
+                    task: "sample/a".into(),
+                    target: None,
+                    quick_open: false
+                })
+            ),
+            (
+                "PR 보기",
+                "PR 보기: 로그인 수정".to_string(),
+                Icon::GitPullRequest,
+                Act::Intent(UiIntent::OpenPullRequest {
+                    task: "sample/a".into(),
+                    form: false
+                })
+            ),
+        ]
+    );
+    // PR line, counts and the log's first line, byte for byte.
+    let pr = |state: &str, draft: bool| {
+        serde_json::from_value::<p::TaskPr>(json!({
+            "number": 12, "url": "", "title": "로그인 수정",
+            "state": state, "draft": draft, "updated_ms": 0
+        }))
+        .expect("pr")
+    };
+    assert_eq!(model::pr_text(&pr("open", true)), "#12 초안 · 로그인 수정");
+    assert_eq!(model::pr_text(&pr("open", false)), "#12 열림 · 로그인 수정");
+    assert_eq!(
+        model::pr_text(&pr("merged", false)),
+        "#12 병합됨 · 로그인 수정"
+    );
+    assert_eq!(
+        model::pr_text(&pr("closed", false)),
+        "#12 닫힘 · 로그인 수정"
+    );
+    assert_eq!(copy::comments(3u32), "3개");
+    assert_eq!(
+        copy::started(2),
+        "터미널 2개 · 기존 상태에서 확인이 필요한 것만"
+    );
+    // A vanished task or terminal shows nothing.
+    let tasks = vec![k.clone()];
+    let terminals = vec![w.clone()];
+    let task = Sel::Task("sample/a".into());
+    assert_eq!(
+        model::shown_selection(Some(&task), &tasks, &terminals),
+        Some(task)
+    );
+    assert_eq!(
+        model::shown_selection(Some(&Sel::Terminal("gone".into())), &tasks, &terminals),
+        None
+    );
+    assert_eq!(model::shown_selection(None, &tasks, &terminals), None);
+    // 마지막 줄 is read again only when the status key changes.
+    let mut t = term("w1", None, "working");
+    let k0 = model::line_key(&t);
+    assert_eq!(model::line_key(&t.clone()), k0);
+    t.status.as_mut().unwrap().state = AgentState::Blocked;
+    let k1 = model::line_key(&t);
+    assert_ne!(k1, k0);
+    t.live = Liveness::Exited {
+        code: Some(0),
+        killed: false,
+    };
+    assert_ne!(model::line_key(&t), k1);
+}
+
+#[test]
+fn details_link_opens_its_terminal_through_the_host() {
+    // A running terminal's 터미널 열기 goes to the host as an intent: Tab
+    // from the column reaches it, Enter opens the terminal and focuses it.
+    let _config = Config::new();
+    let mut h = Harness::new("dense-link", seed);
+    set_layout(&mut h, "dense-details");
+    let v = dense(&mut h);
+    h.cx.update(|_, cx| v.update(cx, |v, cx| v.select(Sel::Terminal("d1".into()), cx)));
+    h.settle();
+    assert_ne!(h.focused_terminal().as_deref(), Some("d1"));
+    h.keys(FOCUS_DETAILS_KEY);
+    assert!(details_focused(&mut h));
+    h.press("tab");
+    h.press("enter");
+    assert_eq!(
+        h.focused_terminal().as_deref(),
+        Some("d1"),
+        "터미널 열기 opened d1"
+    );
+    assert_eq!(selected(&mut h), Some(Sel::Terminal("d1".into())));
 }

@@ -238,6 +238,118 @@ fn same_name_tabs_show_the_distinguishing_parent() {
     assert_eq!(h.read(|e| e.tab_titles()), ["mod.rs", "lib.rs"]);
 }
 
+/// The layout JSON a real workspace saves (tab order with `/` paths, cursor,
+/// preview tab, active tab, Ctrl+Tab order). A new tab opens right after the
+/// active one. Frozen from the unsplit
+/// `workspace.rs` before card L4; the split keeps these exact bytes.
+const SESSION_GOLDEN: &str = r#"{
+  "tabs": [
+    {
+      "path": "src/main.rs",
+      "line": 2,
+      "col": 5
+    },
+    {
+      "path": "docs/한글 노트.md",
+      "line": 1,
+      "col": 1,
+      "preview": true
+    },
+    {
+      "path": "src/lib.rs",
+      "line": 1,
+      "col": 8
+    }
+  ],
+  "active": 1,
+  "mru": [
+    1,
+    0,
+    2
+  ]
+}"#;
+
+/// Saving and restoring the editor layout on real workspaces: the saved
+/// JSON is the golden above, and a restore that skips a missing file shifts
+/// the active tab and the Ctrl+Tab order onto the files that remain.
+#[core::prelude::v1::test]
+fn session_round_trips_through_a_real_workspace() {
+    let dir = tempfile::tempdir().expect("temp");
+    let root = dir.path().join("wt");
+    for (f, body) in [
+        ("src/main.rs", "fn main() {\n    run();\n}\n"),
+        ("src/lib.rs", "pub fn run() {}\n"),
+        ("docs/한글 노트.md", "# 제목\n\n본문\n"),
+    ] {
+        let p = root.join(f);
+        std::fs::create_dir_all(p.parent().unwrap()).unwrap();
+        std::fs::write(p, body).unwrap();
+    }
+    let saved = {
+        let mut h = Harness::new(&root);
+        h.with(|e, w, cx| e.open_file(&root.join("src/main.rs"), w, cx))
+            .unwrap();
+        h.with(|e, w, cx| e.goto(&root.join("src/lib.rs"), 1, 8, w, cx))
+            .unwrap();
+        // A root-relative path names the same tab.
+        h.with(|e, w, cx| e.goto(Path::new("src/main.rs"), 2, 5, w, cx))
+            .unwrap();
+        h.with(|e, w, cx| e.preview_file(&root.join("docs/한글 노트.md"), w, cx))
+            .unwrap();
+        let s = h.with(|e, _, cx| e.session(cx));
+        assert_eq!(serde_json::to_string_pretty(&s).unwrap(), SESSION_GOLDEN);
+        s
+    };
+
+    // The same layout plus a file deleted since it was saved.
+    let mut with_gone = saved.clone();
+    with_gone.tabs.insert(
+        1,
+        pod_editor::TabSession {
+            path: "src/gone.rs".into(),
+            line: 9,
+            col: 9,
+            preview: false,
+        },
+    );
+    with_gone.active = Some(2);
+    with_gone.mru = vec![2, 1, 0, 3];
+
+    let mut h = Harness::new(&root);
+    h.with(|e, w, cx| e.restore_session(&with_gone, w, cx));
+    assert_eq!(h.with(|e, _, cx| e.session(cx)), saved);
+    let states: Vec<(String, bool, bool)> = h.read(|e| {
+        e.tab_states()
+            .into_iter()
+            .map(|t| {
+                let rel = t.path.strip_prefix(e.root()).unwrap().to_owned();
+                (
+                    rel.to_string_lossy().replace('\\', "/"),
+                    t.active,
+                    t.preview,
+                )
+            })
+            .collect()
+    });
+    assert_eq!(
+        states,
+        [
+            ("src/main.rs".to_string(), false, false),
+            ("docs/한글 노트.md".to_string(), true, true),
+            ("src/lib.rs".to_string(), false, false),
+        ]
+    );
+    assert_eq!(
+        h.read(|e| e.tab_titles()),
+        ["main.rs", "한글 노트.md", "lib.rs"]
+    );
+    // Ctrl+Tab follows the restored order: the previous file is main.rs.
+    h.with(|e, w, cx| e.switch_mru(true, w, cx));
+    h.with(|e, _, cx| e.end_switch(cx));
+    let s = h.with(|e, _, cx| e.session(cx));
+    assert_eq!((s.active, s.mru), (Some(0), vec![0, 1, 2]));
+}
+
 /// The 8.3 short spelling of an existing path (`cmd`'s `%~s`), `None` when
 /// the volume has no short names.
 fn short_spelling(p: &Path) -> Option<PathBuf> {

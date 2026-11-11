@@ -4,12 +4,12 @@
 
 mod common;
 
-use std::path::{Path, PathBuf};
-use std::process::Command;
+use std::path::PathBuf;
 use std::sync::mpsc;
 use std::time::{Duration, Instant};
 
 use common::*;
+use pod_test_support::git::git_ok;
 use podd::client::SubscribeEvent;
 use podd::protocol::*;
 
@@ -23,18 +23,18 @@ impl TempRepo {
         let root = std::env::temp_dir().join(unique("lc-repo"));
         let path = root.join("repo");
         std::fs::create_dir_all(&path).unwrap();
-        git(&path, &["init", "-q", "-b", "main"]);
+        git_ok(&path, &["init", "-q", "-b", "main"]);
         for (k, v) in [
             ("user.name", "Pod Test"),
             ("user.email", "pod-test@example.invalid"),
             ("commit.gpgsign", "false"),
             ("core.autocrlf", "false"),
         ] {
-            git(&path, &["config", k, v]);
+            git_ok(&path, &["config", k, v]);
         }
         std::fs::write(path.join("README.md"), "hello\n").unwrap();
-        git(&path, &["add", "-A"]);
-        git(&path, &["commit", "-q", "-m", "init"]);
+        git_ok(&path, &["add", "-A"]);
+        git_ok(&path, &["commit", "-q", "-m", "init"]);
         Self { root, path }
     }
 }
@@ -43,20 +43,6 @@ impl Drop for TempRepo {
     fn drop(&mut self) {
         let _ = std::fs::remove_dir_all(&self.root);
     }
-}
-
-fn git(dir: &Path, args: &[&str]) {
-    let out = Command::new("git")
-        .arg("-C")
-        .arg(dir)
-        .args(args)
-        .output()
-        .expect("run git");
-    assert!(
-        out.status.success(),
-        "git {args:?}: {}",
-        String::from_utf8_lossy(&out.stderr)
-    );
 }
 
 /// Events from a lifecycle subscription, read on a thread.
@@ -262,8 +248,8 @@ fn lifecycle_events_and_task_touch() {
 
     // --- an edit made outside Pod: picked up by the poll (lifecycle subscriber)
     std::fs::write(wt.join("other.txt"), "outside\n").unwrap();
-    git(&wt, &["add", "-A"]);
-    git(&wt, &["commit", "-q", "-m", "work"]);
+    git_ok(&wt, &["add", "-A"]);
+    git_ok(&wt, &["commit", "-q", "-m", "work"]);
     let g = ev.wait("polled git change", 20, |e| {
         task_ev(e, "lc/one", TaskChange::Git)
     });

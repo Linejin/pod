@@ -2,9 +2,13 @@
 //! Windows API only; product crates (forge, editor, podd) use it, never the
 //! other way round.
 //!
-//! [`bounded`] is the one-shot runner of `pod_forge::bounded`, copied
-//! unchanged with its tests; `pod_forge::bounded` stays a public path (a
-//! re-export once its consumers move here).
+//! - [`bounded`] runs one-shot child processes (forge's git and gh, podd's
+//!   guarded git, group scripts and repo config commands, the editor's LSP
+//!   probe); `pod_forge::bounded` re-exports it under its old path.
+//! - [`git`] clears the `GIT_*` variables that would point git at another
+//!   repository, the one environment rule podd and pod-forge share.
+
+pub mod git;
 
 pub mod bounded {
     //! Bounded child processes: one way to run an external command with a time

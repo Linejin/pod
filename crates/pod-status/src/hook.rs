@@ -4,10 +4,20 @@
 //! Payload field names follow docs/04 §3.3 and the public
 //! Claude Code hook schema. Fields marked "unverified" in [`PAYLOAD_FIELDS`]
 //! were never seen in a real payload during research.
+//!
+//! Layout: this file holds the wire message, the effect types and the
+//! shared payload helpers; `hook/claude.rs` and `hook/codex.rs` map each
+//! agent's events and list the events Pod installs for it.
 
-use crate::types::{AgentState, BlockedKind, Outcome};
+use crate::types::{AgentState, Outcome};
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
+
+mod claude;
+mod codex;
+
+pub use claude::{CLAUDE_EVENTS, CLAUDE_MATCHER_EVENTS};
+pub use codex::CODEX_EVENTS;
 
 /// Wire version of [`HookMessage`].
 pub const HOOK_MESSAGE_VERSION: u32 = 1;
@@ -258,8 +268,8 @@ fn child_id(agent_id: &str) -> String {
 /// Interpret a hook event. Unknown events map to "no effect".
 pub fn map_hook(agent: HookAgent, event: &str, payload: &Value) -> HookEffect {
     let mut eff = match agent {
-        HookAgent::Claude => map_claude(event, payload),
-        HookAgent::Codex => map_codex(event, payload),
+        HookAgent::Claude => claude::map_claude(event, payload),
+        HookAgent::Codex => codex::map_codex(event, payload),
     };
     eff.session_id = s(payload, "session_id");
     if eff.tool_name.is_none() {
@@ -272,178 +282,6 @@ pub fn map_hook(agent: HookAgent, event: &str, payload: &Value) -> HookEffect {
 pub fn map_message(msg: &HookMessage) -> HookEffect {
     map_hook(msg.agent, msg.event_name(), &msg.payload)
 }
-
-fn map_claude(event: &str, p: &Value) -> HookEffect {
-    let agent_id = s(p, "agent_id");
-    let tool = s(p, "tool_name");
-    match event {
-        "SessionStart" => {
-            if s(p, "source").as_deref() == Some("compact") {
-                return HookEffect::none();
-            }
-            HookEffect {
-                session_boundary: true,
-                ..HookEffect::set(AgentState::Idle, None)
-            }
-        }
-        "UserPromptSubmit" => HookEffect::set(AgentState::Working, None),
-        "PreToolUse" | "PostToolUse" | "PostToolUseFailure" if agent_id.is_some() => {
-            // Activity inside a subagent: update the child, leave the lead alone.
-            HookEffect {
-                child: Some(ChildEffect::Set {
-                    id: child_id(agent_id.as_deref().unwrap()),
-                    state: AgentState::Working,
-                    title: None,
-                }),
-                ..HookEffect::none()
-            }
-        }
-        "PreToolUse" => {
-            if tool.as_deref().is_some_and(|t| QUESTION_TOOLS.contains(&t)) {
-                HookEffect::set(AgentState::Blocked(BlockedKind::Question), tool)
-            } else {
-                HookEffect::set(AgentState::Working, None)
-            }
-        }
-        "PostToolUse" | "PostToolUseFailure" => HookEffect::set(AgentState::Working, None),
-        "PermissionRequest" => HookEffect::set(AgentState::Blocked(BlockedKind::Permission), tool),
-        "Elicitation" => {
-            HookEffect::set(AgentState::Blocked(BlockedKind::Question), s(p, "message"))
-        }
-        "ElicitationResult" => HookEffect {
-            root: RootEffect::RestoreFromWait,
-            ..HookEffect::none()
-        },
-        "Stop" => {
-            if p.get("is_interrupt").and_then(Value::as_bool) == Some(true) {
-                HookEffect {
-                    outcome: Some(Outcome::Cancelled),
-                    ..HookEffect::set(AgentState::Idle, None)
-                }
-            } else {
-                HookEffect {
-                    outcome: Some(Outcome::Completed),
-                    ..HookEffect::set(AgentState::Done, None)
-                }
-            }
-        }
-        "StopFailure" => {
-            let msg = s(p, "error").or_else(|| s(p, "error_message"));
-            HookEffect {
-                outcome: Some(Outcome::Failed),
-                ..HookEffect::set(AgentState::Error, msg)
-            }
-        }
-        "SubagentStart" => match agent_id {
-            Some(id) => HookEffect {
-                child: Some(ChildEffect::Set {
-                    id: child_id(&id),
-                    state: AgentState::Working,
-                    title: s(p, "agent_type"),
-                }),
-                ..HookEffect::none()
-            },
-            None => HookEffect::none(),
-        },
-        "SubagentStop" => match agent_id {
-            Some(id) => HookEffect {
-                child: Some(ChildEffect::Remove { id: child_id(&id) }),
-                ..HookEffect::none()
-            },
-            None => HookEffect::none(),
-        },
-        "SessionEnd" => HookEffect {
-            root: RootEffect::EndSession,
-            ..HookEffect::none()
-        },
-        _ => HookEffect::none(),
-    }
-}
-
-fn map_codex(event: &str, p: &Value) -> HookEffect {
-    let tool = s(p, "tool_name");
-    match event {
-        "SessionStart" => HookEffect {
-            session_boundary: true,
-            ..HookEffect::set(AgentState::Idle, None)
-        },
-        "UserPromptSubmit" | "PostToolUse" => HookEffect::set(AgentState::Working, None),
-        "PreToolUse" => {
-            if tool.as_deref().is_some_and(|t| QUESTION_TOOLS.contains(&t)) {
-                HookEffect::set(AgentState::Blocked(BlockedKind::Question), tool)
-            } else {
-                HookEffect::set(AgentState::Working, None)
-            }
-        }
-        "PermissionRequest" => HookEffect::set(AgentState::Blocked(BlockedKind::Permission), tool),
-        "Stop" => HookEffect {
-            outcome: Some(Outcome::Completed),
-            ..HookEffect::set(AgentState::Done, None)
-        },
-        "Interrupt" => HookEffect {
-            outcome: Some(Outcome::Cancelled),
-            ..HookEffect::set(AgentState::Idle, None)
-        },
-        "SubagentStart" => match s(p, "agent_id") {
-            Some(id) => HookEffect {
-                child: Some(ChildEffect::Set {
-                    id: child_id(&id),
-                    state: AgentState::Working,
-                    title: s(p, "agent_type"),
-                }),
-                ..HookEffect::none()
-            },
-            None => HookEffect::none(),
-        },
-        "SubagentStop" => match s(p, "agent_id") {
-            Some(id) => HookEffect {
-                child: Some(ChildEffect::Remove { id: child_id(&id) }),
-                ..HookEffect::none()
-            },
-            None => HookEffect::none(),
-        },
-        _ => HookEffect::none(),
-    }
-}
-
-/// Hook events Pod installs, per agent (docs/04 §4.3).
-pub static CLAUDE_EVENTS: &[&str] = &[
-    "SessionStart",
-    "UserPromptSubmit",
-    "PreToolUse",
-    "PostToolUse",
-    "PostToolUseFailure",
-    "PermissionRequest",
-    "Elicitation",
-    "ElicitationResult",
-    "Stop",
-    "StopFailure",
-    "SubagentStart",
-    "SubagentStop",
-    "SessionEnd",
-];
-
-pub static CODEX_EVENTS: &[&str] = &[
-    "SessionStart",
-    "UserPromptSubmit",
-    "PreToolUse",
-    "PermissionRequest",
-    "PostToolUse",
-    "Stop",
-    "Interrupt",
-    "SubagentStart",
-    "SubagentStop",
-];
-
-/// Claude events that take a `matcher` (tool/server name) in settings.json.
-pub static CLAUDE_MATCHER_EVENTS: &[&str] = &[
-    "PreToolUse",
-    "PostToolUse",
-    "PostToolUseFailure",
-    "PermissionRequest",
-    "Elicitation",
-    "ElicitationResult",
-];
 
 #[cfg(test)]
 mod tests {

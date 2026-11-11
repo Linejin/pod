@@ -1,8 +1,10 @@
 # Pod visual regression (Windows)
 
-Build `cargo build --workspace --release` in this worktree using the CPU gate,
-sccache and four-job limits. No shared target directory. Captures launch only
-`--ui-fixture`; no daemon, user repository or real agent is contacted.
+**빌드**: 캡처는 이 worktree의 `target/release/pod-app.exe`만 띄우므로 `cargo build -p pod-app --release`만
+빌드한다(workspace 전체 빌드 불필요). `CARGO_TARGET_DIR`을 지워 공유 target 디렉터리를 쓰지 않고, sccache와
+`CARGO_BUILD_JOBS=2`를 쓴다. 빌드와 캡처 실행 전마다 `tools/cpu-gate.ps1 -MaxPct 70 -MaxCargo 1`을 돌리고
+여유 물리 메모리가 8 GB 이상일 때 시작한다. Captures launch only `--ui-fixture`; no daemon, user repository
+or real agent is contacted.
 
 From the repository root:
 
@@ -19,6 +21,7 @@ The script closes each fixture app even on failure. UIA trees are saved with PNG
 **UIA 트리**: 덤프가 가끔 제목줄만 돌려준다. 장면별 필수 노드(`uia-required.ps1`)가 나올 때까지
 1초 간격으로 최대 `-UiaAttempts`(6)번 다시 받고, 끝내 없으면 빠진 노드 이름으로 캡처를 실패시킨다.
 장면 UI 문구를 바꾸면 그 표도 고친다. 자체 시험: `tools/visual/uia-selftest.ps1`.
+필수 노드는 레이아웃별 표다(`-Layout`, 작업대 외 6종 포함). 창은 앱이 스스로 최대화한 뒤에 배치한다(그 전에 옮기면 약 50장에 1장꼴로 11px 아래로 찍혔다).
 Snapshots are visual evidence, not proof of native keyboard or Narrator behavior.
 
 Compare uses maximum absolute RGB channel distance per pixel (default tolerance 8).

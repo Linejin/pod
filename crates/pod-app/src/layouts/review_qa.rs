@@ -387,6 +387,136 @@ fn keyboard_approve_a_pending_gate_from_the_review_header() {
     assert_ne!(h.focus_name(), "NONE", "focus is not lost with the button");
 }
 
+/// Whether keyboard focus is in the workspace's dock (the canvas's 패널 view).
+fn dock_has_focus(h: &mut Harness) -> bool {
+    let ws = h.ws.clone();
+    h.cx.update(|window, cx| {
+        ws.read(cx)
+            .dock
+            .read(cx)
+            .focus_handle(cx)
+            .contains_focused(window, cx)
+    })
+}
+
+/// The canvas tabs and the 응답하기 button by keyboard: 패널 shows the dock with
+/// the focus in it, F6 goes to the tasks (a row shows its Review again), 리뷰
+/// focuses the Review, 응답하기 focuses the blocked agent's terminal tile, and
+/// a collapsed strip has no terminal stop.
+#[test]
+fn canvas_tabs_answer_and_strip_by_keyboard() {
+    let mut h = Harness::new("review-tabs", with_worktree("review-tabs"));
+    set_layout(&mut h, "review");
+    assert!(row_focused(&mut h, LOGIN), "the first task's row");
+    let v = view(&mut h);
+    // Tab from the row: 리뷰, 패널. Enter on 패널: the dock in the canvas, focus in it.
+    h.keys("tab");
+    h.keys("tab");
+    h.keys("enter");
+    assert!(h.cx.update(|_, cx| v.read(cx).model.show_dock), "패널 view");
+    assert!(dock_has_focus(&mut h), "패널: {}", h.focus_name());
+    assert!(
+        h.bounds("review-tile-w1").is_none(),
+        "the 패널 view hides the tiles"
+    );
+    // F6 from the dock: the tasks; selecting the row leaves the 패널 view.
+    h.keys("f6");
+    assert!(row_focused(&mut h, LOGIN), "F6 from the dock: the tasks");
+    assert!(
+        h.cx.update(|_, cx| !v.read(cx).model.show_dock),
+        "a task row shows its Review"
+    );
+    assert!(h.bounds("review-tile-w1").is_some(), "tiles back");
+    // 리뷰 tab: focus in the Review.
+    h.keys("tab");
+    h.keys("enter");
+    assert!(
+        h.cx.update(|_, cx| !v.read(cx).model.show_dock),
+        "리뷰 view"
+    );
+    assert!(
+        h.focus_name().starts_with("review panel"),
+        "리뷰: {}",
+        h.focus_name()
+    );
+
+    // The other task's agent is blocked without a gate: 응답하기 (after 리뷰, 패널).
+    h.keys("shift-f6");
+    assert!(row_focused(&mut h, LOGIN));
+    h.keys("down");
+    assert_eq!(selected(&mut h).as_deref(), Some(BOT));
+    h.keys("tab");
+    h.keys("tab");
+    h.keys("tab");
+    h.keys("enter");
+    assert_eq!(
+        h.focused_terminal().as_deref(),
+        Some("b1"),
+        "응답하기 focuses the agent's terminal: {}",
+        h.focus_name()
+    );
+    assert!(h.bounds("review-tile-b1").is_some(), "docked, not expanded");
+    assert_eq!(h.cx.update(|_, cx| v.read(cx).model.expanded.clone()), None);
+
+    // A collapsed strip: F6 goes tasks → Review → tasks, never into the terminal.
+    h.keys("shift-f6");
+    assert!(h.focus_name().starts_with("review panel"));
+    h.cx.update(|_, cx| {
+        v.update(cx, |v, cx| {
+            v.model.strip_open = false;
+            cx.notify();
+        })
+    });
+    h.settle();
+    assert!(
+        h.bounds("review-tile-b1").is_none(),
+        "only the strip's header"
+    );
+    h.keys("f6");
+    assert!(row_focused(&mut h, BOT), "F6 from the Review: the tasks");
+    h.keys("f6");
+    assert!(h.focus_name().starts_with("review panel"));
+    h.keys("f6");
+    assert!(row_focused(&mut h, BOT), "no terminal stop");
+}
+
+/// A Review opened while the layout shows (Ctrl+Shift+R, a PR button) becomes
+/// the canvas: its task is selected and the dock's panel is shown as it is.
+#[test]
+fn a_review_opened_meanwhile_becomes_the_canvas() {
+    let mut h = Harness::new("review-opened", with_worktree("review-opened"));
+    set_layout(&mut h, "review");
+    assert_eq!(selected(&mut h).as_deref(), Some(LOGIN));
+    let v = view(&mut h);
+    assert!(
+        h.cx.update(|_, cx| v.read(cx).own_review().is_some()),
+        "a layout-owned Review"
+    );
+    let ws = h.ws.clone();
+    h.cx.update(|window, cx| ws.update(cx, |w, cx| w.open_review(BOT, window, cx)));
+    h.settle();
+    assert_eq!(
+        selected(&mut h).as_deref(),
+        Some(BOT),
+        "the opened Review's task"
+    );
+    assert!(
+        h.cx.update(|_, cx| v.read(cx).own_review().is_none()),
+        "the dock's Review is the canvas; the layout's own is dropped"
+    );
+    assert_eq!(review_tasks(&mut h), [BOT]);
+    assert!(
+        h.cx.update(|_, cx| !v.read(cx).model.show_dock),
+        "a Review is not one of the 패널"
+    );
+    assert!(
+        h.focus_name().starts_with("review panel"),
+        "focus in the opened Review: {}",
+        h.focus_name()
+    );
+    assert!(h.bounds("review-tile-b1").is_some(), "its task's tiles");
+}
+
 #[test]
 fn korean_text_fits_at_100_to_175_percent_and_large_fonts() {
     for (scale, font) in [

@@ -11,13 +11,56 @@
 //! `--child-pid-file <path>` starts a long-lived grandchild and writes its
 //! pid there (process-tree tests); `--log <path>` appends one line per
 //! document notification (`didOpen <uri>`, `didClose <uri>`) so tests can
-//! count what the editor's tabs opened and closed.
+//! count what the editor's tabs opened and closed; `--wire <path>` appends
+//! every message the client sends, as one JSON line each (wire goldens);
+//! `--incremental` asks for ranged `didChange` (sync kind 2) and applies the
+//! ranges (UTF-16 columns).
 
 use std::collections::BTreeMap;
-use std::io::{BufReader, Write};
+use std::io::{BufRead, BufReader, Write};
 
 use pod_editor::lsp::rpc::{Message, read_message, write_message};
 use serde_json::{Value, json};
+
+/// [`read_message`], appending each message to the `--wire` file first.
+fn read_logged(r: &mut dyn BufRead, wire: Option<&str>) -> std::io::Result<Option<Value>> {
+    let v = read_message(r)?;
+    if let (Some(v), Some(path)) = (&v, wire)
+        && let Ok(mut f) = std::fs::OpenOptions::new()
+            .create(true)
+            .append(true)
+            .open(path)
+    {
+        // One write per line: a reader never sees half a message.
+        let _ = f.write_all(format!("{v}\n").as_bytes());
+    }
+    Ok(v)
+}
+
+/// Byte offset of a UTF-16 `(line, character)` in `text` (clamped to it).
+fn offset_of_utf16(text: &str, pos: &Value) -> usize {
+    let line = pos["line"].as_u64().unwrap_or(0) as usize;
+    let col = pos["character"].as_u64().unwrap_or(0) as u32;
+    let mut start = 0;
+    for (n, l) in text.split('\n').enumerate() {
+        if n == line {
+            return start + byte_of_utf16(l, col);
+        }
+        start += l.len() + 1;
+    }
+    text.len()
+}
+
+/// `text` after one `contentChanges` entry: a ranged edit, or the full text.
+fn apply_change(text: &str, change: &Value) -> Option<String> {
+    let new = change["text"].as_str()?;
+    if change["range"].is_null() {
+        return Some(new.to_string());
+    }
+    let a = offset_of_utf16(text, &change["range"]["start"]);
+    let b = offset_of_utf16(text, &change["range"]["end"]).max(a);
+    Some(format!("{}{}{}", &text[..a], new, &text[b..]))
+}
 
 fn utf16_col(line: &str, byte: usize) -> u32 {
     line[..byte].encode_utf16().count() as u32
@@ -88,6 +131,16 @@ fn main() {
         .windows(2)
         .find(|w| w[0] == "--log")
         .map(|w| w[1].clone());
+    let wire_file = argv
+        .windows(2)
+        .find(|w| w[0] == "--wire")
+        .map(|w| w[1].clone());
+    let wire = wire_file.as_deref();
+    let sync_kind = if argv.iter().any(|a| a == "--incremental") {
+        2
+    } else {
+        1
+    };
     let log = |what: &str, uri: &str| {
         if let Some(f) = &log_file
             && let Ok(mut f) = std::fs::OpenOptions::new()
@@ -111,7 +164,7 @@ fn main() {
         write_message(out, &m.to_value()).unwrap();
         out.flush().unwrap();
     };
-    while let Ok(Some(v)) = read_message(&mut r) {
+    while let Ok(Some(v)) = read_logged(&mut r, wire) {
         let Some(msg) = Message::parse(v) else {
             continue;
         };
@@ -128,7 +181,7 @@ fn main() {
                     "initialize" => json!({
                         "capabilities": {
                             "positionEncoding": "utf-16",
-                            "textDocumentSync": 1,
+                            "textDocumentSync": sync_kind,
                             "hoverProvider": true,
                             "definitionProvider": true,
                             "referencesProvider": true,
@@ -162,7 +215,7 @@ fn main() {
                             },
                         );
                         let mut answer = Value::Null;
-                        while let Ok(Some(v)) = read_message(&mut r) {
+                        while let Ok(Some(v)) = read_logged(&mut r, wire) {
                             if let Some(Message::Response { id, result }) = Message::parse(v)
                                 && id == json!("fake-apply-1")
                             {
@@ -285,13 +338,15 @@ fn main() {
                             .as_str()
                             .unwrap_or("")
                             .to_string();
-                        if let Some(text) = params["contentChanges"]
-                            .as_array()
-                            .and_then(|a| a.last())
-                            .and_then(|c| c["text"].as_str())
-                        {
-                            publish(&mut out, &uri, text, &params["textDocument"]["version"]);
-                            docs.insert(uri, text.to_string());
+                        // In order: ranged edits apply to the text so far,
+                        // a change without a range replaces all of it.
+                        let mut text = docs.get(&uri).cloned();
+                        for c in params["contentChanges"].as_array().into_iter().flatten() {
+                            text = apply_change(text.as_deref().unwrap_or(""), c).or(text);
+                        }
+                        if let Some(text) = text {
+                            publish(&mut out, &uri, &text, &params["textDocument"]["version"]);
+                            docs.insert(uri, text);
                         }
                     }
                     "textDocument/didClose" => {

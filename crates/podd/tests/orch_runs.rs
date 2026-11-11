@@ -12,6 +12,8 @@ use std::process::Command;
 use std::time::{Duration, Instant};
 
 use common::*;
+use pod_test_support::git::git_ok;
+use pod_test_support::wait;
 use podd::client::Client;
 use podd::protocol::*;
 use serde_json::Value;
@@ -20,20 +22,6 @@ use serde_json::Value;
 
 fn fake_agent() -> String {
     fixture_bin("examples/fake-agent.exe").display().to_string()
-}
-
-fn git(dir: &Path, args: &[&str]) {
-    let out = Command::new("git")
-        .arg("-C")
-        .arg(dir)
-        .args(args)
-        .output()
-        .unwrap();
-    assert!(
-        out.status.success(),
-        "git {args:?}: {}",
-        String::from_utf8_lossy(&out.stderr)
-    );
 }
 
 struct Env {
@@ -60,17 +48,17 @@ impl Env {
         let root = std::env::temp_dir().join(unique(tag));
         let repo = root.join("pod repo");
         std::fs::create_dir_all(&repo).unwrap();
-        git(&repo, &["init", "-q", "-b", "main"]);
+        git_ok(&repo, &["init", "-q", "-b", "main"]);
         for (k, v) in [
             ("user.name", "Pod Test"),
             ("user.email", "pod-test@example.invalid"),
             ("commit.gpgsign", "false"),
         ] {
-            git(&repo, &["config", k, v]);
+            git_ok(&repo, &["config", k, v]);
         }
         std::fs::write(repo.join("README.md"), "hello\n").unwrap();
-        git(&repo, &["add", "-A"]);
-        git(&repo, &["commit", "-q", "-m", "init"]);
+        git_ok(&repo, &["add", "-A"]);
+        git_ok(&repo, &["commit", "-q", "-m", "init"]);
         let base = root.join("agents");
         std::fs::create_dir_all(&base).unwrap();
         std::fs::write(base.join("pod-exe.txt"), pod.display().to_string()).unwrap();
@@ -125,11 +113,7 @@ impl Env {
     }
 
     fn wait_file(&self, p: &Path, secs: u64) {
-        let deadline = Instant::now() + Duration::from_secs(secs.max(20));
-        while !p.exists() {
-            assert!(Instant::now() < deadline, "{} did not appear", p.display());
-            std::thread::sleep(Duration::from_millis(50));
-        }
+        appears(p, Duration::from_secs(secs.max(20)));
     }
 
     /// Make an agent run `pod` commands in one turn; returns their output
@@ -145,11 +129,7 @@ impl Env {
 
     fn out(&self, who: &str, n: usize) -> Value {
         let p = self.dir(who).join(format!("out-{n}.json"));
-        let deadline = Instant::now() + Duration::from_secs(90);
-        while !p.exists() {
-            assert!(Instant::now() < deadline, "{} did not appear", p.display());
-            std::thread::sleep(Duration::from_millis(50));
-        }
+        appears(&p, Duration::from_secs(90));
         serde_json::from_str(&std::fs::read_to_string(&p).unwrap()).unwrap()
     }
 
@@ -214,6 +194,14 @@ impl Env {
             .unwrap()
             .messages
     }
+}
+
+/// Waits for `p` to exist, polling every 50 ms for at most `within`.
+fn appears(p: &Path, within: Duration) {
+    wait::until(within, Duration::from_millis(50), || {
+        if p.exists() { Ok(()) } else { Err(()) }
+    })
+    .unwrap_or_else(|e| panic!("{} did not appear ({e})", p.display()));
 }
 
 fn next_out(dir: &Path) -> usize {
@@ -390,7 +378,15 @@ fn orch_core_roundtrip_fences_breaker_depth_and_restart() {
         (AttemptState::Succeeded, WorkerState::Finished)
     );
     // No turn-end escalation: the worker reported before its turn ended.
-    std::thread::sleep(Duration::from_millis(1500));
+    wait::stays(Duration::from_millis(1500), POLL, || {
+        let msgs = e.peek("r1");
+        if stop_reasons(&msgs).is_empty() {
+            Ok(())
+        } else {
+            Err(msgs)
+        }
+    })
+    .unwrap_or_else(|b| panic!("no turn-end escalation: {b}"));
     let msgs = e.peek("r1");
     assert!(
         msgs.iter()
@@ -1098,8 +1094,13 @@ fn resource_queue_fifo_meter_and_restart() {
         w2.attempt.task.as_deref(),
         Some(format!("demo/r1-{a2}").as_str())
     );
-    std::thread::sleep(Duration::from_millis(1500));
-    assert_eq!(wait_kind(&e.worker(&a3)), Some(WaitKind::Workers));
+    wait::stays(Duration::from_millis(1500), POLL, || {
+        match wait_kind(&e.worker(&a3)) {
+            Some(WaitKind::Workers) => Ok(()),
+            other => Err(other),
+        }
+    })
+    .unwrap_or_else(|b| panic!("the third still waits for a worker slot: {b}"));
 
     // Injected meter: CPU over the limit holds the third, the running one
     // is not touched.
@@ -1823,7 +1824,15 @@ pod.on("orch.changed", (ev) => pod.log(`CHANGED ${ev.run} ${ev.attempt ?? "-"} $
         ]],
     );
     assert_eq!(e.out("coord", n[0])["code"], 0);
-    std::thread::sleep(Duration::from_secs(1));
+    wait::stays(Duration::from_secs(1), POLL, || {
+        let l = mod_log(&mut c);
+        if l.matches("MAIL ").count() > before {
+            Err(l)
+        } else {
+            Ok(())
+        }
+    })
+    .unwrap_or_else(|b| panic!("no MAIL event for this send: {b}"));
     assert_eq!(
         mod_log(&mut c).matches("MAIL ").count(),
         before,
@@ -2269,8 +2278,8 @@ fn workers_commit_through_pod_without_hooks() {
         format!("#!/bin/sh\necho fsm >> '{}'\nexit 1\n", u(&marker)),
     )
     .unwrap();
-    git(&e.repo, &["config", "core.hooksPath", &u(&hooks)]);
-    git(
+    git_ok(&e.repo, &["config", "core.hooksPath", &u(&hooks)]);
+    git_ok(
         &e.repo,
         &["config", "core.fsmonitor", &u(&e.root.join("fsm"))],
     );
@@ -2319,8 +2328,8 @@ fn workers_commit_through_pod_without_hooks() {
     );
     // The control: a plain commit in the same worktree fires the hook.
     std::fs::write(wt.join("plain.txt"), "p").unwrap();
-    git(&wt, &["add", "plain.txt"]);
-    git(&wt, &["commit", "-q", "-m", "plain"]);
+    git_ok(&wt, &["add", "plain.txt"]);
+    git_ok(&wt, &["commit", "-q", "-m", "plain"]);
     assert!(marker.exists(), "control: the repository's hook is live");
     // Not a worker (no attempt): refused.
     let out = Command::new(pod_exe())
@@ -2360,11 +2369,11 @@ fn worker_git_runs_no_repository_filter_or_hook() {
     .unwrap();
     std::fs::write(e.repo.join(".gitattributes"), "*.dat filter=demo\n").unwrap();
     std::fs::write(e.repo.join("a.dat"), "data\n").unwrap();
-    git(&e.repo, &["add", ".gitattributes", "a.dat"]);
-    git(&e.repo, &["commit", "-q", "-m", "dat"]);
+    git_ok(&e.repo, &["add", ".gitattributes", "a.dat"]);
+    git_ok(&e.repo, &["commit", "-q", "-m", "dat"]);
     // Configured after that commit, as a clean filter only: creating the
     // worker's worktree does not run it.
-    git(
+    git_ok(
         &e.repo,
         &[
             "config",
@@ -2372,7 +2381,7 @@ fn worker_git_runs_no_repository_filter_or_hook() {
             &format!("echo clean >> '{}'; cat", u(&marker)),
         ],
     );
-    git(&e.repo, &["config", "core.hooksPath", &u(&hooks)]);
+    git_ok(&e.repo, &["config", "core.hooksPath", &u(&hooks)]);
 
     let done = e.root.join("worker-done.txt");
     let script = e.root.join("worker.ps1");
@@ -2427,7 +2436,7 @@ fn worker_git_runs_no_repository_filter_or_hook() {
     // The control: without the worker's env the filter is live.
     let wt = PathBuf::from(lines[2]);
     std::fs::write(wt.join("a.dat"), "again\n").unwrap();
-    git(&wt, &["add", "a.dat"]);
+    git_ok(&wt, &["add", "a.dat"]);
     assert!(marker.exists(), "control: the repository's filter is live");
 }
 
@@ -2438,15 +2447,15 @@ fn worker_git_runs_no_repository_filter_or_hook() {
 fn passes(c: &mut Client) {
     let q = |c: &mut Client| c.call::<OrchQueue>(&OrchRunRef::default()).unwrap();
     let start = q(c).supervisor_passes;
-    let deadline = Instant::now() + Duration::from_secs(30);
-    loop {
+    wait::until(Duration::from_secs(30), Duration::from_millis(20), || {
         let r = q(c);
         if r.supervisor_passes >= start + 2 && r.wakes_in_flight == 0 {
-            return;
+            Ok(())
+        } else {
+            Err(Box::new(r))
         }
-        assert!(Instant::now() < deadline, "no supervisor passes: {r:?}");
-        std::thread::sleep(Duration::from_millis(20));
-    }
+    })
+    .unwrap_or_else(|e| panic!("no supervisor passes: {e}"));
 }
 
 /// A holder record for terminal `id` whose pipe is `pipe`.

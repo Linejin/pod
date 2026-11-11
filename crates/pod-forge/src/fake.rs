@@ -136,8 +136,8 @@ impl FakeForge {
             std::fs::create_dir_all(dir)?;
         }
         let tmp = file.with_extension("json.tmp");
-        std::fs::write(&tmp, serde_json::to_vec_pretty(state)?)?;
-        std::fs::rename(tmp, file)
+        let bytes = pod_storage::json::to_pretty_bytes(state)?;
+        pod_storage::replace::write_then_rename(file, &tmp, &bytes)
     }
 
     /// A copy of the current state.
@@ -537,5 +537,136 @@ mod tests {
             Some(ReviewDecision::Approved)
         );
         let _ = std::fs::remove_file(&file);
+    }
+
+    fn temp_dir(tag: &str) -> PathBuf {
+        static SEQ: std::sync::atomic::AtomicU64 = std::sync::atomic::AtomicU64::new(0);
+        let seq = SEQ.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
+        let nanos = std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .unwrap()
+            .as_nanos();
+        let d = std::env::temp_dir().join(format!(
+            "pod-forge-fake-{tag}-{}-{nanos}-{seq}",
+            std::process::id()
+        ));
+        std::fs::create_dir_all(&d).unwrap();
+        d
+    }
+
+    fn names(dir: &Path) -> Vec<String> {
+        let mut v: Vec<String> = std::fs::read_dir(dir)
+            .unwrap()
+            .map(|e| e.unwrap().file_name().to_string_lossy().into_owned())
+            .collect();
+        v.sort();
+        v
+    }
+
+    fn pinned_state() -> FakeState {
+        let mut s = FakeState {
+            remote: Some(remote()),
+            next_number: 2,
+            pushes: vec![FakePush {
+                remote: "origin".into(),
+                branch: "pod/feat".into(),
+            }],
+            calls: vec!["push origin pod/feat".into(), "create 기능".into()],
+            ..FakeState::default()
+        };
+        s.fail.insert(
+            "view".into(),
+            ForgeError::new(ForgeErrorKind::RateLimited, "API rate limit exceeded"),
+        );
+        s
+    }
+
+    /// The state file's bytes (pretty, two-space indent, no trailing
+    /// newline, UTF-8 as is) and its temporary name `<name>.json.tmp`,
+    /// pinned before the storage primitive took over the write
+    /// (docs/20-refactor/libs.md L2).
+    #[test]
+    fn save_file_bytes_and_temporary_name_are_pinned() {
+        let d = temp_dir("pin");
+        // A missing parent is created.
+        let file = d.join("fake").join("forge.json");
+        FakeForge::save_file(&file, &pinned_state()).unwrap();
+        let golden = r#"{
+  "remote": {
+    "name": "origin",
+    "url": "https://github.com/pod-fixtures/demo.git",
+    "slug": {
+      "host": "github.com",
+      "owner": "pod-fixtures",
+      "name": "demo"
+    }
+  },
+  "no_remote": false,
+  "next_number": 2,
+  "prs": [],
+  "pushes": [
+    {
+      "remote": "origin",
+      "branch": "pod/feat"
+    }
+  ],
+  "fail": {
+    "view": {
+      "kind": "rate_limited",
+      "message": "API rate limit exceeded"
+    }
+  },
+  "calls": [
+    "push origin pod/feat",
+    "create 기능"
+  ]
+}"#;
+        assert_eq!(std::fs::read_to_string(&file).unwrap(), golden);
+        assert_eq!(FakeForge::load_file(&file), pinned_state());
+        let dir = file.parent().unwrap();
+        assert_eq!(names(dir), ["forge.json"]);
+        // A stale temporary file from a crash is the one written and renamed.
+        std::fs::write(dir.join("forge.json.tmp"), b"stale stale stale").unwrap();
+        FakeForge::save_file(&file, &FakeState::default()).unwrap();
+        assert_eq!(
+            std::fs::read_to_string(&file).unwrap(),
+            "{\n  \"no_remote\": false,\n  \"next_number\": 0,\n  \"prs\": [],\n  \"pushes\": [],\n  \"fail\": {},\n  \"calls\": []\n}"
+        );
+        assert_eq!(names(dir), ["forge.json"]);
+        let _ = std::fs::remove_dir_all(&d);
+    }
+
+    /// What a failed save leaves behind: nothing removes the temporary file,
+    /// and the old state file stays readable.
+    #[test]
+    fn save_file_failures_leave_the_old_state() {
+        let d = temp_dir("fail");
+        // The rename fails (the destination is a non-empty directory): the
+        // temporary file stays with the full bytes.
+        let file = d.join("blocked.json");
+        std::fs::create_dir_all(file.join("inner")).unwrap();
+        assert!(FakeForge::save_file(&file, &pinned_state()).is_err());
+        assert_eq!(
+            std::fs::read(d.join("blocked.json.tmp")).unwrap(),
+            serde_json::to_vec_pretty(&pinned_state()).unwrap()
+        );
+        assert!(file.join("inner").is_dir());
+
+        // The temporary file cannot be written (a directory holds its name):
+        // the old state is kept, and `edit` still runs on it in memory.
+        let file = d.join("state.json");
+        FakeForge::save_file(&file, &pinned_state()).unwrap();
+        std::fs::create_dir(d.join("state.json.tmp")).unwrap();
+        assert!(FakeForge::save_file(&file, &FakeState::default()).is_err());
+        assert_eq!(FakeForge::load_file(&file), pinned_state());
+        let f = FakeForge::with_file(file.clone());
+        assert_eq!(f.edit(|s| s.next_number), 2);
+        assert_eq!(FakeForge::load_file(&file), pinned_state());
+
+        // The parent cannot be created (a file holds its name).
+        let file = d.join("state.json").join("nested.json");
+        assert!(FakeForge::save_file(&file, &pinned_state()).is_err());
+        assert_eq!(FakeForge::load_file(&d.join("state.json")), pinned_state());
+        let _ = std::fs::remove_dir_all(&d);
     }
 }

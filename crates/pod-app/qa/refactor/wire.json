@@ -1,0 +1,4556 @@
+{
+  "schema": 1,
+  "card": "A-P2",
+  "about": "J (wire) golden of pod-app's podd boundary: decoders (wire -> view model), status-stream notifications, control-connection requests and replies, the input connection, client-error classification and typed feature requests. 'expect' was captured once from the source before the split (84bdf9e) and is never regenerated from the code under test. Checked by crates/pod-app/src/source/wire_tests.rs.",
+  "protocol_version": 19,
+  "daemon_defaults": {
+    "terminal.list": {
+      "result": {
+        "terminals": []
+      }
+    },
+    "repo.list": {
+      "result": {
+        "repos": []
+      }
+    },
+    "task.list": {
+      "result": {
+        "tasks": []
+      }
+    }
+  },
+  "decode": [
+    {
+      "name": "terminal p0 running",
+      "as": "terminal",
+      "wire": {
+        "id": "t3",
+        "argv": [
+          "claude"
+        ],
+        "cwd": "C:\\w",
+        "state": "running",
+        "cols": 80,
+        "rows": 24,
+        "created_ms": 5,
+        "attached": 2
+      },
+      "expect": {
+        "id": "t3",
+        "name": null,
+        "program": "claude",
+        "argv": [
+          "claude"
+        ],
+        "cwd": "C:\\w",
+        "live": "running",
+        "attached": 2,
+        "created_ms": 5,
+        "task_id": null,
+        "status": null,
+        "parent_terminal": null,
+        "parent_task": null,
+        "unreachable": null
+      }
+    },
+    {
+      "name": "terminal named",
+      "as": "terminal",
+      "wire": {
+        "id": "t4",
+        "name": "build",
+        "argv": [
+          "C:\\nvm\\codex.cmd",
+          "--full-auto"
+        ],
+        "cwd": "C:\\w",
+        "state": "running",
+        "cols": 80,
+        "rows": 24,
+        "created_ms": 6,
+        "attached": 0
+      },
+      "expect": {
+        "id": "t4",
+        "name": "build",
+        "program": "codex",
+        "argv": [
+          "C:\\nvm\\codex.cmd",
+          "--full-auto"
+        ],
+        "cwd": "C:\\w",
+        "live": "running",
+        "attached": 0,
+        "created_ms": 6,
+        "task_id": null,
+        "status": null,
+        "parent_terminal": null,
+        "parent_task": null,
+        "unreachable": null
+      }
+    },
+    {
+      "name": "terminal exited with code",
+      "as": "terminal",
+      "wire": {
+        "id": "t3",
+        "argv": [
+          "claude"
+        ],
+        "cwd": "C:\\w",
+        "state": "exited",
+        "exit_code": 3,
+        "cols": 80,
+        "rows": 24,
+        "created_ms": 5,
+        "attached": 0
+      },
+      "expect": {
+        "id": "t3",
+        "name": null,
+        "program": "claude",
+        "argv": [
+          "claude"
+        ],
+        "cwd": "C:\\w",
+        "live": {
+          "exited": {
+            "code": 3,
+            "killed": false
+          }
+        },
+        "attached": 0,
+        "created_ms": 5,
+        "task_id": null,
+        "status": null,
+        "parent_terminal": null,
+        "parent_task": null,
+        "unreachable": null
+      }
+    },
+    {
+      "name": "terminal killed",
+      "as": "terminal",
+      "wire": {
+        "id": "t3",
+        "argv": [
+          "claude"
+        ],
+        "cwd": "C:\\w",
+        "state": "exited",
+        "exit_code": null,
+        "killed": true,
+        "cols": 80,
+        "rows": 24,
+        "created_ms": 5,
+        "attached": 0
+      },
+      "expect": {
+        "id": "t3",
+        "name": null,
+        "program": "claude",
+        "argv": [
+          "claude"
+        ],
+        "cwd": "C:\\w",
+        "live": {
+          "exited": {
+            "code": null,
+            "killed": true
+          }
+        },
+        "attached": 0,
+        "created_ms": 5,
+        "task_id": null,
+        "status": null,
+        "parent_terminal": null,
+        "parent_task": null,
+        "unreachable": null
+      }
+    },
+    {
+      "name": "terminal lost",
+      "as": "terminal",
+      "wire": {
+        "id": "t3",
+        "argv": [
+          "claude"
+        ],
+        "cwd": "C:\\w",
+        "state": "exited",
+        "lost": true,
+        "cols": 80,
+        "rows": 24,
+        "created_ms": 5,
+        "attached": 0
+      },
+      "expect": {
+        "id": "t3",
+        "name": null,
+        "program": "claude",
+        "argv": [
+          "claude"
+        ],
+        "cwd": "C:\\w",
+        "live": "lost",
+        "attached": 0,
+        "created_ms": 5,
+        "task_id": null,
+        "status": null,
+        "parent_terminal": null,
+        "parent_task": null,
+        "unreachable": null
+      }
+    },
+    {
+      "name": "terminal unreachable v19 with reason",
+      "as": "terminal",
+      "wire": {
+        "id": "t5",
+        "argv": [
+          "powershell.exe",
+          "-NoLogo"
+        ],
+        "cwd": "C:\\w",
+        "state": "unreachable",
+        "unreachable": "holder pipe is gone",
+        "cols": 80,
+        "rows": 24,
+        "created_ms": 5,
+        "attached": 0
+      },
+      "expect": {
+        "id": "t5",
+        "name": null,
+        "program": "powershell",
+        "argv": [
+          "powershell.exe",
+          "-NoLogo"
+        ],
+        "cwd": "C:\\w",
+        "live": "lost",
+        "attached": 0,
+        "created_ms": 5,
+        "task_id": null,
+        "status": null,
+        "parent_terminal": null,
+        "parent_task": null,
+        "unreachable": "holder pipe is gone"
+      }
+    },
+    {
+      "name": "terminal unreachable v19 without reason",
+      "as": "terminal",
+      "wire": {
+        "id": "t5",
+        "argv": [
+          "powershell.exe"
+        ],
+        "cwd": "C:\\w",
+        "state": "unreachable",
+        "cols": 80,
+        "rows": 24,
+        "created_ms": 5,
+        "attached": 0
+      },
+      "expect": {
+        "id": "t5",
+        "name": null,
+        "program": "powershell",
+        "argv": [
+          "powershell.exe"
+        ],
+        "cwd": "C:\\w",
+        "live": "lost",
+        "attached": 0,
+        "created_ms": 5,
+        "task_id": null,
+        "status": null,
+        "parent_terminal": null,
+        "parent_task": null,
+        "unreachable": ""
+      }
+    },
+    {
+      "name": "terminal future fields and task object",
+      "as": "terminal",
+      "wire": {
+        "id": "t3",
+        "argv": [
+          "claude"
+        ],
+        "cwd": "C:\\w",
+        "state": "running",
+        "cols": 80,
+        "rows": 24,
+        "created_ms": 5,
+        "attached": 2,
+        "future": {
+          "x": 1
+        },
+        "status": {
+          "state": "blocked",
+          "kind": "permission",
+          "source": "hook",
+          "confidence": 0.95,
+          "since": 1,
+          "turn": 2,
+          "badge": "blocked:permission",
+          "records": 1,
+          "running_children": 0,
+          "blocked_children": 0,
+          "hooks_accepted": 1,
+          "hooks_rejected": 0
+        },
+        "task": {
+          "id": "k1"
+        }
+      },
+      "expect": {
+        "id": "t3",
+        "name": null,
+        "program": "claude",
+        "argv": [
+          "claude"
+        ],
+        "cwd": "C:\\w",
+        "live": "running",
+        "attached": 2,
+        "created_ms": 5,
+        "task_id": "k1",
+        "status": {
+          "state": "Blocked",
+          "final_state": null,
+          "since": 1,
+          "confidence": "0.95",
+          "kind": "permission",
+          "source": "hook",
+          "badge": "blocked:permission",
+          "running_children": 0,
+          "turn": 2,
+          "agent": null,
+          "app": null
+        },
+        "parent_terminal": null,
+        "parent_task": null,
+        "unreachable": null
+      }
+    },
+    {
+      "name": "terminal bare status string and task_id",
+      "as": "terminal",
+      "wire": {
+        "id": "t3",
+        "argv": [
+          "claude"
+        ],
+        "cwd": "C:\\w",
+        "state": "running",
+        "cols": 80,
+        "rows": 24,
+        "created_ms": 5,
+        "attached": 2,
+        "status": "working",
+        "task_id": "k2"
+      },
+      "expect": {
+        "id": "t3",
+        "name": null,
+        "program": "claude",
+        "argv": [
+          "claude"
+        ],
+        "cwd": "C:\\w",
+        "live": "running",
+        "attached": 2,
+        "created_ms": 5,
+        "task_id": "k2",
+        "status": {
+          "state": "Working",
+          "final_state": null,
+          "since": 0,
+          "confidence": "0",
+          "kind": null,
+          "source": null,
+          "badge": null,
+          "running_children": 0,
+          "turn": 0,
+          "agent": null,
+          "app": null
+        },
+        "parent_terminal": null,
+        "parent_task": null,
+        "unreachable": null
+      }
+    },
+    {
+      "name": "terminal task string wins over task_id",
+      "as": "terminal",
+      "wire": {
+        "id": "t3",
+        "argv": [
+          "claude"
+        ],
+        "cwd": "C:\\w",
+        "state": "running",
+        "cols": 80,
+        "rows": 24,
+        "created_ms": 5,
+        "attached": 2,
+        "task": "k3",
+        "task_id": "k4"
+      },
+      "expect": {
+        "id": "t3",
+        "name": null,
+        "program": "claude",
+        "argv": [
+          "claude"
+        ],
+        "cwd": "C:\\w",
+        "live": "running",
+        "attached": 2,
+        "created_ms": 5,
+        "task_id": "k3",
+        "status": null,
+        "parent_terminal": null,
+        "parent_task": null,
+        "unreachable": null
+      }
+    },
+    {
+      "name": "terminal malformed status kept without status",
+      "as": "terminal",
+      "wire": {
+        "id": "t3",
+        "argv": [
+          "claude"
+        ],
+        "cwd": "C:\\w",
+        "state": "running",
+        "cols": 80,
+        "rows": 24,
+        "created_ms": 5,
+        "attached": 2,
+        "status": 42
+      },
+      "expect": {
+        "id": "t3",
+        "name": null,
+        "program": "claude",
+        "argv": [
+          "claude"
+        ],
+        "cwd": "C:\\w",
+        "live": "running",
+        "attached": 2,
+        "created_ms": 5,
+        "task_id": null,
+        "status": null,
+        "parent_terminal": null,
+        "parent_task": null,
+        "unreachable": null
+      }
+    },
+    {
+      "name": "terminal status object without state",
+      "as": "terminal",
+      "wire": {
+        "id": "t3",
+        "argv": [
+          "claude"
+        ],
+        "cwd": "C:\\w",
+        "state": "running",
+        "cols": 80,
+        "rows": 24,
+        "created_ms": 5,
+        "attached": 2,
+        "status": {
+          "kind": "question"
+        }
+      },
+      "expect": {
+        "id": "t3",
+        "name": null,
+        "program": "claude",
+        "argv": [
+          "claude"
+        ],
+        "cwd": "C:\\w",
+        "live": "running",
+        "attached": 2,
+        "created_ms": 5,
+        "task_id": null,
+        "status": null,
+        "parent_terminal": null,
+        "parent_task": null,
+        "unreachable": null
+      }
+    },
+    {
+      "name": "terminal parents v7",
+      "as": "terminal",
+      "wire": {
+        "id": "t9",
+        "argv": [
+          "cmd.exe",
+          "/c",
+          "codex --full-auto"
+        ],
+        "cwd": "C:\\w",
+        "state": "exited",
+        "exit_code": 7,
+        "parent_terminal": "t2",
+        "parent_task": "sample/app-fix",
+        "cols": 80,
+        "rows": 24,
+        "created_ms": 5,
+        "attached": 0
+      },
+      "expect": {
+        "id": "t9",
+        "name": null,
+        "program": "codex",
+        "argv": [
+          "cmd.exe",
+          "/c",
+          "codex --full-auto"
+        ],
+        "cwd": "C:\\w",
+        "live": {
+          "exited": {
+            "code": 7,
+            "killed": false
+          }
+        },
+        "attached": 0,
+        "created_ms": 5,
+        "task_id": null,
+        "status": null,
+        "parent_terminal": "t2",
+        "parent_task": "sample/app-fix",
+        "unreachable": null
+      }
+    },
+    {
+      "name": "terminal without argv program",
+      "as": "terminal",
+      "wire": {
+        "id": "t6",
+        "argv": [],
+        "cwd": "C:\\w",
+        "state": "running",
+        "cols": 80,
+        "rows": 24,
+        "created_ms": 5,
+        "attached": 0
+      },
+      "expect": {
+        "id": "t6",
+        "name": null,
+        "program": "?",
+        "argv": [],
+        "cwd": "C:\\w",
+        "live": "running",
+        "attached": 0,
+        "created_ms": 5,
+        "task_id": null,
+        "status": null,
+        "parent_terminal": null,
+        "parent_task": null,
+        "unreachable": null
+      }
+    },
+    {
+      "name": "terminal missing id is dropped",
+      "as": "terminal",
+      "wire": {
+        "argv": [
+          "claude"
+        ],
+        "cwd": "C:\\w",
+        "state": "running",
+        "cols": 80,
+        "rows": 24,
+        "created_ms": 5,
+        "attached": 2
+      },
+      "expect": null
+    },
+    {
+      "name": "terminal unknown state is dropped",
+      "as": "terminal",
+      "wire": {
+        "id": "t3",
+        "argv": [
+          "claude"
+        ],
+        "cwd": "C:\\w",
+        "state": "zombie",
+        "cols": 80,
+        "rows": 24,
+        "created_ms": 5,
+        "attached": 2
+      },
+      "expect": null
+    },
+    {
+      "name": "terminal not an object",
+      "as": "terminal",
+      "wire": "t3",
+      "expect": null
+    },
+    {
+      "name": "task v3 typed",
+      "as": "task",
+      "wire": {
+        "id": "demo/feat-1",
+        "repo": "demo",
+        "name": "feat-1",
+        "branch": "pod/feat-1",
+        "base": "main",
+        "base_commit": "abc",
+        "worktree": "C:/wt/demo/feat-1",
+        "agent": "claude",
+        "created_ms": 1,
+        "worktree_exists": true,
+        "terminals": [
+          {
+            "id": "t4"
+          }
+        ],
+        "git": {
+          "ahead": 1,
+          "behind": 2,
+          "dirty": 3,
+          "unpushed": 1,
+          "last_commit": {
+            "sha": "0123456789abcdef",
+            "summary": "add f",
+            "author": "a",
+            "time_ms": 0
+          }
+        }
+      },
+      "expect": {
+        "id": "demo/feat-1",
+        "title": "demo/feat-1",
+        "repo": "demo",
+        "branch": "pod/feat-1",
+        "base": "main",
+        "agent": "claude",
+        "worktree": "C:/wt/demo/feat-1",
+        "worktree_exists": true,
+        "terminals": [
+          "t4"
+        ],
+        "git": {
+          "ahead": 1,
+          "behind": 2,
+          "dirty": 3,
+          "unpushed": 1,
+          "last_commit": "0123456789 add f"
+        },
+        "git_error": null,
+        "review_open": 0,
+        "status": null,
+        "parent_task": null,
+        "parent_terminal": null,
+        "group": null,
+        "prompt": null,
+        "pr": null
+      }
+    },
+    {
+      "name": "task typed shape mismatch falls back to lenient",
+      "as": "task",
+      "wire": {
+        "id": "demo/feat-2",
+        "repo": "demo",
+        "name": "feat-2",
+        "branch": "pod/feat-2",
+        "base": "main",
+        "base_commit": "abc",
+        "worktree": "C:/wt/demo/feat-2",
+        "agent": "codex",
+        "created_ms": 2,
+        "worktree_exists": false,
+        "terminals": [
+          {
+            "id": "t5"
+          },
+          {
+            "id": "t6"
+          }
+        ],
+        "git_error": "not a git repository",
+        "review": {
+          "open": 2,
+          "queued": 1,
+          "sent": 0,
+          "resolved": 3
+        },
+        "group": "demo/fx",
+        "parent_task": "demo/root",
+        "parent_terminal": "t1",
+        "prompt": "fix the login",
+        "status": {
+          "state": "done",
+          "since": 9,
+          "badge": "done (+1 running)",
+          "running_children": 1
+        },
+        "pr": {
+          "number": 12,
+          "url": "https://example.invalid/pr/12",
+          "title": "Fix login",
+          "state": "open",
+          "updated_ms": 77
+        },
+        "future": [
+          1,
+          2
+        ]
+      },
+      "expect": {
+        "id": "demo/feat-2",
+        "title": "feat-2",
+        "repo": "demo",
+        "branch": "pod/feat-2",
+        "base": "main",
+        "agent": "codex",
+        "worktree": "C:/wt/demo/feat-2",
+        "worktree_exists": true,
+        "terminals": [
+          "t5",
+          "t6"
+        ],
+        "git": null,
+        "git_error": null,
+        "review_open": 0,
+        "status": {
+          "state": "Done",
+          "final_state": null,
+          "since": 9,
+          "confidence": "0",
+          "kind": null,
+          "source": null,
+          "badge": "done (+1 running)",
+          "running_children": 1,
+          "turn": 0,
+          "agent": null,
+          "app": null
+        },
+        "parent_task": "demo/root",
+        "parent_terminal": "t1",
+        "group": "demo/fx",
+        "prompt": "fix the login",
+        "pr": {
+          "number": 12,
+          "url": "https://example.invalid/pr/12",
+          "title": "Fix login",
+          "state": "open",
+          "draft": false,
+          "checks": {
+            "total": 0,
+            "passed": 0,
+            "failed": 0,
+            "pending": 0,
+            "skipped": 0
+          },
+          "updated_ms": 77
+        }
+      }
+    },
+    {
+      "name": "task v3 full with review, group, parents, prompt, status, pr",
+      "as": "task",
+      "wire": {
+        "id": "demo/feat-2",
+        "repo": "demo",
+        "name": "feat-2",
+        "branch": "pod/feat-2",
+        "base": "main",
+        "base_commit": "abc",
+        "worktree": "C:/wt/demo/feat-2",
+        "agent": "codex",
+        "created_ms": 2,
+        "worktree_exists": false,
+        "terminals": [
+          {
+            "id": "t5"
+          },
+          {
+            "id": "t6"
+          }
+        ],
+        "git_error": "not a git repository",
+        "review": {
+          "open": 2,
+          "queued": 1,
+          "sent": 0,
+          "resolved": 3
+        },
+        "group": "demo/fx",
+        "parent_task": "demo/root",
+        "parent_terminal": "t1",
+        "prompt": "fix the login",
+        "status": {
+          "state": "done",
+          "terminal": "t5",
+          "badge": "done (+1 running)",
+          "terminals": 2
+        },
+        "pr": {
+          "number": 12,
+          "url": "https://example.invalid/pr/12",
+          "title": "Fix login",
+          "state": "open",
+          "updated_ms": 77
+        },
+        "future": [
+          1,
+          2
+        ]
+      },
+      "expect": {
+        "id": "demo/feat-2",
+        "title": "demo/feat-2",
+        "repo": "demo",
+        "branch": "pod/feat-2",
+        "base": "main",
+        "agent": "codex",
+        "worktree": "C:/wt/demo/feat-2",
+        "worktree_exists": false,
+        "terminals": [
+          "t5",
+          "t6"
+        ],
+        "git": null,
+        "git_error": "not a git repository",
+        "review_open": 2,
+        "status": {
+          "state": "Done",
+          "final_state": null,
+          "since": 0,
+          "confidence": "0",
+          "kind": null,
+          "source": null,
+          "badge": "done (+1 running)",
+          "running_children": 0,
+          "turn": 0,
+          "agent": null,
+          "app": null
+        },
+        "parent_task": "demo/root",
+        "parent_terminal": "t1",
+        "group": "demo/fx",
+        "prompt": "fix the login",
+        "pr": {
+          "number": 12,
+          "url": "https://example.invalid/pr/12",
+          "title": "Fix login",
+          "state": "open",
+          "draft": false,
+          "checks": {
+            "total": 0,
+            "passed": 0,
+            "failed": 0,
+            "pending": 0,
+            "skipped": 0
+          },
+          "updated_ms": 77
+        }
+      }
+    },
+    {
+      "name": "task v3 short sha",
+      "as": "task",
+      "wire": {
+        "id": "demo/feat-3",
+        "repo": "demo",
+        "name": "feat-3",
+        "branch": "pod/feat-3",
+        "base": "main",
+        "base_commit": "abc",
+        "worktree": "C:/wt/demo/feat-3",
+        "agent": "shell",
+        "created_ms": 3,
+        "worktree_exists": true,
+        "terminals": [],
+        "git": {
+          "ahead": 0,
+          "behind": 0,
+          "dirty": 0,
+          "unpushed": 0,
+          "last_commit": {
+            "sha": "abc12",
+            "summary": "init",
+            "author": "a",
+            "time_ms": 0
+          }
+        }
+      },
+      "expect": {
+        "id": "demo/feat-3",
+        "title": "demo/feat-3",
+        "repo": "demo",
+        "branch": "pod/feat-3",
+        "base": "main",
+        "agent": "shell",
+        "worktree": "C:/wt/demo/feat-3",
+        "worktree_exists": true,
+        "terminals": [],
+        "git": {
+          "ahead": 0,
+          "behind": 0,
+          "dirty": 0,
+          "unpushed": 0,
+          "last_commit": "abc12 init"
+        },
+        "git_error": null,
+        "review_open": 0,
+        "status": null,
+        "parent_task": null,
+        "parent_terminal": null,
+        "group": null,
+        "prompt": null,
+        "pr": null
+      }
+    },
+    {
+      "name": "task lenient name and mixed terminals",
+      "as": "task",
+      "wire": {
+        "id": "k1",
+        "name": "fix bug",
+        "branch": "b",
+        "terminals": [
+          "t1",
+          {
+            "id": "t2"
+          },
+          7
+        ]
+      },
+      "expect": {
+        "id": "k1",
+        "title": "fix bug",
+        "repo": null,
+        "branch": "b",
+        "base": null,
+        "agent": null,
+        "worktree": null,
+        "worktree_exists": true,
+        "terminals": [
+          "t1",
+          "t2"
+        ],
+        "git": null,
+        "git_error": null,
+        "review_open": 0,
+        "status": null,
+        "parent_task": null,
+        "parent_terminal": null,
+        "group": null,
+        "prompt": null,
+        "pr": null
+      }
+    },
+    {
+      "name": "task lenient title, path and status string",
+      "as": "task",
+      "wire": {
+        "id": "k3",
+        "title": "Title",
+        "name": "ignored",
+        "path": "C:/w/k3",
+        "agent": "claude",
+        "status": "blocked",
+        "group": "g",
+        "prompt": "p"
+      },
+      "expect": {
+        "id": "k3",
+        "title": "Title",
+        "repo": null,
+        "branch": null,
+        "base": null,
+        "agent": "claude",
+        "worktree": "C:/w/k3",
+        "worktree_exists": true,
+        "terminals": [],
+        "git": null,
+        "git_error": null,
+        "review_open": 0,
+        "status": {
+          "state": "Blocked",
+          "final_state": null,
+          "since": 0,
+          "confidence": "0",
+          "kind": null,
+          "source": null,
+          "badge": null,
+          "running_children": 0,
+          "turn": 0,
+          "agent": null,
+          "app": null
+        },
+        "parent_task": null,
+        "parent_terminal": null,
+        "group": "g",
+        "prompt": "p",
+        "pr": null
+      }
+    },
+    {
+      "name": "task lenient bad pr is dropped",
+      "as": "task",
+      "wire": {
+        "id": "k4",
+        "pr": {
+          "number": "x"
+        }
+      },
+      "expect": {
+        "id": "k4",
+        "title": "k4",
+        "repo": null,
+        "branch": null,
+        "base": null,
+        "agent": null,
+        "worktree": null,
+        "worktree_exists": true,
+        "terminals": [],
+        "git": null,
+        "git_error": null,
+        "review_open": 0,
+        "status": null,
+        "parent_task": null,
+        "parent_terminal": null,
+        "group": null,
+        "prompt": null,
+        "pr": null
+      }
+    },
+    {
+      "name": "task without id is dropped",
+      "as": "task",
+      "wire": {
+        "title": "no id"
+      },
+      "expect": null
+    },
+    {
+      "name": "status bare string",
+      "as": "status",
+      "wire": "blocked",
+      "expect": {
+        "state": "Blocked",
+        "final_state": null,
+        "since": 0,
+        "confidence": "0",
+        "kind": null,
+        "source": null,
+        "badge": null,
+        "running_children": 0,
+        "turn": 0,
+        "agent": null,
+        "app": null
+      }
+    },
+    {
+      "name": "status full object",
+      "as": "status",
+      "wire": {
+        "state": "done",
+        "final_state": "done",
+        "since": 12,
+        "confidence": 0.5,
+        "kind": "question",
+        "source": "osc",
+        "badge": "done",
+        "running_children": 2,
+        "turn": 4,
+        "agent": "codex",
+        "app": "codex-cli",
+        "future": true
+      },
+      "expect": {
+        "state": "Done",
+        "final_state": "Done",
+        "since": 12,
+        "confidence": "0.5",
+        "kind": "question",
+        "source": "osc",
+        "badge": "done",
+        "running_children": 2,
+        "turn": 4,
+        "agent": "codex",
+        "app": "codex-cli"
+      }
+    },
+    {
+      "name": "status unknown state",
+      "as": "status",
+      "wire": {
+        "state": "napping"
+      },
+      "expect": {
+        "state": "Unknown",
+        "final_state": null,
+        "since": 0,
+        "confidence": "0",
+        "kind": null,
+        "source": null,
+        "badge": null,
+        "running_children": 0,
+        "turn": 0,
+        "agent": null,
+        "app": null
+      }
+    },
+    {
+      "name": "status without state",
+      "as": "status",
+      "wire": {
+        "kind": "permission"
+      },
+      "expect": null
+    },
+    {
+      "name": "status number",
+      "as": "status",
+      "wire": 3,
+      "expect": null
+    },
+    {
+      "name": "agent states",
+      "as": "agent_state",
+      "wire": [
+        "idle",
+        "working",
+        "blocked",
+        "done",
+        "error",
+        "exited",
+        "unknown",
+        "WORKING",
+        ""
+      ],
+      "expect": [
+        "Idle",
+        "Working",
+        "Blocked",
+        "Done",
+        "Error",
+        "Exited",
+        "Unknown",
+        "Unknown",
+        "Unknown"
+      ]
+    }
+  ],
+  "notifications": [
+    {
+      "name": "terminal.changed",
+      "method": "terminal.changed",
+      "params": {
+        "seq": 1,
+        "id": "t1",
+        "change": "exited"
+      },
+      "expect": {
+        "created": null,
+        "orch": null,
+        "lifecycle": {
+          "refresh": {
+            "terminals": true,
+            "tasks": false,
+            "files": null
+          }
+        }
+      }
+    },
+    {
+      "name": "status.lagged",
+      "method": "status.lagged",
+      "params": {
+        "missed": 9
+      },
+      "expect": {
+        "created": null,
+        "orch": null,
+        "lifecycle": {
+          "refresh": {
+            "terminals": true,
+            "tasks": true,
+            "files": null
+          }
+        }
+      }
+    },
+    {
+      "name": "task.changed touched",
+      "method": "task.changed",
+      "params": {
+        "seq": 2,
+        "id": "r/a",
+        "change": "touched",
+        "paths": [
+          "x"
+        ]
+      },
+      "expect": {
+        "created": null,
+        "orch": null,
+        "lifecycle": {
+          "refresh": {
+            "terminals": false,
+            "tasks": false,
+            "files": "r/a"
+          }
+        }
+      }
+    },
+    {
+      "name": "task.changed git",
+      "method": "task.changed",
+      "params": {
+        "seq": 3,
+        "id": "r/a",
+        "change": "git"
+      },
+      "expect": {
+        "created": null,
+        "orch": null,
+        "lifecycle": {
+          "refresh": {
+            "terminals": false,
+            "tasks": true,
+            "files": "r/a"
+          }
+        }
+      }
+    },
+    {
+      "name": "task.changed terminals",
+      "method": "task.changed",
+      "params": {
+        "seq": 4,
+        "id": "r/a",
+        "change": "terminals",
+        "terminals": [
+          "t2"
+        ]
+      },
+      "expect": {
+        "created": null,
+        "orch": null,
+        "lifecycle": {
+          "refresh": {
+            "terminals": true,
+            "tasks": true,
+            "files": null
+          }
+        }
+      }
+    },
+    {
+      "name": "task.changed removed",
+      "method": "task.changed",
+      "params": {
+        "seq": 5,
+        "id": "r/a",
+        "change": "removed"
+      },
+      "expect": {
+        "created": null,
+        "orch": null,
+        "lifecycle": {
+          "refresh": {
+            "terminals": true,
+            "tasks": true,
+            "files": null
+          }
+        }
+      }
+    },
+    {
+      "name": "task.changed status",
+      "method": "task.changed",
+      "params": {
+        "seq": 6,
+        "id": "r/a",
+        "change": "status"
+      },
+      "expect": {
+        "created": null,
+        "orch": null,
+        "lifecycle": {
+          "refresh": {
+            "terminals": false,
+            "tasks": true,
+            "files": null
+          }
+        }
+      }
+    },
+    {
+      "name": "task.changed created with hint and agent terminal",
+      "method": "task.changed",
+      "params": {
+        "seq": 7,
+        "id": "r/b",
+        "change": "created",
+        "open_hint": {
+          "focus": true,
+          "reason": "user"
+        },
+        "task": {
+          "agent_terminal": "t8",
+          "terminals": [
+            {
+              "id": "t9"
+            }
+          ]
+        }
+      },
+      "expect": {
+        "created": {
+          "task_created": {
+            "id": "r/b",
+            "terminal": "t8",
+            "hint": {
+              "focus": true,
+              "reason": "user"
+            }
+          }
+        },
+        "orch": null,
+        "lifecycle": {
+          "refresh": {
+            "terminals": false,
+            "tasks": true,
+            "files": null
+          }
+        }
+      }
+    },
+    {
+      "name": "task.changed created with hint, first terminal",
+      "method": "task.changed",
+      "params": {
+        "seq": 8,
+        "id": "r/c",
+        "change": "created",
+        "open_hint": {
+          "focus": false,
+          "reason": "worker"
+        },
+        "task": {
+          "terminals": [
+            {
+              "id": "t10"
+            }
+          ]
+        }
+      },
+      "expect": {
+        "created": {
+          "task_created": {
+            "id": "r/c",
+            "terminal": "t10",
+            "hint": {
+              "focus": false,
+              "reason": "worker"
+            }
+          }
+        },
+        "orch": null,
+        "lifecycle": {
+          "refresh": {
+            "terminals": false,
+            "tasks": true,
+            "files": null
+          }
+        }
+      }
+    },
+    {
+      "name": "task.changed created without hint",
+      "method": "task.changed",
+      "params": {
+        "seq": 9,
+        "id": "r/d",
+        "change": "created"
+      },
+      "expect": {
+        "created": null,
+        "orch": null,
+        "lifecycle": {
+          "refresh": {
+            "terminals": false,
+            "tasks": true,
+            "files": null
+          }
+        }
+      }
+    },
+    {
+      "name": "task.changed created with an unknown hint reason",
+      "method": "task.changed",
+      "params": {
+        "seq": 9,
+        "id": "r/e",
+        "change": "created",
+        "open_hint": {
+          "focus": true,
+          "reason": "future"
+        },
+        "task": {
+          "agent_terminal": "t12"
+        }
+      },
+      "expect": {
+        "created": null,
+        "orch": null,
+        "lifecycle": {
+          "refresh": {
+            "terminals": false,
+            "tasks": true,
+            "files": null
+          }
+        }
+      }
+    },
+    {
+      "name": "task.removing",
+      "method": "task.removing",
+      "params": {
+        "seq": 10,
+        "id": "r/a",
+        "worktree": "C:/w/a",
+        "force": false,
+        "grace_ms": 300
+      },
+      "expect": {
+        "created": null,
+        "orch": null,
+        "lifecycle": {
+          "removing": [
+            "r/a",
+            "C:/w/a"
+          ]
+        }
+      }
+    },
+    {
+      "name": "task.pr.changed",
+      "method": "task.pr.changed",
+      "params": {
+        "seq": 11,
+        "id": "r/a"
+      },
+      "expect": {
+        "created": null,
+        "orch": null,
+        "lifecycle": {
+          "refresh": {
+            "terminals": false,
+            "tasks": true,
+            "files": null
+          }
+        }
+      }
+    },
+    {
+      "name": "gate.changed",
+      "method": "gate.changed",
+      "params": {
+        "seq": 12,
+        "gate": {
+          "id": "g1",
+          "title": "Deploy",
+          "message": "ok?",
+          "state": "pending",
+          "created_ms": 1,
+          "terminal": "t2",
+          "options": [
+            "yes",
+            "no"
+          ],
+          "future": 1
+        }
+      },
+      "expect": {
+        "created": null,
+        "orch": {
+          "gate": {
+            "id": "g1",
+            "title": "Deploy",
+            "message": "ok?",
+            "terminal": "t2",
+            "state": "pending",
+            "created_ms": 1,
+            "options": [
+              "yes",
+              "no"
+            ]
+          }
+        },
+        "lifecycle": "none"
+      }
+    },
+    {
+      "name": "gate.changed malformed",
+      "method": "gate.changed",
+      "params": {
+        "bad": 1
+      },
+      "expect": {
+        "created": null,
+        "orch": null,
+        "lifecycle": "none"
+      }
+    },
+    {
+      "name": "group.check",
+      "method": "group.check",
+      "params": {
+        "seq": 13,
+        "group": "demo/fx",
+        "job": {
+          "id": "k1",
+          "state": "running",
+          "argv": [
+            "cmd"
+          ],
+          "tasks": [
+            "demo/fx-shell-1"
+          ],
+          "timeout_ms": 1000,
+          "started_ms": 1
+        }
+      },
+      "expect": {
+        "created": null,
+        "orch": {
+          "group_check": {
+            "seq": 13,
+            "group": "demo/fx",
+            "job": {
+              "id": "k1",
+              "state": "running",
+              "argv": [
+                "cmd"
+              ],
+              "tasks": [
+                "demo/fx-shell-1"
+              ],
+              "done": [],
+              "timeout_ms": 1000,
+              "started_ms": 1
+            }
+          }
+        },
+        "lifecycle": "none"
+      }
+    },
+    {
+      "name": "review.delivery",
+      "method": "review.delivery",
+      "params": {
+        "seq": 14,
+        "delivery": {
+          "id": "d1",
+          "task": "demo/a",
+          "terminal": "t1",
+          "comment_ids": [
+            "c1"
+          ],
+          "state": "queued",
+          "prompt": "p",
+          "created_ms": 1,
+          "agent_state": "working"
+        }
+      },
+      "expect": {
+        "created": null,
+        "orch": {
+          "delivery": {
+            "id": "d1",
+            "task": "demo/a",
+            "terminal": "t1",
+            "comment_ids": [
+              "c1"
+            ],
+            "state": "queued",
+            "prompt": "p",
+            "created_ms": 1,
+            "agent_state": "working"
+          },
+          "submit": null
+        },
+        "lifecycle": "none"
+      }
+    },
+    {
+      "name": "mod.notify",
+      "method": "mod.notify",
+      "params": {
+        "seq": 15,
+        "mod": "pod-ci",
+        "title": "Build",
+        "body": "green",
+        "level": "info",
+        "task": "demo/a"
+      },
+      "expect": {
+        "created": null,
+        "orch": {
+          "mod_notice": {
+            "mod": "pod-ci",
+            "title": "Build",
+            "body": "green",
+            "level": "info",
+            "task": "demo/a"
+          }
+        },
+        "lifecycle": "none"
+      }
+    },
+    {
+      "name": "mod.notify malformed",
+      "method": "mod.notify",
+      "params": {
+        "seq": 15,
+        "kind": "info",
+        "title": "Build",
+        "body": "green",
+        "run": "pod-ci"
+      },
+      "expect": {
+        "created": null,
+        "orch": null,
+        "lifecycle": "none"
+      }
+    },
+    {
+      "name": "mod.changed",
+      "method": "mod.changed",
+      "params": {
+        "seq": 16,
+        "mod": {
+          "name": "pod-layouts",
+          "version": "0.1.0",
+          "enabled": true,
+          "state": "running",
+          "permissions": [],
+          "log_lines": 1,
+          "memory_kib": 0
+        }
+      },
+      "expect": {
+        "created": null,
+        "orch": {
+          "mod_changed": {
+            "name": "pod-layouts",
+            "version": "0.1.0",
+            "enabled": true,
+            "state": "running",
+            "permissions": [],
+            "checks": [],
+            "commands": [],
+            "detectors": [],
+            "layouts": [],
+            "log_lines": 1,
+            "memory_kib": 0
+          }
+        },
+        "lifecycle": "none"
+      }
+    },
+    {
+      "name": "orch.changed",
+      "method": "orch.changed",
+      "params": {
+        "seq": 17,
+        "run": "r1",
+        "attempt": "a2"
+      },
+      "expect": {
+        "created": null,
+        "orch": {
+          "orch_changed": {
+            "seq": 17,
+            "run": "r1",
+            "attempt": "a2"
+          }
+        },
+        "lifecycle": "none"
+      }
+    },
+    {
+      "name": "orch.mail",
+      "method": "orch.mail",
+      "params": {
+        "seq": 18,
+        "run": "r1",
+        "to": "run:r1",
+        "id": "m7",
+        "type": "escalation",
+        "subject": "stalled"
+      },
+      "expect": {
+        "created": null,
+        "orch": {
+          "orch_mail": {
+            "seq": 18,
+            "run": "r1",
+            "to": "run:r1",
+            "id": "m7",
+            "type": "escalation",
+            "subject": "stalled"
+          }
+        },
+        "lifecycle": "none"
+      }
+    },
+    {
+      "name": "orch.mail malformed",
+      "method": "orch.mail",
+      "params": {
+        "run": "r1"
+      },
+      "expect": {
+        "created": null,
+        "orch": null,
+        "lifecycle": "none"
+      }
+    },
+    {
+      "name": "status.changed",
+      "method": "status.changed",
+      "params": {
+        "id": "t1",
+        "status": {
+          "state": "working"
+        }
+      },
+      "expect": {
+        "created": null,
+        "orch": null,
+        "lifecycle": "none"
+      }
+    },
+    {
+      "name": "unknown future notification",
+      "method": "future.event",
+      "params": {
+        "x": 1
+      },
+      "expect": {
+        "created": null,
+        "orch": null,
+        "lifecycle": "none"
+      }
+    }
+  ],
+  "control": [
+    {
+      "name": "poll reads terminals, repos and tasks",
+      "cmd": "poll",
+      "daemon": {
+        "terminal.list": {
+          "result": {
+            "terminals": [
+              {
+                "id": "t1",
+                "argv": [
+                  "claude"
+                ],
+                "cwd": "C:/w",
+                "state": "running",
+                "cols": 80,
+                "rows": 24,
+                "created_ms": 1,
+                "attached": 1,
+                "task": "demo/a",
+                "status": {
+                  "state": "working"
+                }
+              },
+              {
+                "argv": [
+                  "bad"
+                ],
+                "cwd": "C:/w",
+                "state": "running",
+                "cols": 80,
+                "rows": 24,
+                "created_ms": 2,
+                "attached": 0
+              },
+              {
+                "id": "t2",
+                "argv": [
+                  "powershell.exe"
+                ],
+                "cwd": "C:/w",
+                "state": "exited",
+                "exit_code": 0,
+                "cols": 80,
+                "rows": 24,
+                "created_ms": 3,
+                "attached": 0,
+                "future": "x"
+              }
+            ]
+          }
+        },
+        "repo.list": {
+          "result": {
+            "repos": [
+              {
+                "name": "demo",
+                "path": "C:/src/demo",
+                "added_ms": 1,
+                "default_base": "main",
+                "tasks": 2
+              },
+              {
+                "name": "bare",
+                "path": "C:/src/bare",
+                "added_ms": 2,
+                "tasks": 0,
+                "future": 1
+              }
+            ]
+          }
+        },
+        "task.list": {
+          "result": {
+            "tasks": [
+              {
+                "id": "demo/a",
+                "name": "a",
+                "terminals": [
+                  "t1"
+                ]
+              },
+              {
+                "title": "dropped"
+              }
+            ]
+          }
+        }
+      },
+      "expect": {
+        "sent": [
+          {
+            "method": "terminal.list",
+            "params": {}
+          },
+          {
+            "method": "repo.list",
+            "params": {}
+          },
+          {
+            "method": "task.list",
+            "params": {}
+          }
+        ],
+        "reply": null,
+        "lost": null,
+        "events": [
+          {
+            "terminals": [
+              {
+                "id": "t1",
+                "name": null,
+                "program": "claude",
+                "argv": [
+                  "claude"
+                ],
+                "cwd": "C:/w",
+                "live": "running",
+                "attached": 1,
+                "created_ms": 1,
+                "task_id": "demo/a",
+                "status": {
+                  "state": "Working",
+                  "final_state": null,
+                  "since": 0,
+                  "confidence": "0",
+                  "kind": null,
+                  "source": null,
+                  "badge": null,
+                  "running_children": 0,
+                  "turn": 0,
+                  "agent": null,
+                  "app": null
+                },
+                "parent_terminal": null,
+                "parent_task": null,
+                "unreachable": null
+              },
+              {
+                "id": "t2",
+                "name": null,
+                "program": "powershell",
+                "argv": [
+                  "powershell.exe"
+                ],
+                "cwd": "C:/w",
+                "live": {
+                  "exited": {
+                    "code": 0,
+                    "killed": false
+                  }
+                },
+                "attached": 0,
+                "created_ms": 3,
+                "task_id": null,
+                "status": null,
+                "parent_terminal": null,
+                "parent_task": null,
+                "unreachable": null
+              }
+            ]
+          },
+          {
+            "repos": [
+              {
+                "name": "demo",
+                "path": "C:/src/demo",
+                "default_base": "main"
+              },
+              {
+                "name": "bare",
+                "path": "C:/src/bare",
+                "default_base": null
+              }
+            ]
+          },
+          {
+            "tasks": [
+              {
+                "id": "demo/a",
+                "title": "a",
+                "repo": null,
+                "branch": null,
+                "base": null,
+                "agent": null,
+                "worktree": null,
+                "worktree_exists": true,
+                "terminals": [
+                  "t1"
+                ],
+                "git": null,
+                "git_error": null,
+                "review_open": 0,
+                "status": null,
+                "parent_task": null,
+                "parent_terminal": null,
+                "group": null,
+                "prompt": null,
+                "pr": null
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "poll task.list as a bare array",
+      "cmd": "poll",
+      "daemon": {
+        "task.list": {
+          "result": [
+            {
+              "id": "demo/b",
+              "title": "B"
+            }
+          ]
+        }
+      },
+      "expect": {
+        "sent": [
+          {
+            "method": "terminal.list",
+            "params": {}
+          },
+          {
+            "method": "repo.list",
+            "params": {}
+          },
+          {
+            "method": "task.list",
+            "params": {}
+          }
+        ],
+        "reply": null,
+        "lost": null,
+        "events": [
+          {
+            "terminals": []
+          },
+          {
+            "repos": []
+          },
+          {
+            "tasks": [
+              {
+                "id": "demo/b",
+                "title": "B",
+                "repo": null,
+                "branch": null,
+                "base": null,
+                "agent": null,
+                "worktree": null,
+                "worktree_exists": true,
+                "terminals": [],
+                "git": null,
+                "git_error": null,
+                "review_open": 0,
+                "status": null,
+                "parent_task": null,
+                "parent_terminal": null,
+                "group": null,
+                "prompt": null,
+                "pr": null
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "poll ignores rpc errors of repo.list and task.list",
+      "cmd": "poll",
+      "daemon": {
+        "repo.list": {
+          "error": {
+            "code": -32603,
+            "message": "boom"
+          }
+        },
+        "task.list": {
+          "error": {
+            "code": -32601,
+            "message": "method not found"
+          }
+        }
+      },
+      "expect": {
+        "sent": [
+          {
+            "method": "terminal.list",
+            "params": {}
+          },
+          {
+            "method": "repo.list",
+            "params": {}
+          },
+          {
+            "method": "task.list",
+            "params": {}
+          }
+        ],
+        "reply": null,
+        "lost": null,
+        "events": [
+          {
+            "terminals": []
+          }
+        ]
+      }
+    },
+    {
+      "name": "poll terminal.list without terminals key",
+      "cmd": "poll",
+      "daemon": {
+        "terminal.list": {
+          "result": {
+            "other": []
+          }
+        }
+      },
+      "expect": {
+        "sent": [
+          {
+            "method": "terminal.list",
+            "params": {}
+          },
+          {
+            "method": "repo.list",
+            "params": {}
+          },
+          {
+            "method": "task.list",
+            "params": {}
+          }
+        ],
+        "reply": null,
+        "lost": null,
+        "events": [
+          {
+            "terminals": []
+          },
+          {
+            "repos": []
+          },
+          {
+            "tasks": []
+          }
+        ]
+      }
+    },
+    {
+      "name": "poll without task capability",
+      "cmd": "poll",
+      "caps_tasks": false,
+      "daemon": {},
+      "expect": {
+        "sent": [
+          {
+            "method": "terminal.list",
+            "params": {}
+          }
+        ],
+        "reply": null,
+        "lost": null,
+        "events": [
+          {
+            "terminals": []
+          }
+        ]
+      }
+    },
+    {
+      "name": "poll connection closed",
+      "cmd": "poll",
+      "daemon": {
+        "terminal.list": "close"
+      },
+      "expect": {
+        "sent": [
+          {
+            "method": "terminal.list",
+            "params": {}
+          }
+        ],
+        "reply": null,
+        "lost": "protocol error: daemon closed the connection",
+        "events": []
+      }
+    },
+    {
+      "name": "poll repo.list stopping daemon",
+      "cmd": "poll",
+      "daemon": {
+        "repo.list": {
+          "error": {
+            "code": -32050,
+            "message": "podd is stopping"
+          }
+        }
+      },
+      "expect": {
+        "sent": [
+          {
+            "method": "terminal.list",
+            "params": {}
+          },
+          {
+            "method": "repo.list",
+            "params": {}
+          }
+        ],
+        "reply": null,
+        "lost": "podd is stopping",
+        "events": [
+          {
+            "terminals": []
+          }
+        ]
+      }
+    },
+    {
+      "name": "poll repo.list with a bad shape drops the connection",
+      "cmd": "poll",
+      "daemon": {
+        "repo.list": {
+          "result": {
+            "repos": [
+              {
+                "name": "demo",
+                "path": "C:/src/demo"
+              }
+            ]
+          }
+        }
+      },
+      "expect": {
+        "sent": [
+          {
+            "method": "terminal.list",
+            "params": {}
+          },
+          {
+            "method": "repo.list",
+            "params": {}
+          }
+        ],
+        "reply": null,
+        "lost": "protocol error: bad repo.list result: missing field `added_ms`",
+        "events": [
+          {
+            "terminals": []
+          }
+        ]
+      }
+    },
+    {
+      "name": "run full spec",
+      "cmd": {
+        "run": {
+          "argv": [
+            "powershell.exe",
+            "-NoLogo"
+          ],
+          "cwd": "C:/w",
+          "name": "build",
+          "cols": 120,
+          "rows": 40,
+          "task": "demo/a"
+        }
+      },
+      "daemon": {
+        "terminal.run": {
+          "result": {
+            "id": "t7",
+            "name": "build",
+            "argv": [
+              "powershell.exe",
+              "-NoLogo"
+            ],
+            "cwd": "C:/w",
+            "state": "running",
+            "cols": 120,
+            "rows": 40,
+            "created_ms": 9,
+            "attached": 0,
+            "task": "demo/a"
+          }
+        }
+      },
+      "expect": {
+        "sent": [
+          {
+            "method": "terminal.run",
+            "params": {
+              "argv": [
+                "powershell.exe",
+                "-NoLogo"
+              ],
+              "cwd": "C:/w",
+              "name": "build",
+              "cols": 120,
+              "rows": 40,
+              "task": "demo/a"
+            }
+          },
+          {
+            "method": "terminal.list",
+            "params": {}
+          },
+          {
+            "method": "repo.list",
+            "params": {}
+          },
+          {
+            "method": "task.list",
+            "params": {}
+          }
+        ],
+        "reply": {
+          "ok": {
+            "id": "t7",
+            "name": "build",
+            "program": "powershell",
+            "argv": [
+              "powershell.exe",
+              "-NoLogo"
+            ],
+            "cwd": "C:/w",
+            "live": "running",
+            "attached": 0,
+            "created_ms": 9,
+            "task_id": "demo/a",
+            "status": null,
+            "parent_terminal": null,
+            "parent_task": null,
+            "unreachable": null
+          }
+        },
+        "lost": null,
+        "events": [
+          {
+            "terminals": []
+          },
+          {
+            "repos": []
+          },
+          {
+            "tasks": []
+          }
+        ]
+      }
+    },
+    {
+      "name": "run argv only",
+      "cmd": {
+        "run": {
+          "argv": [
+            "claude"
+          ]
+        }
+      },
+      "daemon": {
+        "terminal.run": {
+          "result": {
+            "id": "t8",
+            "argv": [
+              "claude"
+            ],
+            "cwd": "C:/home",
+            "state": "running",
+            "cols": 80,
+            "rows": 24,
+            "created_ms": 10,
+            "attached": 0
+          }
+        }
+      },
+      "expect": {
+        "sent": [
+          {
+            "method": "terminal.run",
+            "params": {
+              "argv": [
+                "claude"
+              ]
+            }
+          },
+          {
+            "method": "terminal.list",
+            "params": {}
+          },
+          {
+            "method": "repo.list",
+            "params": {}
+          },
+          {
+            "method": "task.list",
+            "params": {}
+          }
+        ],
+        "reply": {
+          "ok": {
+            "id": "t8",
+            "name": null,
+            "program": "claude",
+            "argv": [
+              "claude"
+            ],
+            "cwd": "C:/home",
+            "live": "running",
+            "attached": 0,
+            "created_ms": 10,
+            "task_id": null,
+            "status": null,
+            "parent_terminal": null,
+            "parent_task": null,
+            "unreachable": null
+          }
+        },
+        "lost": null,
+        "events": [
+          {
+            "terminals": []
+          },
+          {
+            "repos": []
+          },
+          {
+            "tasks": []
+          }
+        ]
+      }
+    },
+    {
+      "name": "run rpc error keeps its code",
+      "cmd": {
+        "run": {
+          "argv": [
+            "nope"
+          ]
+        }
+      },
+      "daemon": {
+        "terminal.run": {
+          "error": {
+            "code": -32003,
+            "message": "spawn failed: nope"
+          }
+        }
+      },
+      "expect": {
+        "sent": [
+          {
+            "method": "terminal.run",
+            "params": {
+              "argv": [
+                "nope"
+              ]
+            }
+          }
+        ],
+        "reply": {
+          "err": {
+            "code": -32003,
+            "message": "spawn failed: nope"
+          }
+        },
+        "lost": null,
+        "events": []
+      }
+    },
+    {
+      "name": "run bad result drops the connection",
+      "cmd": {
+        "run": {
+          "argv": [
+            "claude"
+          ]
+        }
+      },
+      "daemon": {
+        "terminal.run": {
+          "result": {
+            "argv": [
+              "claude"
+            ]
+          }
+        }
+      },
+      "expect": {
+        "sent": [
+          {
+            "method": "terminal.run",
+            "params": {
+              "argv": [
+                "claude"
+              ]
+            }
+          }
+        ],
+        "reply": {
+          "err": {
+            "code": null,
+            "message": "podd connection lost: protocol error: bad terminal.run result"
+          }
+        },
+        "lost": "protocol error: bad terminal.run result",
+        "events": []
+      }
+    },
+    {
+      "name": "kill",
+      "cmd": {
+        "kill": "t1"
+      },
+      "daemon": {
+        "terminal.kill": {
+          "result": {
+            "id": "t1",
+            "argv": [
+              "claude"
+            ],
+            "cwd": "C:/w",
+            "state": "exited",
+            "killed": true,
+            "cols": 80,
+            "rows": 24,
+            "created_ms": 1,
+            "attached": 0
+          }
+        }
+      },
+      "expect": {
+        "sent": [
+          {
+            "method": "terminal.kill",
+            "params": {
+              "id": "t1"
+            }
+          },
+          {
+            "method": "terminal.list",
+            "params": {}
+          },
+          {
+            "method": "repo.list",
+            "params": {}
+          },
+          {
+            "method": "task.list",
+            "params": {}
+          }
+        ],
+        "reply": {
+          "ok": null
+        },
+        "lost": null,
+        "events": [
+          {
+            "terminals": []
+          },
+          {
+            "repos": []
+          },
+          {
+            "tasks": []
+          }
+        ]
+      }
+    },
+    {
+      "name": "kill with a bad result drops the connection",
+      "cmd": {
+        "kill": "t1"
+      },
+      "daemon": {
+        "terminal.kill": {
+          "result": {}
+        }
+      },
+      "expect": {
+        "sent": [
+          {
+            "method": "terminal.kill",
+            "params": {
+              "id": "t1"
+            }
+          }
+        ],
+        "reply": {
+          "err": {
+            "code": null,
+            "message": "podd connection lost: protocol error: bad terminal.kill result: missing field `id`"
+          }
+        },
+        "lost": "protocol error: bad terminal.kill result: missing field `id`",
+        "events": []
+      }
+    },
+    {
+      "name": "kill unknown terminal",
+      "cmd": {
+        "kill": "t404"
+      },
+      "daemon": {
+        "terminal.kill": {
+          "error": {
+            "code": -32001,
+            "message": "no terminal t404"
+          }
+        }
+      },
+      "expect": {
+        "sent": [
+          {
+            "method": "terminal.kill",
+            "params": {
+              "id": "t404"
+            }
+          },
+          {
+            "method": "terminal.list",
+            "params": {}
+          },
+          {
+            "method": "repo.list",
+            "params": {}
+          },
+          {
+            "method": "task.list",
+            "params": {}
+          }
+        ],
+        "reply": {
+          "err": {
+            "code": -32001,
+            "message": "no terminal t404"
+          }
+        },
+        "lost": null,
+        "events": [
+          {
+            "terminals": []
+          },
+          {
+            "repos": []
+          },
+          {
+            "tasks": []
+          }
+        ]
+      }
+    },
+    {
+      "name": "kill connection closed",
+      "cmd": {
+        "kill": "t1"
+      },
+      "daemon": {
+        "terminal.kill": "close"
+      },
+      "expect": {
+        "sent": [
+          {
+            "method": "terminal.kill",
+            "params": {
+              "id": "t1"
+            }
+          }
+        ],
+        "reply": {
+          "err": {
+            "code": null,
+            "message": "podd connection lost: protocol error: daemon closed the connection"
+          }
+        },
+        "lost": "protocol error: daemon closed the connection",
+        "events": []
+      }
+    },
+    {
+      "name": "rm",
+      "cmd": {
+        "rm": "t1"
+      },
+      "daemon": {
+        "terminal.rm": {
+          "result": {
+            "id": "t1"
+          }
+        }
+      },
+      "expect": {
+        "sent": [
+          {
+            "method": "terminal.rm",
+            "params": {
+              "id": "t1",
+              "force": false
+            }
+          },
+          {
+            "method": "terminal.list",
+            "params": {}
+          },
+          {
+            "method": "repo.list",
+            "params": {}
+          },
+          {
+            "method": "task.list",
+            "params": {}
+          }
+        ],
+        "reply": {
+          "ok": null
+        },
+        "lost": null,
+        "events": [
+          {
+            "terminals": []
+          },
+          {
+            "repos": []
+          },
+          {
+            "tasks": []
+          }
+        ]
+      }
+    },
+    {
+      "name": "rm running terminal",
+      "cmd": {
+        "rm": "t1"
+      },
+      "daemon": {
+        "terminal.rm": {
+          "error": {
+            "code": -32005,
+            "message": "terminal is running"
+          }
+        }
+      },
+      "expect": {
+        "sent": [
+          {
+            "method": "terminal.rm",
+            "params": {
+              "id": "t1",
+              "force": false
+            }
+          },
+          {
+            "method": "terminal.list",
+            "params": {}
+          },
+          {
+            "method": "repo.list",
+            "params": {}
+          },
+          {
+            "method": "task.list",
+            "params": {}
+          }
+        ],
+        "reply": {
+          "err": {
+            "code": -32005,
+            "message": "terminal is running"
+          }
+        },
+        "lost": null,
+        "events": [
+          {
+            "terminals": []
+          },
+          {
+            "repos": []
+          },
+          {
+            "tasks": []
+          }
+        ]
+      }
+    },
+    {
+      "name": "rename",
+      "cmd": {
+        "rename": {
+          "id": "t1",
+          "name": "build 2"
+        }
+      },
+      "daemon": {
+        "terminal.rename": {
+          "result": {}
+        }
+      },
+      "expect": {
+        "sent": [
+          {
+            "method": "terminal.rename",
+            "params": {
+              "id": "t1",
+              "name": "build 2"
+            }
+          },
+          {
+            "method": "terminal.list",
+            "params": {}
+          },
+          {
+            "method": "repo.list",
+            "params": {}
+          },
+          {
+            "method": "task.list",
+            "params": {}
+          }
+        ],
+        "reply": {
+          "ok": null
+        },
+        "lost": null,
+        "events": [
+          {
+            "terminals": []
+          },
+          {
+            "repos": []
+          },
+          {
+            "tasks": []
+          }
+        ]
+      }
+    },
+    {
+      "name": "rename taken",
+      "cmd": {
+        "rename": {
+          "id": "t1",
+          "name": "x"
+        }
+      },
+      "daemon": {
+        "terminal.rename": {
+          "error": {
+            "code": -32002,
+            "message": "name taken"
+          }
+        }
+      },
+      "expect": {
+        "sent": [
+          {
+            "method": "terminal.rename",
+            "params": {
+              "id": "t1",
+              "name": "x"
+            }
+          },
+          {
+            "method": "terminal.list",
+            "params": {}
+          },
+          {
+            "method": "repo.list",
+            "params": {}
+          },
+          {
+            "method": "task.list",
+            "params": {}
+          }
+        ],
+        "reply": {
+          "err": {
+            "code": -32002,
+            "message": "name taken"
+          }
+        },
+        "lost": null,
+        "events": [
+          {
+            "terminals": []
+          },
+          {
+            "repos": []
+          },
+          {
+            "tasks": []
+          }
+        ]
+      }
+    },
+    {
+      "name": "repo add with name",
+      "cmd": {
+        "repo_add": {
+          "path": "C:/src/demo",
+          "name": "demo"
+        }
+      },
+      "daemon": {
+        "repo.add": {
+          "result": {
+            "name": "demo",
+            "path": "C:/src/demo",
+            "added_ms": 3,
+            "default_base": "main",
+            "tasks": 0,
+            "future": 1
+          }
+        }
+      },
+      "expect": {
+        "sent": [
+          {
+            "method": "repo.add",
+            "params": {
+              "path": "C:/src/demo",
+              "name": "demo"
+            }
+          },
+          {
+            "method": "terminal.list",
+            "params": {}
+          },
+          {
+            "method": "repo.list",
+            "params": {}
+          },
+          {
+            "method": "task.list",
+            "params": {}
+          }
+        ],
+        "reply": {
+          "ok": {
+            "name": "demo",
+            "path": "C:/src/demo",
+            "default_base": "main"
+          }
+        },
+        "lost": null,
+        "events": [
+          {
+            "terminals": []
+          },
+          {
+            "repos": []
+          },
+          {
+            "tasks": []
+          }
+        ]
+      }
+    },
+    {
+      "name": "repo add without name, not a repo",
+      "cmd": {
+        "repo_add": {
+          "path": "C:/tmp"
+        }
+      },
+      "daemon": {
+        "repo.add": {
+          "error": {
+            "code": -32006,
+            "message": "not a git repository"
+          }
+        }
+      },
+      "expect": {
+        "sent": [
+          {
+            "method": "repo.add",
+            "params": {
+              "path": "C:/tmp"
+            }
+          }
+        ],
+        "reply": {
+          "err": {
+            "code": -32006,
+            "message": "not a git repository"
+          }
+        },
+        "lost": null,
+        "events": []
+      }
+    },
+    {
+      "name": "task create",
+      "cmd": {
+        "task_create": {
+          "repo": "demo",
+          "name": "feat-9",
+          "base": "main",
+          "agent": "claude",
+          "prompt": "add tests",
+          "cols": 100,
+          "rows": 30
+        }
+      },
+      "daemon": {
+        "task.create": {
+          "result": {
+            "id": "demo/feat-9",
+            "repo": "demo",
+            "name": "feat-9",
+            "branch": "pod/feat-9",
+            "base": "main",
+            "base_commit": "abc",
+            "worktree": "C:/wt/demo/feat-9",
+            "agent": "claude",
+            "created_ms": 4,
+            "worktree_exists": true,
+            "terminals": [
+              {
+                "id": "t11"
+              }
+            ],
+            "prompt": "add tests"
+          }
+        }
+      },
+      "expect": {
+        "sent": [
+          {
+            "method": "task.create",
+            "params": {
+              "repo": "demo",
+              "name": "feat-9",
+              "base": "main",
+              "agent": "claude",
+              "prompt": "add tests",
+              "cols": 100,
+              "rows": 30
+            }
+          },
+          {
+            "method": "terminal.list",
+            "params": {}
+          },
+          {
+            "method": "repo.list",
+            "params": {}
+          },
+          {
+            "method": "task.list",
+            "params": {}
+          }
+        ],
+        "reply": {
+          "ok": {
+            "id": "demo/feat-9",
+            "title": "demo/feat-9",
+            "repo": "demo",
+            "branch": "pod/feat-9",
+            "base": "main",
+            "agent": "claude",
+            "worktree": "C:/wt/demo/feat-9",
+            "worktree_exists": true,
+            "terminals": [
+              "t11"
+            ],
+            "git": null,
+            "git_error": null,
+            "review_open": 0,
+            "status": null,
+            "parent_task": null,
+            "parent_terminal": null,
+            "group": null,
+            "prompt": "add tests",
+            "pr": null
+          }
+        },
+        "lost": null,
+        "events": [
+          {
+            "terminals": []
+          },
+          {
+            "repos": []
+          },
+          {
+            "tasks": []
+          }
+        ]
+      }
+    },
+    {
+      "name": "task create minimal codex",
+      "cmd": {
+        "task_create": {
+          "repo": "demo",
+          "name": "feat-10",
+          "agent": "codex"
+        }
+      },
+      "daemon": {
+        "task.create": {
+          "result": {
+            "id": "demo/feat-10"
+          }
+        }
+      },
+      "expect": {
+        "sent": [
+          {
+            "method": "task.create",
+            "params": {
+              "repo": "demo",
+              "name": "feat-10",
+              "agent": "codex"
+            }
+          },
+          {
+            "method": "terminal.list",
+            "params": {}
+          },
+          {
+            "method": "repo.list",
+            "params": {}
+          },
+          {
+            "method": "task.list",
+            "params": {}
+          }
+        ],
+        "reply": {
+          "ok": {
+            "id": "demo/feat-10",
+            "title": "demo/feat-10",
+            "repo": null,
+            "branch": null,
+            "base": null,
+            "agent": null,
+            "worktree": null,
+            "worktree_exists": true,
+            "terminals": [],
+            "git": null,
+            "git_error": null,
+            "review_open": 0,
+            "status": null,
+            "parent_task": null,
+            "parent_terminal": null,
+            "group": null,
+            "prompt": null,
+            "pr": null
+          }
+        },
+        "lost": null,
+        "events": [
+          {
+            "terminals": []
+          },
+          {
+            "repos": []
+          },
+          {
+            "tasks": []
+          }
+        ]
+      }
+    },
+    {
+      "name": "task create exists",
+      "cmd": {
+        "task_create": {
+          "repo": "demo",
+          "name": "feat-9",
+          "agent": "shell"
+        }
+      },
+      "daemon": {
+        "task.create": {
+          "error": {
+            "code": -32011,
+            "message": "task exists"
+          }
+        }
+      },
+      "expect": {
+        "sent": [
+          {
+            "method": "task.create",
+            "params": {
+              "repo": "demo",
+              "name": "feat-9",
+              "agent": "shell"
+            }
+          }
+        ],
+        "reply": {
+          "err": {
+            "code": -32011,
+            "message": "task exists"
+          }
+        },
+        "lost": null,
+        "events": []
+      }
+    },
+    {
+      "name": "task create bad result",
+      "cmd": {
+        "task_create": {
+          "repo": "demo",
+          "name": "feat-11",
+          "agent": "claude"
+        }
+      },
+      "daemon": {
+        "task.create": {
+          "result": {
+            "name": "no id"
+          }
+        }
+      },
+      "expect": {
+        "sent": [
+          {
+            "method": "task.create",
+            "params": {
+              "repo": "demo",
+              "name": "feat-11",
+              "agent": "claude"
+            }
+          }
+        ],
+        "reply": {
+          "err": {
+            "code": null,
+            "message": "podd connection lost: protocol error: bad task.create result"
+          }
+        },
+        "lost": "protocol error: bad task.create result",
+        "events": []
+      }
+    },
+    {
+      "name": "task remove",
+      "cmd": {
+        "task_remove": {
+          "task": "demo/a",
+          "force": true,
+          "delete_branch": true
+        }
+      },
+      "daemon": {
+        "task.remove": {
+          "result": {
+            "id": "demo/a",
+            "terminals": [
+              "t1",
+              "t2"
+            ],
+            "worktree_removed": true,
+            "branch_deleted": true
+          }
+        }
+      },
+      "expect": {
+        "sent": [
+          {
+            "method": "task.remove",
+            "params": {
+              "task": "demo/a",
+              "force": true,
+              "delete_branch": true
+            }
+          },
+          {
+            "method": "terminal.list",
+            "params": {}
+          },
+          {
+            "method": "repo.list",
+            "params": {}
+          },
+          {
+            "method": "task.list",
+            "params": {}
+          }
+        ],
+        "reply": {
+          "ok": [
+            "t1",
+            "t2"
+          ]
+        },
+        "lost": null,
+        "events": [
+          {
+            "terminals": []
+          },
+          {
+            "repos": []
+          },
+          {
+            "tasks": []
+          }
+        ]
+      }
+    },
+    {
+      "name": "task remove dirty",
+      "cmd": {
+        "task_remove": {
+          "task": "demo/a",
+          "force": false,
+          "delete_branch": false
+        }
+      },
+      "daemon": {
+        "task.remove": {
+          "error": {
+            "code": -32012,
+            "message": "uncommitted changes"
+          }
+        }
+      },
+      "expect": {
+        "sent": [
+          {
+            "method": "task.remove",
+            "params": {
+              "task": "demo/a",
+              "force": false,
+              "delete_branch": false
+            }
+          },
+          {
+            "method": "terminal.list",
+            "params": {}
+          },
+          {
+            "method": "repo.list",
+            "params": {}
+          },
+          {
+            "method": "task.list",
+            "params": {}
+          }
+        ],
+        "reply": {
+          "err": {
+            "code": -32012,
+            "message": "uncommitted changes"
+          }
+        },
+        "lost": null,
+        "events": [
+          {
+            "terminals": []
+          },
+          {
+            "repos": []
+          },
+          {
+            "tasks": []
+          }
+        ]
+      }
+    },
+    {
+      "name": "ack",
+      "cmd": {
+        "ack": "t1"
+      },
+      "daemon": {
+        "terminal.ack": {
+          "result": {}
+        }
+      },
+      "expect": {
+        "sent": [
+          {
+            "method": "terminal.ack",
+            "params": {
+              "id": "t1"
+            }
+          }
+        ],
+        "reply": null,
+        "lost": null,
+        "events": []
+      }
+    },
+    {
+      "name": "ack rpc error is ignored",
+      "cmd": {
+        "ack": "t1"
+      },
+      "daemon": {
+        "terminal.ack": {
+          "error": {
+            "code": -32001,
+            "message": "gone"
+          }
+        }
+      },
+      "expect": {
+        "sent": [
+          {
+            "method": "terminal.ack",
+            "params": {
+              "id": "t1"
+            }
+          }
+        ],
+        "reply": null,
+        "lost": null,
+        "events": []
+      }
+    },
+    {
+      "name": "ack stopping daemon drops the connection",
+      "cmd": {
+        "ack": "t1"
+      },
+      "daemon": {
+        "terminal.ack": {
+          "error": {
+            "code": -32050,
+            "message": "podd is stopping"
+          }
+        }
+      },
+      "expect": {
+        "sent": [
+          {
+            "method": "terminal.ack",
+            "params": {
+              "id": "t1"
+            }
+          }
+        ],
+        "reply": null,
+        "lost": "podd is stopping",
+        "events": []
+      }
+    },
+    {
+      "name": "resize",
+      "cmd": {
+        "resize": {
+          "id": "t1",
+          "cols": 132,
+          "rows": 43
+        }
+      },
+      "daemon": {
+        "terminal.resize": {
+          "result": {
+            "id": "t1",
+            "argv": [
+              "claude"
+            ],
+            "cwd": "C:/w",
+            "state": "running",
+            "cols": 132,
+            "rows": 43,
+            "created_ms": 1,
+            "attached": 1
+          }
+        }
+      },
+      "expect": {
+        "sent": [
+          {
+            "method": "terminal.resize",
+            "params": {
+              "id": "t1",
+              "cols": 132,
+              "rows": 43
+            }
+          }
+        ],
+        "reply": null,
+        "lost": null,
+        "events": []
+      }
+    },
+    {
+      "name": "resize rpc error is ignored",
+      "cmd": {
+        "resize": {
+          "id": "t1",
+          "cols": 1,
+          "rows": 1
+        }
+      },
+      "daemon": {
+        "terminal.resize": {
+          "error": {
+            "code": -32602,
+            "message": "too small"
+          }
+        }
+      },
+      "expect": {
+        "sent": [
+          {
+            "method": "terminal.resize",
+            "params": {
+              "id": "t1",
+              "cols": 1,
+              "rows": 1
+            }
+          }
+        ],
+        "reply": null,
+        "lost": null,
+        "events": []
+      }
+    },
+    {
+      "name": "disconnected run fails at once",
+      "cmd": {
+        "run": {
+          "argv": [
+            "claude"
+          ]
+        }
+      },
+      "connected": false,
+      "daemon": {},
+      "expect": {
+        "sent": [],
+        "reply": {
+          "err": {
+            "code": null,
+            "message": "not connected to podd"
+          }
+        },
+        "lost": null,
+        "events": []
+      }
+    },
+    {
+      "name": "disconnected task remove fails at once",
+      "cmd": {
+        "task_remove": {
+          "task": "demo/a"
+        }
+      },
+      "connected": false,
+      "daemon": {},
+      "expect": {
+        "sent": [],
+        "reply": {
+          "err": {
+            "code": null,
+            "message": "not connected to podd"
+          }
+        },
+        "lost": null,
+        "events": []
+      }
+    },
+    {
+      "name": "disconnected ack is dropped",
+      "cmd": {
+        "ack": "t1"
+      },
+      "connected": false,
+      "daemon": {},
+      "expect": {
+        "sent": [],
+        "reply": null,
+        "lost": null,
+        "events": []
+      }
+    }
+  ],
+  "input": [
+    {
+      "name": "typed text",
+      "sends": [
+        {
+          "id": "t1",
+          "bytes": "hi"
+        },
+        {
+          "id": "t2",
+          "bytes": "한글\r"
+        }
+      ],
+      "daemon": {
+        "terminal.input": {
+          "result": {
+            "id": "t1",
+            "bytes": 2
+          }
+        }
+      },
+      "expect": {
+        "sent": [
+          {
+            "method": "terminal.input",
+            "params": {
+              "id": "t1",
+              "data": "aGk="
+            }
+          },
+          {
+            "method": "terminal.input",
+            "params": {
+              "id": "t2",
+              "data": "7ZWc6riADQ=="
+            }
+          }
+        ],
+        "client_kept": true
+      }
+    },
+    {
+      "name": "raw bytes and an empty send",
+      "sends": [
+        {
+          "id": "t1",
+          "bytes": [
+            27,
+            91,
+            65,
+            255
+          ]
+        },
+        {
+          "id": "t1",
+          "bytes": []
+        }
+      ],
+      "daemon": {
+        "terminal.input": {
+          "result": {
+            "id": "t1",
+            "bytes": 2
+          }
+        }
+      },
+      "expect": {
+        "sent": [
+          {
+            "method": "terminal.input",
+            "params": {
+              "id": "t1",
+              "data": "G1tB/w=="
+            }
+          }
+        ],
+        "client_kept": true
+      }
+    },
+    {
+      "name": "rpc error keeps the connection",
+      "sends": [
+        {
+          "id": "t1",
+          "bytes": "x"
+        }
+      ],
+      "daemon": {
+        "terminal.input": {
+          "error": {
+            "code": -32052,
+            "message": "input backlog"
+          }
+        }
+      },
+      "expect": {
+        "sent": [
+          {
+            "method": "terminal.input",
+            "params": {
+              "id": "t1",
+              "data": "eA=="
+            }
+          }
+        ],
+        "client_kept": true
+      }
+    },
+    {
+      "name": "closed connection is dropped",
+      "sends": [
+        {
+          "id": "t1",
+          "bytes": "x"
+        },
+        {
+          "id": "t1",
+          "bytes": "y"
+        }
+      ],
+      "daemon": {
+        "terminal.input": "close"
+      },
+      "expect": {
+        "sent": [
+          {
+            "method": "terminal.input",
+            "params": {
+              "id": "t1",
+              "data": "eA=="
+            }
+          }
+        ],
+        "client_kept": false
+      }
+    },
+    {
+      "name": "bad result drops the connection",
+      "sends": [
+        {
+          "id": "t1",
+          "bytes": "x"
+        }
+      ],
+      "daemon": {
+        "terminal.input": {
+          "result": {}
+        }
+      },
+      "expect": {
+        "sent": [
+          {
+            "method": "terminal.input",
+            "params": {
+              "id": "t1",
+              "data": "eA=="
+            }
+          }
+        ],
+        "client_kept": false
+      }
+    }
+  ],
+  "errors": [
+    {
+      "name": "rpc error",
+      "error": {
+        "rpc": {
+          "code": -32010,
+          "message": "no task demo/x"
+        }
+      },
+      "expect": {
+        "transport": false,
+        "method_not_found": false,
+        "source_error": {
+          "code": -32010,
+          "message": "no task demo/x"
+        }
+      }
+    },
+    {
+      "name": "method not found",
+      "error": {
+        "rpc": {
+          "code": -32601,
+          "message": "method not found"
+        }
+      },
+      "expect": {
+        "transport": false,
+        "method_not_found": true,
+        "source_error": {
+          "code": -32601,
+          "message": "method not found"
+        }
+      }
+    },
+    {
+      "name": "stopping daemon",
+      "error": {
+        "rpc": {
+          "code": -32050,
+          "message": "podd is stopping"
+        }
+      },
+      "expect": {
+        "transport": true,
+        "method_not_found": false,
+        "source_error": {
+          "code": -32050,
+          "message": "podd is stopping"
+        }
+      }
+    },
+    {
+      "name": "protocol error",
+      "error": {
+        "protocol": "daemon closed the connection"
+      },
+      "expect": {
+        "transport": true,
+        "method_not_found": false,
+        "source_error": {
+          "code": null,
+          "message": "protocol error: daemon closed the connection"
+        }
+      }
+    },
+    {
+      "name": "io error",
+      "error": {
+        "io": "pipe broken"
+      },
+      "expect": {
+        "transport": true,
+        "method_not_found": false,
+        "source_error": {
+          "code": null,
+          "message": "pipe I/O error: pipe broken"
+        }
+      }
+    },
+    {
+      "name": "not running",
+      "error": {
+        "not_running": true
+      },
+      "expect": {
+        "transport": true,
+        "method_not_found": false,
+        "source_error": {
+          "code": null,
+          "message": "podd is not running"
+        }
+      }
+    }
+  ],
+  "calls": [
+    {
+      "name": "task.touch fire and forget",
+      "method": "task.touch",
+      "params": {
+        "task": "demo/a",
+        "paths": [
+          "src/a.rs",
+          "b.txt"
+        ]
+      },
+      "answer": {
+        "result": {}
+      },
+      "expect": {
+        "sent": [
+          {
+            "method": "task.touch",
+            "params": {
+              "task": "demo/a",
+              "paths": [
+                "src/a.rs",
+                "b.txt"
+              ]
+            }
+          }
+        ],
+        "reply": null
+      }
+    },
+    {
+      "name": "orch.run.list",
+      "method": "orch.run.list",
+      "params": {},
+      "answer": {
+        "result": {
+          "runs": [
+            {
+              "run": {
+                "id": "r2",
+                "objective": "의존성 정리",
+                "coordinator_terminal": "fixture-12",
+                "depth": 0,
+                "created_ms": 100,
+                "future": 1
+              },
+              "items": [],
+              "attempts": [],
+              "unread": 0,
+              "mail": 1
+            }
+          ]
+        }
+      },
+      "expect": {
+        "sent": [
+          {
+            "method": "orch.run.list",
+            "params": {
+              "mine": false
+            }
+          }
+        ],
+        "reply": {
+          "ok": {
+            "runs": [
+              {
+                "run": {
+                  "id": "r2",
+                  "objective": "의존성 정리",
+                  "coordinator_terminal": "fixture-12",
+                  "depth": 0,
+                  "created_ms": 100
+                },
+                "items": [],
+                "attempts": [],
+                "unread": 0,
+                "mail": 1
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "name": "orch.mail.list",
+      "method": "orch.mail.list",
+      "params": {
+        "run": "r1"
+      },
+      "answer": {
+        "result": {
+          "messages": [
+            {
+              "id": "m4",
+              "run": "r1",
+              "from": "attempt:a2",
+              "to": "run:r1",
+              "recipients": [
+                "run:r1"
+              ],
+              "type": "question",
+              "subject": "401 or 403?",
+              "body": "",
+              "priority": "normal",
+              "created_ms": 5,
+              "payload": {
+                "options": [
+                  "401",
+                  "403"
+                ]
+              }
+            },
+            {
+              "id": "m2",
+              "run": "r1",
+              "from": "run:r1",
+              "to": "attempt:a1",
+              "recipients": [
+                "attempt:a1"
+              ],
+              "type": "answer",
+              "subject": "re: logs?",
+              "body": "logs/auth.log",
+              "priority": "normal",
+              "created_ms": 3,
+              "reply_to": "m1",
+              "thread": "m1",
+              "read_ms": 4
+            }
+          ]
+        }
+      },
+      "expect": {
+        "sent": [
+          {
+            "method": "orch.mail.list",
+            "params": {
+              "run": "r1"
+            }
+          }
+        ],
+        "reply": {
+          "ok": {
+            "messages": [
+              {
+                "id": "m4",
+                "run": "r1",
+                "from": "attempt:a2",
+                "to": "run:r1",
+                "recipients": [
+                  "run:r1"
+                ],
+                "type": "question",
+                "subject": "401 or 403?",
+                "body": "",
+                "payload": {
+                  "options": [
+                    "401",
+                    "403"
+                  ]
+                },
+                "priority": "normal",
+                "created_ms": 5
+              },
+              {
+                "id": "m2",
+                "run": "r1",
+                "from": "run:r1",
+                "to": "attempt:a1",
+                "recipients": [
+                  "attempt:a1"
+                ],
+                "type": "answer",
+                "subject": "re: logs?",
+                "body": "logs/auth.log",
+                "thread": "m1",
+                "reply_to": "m1",
+                "priority": "normal",
+                "created_ms": 3,
+                "read_ms": 4
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "name": "orch.config.get",
+      "method": "orch.config.get",
+      "params": {},
+      "answer": {
+        "result": {
+          "release_after_min": 10,
+          "stall_after_min": null,
+          "max_depth": 3,
+          "default_place": "new",
+          "locked": [
+            "max_depth"
+          ]
+        }
+      },
+      "expect": {
+        "sent": [
+          {
+            "method": "orch.config.get",
+            "params": {}
+          }
+        ],
+        "reply": {
+          "ok": {
+            "release_after_min": 10,
+            "stall_after_min": null,
+            "max_depth": 3,
+            "default_place": "new",
+            "locked": [
+              "max_depth"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "name": "orch.config.set locked",
+      "method": "orch.config.set",
+      "params": {
+        "release_after_min": 5,
+        "max_depth": 4,
+        "default_place": "current"
+      },
+      "answer": {
+        "error": {
+          "code": -32602,
+          "message": "max_depth is locked"
+        }
+      },
+      "expect": {
+        "sent": [
+          {
+            "method": "orch.config.set",
+            "params": {
+              "release_after_min": 5,
+              "stall_after_min": null,
+              "max_depth": 4,
+              "default_place": "current"
+            }
+          }
+        ],
+        "reply": {
+          "err": {
+            "code": -32602,
+            "message": "max_depth is locked"
+          }
+        }
+      }
+    },
+    {
+      "name": "mod.list with layout presets",
+      "method": "mod.list",
+      "params": {},
+      "answer": {
+        "result": {
+          "enabled": true,
+          "root": "C:/fixtures/mods",
+          "dropped_events": 0,
+          "mods": [
+            {
+              "name": "pod-layouts",
+              "version": "0.1.0",
+              "title": "기본 레이아웃 프리셋",
+              "enabled": true,
+              "state": "running",
+              "permissions": [],
+              "log_lines": 1,
+              "memory_kib": 0,
+              "layouts": [
+                {
+                  "id": "review-focus",
+                  "title": "리뷰 집중",
+                  "description": "왼쪽에 변경 검토",
+                  "center": {
+                    "split": "h",
+                    "children": [
+                      {
+                        "panel": "review",
+                        "size": 0.62
+                      },
+                      {
+                        "split": "v",
+                        "children": [
+                          {
+                            "panel": "terminal",
+                            "index": 0
+                          },
+                          {
+                            "panel": "gates"
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "broken-layout",
+              "version": "0.1.0",
+              "enabled": true,
+              "state": "invalid",
+              "error": "layout layouts/bad.json: a split needs 2-6 children",
+              "permissions": [],
+              "log_lines": 0,
+              "memory_kib": 0,
+              "future": true
+            }
+          ]
+        }
+      },
+      "expect": {
+        "sent": [
+          {
+            "method": "mod.list",
+            "params": {}
+          }
+        ],
+        "reply": {
+          "ok": {
+            "enabled": true,
+            "root": "C:/fixtures/mods",
+            "mods": [
+              {
+                "name": "pod-layouts",
+                "version": "0.1.0",
+                "title": "기본 레이아웃 프리셋",
+                "enabled": true,
+                "state": "running",
+                "permissions": [],
+                "checks": [],
+                "commands": [],
+                "detectors": [],
+                "layouts": [
+                  {
+                    "id": "review-focus",
+                    "title": "리뷰 집중",
+                    "description": "왼쪽에 변경 검토",
+                    "center": {
+                      "split": "h",
+                      "children": [
+                        {
+                          "panel": "review",
+                          "size": 0.6200000047683716
+                        },
+                        {
+                          "split": "v",
+                          "children": [
+                            {
+                              "panel": "terminal",
+                              "index": 0
+                            },
+                            {
+                              "panel": "gates"
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  }
+                ],
+                "log_lines": 1,
+                "memory_kib": 0
+              },
+              {
+                "name": "broken-layout",
+                "version": "0.1.0",
+                "enabled": true,
+                "state": "invalid",
+                "error": "layout layouts/bad.json: a split needs 2-6 children",
+                "permissions": [],
+                "checks": [],
+                "commands": [],
+                "detectors": [],
+                "layouts": [],
+                "log_lines": 0,
+                "memory_kib": 0
+              }
+            ],
+            "dropped_events": 0
+          }
+        }
+      }
+    },
+    {
+      "name": "sessions.list discovered sessions",
+      "method": "sessions.list",
+      "params": {
+        "include_hidden": true
+      },
+      "answer": {
+        "result": {
+          "enabled": true,
+          "preview": false,
+          "scanned_ms": 1000,
+          "hidden": 1,
+          "sessions": [
+            {
+              "key": "claude:abc",
+              "agent": "claude",
+              "id": "abc",
+              "cwd": "C:/src/demo",
+              "title": "fix login",
+              "state": "resumable",
+              "cwd_exists": true,
+              "resume_argv": [
+                "claude",
+                "--resume",
+                "abc"
+              ],
+              "future": 1
+            },
+            {
+              "key": "codex:def",
+              "agent": "codex",
+              "id": "def",
+              "cwd": "C:/gone",
+              "state": "running_other",
+              "running": {
+                "pid": 42
+              },
+              "cwd_exists": false
+            }
+          ]
+        }
+      },
+      "expect": {
+        "sent": [
+          {
+            "method": "sessions.list",
+            "params": {
+              "include_hidden": true
+            }
+          }
+        ],
+        "reply": {
+          "ok": {
+            "enabled": true,
+            "preview": false,
+            "scanned_ms": 1000,
+            "truncated": false,
+            "sessions": [
+              {
+                "key": "claude:abc",
+                "agent": "claude",
+                "id": "abc",
+                "cwd": "C:/src/demo",
+                "title": "fix login",
+                "state": "resumable",
+                "hidden": false,
+                "cwd_exists": true,
+                "resume_argv": [
+                  "claude",
+                  "--resume",
+                  "abc"
+                ]
+              },
+              {
+                "key": "codex:def",
+                "agent": "codex",
+                "id": "def",
+                "cwd": "C:/gone",
+                "state": "running_other",
+                "running": {
+                  "pid": 42,
+                  "guessed": false
+                },
+                "hidden": false,
+                "cwd_exists": false,
+                "resume_argv": []
+              }
+            ],
+            "hidden": 1,
+            "unknown_running": []
+          }
+        }
+      }
+    },
+    {
+      "name": "gate.list",
+      "method": "gate.list",
+      "params": {
+        "task": "demo/a"
+      },
+      "answer": {
+        "result": {
+          "gates": [
+            {
+              "id": "g1",
+              "title": "Deploy",
+              "message": "ok?",
+              "state": "pending",
+              "created_ms": 1,
+              "task": "demo/a",
+              "expires_ms": 9000
+            },
+            {
+              "id": "g2",
+              "title": "Merge",
+              "message": "merge?",
+              "state": "approved",
+              "created_ms": 2,
+              "resolved_ms": 3,
+              "note": "lgtm"
+            }
+          ]
+        }
+      },
+      "expect": {
+        "sent": [
+          {
+            "method": "gate.list",
+            "params": {
+              "task": "demo/a"
+            }
+          }
+        ],
+        "reply": {
+          "ok": {
+            "gates": [
+              {
+                "id": "g1",
+                "title": "Deploy",
+                "message": "ok?",
+                "task": "demo/a",
+                "state": "pending",
+                "created_ms": 1,
+                "expires_ms": 9000
+              },
+              {
+                "id": "g2",
+                "title": "Merge",
+                "message": "merge?",
+                "state": "approved",
+                "created_ms": 2,
+                "resolved_ms": 3,
+                "note": "lgtm"
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "name": "gate.list bad result",
+      "method": "gate.list",
+      "params": {},
+      "answer": {
+        "result": {
+          "gates": "nope"
+        }
+      },
+      "expect": {
+        "sent": [
+          {
+            "method": "gate.list",
+            "params": {}
+          }
+        ],
+        "reply": {
+          "err": {
+            "code": null,
+            "message": "bad gate.list result: invalid type: string \"nope\", expected a sequence"
+          }
+        }
+      }
+    },
+    {
+      "name": "gate.resolve already resolved",
+      "method": "gate.resolve",
+      "params": {
+        "id": "g2",
+        "decision": "approve",
+        "note": "ok"
+      },
+      "answer": {
+        "error": {
+          "code": -32602,
+          "message": "gate g2 is not pending"
+        }
+      },
+      "expect": {
+        "sent": [
+          {
+            "method": "gate.resolve",
+            "params": {
+              "id": "g2",
+              "decision": "approve",
+              "note": "ok"
+            }
+          }
+        ],
+        "reply": {
+          "err": {
+            "code": -32602,
+            "message": "gate g2 is not pending"
+          }
+        }
+      }
+    },
+    {
+      "name": "review.deliveries",
+      "method": "review.deliveries",
+      "params": {
+        "task": "demo/a"
+      },
+      "answer": {
+        "result": {
+          "deliveries": [
+            {
+              "id": "d1",
+              "task": "demo/a",
+              "terminal": "t1",
+              "comment_ids": [
+                "c1",
+                "c2"
+              ],
+              "state": "delivered",
+              "prompt": "p",
+              "created_ms": 1,
+              "agent_state": "working"
+            }
+          ]
+        }
+      },
+      "expect": {
+        "sent": [
+          {
+            "method": "review.deliveries",
+            "params": {
+              "task": "demo/a"
+            }
+          }
+        ],
+        "reply": {
+          "ok": {
+            "deliveries": [
+              {
+                "id": "d1",
+                "task": "demo/a",
+                "terminal": "t1",
+                "comment_ids": [
+                  "c1",
+                  "c2"
+                ],
+                "state": "delivered",
+                "prompt": "p",
+                "created_ms": 1,
+                "agent_state": "working"
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "name": "task.diff",
+      "method": "task.diff",
+      "params": {
+        "task": "demo/a"
+      },
+      "answer": {
+        "result": {
+          "task": "demo/a",
+          "base": "main",
+          "merge_base": "abc",
+          "files": [
+            {
+              "path": "a.rs",
+              "status": "M",
+              "added": 2,
+              "deleted": 1
+            },
+            {
+              "path": "new.txt",
+              "status": "?",
+              "added": 3,
+              "deleted": 0
+            }
+          ],
+          "added": 5,
+          "deleted": 1
+        }
+      },
+      "expect": {
+        "sent": [
+          {
+            "method": "task.diff",
+            "params": {
+              "task": "demo/a"
+            }
+          }
+        ],
+        "reply": {
+          "ok": {
+            "task": "demo/a",
+            "base": "main",
+            "merge_base": "abc",
+            "files": [
+              {
+                "path": "a.rs",
+                "status": "M",
+                "added": 2,
+                "deleted": 1,
+                "binary": false
+              },
+              {
+                "path": "new.txt",
+                "status": "?",
+                "added": 3,
+                "deleted": 0,
+                "binary": false
+              }
+            ],
+            "added": 5,
+            "deleted": 1
+          }
+        }
+      }
+    },
+    {
+      "name": "task.diff unknown task",
+      "method": "task.diff",
+      "params": {
+        "task": "demo/x"
+      },
+      "answer": {
+        "error": {
+          "code": -32010,
+          "message": "no task demo/x"
+        }
+      },
+      "expect": {
+        "sent": [
+          {
+            "method": "task.diff",
+            "params": {
+              "task": "demo/x"
+            }
+          }
+        ],
+        "reply": {
+          "err": {
+            "code": -32010,
+            "message": "no task demo/x"
+          }
+        }
+      }
+    }
+  ]
+}

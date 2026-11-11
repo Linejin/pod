@@ -456,7 +456,7 @@ const PROBE_TIMEOUT: Duration = Duration::from_secs(10);
 /// no longer blocks), both streams read while it runs into bounded buffers,
 /// and the whole process tree is killed at the end.
 fn probe(exe: PathBuf, cfg: &ServerConfig, timeout: Duration) -> Availability {
-    use pod_forge::bounded::{self, End, Keep};
+    use pod_process::bounded::{self, End, Keep};
     let mut c = Command::new(&exe);
     c.args(&cfg.probe_args);
     let mut opts = bounded::Options::new(timeout, Keep::Tail(1024));

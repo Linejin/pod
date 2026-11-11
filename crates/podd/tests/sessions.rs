@@ -16,11 +16,12 @@ mod common;
 
 use std::collections::BTreeMap;
 use std::path::{Path, PathBuf};
-use std::process::Command;
 
-use std::time::{Duration, Instant};
+use std::time::Duration;
 
 use common::*;
+use pod_test_support::git::{git_ok, git_output};
+use pod_test_support::wait;
 use podd::client::Client;
 use podd::protocol::*;
 
@@ -34,26 +35,26 @@ impl TempRepo {
         let root = std::env::temp_dir().join(unique("sess-repo"));
         let path = root.join("my repo");
         std::fs::create_dir_all(&path).unwrap();
-        git(&path, &["init", "-q", "-b", "main"]);
+        git_ok(&path, &["init", "-q", "-b", "main"]);
         for (k, v) in [
             ("user.name", "Pod Test"),
             ("user.email", "pod-test@example.invalid"),
             ("commit.gpgsign", "false"),
             ("core.autocrlf", "false"),
         ] {
-            git(&path, &["config", k, v]);
+            git_ok(&path, &["config", k, v]);
         }
         std::fs::write(path.join("README.md"), "hello\n").unwrap();
-        git(&path, &["add", "-A"]);
-        git(&path, &["commit", "-q", "-m", "init"]);
+        git_ok(&path, &["add", "-A"]);
+        git_ok(&path, &["commit", "-q", "-m", "init"]);
         Self { root, path }
     }
 
     fn commit_config(&self, toml: &str) {
         std::fs::create_dir_all(self.path.join(".pod")).unwrap();
         std::fs::write(self.path.join(".pod").join("config.toml"), toml).unwrap();
-        git(&self.path, &["add", "-A"]);
-        git(&self.path, &["commit", "-q", "-m", "config"]);
+        git_ok(&self.path, &["add", "-A"]);
+        git_ok(&self.path, &["commit", "-q", "-m", "config"]);
     }
 }
 
@@ -61,21 +62,6 @@ impl Drop for TempRepo {
     fn drop(&mut self) {
         let _ = std::fs::remove_dir_all(&self.root);
     }
-}
-
-fn git(dir: &Path, args: &[&str]) -> String {
-    let out = Command::new("git")
-        .arg("-C")
-        .arg(dir)
-        .args(args)
-        .output()
-        .expect("git");
-    assert!(
-        out.status.success(),
-        "git {args:?}: {}",
-        String::from_utf8_lossy(&out.stderr)
-    );
-    String::from_utf8_lossy(&out.stdout).into_owned()
 }
 
 fn add_repo(c: &mut Client, repo: &TempRepo, name: &str) {
@@ -92,15 +78,16 @@ fn show(c: &mut Client, task: &str) -> TaskInfo {
 }
 
 fn wait_task(c: &mut Client, task: &str, what: &str, ok: impl Fn(&TaskInfo) -> bool) -> TaskInfo {
-    let deadline = Instant::now() + Duration::from_secs(60);
-    loop {
+    wait::until(Duration::from_secs(60), POLL, || {
         let t = show(c, task);
-        if ok(&t) {
-            return t;
-        }
-        assert!(Instant::now() < deadline, "{what}: {t:#?}");
-        std::thread::sleep(Duration::from_millis(100));
-    }
+        if ok(&t) { Ok(t) } else { Err(Box::new(t)) }
+    })
+    .unwrap_or_else(|e| {
+        panic!(
+            "{what}: {:#?}\n({} polls in {:?})",
+            e.last, e.polls, e.waited
+        )
+    })
 }
 
 fn shell() -> AgentSpec {
@@ -181,16 +168,18 @@ fn s1_names_branches_bases_and_briefs() {
 
     // Qualified bases: a tag must not shadow the branch of the same name;
     // with a slash the remote-tracking branch wins over a local look-alike.
-    let init = git(&repo.path, &["rev-parse", "HEAD"]).trim().to_string();
-    git(&repo.path, &["tag", "amb", &init]);
-    git(&repo.path, &["checkout", "-q", "-b", "amb"]);
-    std::fs::write(repo.path.join("b.txt"), "b\n").unwrap();
-    git(&repo.path, &["add", "-A"]);
-    git(&repo.path, &["commit", "-q", "-m", "on branch amb"]);
-    let amb = git(&repo.path, &["rev-parse", "refs/heads/amb"])
+    let init = git_output(&repo.path, &["rev-parse", "HEAD"])
         .trim()
         .to_string();
-    git(&repo.path, &["checkout", "-q", "main"]);
+    git_ok(&repo.path, &["tag", "amb", &init]);
+    git_ok(&repo.path, &["checkout", "-q", "-b", "amb"]);
+    std::fs::write(repo.path.join("b.txt"), "b\n").unwrap();
+    git_ok(&repo.path, &["add", "-A"]);
+    git_ok(&repo.path, &["commit", "-q", "-m", "on branch amb"]);
+    let amb = git_output(&repo.path, &["rev-parse", "refs/heads/amb"])
+        .trim()
+        .to_string();
+    git_ok(&repo.path, &["checkout", "-q", "main"]);
     let t = c
         .call::<TaskCreate>(&TaskCreateParams {
             repo: "app".into(),
@@ -204,11 +193,11 @@ fn s1_names_branches_bases_and_briefs() {
         (t.base.as_str(), t.base_commit.as_str()),
         ("refs/heads/amb", amb.as_str())
     );
-    git(
+    git_ok(
         &repo.path,
         &["update-ref", "refs/remotes/origin/feat", &init],
     );
-    git(&repo.path, &["branch", "origin/feat", &amb]);
+    git_ok(&repo.path, &["branch", "origin/feat", &amb]);
     let t = c
         .call::<TaskCreate>(&TaskCreateParams {
             repo: "app".into(),
@@ -248,7 +237,7 @@ fn s1_names_branches_bases_and_briefs() {
         (t.branch.as_str(), t.branch_existed),
         ("feature/new-one", false)
     );
-    git(&repo.path, &["branch", "feature/old", &amb]);
+    git_ok(&repo.path, &["branch", "feature/old", &amb]);
     let t = c
         .call::<TaskCreate>(&TaskCreateParams {
             repo: "app".into(),
@@ -275,7 +264,7 @@ fn s1_names_branches_bases_and_briefs() {
         !r.branch_deleted && r.branch_kept.as_deref().unwrap_or("").contains("existed"),
         "{r:?}"
     );
-    assert!(git(&repo.path, &["branch", "--list", "feature/old"]).contains("feature/old"));
+    assert!(git_output(&repo.path, &["branch", "--list", "feature/old"]).contains("feature/old"));
 
     // A brief with quotes, % and line breaks through a .cmd agent (claude.cmd
     // shim on PATH): the agent gets the safe first line as its argument and
@@ -435,11 +424,11 @@ fn s2_config_approval_setup_and_wait_mode() {
         1,
         "no setup or tab terminal before approval"
     );
-    std::thread::sleep(Duration::from_secs(2));
-    assert!(
-        !Path::new(&t.worktree).join("ran.txt").exists(),
-        "setup ran without approval"
-    );
+    let ran = Path::new(&t.worktree).join("ran.txt");
+    wait::stays(Duration::from_secs(2), POLL, || {
+        if ran.exists() { Err("ran.txt") } else { Ok(()) }
+    })
+    .unwrap_or_else(|b| panic!("setup ran without approval: {b}"));
 
     // Approve this exact content: setup runs, the tab opens.
     let a = c
@@ -588,12 +577,13 @@ fn s2_config_approval_setup_and_wait_mode() {
     );
     let term = t.terminals[0].id.clone();
     wait_output(&mut c, &term, "BRIEF-END");
-    std::thread::sleep(Duration::from_secs(2));
-    assert_eq!(
-        show(&mut c, &t.id).brief.unwrap().state,
-        BriefState::Pending,
-        "not typed during setup"
-    );
+    wait::stays(Duration::from_secs(2), POLL, || {
+        match show(&mut c, &t.id).brief.unwrap().state {
+            BriefState::Pending => Ok(()),
+            other => Err(other),
+        }
+    })
+    .unwrap_or_else(|b| panic!("not typed during setup: {b}"));
     wait_output(
         &mut c,
         &term,
@@ -726,7 +716,7 @@ fn s3_archive_remove_guards_and_resume() {
 
     // Locked and nested worktrees are refused, even with force.
     let wt = PathBuf::from(&t.worktree);
-    git(&repo.path, &["worktree", "lock", &t.worktree]);
+    git_ok(&repo.path, &["worktree", "lock", &t.worktree]);
     assert_eq!(
         rpc_code(c.call::<TaskRemove>(&TaskRemoveParams {
             task: t.id.clone(),
@@ -735,9 +725,9 @@ fn s3_archive_remove_guards_and_resume() {
         })),
         session_codes::WORKTREE_LOCKED
     );
-    git(&repo.path, &["worktree", "unlock", &t.worktree]);
+    git_ok(&repo.path, &["worktree", "unlock", &t.worktree]);
     let inner = wt.join("nested");
-    git(
+    git_ok(
         &repo.path,
         &[
             "worktree",
@@ -757,7 +747,7 @@ fn s3_archive_remove_guards_and_resume() {
         session_codes::WORKTREE_LOCKED
     );
     assert!(wt.is_dir() && inner.is_dir(), "nothing removed");
-    git(
+    git_ok(
         &repo.path,
         &[
             "worktree",
@@ -789,7 +779,7 @@ fn s3_archive_remove_guards_and_resume() {
             .contains("not merged"),
         "{rm:?}"
     );
-    assert!(git(&repo.path, &["branch", "--list", "pod/ar"]).contains("pod/ar"));
+    assert!(git_output(&repo.path, &["branch", "--list", "pod/ar"]).contains("pod/ar"));
     let t2 = c
         .call::<TaskCreate>(&TaskCreateParams {
             repo: "app".into(),
@@ -976,14 +966,14 @@ fn s8_sparse_checkout_for_new_worktrees() {
         "{:?}",
         t.setup
     );
-    let list = git(&w, &["sparse-checkout", "list"]);
+    let list = git_output(&w, &["sparse-checkout", "list"]);
     assert_eq!(
         list.lines().collect::<Vec<_>>(),
         vec![".pod", "crates/podd", "docs"],
         "{list}"
     );
     assert!(
-        git(&w, &["status", "--porcelain"]).trim().is_empty(),
+        git_output(&w, &["status", "--porcelain"]).trim().is_empty(),
         "a clean worktree"
     );
     assert!(

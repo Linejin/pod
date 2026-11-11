@@ -2,7 +2,8 @@
 //! wire message round trip, and the installer against a temporary directory.
 
 use pod_status::hook::{
-    CLAUDE_EVENTS, CODEX_EVENTS, ChildEffect, HOOK_MESSAGE_VERSION, RootEffect, map_hook,
+    CLAUDE_EVENTS, CODEX_EVENTS, ChildEffect, HOOK_MESSAGE_VERSION, HookEffect, RootEffect,
+    map_hook, map_message,
 };
 use pod_status::install::{
     ApplyOptions, HookCommandSpec, InstallScope, apply_plan, claude_hooks_block, codex_hooks_block,
@@ -318,6 +319,72 @@ fn every_installed_event_has_a_mapping() {
     }
 }
 
+/// Every public `hook::` path podd, pod-hook and the installer name, and the
+/// installed event lists in order (refactor D-P7 keeps them on the facade).
+#[test]
+fn hook_public_paths_and_event_lists() {
+    use pod_status::hook::{
+        CLAUDE_MATCHER_EVENTS, ENV_HOOK_TOKEN, ENV_SOCKET, ENV_TERMINAL_ID, MAX_HOOK_LINE,
+        PAYLOAD_FIELDS, QUESTION_TOOLS, TRUNCATED_KEY,
+    };
+    assert_eq!(
+        (ENV_TERMINAL_ID, ENV_SOCKET, ENV_HOOK_TOKEN),
+        ("POD_TERMINAL_ID", "POD_SOCKET", "POD_HOOK_TOKEN")
+    );
+    assert_eq!(
+        (MAX_HOOK_LINE, TRUNCATED_KEY, HOOK_MESSAGE_VERSION),
+        (4 * 1024 * 1024, "pod_truncated", 1)
+    );
+    assert_eq!(QUESTION_TOOLS, ["AskUserQuestion", "request_user_input"]);
+    assert_eq!(PAYLOAD_FIELDS.len(), 22);
+    assert_eq!(
+        CLAUDE_EVENTS,
+        [
+            "SessionStart",
+            "UserPromptSubmit",
+            "PreToolUse",
+            "PostToolUse",
+            "PostToolUseFailure",
+            "PermissionRequest",
+            "Elicitation",
+            "ElicitationResult",
+            "Stop",
+            "StopFailure",
+            "SubagentStart",
+            "SubagentStop",
+            "SessionEnd",
+        ]
+    );
+    assert_eq!(
+        CODEX_EVENTS,
+        [
+            "SessionStart",
+            "UserPromptSubmit",
+            "PreToolUse",
+            "PermissionRequest",
+            "PostToolUse",
+            "Stop",
+            "Interrupt",
+            "SubagentStart",
+            "SubagentStop",
+        ]
+    );
+    assert_eq!(
+        CLAUDE_MATCHER_EVENTS,
+        [
+            "PreToolUse",
+            "PostToolUse",
+            "PostToolUseFailure",
+            "PermissionRequest",
+            "Elicitation",
+            "ElicitationResult",
+        ]
+    );
+    let _: fn(HookAgent, &str, &Value) -> HookEffect = map_hook;
+    let _: fn(&HookMessage) -> HookEffect = map_message;
+    assert_eq!(HookAgent::parse("claude-code"), Some(HookAgent::Claude));
+}
+
 #[test]
 fn wire_message_round_trip() {
     let mut m = HookMessage::new("term-7", HookAgent::Codex, "Stop", json!({"turn_id":"t"}));
@@ -503,3 +570,295 @@ fn malformed_existing_file_is_an_error_not_overwritten() {
         "{ not json"
     );
 }
+
+// ───────────── pinned mapping matrix (refactor D-P7) ─────────────
+//
+// Every installed event of both agents (plus an unknown and an empty event
+// name) against a set of payload variants, rendered field by field. The
+// golden lines were taken from the mapping before it was split into
+// `hook/{claude,codex}.rs`; any difference is a behaviour change.
+
+fn render(eff: &HookEffect) -> String {
+    let mut out = match &eff.root {
+        RootEffect::None => "-".to_string(),
+        RootEffect::Set { state, msg } => match msg {
+            Some(m) => format!("set {state:?} {m:?}"),
+            None => format!("set {state:?}"),
+        },
+        RootEffect::RestoreFromWait => "restore".into(),
+        RootEffect::EndSession => "end".into(),
+    };
+    match &eff.child {
+        None => {}
+        Some(ChildEffect::Set { id, state, title }) => {
+            out.push_str(&format!(" child=set {id} {state:?} {title:?}"));
+        }
+        Some(ChildEffect::Remove { id }) => out.push_str(&format!(" child=rm {id}")),
+    }
+    if eff.session_boundary {
+        out.push_str(" boundary");
+    }
+    if let Some(o) = eff.outcome {
+        out.push_str(&format!(" outcome={o:?}"));
+    }
+    if let Some(s) = &eff.session_id {
+        out.push_str(&format!(" sid={s}"));
+    }
+    if let Some(t) = &eff.tool_name {
+        out.push_str(&format!(" tool={t}"));
+    }
+    out
+}
+
+fn matrix_variants() -> Vec<(&'static str, Value)> {
+    let lead = json!({
+        "session_id": "s1",
+        "tool_name": "Bash",
+        "source": "startup",
+        "message": "Pick one",
+        "error": "overloaded",
+        "agent_type": "Explore",
+        "is_interrupt": false,
+    });
+    let mut sub = lead.clone();
+    sub["agent_id"] = json!("a/1 x");
+    vec![
+        ("bare", json!({})),
+        ("lead", lead),
+        ("sub", sub),
+        (
+            "alt",
+            json!({
+                "session_id": "",
+                "agent_id": "",
+                "tool_name": "AskUserQuestion",
+                "source": "compact",
+                "is_interrupt": true,
+                "error_message": "rate limit",
+            }),
+        ),
+        (
+            "rui",
+            json!({"tool_name": "request_user_input", "agent_id": 7}),
+        ),
+    ]
+}
+
+fn mapping_matrix() -> Vec<String> {
+    let mut events: Vec<&str> = CLAUDE_EVENTS.to_vec();
+    for e in CODEX_EVENTS {
+        if !events.contains(e) {
+            events.push(e);
+        }
+    }
+    events.extend(["Notification", ""]);
+    let mut lines = Vec::new();
+    for agent in [HookAgent::Claude, HookAgent::Codex] {
+        for ev in &events {
+            for (name, p) in matrix_variants() {
+                let eff = map_hook(agent, ev, &p);
+                lines.push(format!(
+                    "{} {ev:?} {name}: {}",
+                    agent.as_str(),
+                    render(&eff)
+                ));
+            }
+        }
+        // `map_message` falls back to the payload's event name.
+        let m = HookMessage::new("t1", agent, "", json!({"hook_event_name": "Stop"}));
+        lines.push(format!(
+            "{} message-fallback: {}",
+            agent.as_str(),
+            render(&map_message(&m))
+        ));
+    }
+    lines
+}
+
+#[test]
+fn pinned_mapping_matrix() {
+    let actual = mapping_matrix();
+    let expected: Vec<&str> = MAPPING_GOLDEN
+        .lines()
+        .map(str::trim)
+        .filter(|l| !l.is_empty())
+        .collect();
+    if actual != expected {
+        let first = actual
+            .iter()
+            .zip(&expected)
+            .position(|(a, e)| a != e)
+            .unwrap_or(actual.len().min(expected.len()));
+        panic!(
+            "mapping differs at line {first}\n expected: {:?}\n   actual: {:?}\n\nactual matrix:\n{}",
+            expected.get(first),
+            actual.get(first),
+            actual.join("\n")
+        );
+    }
+}
+
+const MAPPING_GOLDEN: &str = r##"
+claude "SessionStart" bare: set Idle boundary
+claude "SessionStart" lead: set Idle boundary sid=s1 tool=Bash
+claude "SessionStart" sub: set Idle boundary sid=s1 tool=Bash
+claude "SessionStart" alt: - tool=AskUserQuestion
+claude "SessionStart" rui: set Idle boundary tool=request_user_input
+claude "UserPromptSubmit" bare: set Working
+claude "UserPromptSubmit" lead: set Working sid=s1 tool=Bash
+claude "UserPromptSubmit" sub: set Working sid=s1 tool=Bash
+claude "UserPromptSubmit" alt: set Working tool=AskUserQuestion
+claude "UserPromptSubmit" rui: set Working tool=request_user_input
+claude "PreToolUse" bare: set Working
+claude "PreToolUse" lead: set Working sid=s1 tool=Bash
+claude "PreToolUse" sub: - child=set hook/a-1-x Working None sid=s1 tool=Bash
+claude "PreToolUse" alt: set Blocked(Question) "AskUserQuestion" tool=AskUserQuestion
+claude "PreToolUse" rui: set Blocked(Question) "request_user_input" tool=request_user_input
+claude "PostToolUse" bare: set Working
+claude "PostToolUse" lead: set Working sid=s1 tool=Bash
+claude "PostToolUse" sub: - child=set hook/a-1-x Working None sid=s1 tool=Bash
+claude "PostToolUse" alt: set Working tool=AskUserQuestion
+claude "PostToolUse" rui: set Working tool=request_user_input
+claude "PostToolUseFailure" bare: set Working
+claude "PostToolUseFailure" lead: set Working sid=s1 tool=Bash
+claude "PostToolUseFailure" sub: - child=set hook/a-1-x Working None sid=s1 tool=Bash
+claude "PostToolUseFailure" alt: set Working tool=AskUserQuestion
+claude "PostToolUseFailure" rui: set Working tool=request_user_input
+claude "PermissionRequest" bare: set Blocked(Permission)
+claude "PermissionRequest" lead: set Blocked(Permission) "Bash" sid=s1 tool=Bash
+claude "PermissionRequest" sub: set Blocked(Permission) "Bash" sid=s1 tool=Bash
+claude "PermissionRequest" alt: set Blocked(Permission) "AskUserQuestion" tool=AskUserQuestion
+claude "PermissionRequest" rui: set Blocked(Permission) "request_user_input" tool=request_user_input
+claude "Elicitation" bare: set Blocked(Question)
+claude "Elicitation" lead: set Blocked(Question) "Pick one" sid=s1 tool=Bash
+claude "Elicitation" sub: set Blocked(Question) "Pick one" sid=s1 tool=Bash
+claude "Elicitation" alt: set Blocked(Question) tool=AskUserQuestion
+claude "Elicitation" rui: set Blocked(Question) tool=request_user_input
+claude "ElicitationResult" bare: restore
+claude "ElicitationResult" lead: restore sid=s1 tool=Bash
+claude "ElicitationResult" sub: restore sid=s1 tool=Bash
+claude "ElicitationResult" alt: restore tool=AskUserQuestion
+claude "ElicitationResult" rui: restore tool=request_user_input
+claude "Stop" bare: set Done outcome=Completed
+claude "Stop" lead: set Done outcome=Completed sid=s1 tool=Bash
+claude "Stop" sub: set Done outcome=Completed sid=s1 tool=Bash
+claude "Stop" alt: set Idle outcome=Cancelled tool=AskUserQuestion
+claude "Stop" rui: set Done outcome=Completed tool=request_user_input
+claude "StopFailure" bare: set Error outcome=Failed
+claude "StopFailure" lead: set Error "overloaded" outcome=Failed sid=s1 tool=Bash
+claude "StopFailure" sub: set Error "overloaded" outcome=Failed sid=s1 tool=Bash
+claude "StopFailure" alt: set Error "rate limit" outcome=Failed tool=AskUserQuestion
+claude "StopFailure" rui: set Error outcome=Failed tool=request_user_input
+claude "SubagentStart" bare: -
+claude "SubagentStart" lead: - sid=s1 tool=Bash
+claude "SubagentStart" sub: - child=set hook/a-1-x Working Some("Explore") sid=s1 tool=Bash
+claude "SubagentStart" alt: - tool=AskUserQuestion
+claude "SubagentStart" rui: - tool=request_user_input
+claude "SubagentStop" bare: -
+claude "SubagentStop" lead: - sid=s1 tool=Bash
+claude "SubagentStop" sub: - child=rm hook/a-1-x sid=s1 tool=Bash
+claude "SubagentStop" alt: - tool=AskUserQuestion
+claude "SubagentStop" rui: - tool=request_user_input
+claude "SessionEnd" bare: end
+claude "SessionEnd" lead: end sid=s1 tool=Bash
+claude "SessionEnd" sub: end sid=s1 tool=Bash
+claude "SessionEnd" alt: end tool=AskUserQuestion
+claude "SessionEnd" rui: end tool=request_user_input
+claude "Interrupt" bare: -
+claude "Interrupt" lead: - sid=s1 tool=Bash
+claude "Interrupt" sub: - sid=s1 tool=Bash
+claude "Interrupt" alt: - tool=AskUserQuestion
+claude "Interrupt" rui: - tool=request_user_input
+claude "Notification" bare: -
+claude "Notification" lead: - sid=s1 tool=Bash
+claude "Notification" sub: - sid=s1 tool=Bash
+claude "Notification" alt: - tool=AskUserQuestion
+claude "Notification" rui: - tool=request_user_input
+claude "" bare: -
+claude "" lead: - sid=s1 tool=Bash
+claude "" sub: - sid=s1 tool=Bash
+claude "" alt: - tool=AskUserQuestion
+claude "" rui: - tool=request_user_input
+claude message-fallback: set Done outcome=Completed
+codex "SessionStart" bare: set Idle boundary
+codex "SessionStart" lead: set Idle boundary sid=s1 tool=Bash
+codex "SessionStart" sub: set Idle boundary sid=s1 tool=Bash
+codex "SessionStart" alt: set Idle boundary tool=AskUserQuestion
+codex "SessionStart" rui: set Idle boundary tool=request_user_input
+codex "UserPromptSubmit" bare: set Working
+codex "UserPromptSubmit" lead: set Working sid=s1 tool=Bash
+codex "UserPromptSubmit" sub: set Working sid=s1 tool=Bash
+codex "UserPromptSubmit" alt: set Working tool=AskUserQuestion
+codex "UserPromptSubmit" rui: set Working tool=request_user_input
+codex "PreToolUse" bare: set Working
+codex "PreToolUse" lead: set Working sid=s1 tool=Bash
+codex "PreToolUse" sub: set Working sid=s1 tool=Bash
+codex "PreToolUse" alt: set Blocked(Question) "AskUserQuestion" tool=AskUserQuestion
+codex "PreToolUse" rui: set Blocked(Question) "request_user_input" tool=request_user_input
+codex "PostToolUse" bare: set Working
+codex "PostToolUse" lead: set Working sid=s1 tool=Bash
+codex "PostToolUse" sub: set Working sid=s1 tool=Bash
+codex "PostToolUse" alt: set Working tool=AskUserQuestion
+codex "PostToolUse" rui: set Working tool=request_user_input
+codex "PostToolUseFailure" bare: -
+codex "PostToolUseFailure" lead: - sid=s1 tool=Bash
+codex "PostToolUseFailure" sub: - sid=s1 tool=Bash
+codex "PostToolUseFailure" alt: - tool=AskUserQuestion
+codex "PostToolUseFailure" rui: - tool=request_user_input
+codex "PermissionRequest" bare: set Blocked(Permission)
+codex "PermissionRequest" lead: set Blocked(Permission) "Bash" sid=s1 tool=Bash
+codex "PermissionRequest" sub: set Blocked(Permission) "Bash" sid=s1 tool=Bash
+codex "PermissionRequest" alt: set Blocked(Permission) "AskUserQuestion" tool=AskUserQuestion
+codex "PermissionRequest" rui: set Blocked(Permission) "request_user_input" tool=request_user_input
+codex "Elicitation" bare: -
+codex "Elicitation" lead: - sid=s1 tool=Bash
+codex "Elicitation" sub: - sid=s1 tool=Bash
+codex "Elicitation" alt: - tool=AskUserQuestion
+codex "Elicitation" rui: - tool=request_user_input
+codex "ElicitationResult" bare: -
+codex "ElicitationResult" lead: - sid=s1 tool=Bash
+codex "ElicitationResult" sub: - sid=s1 tool=Bash
+codex "ElicitationResult" alt: - tool=AskUserQuestion
+codex "ElicitationResult" rui: - tool=request_user_input
+codex "Stop" bare: set Done outcome=Completed
+codex "Stop" lead: set Done outcome=Completed sid=s1 tool=Bash
+codex "Stop" sub: set Done outcome=Completed sid=s1 tool=Bash
+codex "Stop" alt: set Done outcome=Completed tool=AskUserQuestion
+codex "Stop" rui: set Done outcome=Completed tool=request_user_input
+codex "StopFailure" bare: -
+codex "StopFailure" lead: - sid=s1 tool=Bash
+codex "StopFailure" sub: - sid=s1 tool=Bash
+codex "StopFailure" alt: - tool=AskUserQuestion
+codex "StopFailure" rui: - tool=request_user_input
+codex "SubagentStart" bare: -
+codex "SubagentStart" lead: - sid=s1 tool=Bash
+codex "SubagentStart" sub: - child=set hook/a-1-x Working Some("Explore") sid=s1 tool=Bash
+codex "SubagentStart" alt: - tool=AskUserQuestion
+codex "SubagentStart" rui: - tool=request_user_input
+codex "SubagentStop" bare: -
+codex "SubagentStop" lead: - sid=s1 tool=Bash
+codex "SubagentStop" sub: - child=rm hook/a-1-x sid=s1 tool=Bash
+codex "SubagentStop" alt: - tool=AskUserQuestion
+codex "SubagentStop" rui: - tool=request_user_input
+codex "SessionEnd" bare: -
+codex "SessionEnd" lead: - sid=s1 tool=Bash
+codex "SessionEnd" sub: - sid=s1 tool=Bash
+codex "SessionEnd" alt: - tool=AskUserQuestion
+codex "SessionEnd" rui: - tool=request_user_input
+codex "Interrupt" bare: set Idle outcome=Cancelled
+codex "Interrupt" lead: set Idle outcome=Cancelled sid=s1 tool=Bash
+codex "Interrupt" sub: set Idle outcome=Cancelled sid=s1 tool=Bash
+codex "Interrupt" alt: set Idle outcome=Cancelled tool=AskUserQuestion
+codex "Interrupt" rui: set Idle outcome=Cancelled tool=request_user_input
+codex "Notification" bare: -
+codex "Notification" lead: - sid=s1 tool=Bash
+codex "Notification" sub: - sid=s1 tool=Bash
+codex "Notification" alt: - tool=AskUserQuestion
+codex "Notification" rui: - tool=request_user_input
+codex "" bare: -
+codex "" lead: - sid=s1 tool=Bash
+codex "" sub: - sid=s1 tool=Bash
+codex "" alt: - tool=AskUserQuestion
+codex "" rui: - tool=request_user_input
+codex message-fallback: set Done outcome=Completed
+"##;

@@ -8,7 +8,13 @@ pub mod theme;
 pub mod themes;
 pub mod tokens;
 pub use agent::{AgentMark, agent_mark, agent_mark_el, agent_stack};
-pub use components::*;
+pub use components::{
+    BUSY_LABEL, ControlState, FocusReturn, FocusStack, Frame, FrameKind, Icon, IconButton,
+    KEEP_ALL_MAX, ListSelection, ModalClose, ModalNext, ModalPrevious, TreeRow, banner, choice,
+    count_badge, focus_style, hit_area, icon, icon_sized, icon_text, install_key_bindings,
+    keep_all, keep_all_start, keep_all_unbreakable, keep_all_words, kit_icon, modal_keyboard,
+    next_focus, radio_group, segment, segmented, semantic_button, status_dot, toast_timeout,
+};
 pub use controls::{
     A11y, CATEGORY_WIDTH, CONTROL_WIDTH, SelectEvent, category_item, category_list, select, switch,
 };
@@ -141,48 +147,6 @@ mod tests {
         }
     }
     #[test]
-    fn icons_parse_and_follow_the_style_stroke() {
-        for i in Icon::ALL {
-            let svg = std::str::from_utf8(i.source()).unwrap();
-            assert!(
-                svg.contains("<svg") && svg.contains("stroke-width=\"2\""),
-                "{}",
-                i.name()
-            );
-            assert!(
-                !svg.contains("<script") && !svg.contains("href"),
-                "{}",
-                i.name()
-            );
-        }
-        let thin = std::str::from_utf8(components::stroked_for_test(Icon::X, 1.5)).unwrap();
-        assert!(thin.contains("stroke-width=\"1.5\""));
-        assert!(
-            std::ptr::eq(
-                components::stroked_for_test(Icon::X, 1.5),
-                components::stroked_for_test(Icon::X, 1.5)
-            ),
-            "cached"
-        );
-        assert!(
-            std::ptr::eq(components::stroked_for_test(Icon::X, 2.), Icon::X.source()),
-            "2px is the source"
-        );
-    }
-    #[test]
-    fn nested_focus_round_trip_and_keyboard_wrap() {
-        let mut stack = FocusStack::default();
-        stack.enter("terminal");
-        stack.enter("palette-query");
-        assert_eq!(stack.leave(), Some("palette-query"));
-        assert_eq!(stack.leave(), Some("terminal"));
-        assert_eq!(stack.leave(), None);
-        assert_eq!(next_focus(Some(2), 3, false), 0);
-        assert_eq!(next_focus(Some(0), 3, true), 2);
-        assert_eq!(next_focus(None, 3, false), 0);
-        assert_eq!(next_focus(None, 3, true), 2);
-    }
-    #[test]
     fn terminal_indexed_and_truecolor_boundary() {
         let dark = terminal::TerminalPalette::for_mode(Mode::Dark);
         let light = terminal::TerminalPalette::for_mode(Mode::Light);
@@ -191,19 +155,6 @@ mod tests {
         for i in 16..=255 {
             assert_eq!(dark.indexed(i), light.indexed(i));
         }
-    }
-    #[test]
-    fn toast_pause_and_persistent_attention() {
-        assert!(toast_timeout(Tone::Warning, false, false).is_none());
-        assert!(toast_timeout(Tone::Danger, false, false).is_none());
-        assert!(toast_timeout(Tone::Success, true, false).is_none());
-        assert!(toast_timeout(Tone::Info, false, true).is_none());
-        assert_eq!(
-            toast_timeout(Tone::Success, false, false)
-                .unwrap()
-                .as_secs(),
-            5
-        );
     }
 
     #[test]
@@ -228,17 +179,5 @@ mod tests {
         assert_eq!(badge.source, Some(pod_status::Source::Osc));
         snapshot.state = S::Exited;
         assert_eq!(StatusBadge::from_snapshot(&snapshot).state, S::Exited);
-    }
-    #[test]
-    fn list_selection_survives_refresh_and_ime_never_executes() {
-        let mut list = ListSelection::default();
-        list.replace(vec!["a".into(), "b".into()]);
-        list.navigate(false);
-        assert_eq!(list.selected.as_deref(), Some("b"));
-        list.replace(vec!["b".into(), "c".into()]);
-        assert_eq!(list.selected.as_deref(), Some("b"));
-        assert_eq!(list.activation(true, &ControlState::Ready), None);
-        assert_eq!(list.activation(false, &ControlState::Loading), None);
-        assert_eq!(list.activation(false, &ControlState::Ready), Some("b"));
     }
 }

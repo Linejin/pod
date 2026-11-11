@@ -5,10 +5,11 @@
 mod common;
 
 use std::path::{Path, PathBuf};
-use std::process::Command;
-use std::time::{Duration, Instant};
+use std::time::Duration;
 
 use common::*;
+use pod_test_support::git::{git_ok, git_output};
+use pod_test_support::wait;
 use podd::client::Client;
 use podd::protocol::*;
 
@@ -23,20 +24,20 @@ impl TempRepo {
         let root = std::env::temp_dir().join(unique("repo"));
         let path = root.join("pod repo");
         std::fs::create_dir_all(path.join("docs")).unwrap();
-        git(&path, &["init", "-q", "-b", "main"]);
+        git_ok(&path, &["init", "-q", "-b", "main"]);
         for (k, v) in [
             ("user.name", "Pod Test"),
             ("user.email", "pod-test@example.invalid"),
             ("commit.gpgsign", "false"),
             ("core.autocrlf", "false"),
         ] {
-            git(&path, &["config", k, v]);
+            git_ok(&path, &["config", k, v]);
         }
         // CRLF like PowerShell's Set-Content, so rewriting it to one line is -1.
         std::fs::write(path.join("README.md"), "line1\r\nline2\r\n").unwrap();
         std::fs::write(path.join("docs").join("guide.md"), "guide\n").unwrap();
-        git(&path, &["add", "-A"]);
-        git(&path, &["commit", "-q", "-m", "init"]);
+        git_ok(&path, &["add", "-A"]);
+        git_ok(&path, &["commit", "-q", "-m", "init"]);
         Self { root, path }
     }
 
@@ -49,21 +50,6 @@ impl Drop for TempRepo {
     fn drop(&mut self) {
         let _ = std::fs::remove_dir_all(&self.root);
     }
-}
-
-fn git(dir: &Path, args: &[&str]) -> String {
-    let out = Command::new("git")
-        .arg("-C")
-        .arg(dir)
-        .args(args)
-        .output()
-        .expect("run git");
-    assert!(
-        out.status.success(),
-        "git {args:?} failed: {}",
-        String::from_utf8_lossy(&out.stderr)
-    );
-    String::from_utf8_lossy(&out.stdout).into_owned()
 }
 
 fn create(c: &mut Client, p: TaskCreateParams) -> TaskInfo {
@@ -196,7 +182,7 @@ fn task_lifecycle_with_restart_and_removal_rules() {
         "a prompt needs claude/codex"
     );
     // A branch that exists outside pod is a collision too.
-    git(&repo.path, &["branch", "pod/taken"]);
+    git_ok(&repo.path, &["branch", "pod/taken"]);
     assert_eq!(
         code(&mut c, shell_task("demo", "taken")),
         codes::TASK_EXISTS
@@ -228,8 +214,8 @@ fn task_lifecycle_with_restart_and_removal_rules() {
     wait_output(&mut c, &tid, "notes-ok");
     // The base moves on.
     std::fs::write(repo.path.join("other.txt"), "o\n").unwrap();
-    git(&repo.path, &["add", "other.txt"]);
-    git(&repo.path, &["commit", "-q", "-m", "base moves"]);
+    git_ok(&repo.path, &["add", "other.txt"]);
+    git_ok(&repo.path, &["commit", "-q", "-m", "base moves"]);
 
     let s = show(&mut c, "feat-1"); // bare name works when unique
     let g = s.git.clone().expect("git facts");
@@ -370,14 +356,16 @@ fn task_lifecycle_with_restart_and_removal_rules() {
         "{r:?}"
     );
     assert!(!Path::new(&t1.worktree).exists());
-    assert!(git(&repo.path, &["branch", "--list", "pod/feat-1"]).contains("pod/feat-1"));
+    assert!(git_output(&repo.path, &["branch", "--list", "pod/feat-1"]).contains("pod/feat-1"));
     let terms = c.call::<TerminalList>(&Empty {}).unwrap().terminals;
     assert!(!terms.iter().any(|t| t.id == tid));
-    let deadline = Instant::now() + Duration::from_secs(10);
-    while process_alive(pid) && Instant::now() < deadline {
-        std::thread::sleep(Duration::from_millis(100));
-    }
-    assert!(!process_alive(pid), "agent process survived task removal");
+    let gone = wait::until(Duration::from_secs(10), POLL, || {
+        if process_alive(pid) { Err(pid) } else { Ok(()) }
+    });
+    assert!(
+        gone.is_ok(),
+        "agent process survived task removal: {gone:?}"
+    );
 
     // feat-2 is clean and has nothing unpushed (its base branch is gone; the
     // recorded base commit is used), so no force is needed.
@@ -389,8 +377,8 @@ fn task_lifecycle_with_restart_and_removal_rules() {
         })
         .expect("clean remove");
     assert!(r.worktree_removed && !r.branch_deleted, "{r:?}");
-    assert!(git(&repo.path, &["branch", "--list", "pod/feat-2"]).contains("pod/feat-2"));
-    let wts = git(&repo.path, &["worktree", "list", "--porcelain"]);
+    assert!(git_output(&repo.path, &["branch", "--list", "pod/feat-2"]).contains("pod/feat-2"));
+    let wts = git_output(&repo.path, &["worktree", "list", "--porcelain"]);
     assert_eq!(wts.matches("worktree ").count(), 1, "{wts}");
     assert!(
         c.call::<TaskList>(&TaskListParams::default())

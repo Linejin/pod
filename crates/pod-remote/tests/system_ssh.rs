@@ -6,18 +6,16 @@
 //! unreachable. Skipped when no system ssh exists. A real login (host key,
 //! authentication, remote `pod`) is **not** covered here; see docs/17 §6 R3.
 
-#[path = "../../../tools/test-support/require_tools.rs"]
-mod require_tools;
-
 use std::process::Command;
 
 use pod_remote::ssh::{self, ErrorKind};
 use pod_remote::{Machine, connect};
+use pod_test_support::tools;
 
 #[test]
 fn system_ssh_accepts_generated_config_and_reports_refused_port() {
     let Ok(exe) = ssh::locate_ssh() else {
-        require_tools::missing("system ssh");
+        tools::missing("system ssh");
         return;
     };
     let root = std::env::temp_dir().join(format!("pod-remote-sysssh-{}", std::process::id()));

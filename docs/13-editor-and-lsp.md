@@ -22,9 +22,11 @@ pod-editor (lib)
 │     ├─ registry.rs   언어 판별, 서버 설정(기본값 + JSON 덮어쓰기), 루트 찾기, PATH/PATHEXT 검색, 설치 확인
 │     ├─ server.rs     프로세스 실행, initialize/shutdown, 재시작 백오프(1·2·4·8·16초, 5회)
 │     ├─ store.rs      작업 트리당 GPUI 엔티티 LspStore: 서버 상태, 문서 동기화, 진단 저장, 요청
+│     │  └─ store/    lifecycle·documents·diagnostics·requests·edits (같은 LspStore의 private impl)
 │     └─ providers.rs  gpui-component 에디터 Completion/Hover/Definition 공급자 어댑터
 └─ ui/ (GPUI)
    ├─ workspace.rs  EditorWorkspace: 트리 | 탭·배너·에디터·문제/참조 패널 | 상태 표시줄 + 오버레이
+   │  └─ workspace/  session·buffers·files·tabs·tree·lsp_actions·render_* (같은 상태의 private impl)
    └─ quick_open.rs Ctrl+P 퀵오픈
 bin/pod-editor-demo   창 하나(보조 모니터)로 실행하는 데모, --scenario로 스크린샷용 상태 재현
 bin/pod-editor-fake-lsp  테스트용 가짜 언어 서버(제품 아님)
@@ -151,7 +153,7 @@ cx.subscribe(&editor, |this, _, ev: &pod_editor::EditorEvent, cx| match ev {
 
 상태 표시(상태 표시줄 오른쪽 점 + 문구, 필요하면 에디터 위 배너): 확인 중 → 시작 중 → 실행 중(진행 중이면 `rust-analyzer · Indexing 45%`) / **설치 안 됨**(배너에 이유와 설치 명령) / 재시작 중 (n/5) / 중지됨(오류, 배너에 "다시 시작" 버튼) / 종료됨.
 
-Windows 처리: 서버마다 Job Object(KILL_ON_JOB_CLOSE)라서 rustup 프록시 → 실제 rust-analyzer → cargo check/proc-macro 서버, node 하위 프로세스까지 한 번에 죽는다(테스트로 확인). 설치 확인 프로브는 `pod_forge::bounded`로 돌린다: 실행과 출력 읽기를 합쳐 10초, stdout/stderr는 실행 중에 크기 제한 버퍼로 읽고, 실패한 프로브의 자손이 stderr를 잡고 있어도 0.5초 뒤 트리를 죽이고 첫 stderr 줄을 이유로 보여 준다. `CREATE_NO_WINDOW`로 콘솔 창이 뜨지 않는다. `.cmd` 셈(npm 전역 설치)은 PATHEXT로 찾는다. URI는 `file:///C:/...`로 보내고 서버가 `c%3A`, 소문자 드라이브로 돌려줘도 같은 파일로 본다.
+Windows 처리: 서버마다 Job Object(KILL_ON_JOB_CLOSE)라서 rustup 프록시 → 실제 rust-analyzer → cargo check/proc-macro 서버, node 하위 프로세스까지 한 번에 죽는다(테스트로 확인). 설치 확인 프로브는 `pod_process::bounded`로 돌린다: 실행과 출력 읽기를 합쳐 10초, stdout/stderr는 실행 중에 크기 제한 버퍼로 읽고, 실패한 프로브의 자손이 stderr를 잡고 있어도 0.5초 뒤 트리를 죽이고 첫 stderr 줄을 이유로 보여 준다. `CREATE_NO_WINDOW`로 콘솔 창이 뜨지 않는다. `.cmd` 셈(npm 전역 설치)은 PATHEXT로 찾는다. URI는 `file:///C:/...`로 보내고 서버가 `c%3A`, 소문자 드라이브로 돌려줘도 같은 파일로 본다.
 
 디버깅: 환경 변수 `POD_EDITOR_LSP_LOG=<파일>`이면 주고받은 알림·서버 요청을 한 줄씩 남긴다.
 

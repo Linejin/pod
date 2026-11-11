@@ -1,0 +1,31 @@
+[package]
+name = "pod-client"
+version = "0.1.0"
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+publish = false
+description = "Pod daemon client: blocking JSON-RPC client with daemon auto-start, pipe/stdio transports, endpoints, detached spawn and terminal environment hygiene"
+
+# Client side only (docs/20-refactor/daemon.md §2, card D-T1): no server,
+# holder, PTY or tokio dependency. `podd` re-exports these modules under
+# their old paths, and the app, CLI and remote crates use this crate under
+# the dependency name `podd`.
+[dependencies]
+serde = "1"
+serde_json = "1"
+# The wire types; `pod_client::protocol` is `pod_protocol::protocol`.
+pod-protocol = { path = "../pod-protocol" }
+# Pipe client with identification-only SQOS, process watch and the detached
+# spawn without inherited handles. Pipes: the security-01 probe in tests.
+windows-sys = { version = "0.61", features = [
+    "Win32_Foundation",
+    "Win32_Security",
+    "Win32_Storage_FileSystem",
+    "Win32_System_IO",
+    "Win32_System_Pipes",
+    "Win32_System_Threading",
+] }
+
+[lints]
+workspace = true

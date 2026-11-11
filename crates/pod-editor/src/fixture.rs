@@ -33,9 +33,16 @@ const FILES: &[(&str, &str)] = &[
     (".gitignore", "target/\n*.log\n"),
 ];
 
+/// Author and committer date of the fixture commit: with the fixed tree,
+/// name and message, `HEAD` gets the same hash on every run (the review
+/// scene prints it).
+pub const COMMIT_DATE: &str = "2026-01-01T00:00:00+0000";
+
 fn git(dir: &Path, args: &[&str]) -> std::io::Result<()> {
     let mut c = Command::new("git");
     c.arg("-C").arg(dir).args(args);
+    c.env("GIT_AUTHOR_DATE", COMMIT_DATE)
+        .env("GIT_COMMITTER_DATE", COMMIT_DATE);
     #[cfg(windows)]
     {
         use std::os::windows::process::CommandExt;
@@ -117,5 +124,47 @@ mod tests {
             }
         }
         let _ = std::fs::remove_dir_all(&dir);
+    }
+
+    fn git_out(dir: &Path, args: &[&str]) -> Option<String> {
+        let out = Command::new("git")
+            .arg("-C")
+            .arg(dir)
+            .args(args)
+            .output()
+            .ok()?;
+        out.status
+            .success()
+            .then(|| String::from_utf8_lossy(&out.stdout).trim().to_string())
+    }
+
+    /// A-F0b: the commit used the current time, so `HEAD` (shown by the review
+    /// scene) changed from run to run. Two runs a second apart get one hash.
+    #[test]
+    fn fixture_commit_has_a_fixed_date_and_hash() {
+        let base = std::env::temp_dir().join(format!("pod-fixture-head-{}", std::process::id()));
+        let _ = std::fs::remove_dir_all(&base);
+        let heads: Vec<Option<String>> = ["a", "b"]
+            .iter()
+            .enumerate()
+            .map(|(i, name)| {
+                if i > 0 {
+                    // Commit times have one-second resolution.
+                    std::thread::sleep(std::time::Duration::from_millis(1100));
+                }
+                let dir = create(&base.join(name), true).unwrap();
+                git_out(&dir, &["rev-parse", "HEAD"])
+            })
+            .collect();
+        let Some(Some(head)) = heads.first().cloned() else {
+            let _ = std::fs::remove_dir_all(&base);
+            eprintln!("skipped: no git");
+            return;
+        };
+        assert_eq!(heads[1].as_deref(), Some(head.as_str()));
+        // 2026-01-01T00:00:00Z, author and committer.
+        let dates = git_out(&base.join("a"), &["log", "-1", "--format=%at %ct"]).unwrap();
+        assert_eq!(dates, "1767225600 1767225600");
+        let _ = std::fs::remove_dir_all(&base);
     }
 }

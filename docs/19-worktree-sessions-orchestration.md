@@ -591,7 +591,7 @@ S1–S3과 S4–S5는 파일이 겹치지 않아 병렬 가능(S5는 S4 뒤). S7
 - 수정(`git::commit_for_worker`): porcelain `add`/`commit` 대신 **plumbing만** 쓴다 — `ls-files --error-unmatch`(경로 확인), `diff-files`·`ls-files --others`(바뀐 파일), `hash-object -w --stdin-paths`, `update-index --index-info`, `write-tree`, `commit-tree -F -`, `update-ref`(reflog `commit: …`). 모든 git 자식에 명령줄 범위 설정(`GIT_CONFIG_COUNT/KEY/VALUE`, 어떤 설정 파일·include보다 우선): `core.hooksPath=<빈 폴더>`, `core.fsmonitor=false`, `commit.gpgSign=false`, `gc.auto=0`, `maintenance.auto=false`, 그리고 **유효 설정에 있는 모든 filter 드라이버의 clean/smudge/process를 빈 값**(git은 빈 명령을 건너뜀), `required=false`.
 - **필터가 걸린 경로는 거부**: 커밋할 파일 중 `check-attr filter` 값이 설정된 드라이버(LFS 등)인 것이 있으면 커밋 전체를 거부하고 "직접 git으로(승인) 커밋하거나 사람에게 요청"하라고 알린다(필터 없이 넣으면 내용이 틀리고, 필터를 돌리는 것이 바로 막을 대상). 필터 없는 경로는 그대로 커밋된다(전역 LFS 설정만 있는 저장소도 동작). `core.autocrlf`/`eol`/`ident` 같은 git 내장 변환은 그대로 적용된다(프로그램이 아님).
 - 함께 거부: 심볼릭 링크·정션(경로 중간 포함, podd가 워크트리 밖 파일을 읽어 넣지 않게), 중첩 저장소(`sub/`). 서브모듈 포인터(gitlink)는 건드리지 않는다. 메시지는 `commit -m`과 같은 공백 정리.
-- 한도: 각 git 자식은 `pod_forge::bounded`(Job Object로 프로세스 트리, 120초, stdout 64 MB 상한, stderr 꼬리 4 KB). 호출 수는 파일 수와 무관하게 고정(약 10개).
+- 한도: 각 git 자식은 `pod_process::bounded`(Job Object로 프로세스 트리, 120초, stdout 64 MB 상한, stderr 꼬리 4 KB). 호출 수는 파일 수와 무관하게 고정(약 10개).
 - 같은 종류의 다른 경로 감사(사람 승인 없이 podd가 워커가 쓰는 트리에서 git을 돌리는 곳):
 
 | 경로 | 실행될 수 있던 것 | 처리 |

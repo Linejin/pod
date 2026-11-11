@@ -42,7 +42,7 @@ jobs:
         shell: pwsh
         run: |
           $ErrorActionPreference = "Stop"
-          foreach ($s in "check-workspace", "check-docs", "check-vendor-notices", "test-publish-public") {
+          foreach ($s in "check-workspace", "check-docs", "check-boundaries", "check-vendor-notices", "test-publish-public") {
             powershell -NoProfile -ExecutionPolicy Bypass -File "tools/$s.ps1"
             if ($LASTEXITCODE -ne 0) { throw "$s failed" }
           }

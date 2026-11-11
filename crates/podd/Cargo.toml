@@ -22,9 +22,9 @@ path = "src/bin/pod-holder.rs"
 required-features = ["server"]
 
 [features]
-# `server` pulls in the PTY/VT stack and tokio. Clients (the `pod` CLI) only need
-# the protocol types and the blocking client, so they build with
-# `default-features = false`.
+# `server` pulls in the PTY/VT stack and tokio. Without it podd is only the
+# client side re-exported from pod-client; the app, CLI and remote crates
+# depend on pod-client itself (docs/20-refactor/daemon.md §2, card D-T1).
 default = ["server"]
 server = ["dep:tokio", "dep:alacritty_terminal", "dep:pod-status", "dep:sha2", "dep:toml", "dep:pod-process", "dep:pod-storage", "pod-mods/runtime"]
 
@@ -45,6 +45,9 @@ toml = { version = "0.8", optional = true }
 # The wire types (docs/20-refactor/daemon.md §2). `podd::*protocol` re-exports
 # them under the old paths (crates/podd/tests/protocol_compat.rs).
 pod-protocol = { path = "../pod-protocol" }
+# The blocking client (card D-T1). `podd::{client, transport, endpoint, detach,
+# env, now_ms}` re-export it under the old paths, as the same items.
+pod-client = { path = "../pod-client" }
 # Forge (GitHub) types for the protocol; the gh-backed provider runs in the daemon.
 pod-forge = { path = "../pod-forge" }
 # Orchestration records (docs/19): wire types always, the engine in the daemon.
@@ -57,8 +60,8 @@ pod-discover = { path = "../pod-discover" }
 # repo config) and the temporary-file + rename JSON write (discovery cache).
 pod-process = { path = "../pod-process", optional = true }
 pod-storage = { path = "../pod-storage", optional = true }
-# Also used by the client side (`detach.rs`: spawning podd / pod-holder with no
-# inherited handles), so not optional.
+# Pipes, Job Objects and tokens of the server side. Not optional, as before
+# the client side (`detach`, `transport`) moved to pod-client (card D-T1).
 windows-sys = { version = "0.61", features = [
     "Win32_Foundation",
     "Win32_Security",
