@@ -83,6 +83,8 @@ pub struct Client {
     /// Set by [`Client::connect_or_start`]: on `SERVER_STOPPING` wait for the
     /// old daemon to go, start / reach the next one and resend.
     autostart: Option<Option<PathBuf>>,
+    /// The protocol chosen by [`Client::hello`].
+    protocol: Option<u32>,
 }
 
 impl Client {
@@ -122,6 +124,7 @@ impl Client {
             conn,
             next_id: 1,
             autostart: None,
+            protocol: None,
         }
     }
 
@@ -232,7 +235,14 @@ impl Client {
                 missing.join(", ")
             )));
         }
+        self.protocol = Some(hello.protocol);
         Ok(hello)
+    }
+
+    /// The protocol `connection.hello` chose on this connection; `None`
+    /// before a hello (local connections never send one).
+    pub fn protocol(&self) -> Option<u32> {
+        self.protocol
     }
 
     /// Typed call.
@@ -521,14 +531,87 @@ impl AttachStream {
 impl Client {
     /// Attach: returns the snapshot reply and turns this connection into the
     /// event stream. Send input/resizes on a different connection.
+    ///
+    /// A v20 remote connection gets the snapshot in `terminal.snapshot`
+    /// chunks (`AttachResult.snapshot_chunks`); they are read and joined
+    /// here, so callers always get the whole snapshot.
     pub fn attach(
         mut self,
         params: &AttachParams,
     ) -> Result<(AttachResult, Vec<u8>, AttachStream), ClientError> {
         let result = self.call::<TerminalAttach>(params)?;
-        let snapshot = b64_decode(&result.snapshot).map_err(ClientError::Protocol)?;
+        let snapshot = match result.snapshot_chunks {
+            None => b64_decode(&result.snapshot).map_err(ClientError::Protocol)?,
+            Some(total) => read_snapshot_chunks(&mut self.conn.reader, &result, total)?,
+        };
         Ok((result, snapshot, AttachStream { conn: self.conn }))
     }
+}
+
+/// The `terminal.snapshot` chunks that follow a chunked attach reply, joined.
+/// Every bound is checked before memory is taken (docs/22 TM-14): the
+/// declared size against [`MAX_SNAPSHOT_BYTES`], the chunk count against the
+/// size, each chunk's base64 length before it is decoded, and the running
+/// total against the declared size. Order, `seq`, `id` and `total` must
+/// match; anything else on the stream before the last chunk is an error.
+fn read_snapshot_chunks(
+    r: &mut LineReader,
+    result: &AttachResult,
+    total: u32,
+) -> Result<Vec<u8>, ClientError> {
+    let bad = |m: String| ClientError::Protocol(format!("snapshot chunks: {m}"));
+    let declared = result.snapshot_bytes.unwrap_or(0);
+    if declared > MAX_SNAPSHOT_BYTES as u64 {
+        return Err(bad(format!(
+            "{declared} bytes declared, the limit is {MAX_SNAPSHOT_BYTES}"
+        )));
+    }
+    let want = declared.div_ceil(REMOTE_OUTPUT_CHUNK as u64);
+    if u64::from(total) != want {
+        return Err(bad(format!(
+            "{total} chunks for {declared} bytes (expected {want})"
+        )));
+    }
+    // Base64 of one full chunk, padded.
+    let max_text = REMOTE_OUTPUT_CHUNK.div_ceil(3) * 4;
+    let mut out = Vec::with_capacity(declared as usize);
+    for index in 0..total {
+        let Some(line) = read_frame(r)? else {
+            return Err(ClientError::Protocol(CLOSED.into()));
+        };
+        let n: Notification = parse_line(&line, "notification")?;
+        if n.method != NOTIFY_SNAPSHOT {
+            return Err(bad(format!("{} before chunk {index} of {total}", n.method)));
+        }
+        let c: SnapshotChunkEvent =
+            serde_json::from_value(n.params).map_err(|e| bad(e.to_string()))?;
+        if c.index != index || c.total != total || c.seq != result.seq || c.id != result.terminal.id
+        {
+            return Err(bad(format!(
+                "chunk {}/{} of {} at seq {} where {index}/{total} of {} at seq {} was due",
+                c.index, c.total, c.id, c.seq, result.terminal.id, result.seq
+            )));
+        }
+        if c.data.len() > max_text {
+            return Err(bad(format!(
+                "chunk {index} is larger than {REMOTE_OUTPUT_CHUNK} bytes"
+            )));
+        }
+        let data = b64_decode(&c.data).map_err(bad)?;
+        if data.len() > REMOTE_OUTPUT_CHUNK {
+            return Err(bad(format!(
+                "chunk {index} is larger than {REMOTE_OUTPUT_CHUNK} bytes"
+            )));
+        }
+        if out.len() + data.len() > declared as usize {
+            return Err(bad(format!("more than the {declared} bytes declared")));
+        }
+        out.extend_from_slice(&data);
+    }
+    if out.len() as u64 != declared {
+        return Err(bad(format!("{} bytes of {declared} declared", out.len())));
+    }
+    Ok(out)
 }
 
 /// What a `status.subscribe` connection delivers.
@@ -668,5 +751,97 @@ impl Client {
     ) -> Result<(StatusSubscribeResult, StatusStream), ClientError> {
         let result = self.call::<StatusSubscribe>(params)?;
         Ok((result, StatusStream { conn: self.conn }))
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::io::Cursor;
+
+    fn reply(chunks: u32, bytes: u64) -> AttachResult {
+        AttachResult {
+            terminal: TerminalInfo::new("t1", vec![], "", TerminalState::Running, 80, 24, 1),
+            seq: 9,
+            snapshot: String::new(),
+            snapshot_chunks: Some(chunks),
+            snapshot_bytes: Some(bytes),
+            scrollback_omitted: None,
+        }
+    }
+
+    fn chunk(index: u32, total: u32, data: &[u8]) -> String {
+        let n = Notification {
+            jsonrpc: JSONRPC_VERSION.into(),
+            method: NOTIFY_SNAPSHOT.into(),
+            params: serde_json::to_value(SnapshotChunkEvent {
+                id: "t1".into(),
+                seq: 9,
+                index,
+                total,
+                data: b64_encode(data),
+            })
+            .unwrap(),
+        };
+        serde_json::to_string(&n).unwrap() + "\n"
+    }
+
+    fn reader(lines: &[String]) -> LineReader {
+        LineReader::new(Cursor::new(lines.concat().into_bytes()), 1 << 20)
+    }
+
+    /// v20 chunked snapshots: joined in order; every bound refused.
+    #[test]
+    fn snapshot_chunks_join_and_refuse_bad_streams() {
+        let data: Vec<u8> = (0..70_000u32).map(|i| (i % 251) as u8).collect();
+        let parts: Vec<&[u8]> = data.chunks(REMOTE_OUTPUT_CHUNK).collect();
+        let lines: Vec<String> = (0..3).map(|i| chunk(i, 3, parts[i as usize])).collect();
+        let r = reply(3, data.len() as u64);
+        assert_eq!(
+            read_snapshot_chunks(&mut reader(&lines), &r, 3).unwrap(),
+            data
+        );
+        // An empty snapshot is zero chunks.
+        assert!(
+            read_snapshot_chunks(&mut reader(&[]), &reply(0, 0), 0)
+                .unwrap()
+                .is_empty()
+        );
+
+        let err = |lines: &[String], r: &AttachResult, total: u32| {
+            read_snapshot_chunks(&mut reader(lines), r, total)
+                .unwrap_err()
+                .to_string()
+        };
+        // Out of order.
+        let swapped = [lines[1].clone(), lines[0].clone(), lines[2].clone()];
+        assert!(err(&swapped, &r, 3).contains("chunk 1/3"));
+        // Output before the last chunk.
+        let out = serde_json::to_string(&Notification {
+            jsonrpc: JSONRPC_VERSION.into(),
+            method: NOTIFY_OUTPUT.into(),
+            params: serde_json::json!({"id": "t1", "seq": 9, "data": ""}),
+        })
+        .unwrap()
+            + "\n";
+        assert!(err(&[lines[0].clone(), out], &r, 3).contains("terminal.output before chunk 1"));
+        // Over the 16 MiB limit or a count that does not fit the size: refused
+        // before reading anything.
+        let huge = reply(513, MAX_SNAPSHOT_BYTES as u64 + 1);
+        assert!(err(&[], &huge, 513).contains("limit"));
+        assert!(err(&lines, &reply(4, data.len() as u64), 4).contains("expected 3"));
+        // More bytes than declared, and fewer.
+        assert!(err(&lines, &reply(3, 65_537), 3).contains("more than"));
+        assert!(err(&lines, &reply(3, 69_999), 3).contains("more than"));
+        let short: Vec<String> = vec![chunk(0, 1, b"abc")];
+        assert!(err(&short, &reply(1, 4), 1).contains("3 bytes of 4"));
+        // A chunk larger than 32 KiB is refused before it is decoded.
+        let big = vec![b'x'; REMOTE_OUTPUT_CHUNK + 3];
+        assert!(err(&[chunk(0, 1, &big)], &reply(1, 1), 1).contains("larger than"));
+        // One byte over still has the same base64 length: caught after decoding.
+        let big = vec![b'x'; REMOTE_OUTPUT_CHUNK + 1];
+        assert!(err(&[chunk(0, 2, &big)], &reply(2, 40_000), 2).contains("larger than"));
+        // EOF in the middle.
+        assert!(err(&lines[..1], &r, 3).contains(CLOSED));
     }
 }

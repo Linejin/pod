@@ -65,6 +65,15 @@ impl Daemon {
                 "use orch.done (pod orch done) to report completion",
             ));
         }
+        // O1: gate mail comes from the decision path only, so a sent
+        // "approved" can never look like a decision record.
+        if let Err(r) = pod_orch::policy::check(
+            &pod_orch::policy::Policy::default(),
+            &pod_orch::policy::Actor::Person,
+            &pod_orch::policy::Action::SendMail(p.kind),
+        ) {
+            return Err(RpcError::new(codes::INVALID_PARAMS, r.message("")));
+        }
         let to = match (&p.to, &w.works_in) {
             (Some(t), _) => t.clone(),
             (None, Some(r)) => run_mailbox(r),

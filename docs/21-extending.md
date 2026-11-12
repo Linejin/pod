@@ -1,6 +1,6 @@
 # Pod 확장 가이드
 
-기준: 2026-11-12, master `ef9e785`(rf2-kit/bounds/verify/vis 반영). 기준: 프로토콜 v19. 아래는 **앞으로 기능을 추가할 때의 체크리스트**다. 이 가이드 작성에서는 제품 코드·golden·baseline을 바꾸지 않았다.
+기준: 2026-11-12, master `ef9e785`(rf2-kit/bounds/verify/vis 반영). 기준: 프로토콜 v20. 아래는 **앞으로 기능을 추가할 때의 체크리스트**다. 이 가이드 작성에서는 제품 코드·golden·baseline을 바꾸지 않았다.
 
 설계와 이행 이력은 [리팩터 순서](20-refactor/README.md), [재평가 §5](20-refactor/rescore.md), [daemon](20-refactor/daemon.md), [libs](20-refactor/libs.md), [app](20-refactor/app.md)에 있다. 특히 app의 **A-T2a 구현 표는 당시 API**다. 뒤의 **T2 구현 기록 → A-T2a API 정정 → rf2-vis**와 현재 코드를 우선한다. 검증 근거는 [daemon-validation](20-refactor/daemon-validation.md), [libs-validation](20-refactor/libs-validation.md)을 참고한다.
 

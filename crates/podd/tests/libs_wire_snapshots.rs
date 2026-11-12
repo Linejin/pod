@@ -1202,7 +1202,9 @@ fn fnv64(s: &str) -> String {
 /// its key-sorted JSON; protocol_wire compares the full text.
 #[test]
 fn library_wire_schema_matches_the_baseline() {
-    assert_eq!(PROTOCOL_VERSION, 19, "protocol version");
+    // v20 (docs/17 R4) changed no library-crate type: only the schema's
+    // protocol number in GOLDEN_SCHEMA moved (19 -> 20).
+    assert_eq!(PROTOCOL_VERSION, 20, "protocol version");
     assert_eq!(pod_orch::engine::RUN_VERSION, 1, "orch run.json version");
     let sch = schema();
     let lib = |name: &str| {
@@ -4392,5 +4394,5 @@ const GOLDEN_SCHEMA: &str = r##"{
     "orch.mail": "aa20f9654e8dccd6",
     "sessions.changed": "6607bb4076acf9c3"
   },
-  "protocol": 19
+  "protocol": 20
 }"##;

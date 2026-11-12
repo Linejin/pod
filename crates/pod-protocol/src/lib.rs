@@ -51,10 +51,12 @@ mod wire_golden {
 
     use crate::protocol::*;
 
-    const WIRE: &str = include_str!("../../podd/tests/fixtures/wire-v19.json");
-    const SCHEMA: &str = include_str!("../../podd/tests/fixtures/schema-v19.json");
+    const WIRE: &str = include_str!("../../podd/tests/fixtures/wire-v20.json");
+    const SCHEMA: &str = include_str!("../../podd/tests/fixtures/schema-v20.json");
     /// The newest protocol without the v19 `unreachable` terminal state.
     const DOWNGRADE_TO: u32 = 18;
+    /// The newest protocol without the v20 attach chunk fields.
+    const DOWNGRADE_TO_V19: u32 = 19;
     /// Golden constants owned by other crates (holder binary, hook relay).
     const NOT_OURS: [&str; 3] = [
         "HOLDER_PROTOCOL",
@@ -182,6 +184,7 @@ mod wire_golden {
         SessionsResume,
         SessionsHide,
         ConnectionHello,
+        TerminalInputOnce,
         MobileDevices,
         MobileRevoke,
         MobilePolicy,
@@ -207,6 +210,7 @@ mod wire_golden {
             NOTIFY_RESIZED => ResizedEvent,
             NOTIFY_EXITED => ExitedEvent,
             NOTIFY_LAGGED => LaggedEvent,
+            NOTIFY_SNAPSHOT => SnapshotChunkEvent,
             NOTIFY_STATUS_CHANGED => StatusChangedEvent,
             NOTIFY_STATUS_LAGGED => StatusLaggedEvent,
             NOTIFY_GATE_CHANGED => GateChangedEvent,
@@ -295,6 +299,14 @@ mod wire_golden {
             "PROTOCOL_MIN": PROTOCOL_MIN,
             "HELLO_PROTOCOL": HELLO_PROTOCOL,
             "UNREACHABLE_PROTOCOL": UNREACHABLE_PROTOCOL,
+            "CHUNKED_ATTACH_PROTOCOL": CHUNKED_ATTACH_PROTOCOL,
+            "remote_framing": {
+                "REMOTE_OUTPUT_CHUNK": REMOTE_OUTPUT_CHUNK,
+                "REMOTE_ATTACH_QUEUE": REMOTE_ATTACH_QUEUE,
+                "MAX_SNAPSHOT_BYTES": MAX_SNAPSHOT_BYTES,
+                "INPUT_STREAMS_KEPT": INPUT_STREAMS_KEPT,
+                "INPUT_STREAM_MAX": INPUT_STREAM_MAX,
+            },
             "JSONRPC_VERSION": JSONRPC_VERSION,
             "server_range": server_range(),
             "method_lists": {
@@ -403,8 +415,8 @@ mod wire_golden {
         }
         d.check("schema (whole)", &now, &golden);
         d.assert_none();
-        assert_eq!(now["methods"].as_object().unwrap().len(), 104);
-        assert_eq!(now["notifications"].as_object().unwrap().len(), 18);
+        assert_eq!(now["methods"].as_object().unwrap().len(), 105);
+        assert_eq!(now["notifications"].as_object().unwrap().len(), 19);
     }
 
     /// The same method and notification names, and every golden sample of
@@ -417,7 +429,7 @@ mod wire_golden {
 
         let methods = method_types();
         let table: BTreeSet<&str> = methods.iter().map(|m| m.name).collect();
-        assert_eq!(methods.len(), 104, "method table");
+        assert_eq!(methods.len(), 105, "method table");
         assert_eq!(table, names(&golden["methods"]), "methods: table vs golden");
         assert_eq!(table, names(&s["methods"]), "methods: table vs schema()");
         for m in &methods {
@@ -430,7 +442,7 @@ mod wire_golden {
 
         let events = notification_types();
         let table: BTreeSet<&str> = events.iter().map(|(n, _)| *n).collect();
-        assert_eq!(events.len(), 18, "notification table");
+        assert_eq!(events.len(), 19, "notification table");
         assert_eq!(
             table,
             names(&golden["notifications"]),
@@ -564,5 +576,44 @@ mod wire_golden {
             downgrade_json(&mut v, PROTOCOL_MIN);
             assert_eq!(v, case["v18"]);
         }
+    }
+
+    /// Every result and event sample, rewritten for a v19 client (only the
+    /// v20 attach chunk fields go).
+    #[test]
+    fn v19_downgrade_matches_golden() {
+        let golden = load(WIRE);
+        let mut outgoing: BTreeSet<String> = golden["methods"]
+            .as_object()
+            .unwrap()
+            .values()
+            .map(|t| t["result"].as_str().unwrap().to_string())
+            .collect();
+        outgoing.extend(
+            golden["notifications"]
+                .as_object()
+                .unwrap()
+                .values()
+                .map(|k| k.as_str().unwrap().to_string()),
+        );
+        let mut now = Vec::new();
+        for key in outgoing {
+            for s in golden["types"][&key].as_array().unwrap() {
+                let v = sample_out(s);
+                let mut down = v.clone();
+                downgrade_json(&mut down, DOWNGRADE_TO_V19);
+                if &down != v {
+                    now.push(json!({ "type": key, "case": s["case"], "v19": down }));
+                }
+            }
+        }
+        let want = golden["downgrade_v19"].as_array().unwrap();
+        assert!(!want.is_empty());
+        let mut d = Diffs::default();
+        d.check("downgrade_v19 count", &json!(now.len()), &json!(want.len()));
+        for (i, (got, want)) in now.iter().zip(want).enumerate() {
+            d.check(format!("downgrade_v19[{i}]"), got, want);
+        }
+        d.assert_none();
     }
 }

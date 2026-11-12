@@ -4,9 +4,11 @@
 
 pub mod engine;
 pub mod model;
+pub mod policy;
 pub mod resource;
 pub mod store;
 pub mod text;
+pub mod trust;
 pub mod wake;
 
 pub use engine::{

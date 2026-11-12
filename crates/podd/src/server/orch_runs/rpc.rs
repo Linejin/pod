@@ -10,6 +10,12 @@ use serde_json::Value;
 use crate::protocol::*;
 use crate::server::{Daemon, params, to_value};
 
+/// O1 (docs/19 §19): the agent trust policy says a person must act (a
+/// gate a coordinator may not decide, limits changed by an agent). The
+/// O1 card owns -32110..-32114; the constant moves to `pod-protocol`'s
+/// `run_codes` with the next protocol change.
+pub(super) const NEEDS_PERSON: i64 = -32110;
+
 pub(super) fn oe(e: OrchError) -> RpcError {
     use run_codes::*;
     let code = match e.kind {

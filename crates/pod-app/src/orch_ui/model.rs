@@ -28,7 +28,9 @@ mod tests;
 mod workers;
 
 pub use cleanup::{CleanupRow, cleanup_rows, default_selection, tier_label};
-pub use mail::{Thread, address_label, gate_buttons, mail_type_label, run_gates, threads};
+pub use mail::{
+    Thread, address_label, gate_buttons, mail_type_label, provenance_label, run_gates, threads,
+};
 pub use workers::{
     StuckWake, WorkerCard, attempt_state_label, cards, stuck_wakes, worker_state_label,
 };

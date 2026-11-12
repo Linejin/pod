@@ -1,7 +1,10 @@
 //! Helpers shared by Pod's tests. A dev-dependency only: nothing shipped
-//! links it, and it depends on std alone (no daemon protocol, GUI, network or
-//! agent runner). Daemon lifetimes stay in `podd/tests/common`; product
-//! fixtures (`pod_editor::fixture`, `pod_forge::fake`) stay in their crates.
+//! links it, and it depends on std alone (no daemon protocol, GUI or agent
+//! runner; the only network use is the loopback [`fault_proxy`]). Daemon
+//! lifetimes stay in `podd/tests/common`; product fixtures
+//! (`pod_editor::fixture`, `pod_forge::fake`) stay in their crates.
+
+pub mod fault_proxy;
 
 /// `git -C <dir> …` in fixture repositories.
 pub mod git {

@@ -14,7 +14,7 @@ use clap::{Subcommand, ValueEnum};
 use podd::client::Client;
 use podd::protocol::*;
 
-use crate::{print_json, print_rows, reconnect};
+use crate::{orch_trust, print_json, print_rows, reconnect};
 
 pub const ENV_ATTEMPT_ID: &str = "POD_ATTEMPT_ID";
 pub const ENV_ATTEMPT_TOKEN: &str = "POD_ATTEMPT_TOKEN";
@@ -418,28 +418,11 @@ fn word<T: serde::Serialize>(v: T) -> String {
         .unwrap_or_default()
 }
 
-fn print_mail(m: &Mail) {
-    println!(
-        "{} {} from {} to {}: {}",
-        m.id,
-        word(m.kind),
-        m.from,
-        m.to,
-        m.subject
-    );
-    if let Some(r) = &m.reply_to {
-        println!("  re {r}");
-    }
-    for l in m.body.lines() {
-        println!("  {l}");
-    }
-}
-
 fn print_run(r: &RunInfo) {
     println!(
         "{}  {}  (coordinator {}, depth {}, {} unread)",
         r.run.id,
-        r.run.objective,
+        pod_orch::trust::clean_inline(&r.run.objective),
         r.run.coordinator_terminal.as_deref().unwrap_or("-"),
         r.run.depth,
         r.unread
@@ -453,7 +436,7 @@ fn print_run(r: &RunInfo) {
                 word(i.state),
                 i.attempt.clone().unwrap_or_default(),
                 i.deps.join(","),
-                i.title.clone(),
+                pod_orch::trust::clean_inline(&i.title),
             ]
         })
         .collect();
@@ -627,7 +610,7 @@ pub fn run(cmd: OrchCmd, c: &mut Client, pipe: &str, json: bool) -> anyhow::Resu
             RunCmd::Ls { mine } => {
                 let r = c.call::<OrchRunList>(&OrchRunListParams { mine, caller: who })?;
                 if json {
-                    print_json(&r);
+                    print_json(&orch_trust::cleaned(&r));
                 } else {
                     for run in &r.runs {
                         print_run(run);
@@ -637,7 +620,7 @@ pub fn run(cmd: OrchCmd, c: &mut Client, pipe: &str, json: bool) -> anyhow::Resu
             RunCmd::Show { run } => {
                 let r = c.call::<OrchRunShow>(&OrchRunRef { run, caller: who })?;
                 if json {
-                    print_json(&r);
+                    print_json(&orch_trust::cleaned(&r));
                 } else {
                     print_run(&r);
                 }
@@ -675,7 +658,7 @@ pub fn run(cmd: OrchCmd, c: &mut Client, pipe: &str, json: bool) -> anyhow::Resu
                     caller: who,
                 })?;
                 if json {
-                    print_json(&r);
+                    print_json(&orch_trust::cleaned(&r));
                 } else {
                     let rows = r
                         .items
@@ -706,11 +689,11 @@ pub fn run(cmd: OrchCmd, c: &mut Client, pipe: &str, json: bool) -> anyhow::Resu
                 }
             }
         },
-        OrchCmd::Worker { cmd } => return worker(cmd, c, who, json),
+        OrchCmd::Worker { cmd } => return worker(cmd, c, who, pipe, json),
         OrchCmd::Workers { run } => {
             let r = c.call::<OrchWorkerList>(&OrchRunRef { run, caller: who })?;
             if json {
-                print_json(&r);
+                print_json(&orch_trust::cleaned(&r));
             } else {
                 print_workers(&r.workers);
             }
@@ -802,16 +785,22 @@ pub fn run(cmd: OrchCmd, c: &mut Client, pipe: &str, json: bool) -> anyhow::Resu
             } else {
                 call(c, None)?
             };
+            // O1: provenance from the daemon's records, the text as data.
+            let recs = orch_trust::Records::for_mail(c, pipe, &r.messages);
             if json {
-                print_json(&r);
+                let mail: Vec<&Mail> = r.messages.iter().collect();
+                print_json(&orch_trust::result_json(&r, &recs, &mail));
             } else {
                 if r.messages.is_empty() {
                     println!("no new mail");
                 }
                 for m in &r.messages {
-                    print_mail(m);
+                    recs.print_mail(m);
                 }
                 println!("next: {}", r.next);
+                if !r.messages.is_empty() {
+                    orch_trust::print_note();
+                }
             }
         }
         OrchCmd::Reply {
@@ -853,19 +842,25 @@ pub fn run(cmd: OrchCmd, c: &mut Client, pipe: &str, json: bool) -> anyhow::Resu
                     request_id: Some(rid.clone()),
                 })
             })?;
+            let recs = orch_trust::Records::for_mail(c, pipe, r.answer.iter());
             if json {
-                print_json(&r);
+                let mail: Vec<&Mail> = r.answer.iter().chain([&r.question]).collect();
+                print_json(&orch_trust::result_json(&r, &recs, &mail));
             } else {
                 match &r.answer {
                     Some(a) => {
                         println!("answer {} to {}:", a.id, r.question.id);
-                        for l in a.body.lines() {
+                        println!("  {}", recs.provenance(a).line());
+                        for l in pod_orch::trust::quote(&a.body, "") {
                             println!("{l}");
                         }
                     }
                     None => println!("no answer yet to {}", r.question.id),
                 }
                 println!("next: {}", r.next);
+                if r.answer.is_some() {
+                    orch_trust::print_note();
+                }
             }
             if r.answer.is_none() {
                 return Ok(ExitCode::from(1));
@@ -1027,7 +1022,13 @@ fn done_report(mail: &[Mail], attempt: &str) -> Option<String> {
         })
 }
 
-fn worker(cmd: WorkerCmd, c: &mut Client, who: OrchCaller, json: bool) -> anyhow::Result<ExitCode> {
+fn worker(
+    cmd: WorkerCmd,
+    c: &mut Client,
+    who: OrchCaller,
+    pipe: &str,
+    json: bool,
+) -> anyhow::Result<ExitCode> {
     let simple = |c: &mut Client, attempt: String, which: &str| -> anyhow::Result<WorkerInfo> {
         let p = OrchAttemptRef {
             attempt,
@@ -1110,14 +1111,25 @@ fn worker(cmd: WorkerCmd, c: &mut Client, who: OrchCaller, json: bool) -> anyhow
             });
         }
         WorkerCmd::Read { attempt, lines } => {
-            let r = c.call::<OrchWorkerRead>(&OrchWorkerReadParams { attempt, lines })?;
+            let r = c.call::<OrchWorkerRead>(&OrchWorkerReadParams {
+                attempt: attempt.clone(),
+                lines,
+            })?;
+            // O1: a worker's screen is data; its provenance comes from records.
+            let prov = orch_trust::attempt_provenance(c, pipe, &attempt);
             if json {
-                print_json(&r);
-            } else {
-                for l in &r.lines {
-                    println!("{l}");
+                let mut v = orch_trust::cleaned(&r);
+                if let serde_json::Value::Object(o) = &mut v {
+                    if let Some(p) = &prov {
+                        o.insert("provenance".into(), p.to_json());
+                    }
+                    o.insert("untrusted".into(), pod_orch::trust::UNTRUSTED_NOTE.into());
                 }
-                crate::print_suggestion(r.suggestion.as_deref());
+                print_json(&v);
+            } else {
+                orch_trust::print_screen(prov.as_ref(), &r.lines);
+                let suggestion = r.suggestion.as_deref().map(pod_orch::trust::clean_inline);
+                crate::print_suggestion(suggestion.as_deref());
             }
             return Ok(ExitCode::SUCCESS);
         }
@@ -1159,7 +1171,7 @@ fn worker(cmd: WorkerCmd, c: &mut Client, who: OrchCaller, json: bool) -> anyhow
     };
     let w = simple(c, attempt, which)?;
     if json {
-        print_json(&w);
+        print_json(&orch_trust::cleaned(&w));
     } else {
         print_workers(std::slice::from_ref(&w));
     }

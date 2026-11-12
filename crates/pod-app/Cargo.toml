@@ -22,6 +22,8 @@ pod-diff = { path = "../pod-diff" }
 # Design system (status badges, tree rows, frames) for the P5 orchestration UI.
 pod-ui = { path = "../pod-ui" }
 pod-status = { path = "../pod-status" }
+# Agent text as data and its provenance (O1): no new third-party deps.
+pod-orch = { path = "../pod-orch" }
 # P3 editing: file tree, quick open, editor tabs and LSP per task worktree.
 pod-editor = { path = "../pod-editor" }
 # Client side only: protocol types + blocking client with daemon auto-start.

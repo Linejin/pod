@@ -108,6 +108,10 @@ const TERMINAL: &[MethodRegistration] = &[
     unary::<TerminalSend>(|d, _, p| Box::pin(async move { to_value(d.send(params(p)?).await?) })),
     unary::<TerminalKeys>(|d, _, p| Box::pin(async move { to_value(d.keys(params(p)?)?) })),
     unary::<TerminalInput>(|d, _, p| Box::pin(async move { to_value(d.input(params(p)?)?) })),
+    // v20 (docs/17 R4): input with an identity, applied at most once.
+    unary::<TerminalInputOnce>(|d, _, p| {
+        Box::pin(async move { to_value(d.input_once(params(p)?)?) })
+    }),
     unary::<TerminalRead>(|d, _, p| Box::pin(async move { to_value(d.read(params(p)?)?) })),
     unary::<TerminalWait>(|d, _, p| Box::pin(async move { to_value(d.wait(params(p)?).await?) })),
     unary::<TerminalResize>(|d, _, p| {
@@ -385,7 +389,8 @@ mod tests {
             .collect();
         let hooks = names(&[MOBILE_TEST_HOOKS]);
         let public: BTreeSet<&str> = names(REGISTERED).difference(&hooks).copied().collect();
-        assert_eq!(public.len(), 104);
+        // 105 since v20 added terminal.input_once (docs/17 R4).
+        assert_eq!(public.len(), 105);
         assert_eq!(public, schema);
         assert!(hooks.iter().all(|m| m.starts_with("mobile.test.")));
         assert_eq!(hooks.len(), 3);
@@ -455,7 +460,7 @@ mod tests {
     fn the_index_holds_every_registration() {
         let r = RpcRegistry::new(REGISTERED, CLAIMS);
         assert_eq!(r.names().collect::<BTreeSet<_>>(), names(REGISTERED));
-        assert_eq!(r.names().count(), 104 + 3);
+        assert_eq!(r.names().count(), 105 + 3);
         assert_eq!(
             r.get(TerminalAttach::NAME).map(|m| m.mode),
             Some(Mode::Attach)

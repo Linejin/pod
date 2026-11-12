@@ -110,6 +110,7 @@ task.unarchive -32602 invalid params: invalid type: string "route-probe", expect
 terminal.ack -32602 invalid params: invalid type: string "route-probe", expected struct TerminalRef
 terminal.attach -32602 invalid params: invalid type: string "route-probe", expected struct AttachParams
 terminal.input -32602 invalid params: invalid type: string "route-probe", expected struct InputParams
+terminal.input_once -32602 invalid params: invalid type: string "route-probe", expected struct InputOnceParams
 terminal.keep -32602 invalid params: invalid type: string "route-probe", expected struct KeepParams
 terminal.keys -32602 invalid params: invalid type: string "route-probe", expected struct KeysParams
 terminal.kill -32602 invalid params: invalid type: string "route-probe", expected struct TerminalRef
@@ -204,7 +205,8 @@ fn every_public_method_answers_the_probe_as_before() {
         .keys()
         .map(String::as_str)
         .collect();
-    assert_eq!(methods.len(), 104, "the public method set");
+    // v20 added terminal.input_once (docs/17 R4).
+    assert_eq!(methods.len(), 105, "the public method set");
 
     let d = Daemon::start("routes");
     let mut got = BTreeMap::new();

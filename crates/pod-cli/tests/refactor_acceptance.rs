@@ -480,6 +480,9 @@ fn terminal_flow_matches_the_baseline() {
 }
 
 // ───────────────────────────── golden (recorded on 64e9530) ─────────────────────────────
+// Protocol v20 (docs/17 R4) changed exactly three lines, re-recorded and
+// reviewed: `guide` (it prints the protocol number), `server schema` (two
+// methods' worth of schema more) and the `server status` protocol.
 
 const HELP_GOLDEN: &str = r##"
 version -> exit 0 stdout "pod <VERSION>\n" stderr ""
@@ -496,7 +499,7 @@ help [attach] -> exit 0 stdout 20082ae38008b1a9 (14 lines) stderr cbf29ce4842223
 help [status] -> exit 0 stdout 191b589ca0f84469 (12 lines) stderr cbf29ce484222325
 help [ack] -> exit 0 stdout d6686865ab8e0709 (12 lines) stderr cbf29ce484222325
 help [hooks] -> exit 0 stdout 3259e6391fe345ff (15 lines) stderr cbf29ce484222325
-help [hooks install] -> exit 0 stdout bcfef07757a7da7b (50 lines) stderr cbf29ce484222325
+help [hooks install] -> exit 0 stdout 646aea70ad2ac905 (55 lines) stderr cbf29ce484222325
 help [hooks uninstall] -> exit 0 stdout 6c8084a2a7ca8414 (47 lines) stderr cbf29ce484222325
 help [hooks status] -> exit 0 stdout 655100d8ae44cc8b (47 lines) stderr cbf29ce484222325
 help [kill] -> exit 0 stdout 4452c906ad83d431 (12 lines) stderr cbf29ce484222325
@@ -604,14 +607,14 @@ help [machine test] -> exit 0 stdout b036010d9a8e4ee7 (12 lines) stderr cbf29ce4
 help [guide] -> exit 0 stdout 62db4f75842bdc90 (14 lines) stderr cbf29ce484222325
 help [guide orchestration] -> exit 0 stdout a2fcba0bcb8181d2 (10 lines) stderr cbf29ce484222325
 help [guide install] -> exit 0 stdout 907ba8bb94101b30 (27 lines) stderr cbf29ce484222325
-guide -> exit 0 stdout 33011f1f0288b917 (8 lines) stderr ""
---pipe <RUN> server schema -> exit 0 stdout 06d03584dd717a1d (37215 lines) stderr ""
+guide -> exit 0 stdout ad759891e535aba7 (8 lines) stderr ""
+--pipe <RUN> server schema -> exit 0 stdout 59f5854f239f4aaf (37406 lines) stderr ""
 "##;
 
 const FLOW_GOLDEN: &str = r##"
 pod server status -> exit 3 stdout "podd is not running (<PIPE>)\n" stderr ""
 pod server status -> exit 0 stdout "podd <VERSION> running: pid <n>, pipe <PIPE>, up <n>s, terminals 0 (0 running)\n" stderr ""
-pod --json server status -> exit 0 stdout {"pid":"<n>","pipe":"<PIPE>","protocol":19,"running":0,"started_ms":"<n>","state_dir":"<ROOT>\\state","terminals":0,"uptime_ms":"<n>","version":"<VERSION>"} stderr ""
+pod --json server status -> exit 0 stdout {"pid":"<n>","pipe":"<PIPE>","protocol":20,"running":0,"started_ms":"<n>","state_dir":"<ROOT>\\state","terminals":0,"uptime_ms":"<n>","version":"<VERSION>"} stderr ""
 pod --json ls -> exit 0 stdout {"retention_ms":"<n>","terminals":[]} stderr ""
 pod run --name agent --cols 80 --rows 24 -- <BIN>\examples/fake-agent.exe paste-loop:<ROOT>\agents\pastes.log -> exit 0 stdout "t1\n" stderr ""
 pod wait agent --status idle --timeout 30 -> exit 0 stdout "t1 idle (turn 0)\n" stderr ""

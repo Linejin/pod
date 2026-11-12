@@ -4,12 +4,20 @@
 //! normal NDJSON JSON-RPC to `pod remote-stdio` on the other side.
 //!
 //! No UI here: `pod machine …` and `pod --machine <name> …` use it; the app
-//! will later.
+//! will later. [`session`] (R4) keeps remote terminals alive over bad
+//! networks: reconnect with backoff, re-attach with gap markers, input
+//! whose lost answer is resolved by asking, never by resending.
 
 pub mod machine;
+pub mod session;
 pub mod ssh;
 
 pub use machine::{Machine, MachineStore};
+pub use session::{
+    AttachOptions, AttachSlots, AttachUpdate, Closer, ConnectError, Connector, Gap,
+    InputResolution, Link, ReconnectPolicy, Reconnected, RemoteAttach, RemoteControl, RemoteError,
+    Resync, ResyncReason, SshConnector,
+};
 pub use ssh::{ErrorKind, SshConnection, SshError, connect};
 
 /// [`podd::client::Client::pipe`] label of an SSH connection: `ssh:<machine>`.

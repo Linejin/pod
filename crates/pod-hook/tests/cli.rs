@@ -357,7 +357,8 @@ fn install_dry_run_global_home_plans_and_errors() {
 }
 
 /// D-P8 pin: hook mode answers exactly `{}\n` and writes nothing to stderr,
-/// with or without a daemon behind the pipe name.
+/// with or without a daemon behind the pipe name. TM-22: the hook token in
+/// the environment never reaches the agent through that answer.
 #[test]
 fn hook_mode_answer_is_exact_and_stderr_stays_empty() {
     for with_env in [false, true] {
@@ -365,7 +366,8 @@ fn hook_mode_answer_is_exact_and_stderr_stays_empty() {
         c.args(["codex", "Stop"]).stdin(Stdio::null());
         if with_env {
             c.env("POD_TERMINAL_ID", "t1")
-                .env("POD_SOCKET", missing_pipe());
+                .env("POD_SOCKET", missing_pipe())
+                .env("POD_HOOK_TOKEN", "canary0123456789abcdef0123456789");
         }
         let out = c.output().expect("spawn pod-hook");
         assert_eq!(

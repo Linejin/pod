@@ -199,6 +199,24 @@ impl SshConnection {
         self.client
     }
 
+    /// The connection as a [`crate::session::Link`] whose closer kills ssh
+    /// (a reader blocked on its stdout then sees the end at once).
+    pub fn into_link(self) -> crate::session::Link {
+        let SshConnection {
+            client,
+            hello,
+            child,
+            ..
+        } = self;
+        let child = std::sync::Arc::new(std::sync::Mutex::new(child));
+        let closer: crate::session::Closer = std::sync::Arc::new(move || {
+            if let Ok(mut c) = child.lock() {
+                let _ = c.kill();
+            }
+        });
+        crate::session::Link::new(client, hello, closer)
+    }
+
     /// Close the connection and wait (bounded) for ssh to exit; returns
     /// ssh's exit code and its stderr diagnostics.
     pub fn close(self) -> (Option<i32>, Vec<String>) {

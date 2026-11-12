@@ -220,8 +220,8 @@ pod-hook install --dry-run [--agent claude|codex|all] [--home DIR | --claude-con
 
 - `terminal.run`이 터미널마다 128비트 난수 토큰(`BCryptGenRandom`)을 만든다. 이 토큰을 `<state dir>/<id>.token`에 쓰고 터미널 env에 `POD_HOOK_TOKEN`으로 넣는다. `run`의 `env` 덮어쓰기보다 **나중에** 넣으므로 호출자가 바꿀 수 없다. state dir은 사용자 전용(`%LOCALAPPDATA%`)이다.
 - 데몬 파이프의 연결 처리기는 JSON-RPC로 해석하기 전에 줄을 확인한다. 최상위 객체에 `jsonrpc`가 없고 `v`와 `terminal_id`가 있으면 훅 메시지로 본다. 응답은 쓰지 않는다(pod-hook은 한 줄 쓰고 닫는다).
-- `v != 1`, 형식 오류, 모르는 터미널은 로그만 남기고 버린다. 터미널이 있으면 토큰을 상수 시간으로 비교한다. 토큰이 없거나, 다르거나, 기록된 토큰이 없으면 거부하고 `hooks_rejected`를 올린다(상태는 그대로). 통과하면 `hooks_accepted`를 올리고 `on_hook`에 넣는다.
-- 토큰 파일은 데몬 재시작 뒤에도 남는다. 그래서 재연결한 터미널의 훅도 인증된다. `terminal.rm`과 오래된 기록 정리에서 지운다.
+- `v != 1`, 형식 오류, 모르는 터미널은 로그만 남기고 버린다(세지 않음). 터미널이 있으면 그 터미널의 `HookGate`(`status/ingest.rs`)가 토큰(상수 시간 비교) → 메시지 형태 → flood 제한 순으로 본다. 하나라도 걸리면 거부하고 `hooks_rejected`를 올린다(상태는 그대로). 통과하면 `hooks_accepted`를 올리고 `on_hook`에 넣는다. 자세한 규칙은 §8.8.
+- 토큰 파일은 데몬 재시작 뒤에도 남는다. 그래서 재연결한 (실행 중인) 터미널의 훅도 인증된다. 터미널 프로세스가 끝나면, 그리고 `terminal.rm`과 오래된 기록 정리에서 지운다(§8.8).
 
 ### 8.3 노출
 
@@ -290,6 +290,17 @@ pod hooks install|uninstall|status ...      # §9.1
 - 약 1 s 뒤 `pod status c` → `idle source=osc confidence=0.90 agent=claude app=claude-code`, `conpty: bundled:…\conpty.dll`.
 - 데몬 `server stop` 뒤 다시 `pod status c` → `idle source=osc`(스냅샷 재생). 이후 kill·rm으로 정리했다.
 
+### 8.8 훅 신뢰와 출처 (TM-22, rm-o4)
+
+[22 위협 모델](22-threat-model.md) TM-22의 O4 카드. 훅은 **상태 증거일 뿐**이다. Gate 결정, 도구 권한 승인, 완료 보고(`pod orch done`)로 바뀌는 경로가 없고, 깨우기는 기존 규칙(busy/blocked/draft면 미룸)을 그대로 따른다.
+
+- **형태 검사**(`HookMessage::check`): `terminal_id` ≤64자 출력 가능 ASCII, 이벤트 이름은 영문·숫자·`_` ≤64자(비어 있으면 payload의 `hook_event_name`, 그것도 같은 규칙), payload는 객체나 `null`. 상태로 보이는 훅 문자열(도구 이름, 질문, 오류, 하위 에이전트 종류)은 제어·bidi 문자를 빼고 256자로 자른다.
+- **flood 제한**: 터미널마다 버스트 120, 이후 초당 60. 넘는 줄은 거부로 센다. 거부 로그와 즉시 발행은 터미널마다 초당 10건이고, 나머지는 세기만 한다(250 ms 티커가 카운터를 발행, 다음 로그 줄에 "N more rejected"). 버리는 줄의 로그는 데몬 전체 초당 10줄. 로그에는 serde 오류 원문(필드 값, 예컨대 잘못 놓인 토큰이 들어갈 수 있음)을 쓰지 않고, 보낸 쪽 문자열은 escape해 64자로 자른다.
+- **토큰 수명**: `terminal.run`마다 새 토큰(재사용 없음). 터미널 프로세스가 끝나면 즉시 폐기한다(파일 삭제, 이후 같은 토큰은 "terminal exited" 거부) — 남은 자식 프로세스가 SessionStart로 끝난 터미널을 되살리던 경로를 막는다. `rm`, 포기한 unreachable, 오래된 기록 정리는 기존대로 지운다. 시작할 때(재발견 뒤) 목록에도 unreachable에도 없는 `t*.token`을 지운다. **실행 중인 에이전트의 토큰은 데몬 재시작에서 바꾸지 않는다**: 에이전트 환경 변수는 바꿀 수 없어서, 바꾸면 정상 훅만 끊긴다.
+- **비노출**: 토큰은 상태 파일(`slim_hook`, payload 32 KiB 이하 객체만), 로그, 터미널 출력, brief에 쓰지 않는다. pod-hook의 응답은 정확히 `{}`다.
+- **한계**: 토큰을 가진 같은 사용자 프로세스의 위조(가짜 idle/Stop)는 인증으로 막지 못한다. 데몬이 살아 있는 holder를 잃은 드문 경우(호환되지 않는 holder, 끊긴 holder 파이프)도 종료로 보고 토큰을 폐기하므로, 나중에 다시 붙으면 그 에이전트의 훅은 거부된다(상태는 OSC·휴리스틱으로 계속). 상태 `unknown`일 때도 깨우기를 허용하는 `pod_orch::wake::may_wake` 규칙은 이 카드에서 바꾸지 않았다(O1 이후 후속).
+- 테스트: `crates/podd/tests/hook_trust.rs`(틀린·이전·없는 토큰, 깨진·큰 payload, 잘못된 형태, flood, 종료 시 폐기, 재시작 정리, 대기 Gate가 있는 워커에 위조 PermissionRequest/Stop → Gate 전이·입력·done 0, busy/draft 코디네이터 깨우기 0과 대조군, 로그·상태 파일·워크트리에 토큰 0), `status/ingest.rs` 단위 시험(토큰 순서, 버스트·초당 한도, 보고 한도), `pod-status` `hook.rs`(형태·문자열 정리).
+
 **남은 일·한계**
 - 포그라운드 프로세스 추적이 없다. 셸 터미널에서 나중에 띄운 claude/codex는 OSC `app=`(Claude)이나 훅으로만 식별된다. 그전까지는 에이전트를 모르므로 타이틀 휴리스틱이 꺼져 있다. Job Object 프로세스 목록으로 보완할 수 있다.
 - ~~hook blocked 뒤 Esc로 취소했을 때 훅이 오지 않으면, 최대 120 s 동안 hook blocked가 OSC idle보다 우선한다.~~ 고침(podd-gaps2, §3.1-2·§7): OSC가 턴 끝으로 바뀌면 바로 풀린다. OSC 보고가 없을 때만 120 s 규칙.
@@ -306,7 +317,7 @@ pod hooks install|uninstall|status ...      # §9.1
 사용자 결정: 훅은 **전역**에 설치한다(Claude `%USERPROFILE%\.claude\settings.json`, Codex `%USERPROFILE%\.codex\hooks.json`). env 가드 덕분에 Pod 밖에서는 아무 일도 하지 않는다(pod-hook은 `POD_TERMINAL_ID`/`POD_SOCKET`이 없으면 `{}`를 출력하고 바로 끝난다). 코드는 `crates/pod-cli/src/hooks_install.rs`다.
 
 ```
-pod hooks install   [--dry-run] [--no-codex-trust] [공통 옵션]
+pod hooks install   [--dry-run] [--no-codex-trust] [--confirm DIGEST] [공통 옵션]
 pod hooks uninstall [--dry-run] [공통 옵션]
 pod hooks status    [--check-codex] [공통 옵션]
 공통: [--scope global|profile] [--agent claude|codex|all] [--home D | --claude-config-dir D --codex-home D]
@@ -314,11 +325,12 @@ pod hooks status    [--check-codex] [공통 옵션]
 ```
 
 - **안정된 바이너리 위치**: `install`은 `pod-hook.exe`(기본은 `pod.exe` 옆)를 `%LOCALAPPDATA%\Pod\bin\pod-hook.exe`로 복사하고 훅이 그 경로를 가리키게 한다. 저장소를 옮기거나 다시 빌드해도 에이전트가 깨지지 않는다. 내용이 같으면 복사하지 않는다. 에이전트가 훅을 실행하는 중이라 덮어쓸 수 없으면 기존 파일을 `pod-hook.exe.old-<시각>`으로 옮긴 뒤 바꾼다(실행 중인 exe도 이름은 바꿀 수 있다).
-- **병합**: `pod_status::install`의 `merge_hooks`/`remove_pod_hooks`를 쓴다. 명령에 `pod-hook`이 들어간 그룹만 추가·교체·삭제한다. 다른 키(`model`, `permissions`, `statusLine` …)와 다른 도구의 훅은 그대로 둔다. 다시 실행해도 중복되지 않는다(Pod 그룹을 지운 뒤 끝에 다시 붙이므로 위치도 같다). 키 순서를 보존하도록 `serde_json`의 `preserve_order`를 켰다. 들여쓰기는 2칸 pretty JSON으로 바뀐다.
+- **확인 (TM-22, rm-o4)**: 바이너리나 설정 파일 중 하나라도 바뀌는 실제 설치는 사용자 확인이 있어야 쓴다. 콘솔이면 바뀔 내용(절대 pod-hook 경로, 파일별 동작)을 보여 주고 y/N을 묻는다. 콘솔이 아니면 `--dry-run`이 출력한 digest(`confirm`, 16자, 경로·바이너리 해시·파일별 새 내용·Codex 신뢰 여부의 SHA-256)를 `--confirm`으로 넘긴다. 그 사이 바이너리나 설정이 바뀌면 digest가 달라 거부되고 다시 확인해야 한다. 바뀔 것이 없으면 묻지 않는다. 앱은 미리보기의 digest를 그대로 넘긴다. 훅 실행 파일은 절대 로컬 경로(UNC 불가)의 `pod-hook[.exe]`이고 셸이 확장하는 문자(`"` `%` `$` `` ` `` `!`, 제어 문자)는 거부한다. 영문·숫자·`-_./:` 밖의 문자가 있으면 따옴표로 감싼다.
+- **병합**: `pod_status::install`의 `merge_hooks`/`remove_pod_hooks`를 쓴다. Pod 명령 모양(`<…/pod-hook[.exe]> claude|codex <Event>`, `is_pod_command`)인 그룹만 추가·교체·삭제한다. `pod-hook`이라는 글자만 들어간 다른 도구의 훅은 남긴다. 다른 키(`model`, `permissions`, `statusLine` …)와 다른 도구의 훅은 그대로 둔다. 다시 실행해도 중복되지 않는다(Pod 그룹을 지운 뒤 끝에 다시 붙이므로 위치도 같다). 키 순서를 보존하도록 `serde_json`의 `preserve_order`를 켰다. 들여쓰기는 2칸 pretty JSON으로 바뀐다.
 - **백업**: 바꿀 파일마다 쓰기 전에 `<file>.pod-backup-<UTC YYYYMMDD-HHMMSS>`로 복사한다(같은 이름이 있으면 `-N`). 바뀌지 않는 파일은 백업하지 않는다.
 - **제거**: `uninstall`은 Pod 그룹만 지운다. 결과는 설치 전 JSON과 같다(테스트로 확인). 없는 파일은 만들지 않는다. `pod-hook.exe`는 남겨 둔다(실행 중일 수 있다).
 - **상태**: 설치된 바이너리가 있는지, 이 빌드와 같은지, 에이전트별 Pod 이벤트 수·다른 도구 그룹 수·훅이 실행하는 exe 존재 여부를 보여준다. `--check-codex`는 Codex에 신뢰 상태도 물어본다.
-- **Codex 훅 신뢰**: Codex는 사용자가 신뢰한 훅만 실행한다. 신뢰 정보는 `config.toml`의 `[hooks.state.'<hooks.json 경로>:<event>:<그룹 번호>:<훅 번호>'] trusted_hash = "sha256:…"`에 있다. 해시는 Codex가 계산한다(명령 문자열의 단순 SHA-256이 아님, 확인함). 그래서 Pod는 Codex에 직접 묻는다. `codex -c approval_policy=never -s read-only -a never app-server`(stdio JSON-RPC, `CREATE_NO_WINDOW`)를 띄우고 `initialize` → `hooks/list`로 각 훅의 `key`, `currentHash`, `trustStatus`를 받는다. 명령에 `pod-hook`이 들어간 훅 중 신뢰되지 않은 것만 `config/batchWrite {keyPath: "hooks.state", mergeStrategy: "upsert"}`로 기록한다. 쓰기 전에 `config.toml`을 백업하고, 다시 `hooks/list`로 모두 trusted인지 확인한다. `CODEX_HOME`을 명시적으로 넘기므로 `--home`으로 설치하면 실제 설정은 절대 건드리지 않는다. Codex 0.159.0에서 로그인 없이 동작하고, 모델 턴은 없다. codex가 없거나 실패하면 설치는 계속하고 note로 알린다(Codex 안에서 직접 승인해야 한다).
+- **Codex 훅 신뢰**: Codex는 사용자가 신뢰한 훅만 실행한다. 신뢰 정보는 `config.toml`의 `[hooks.state.'<hooks.json 경로>:<event>:<그룹 번호>:<훅 번호>'] trusted_hash = "sha256:…"`에 있다. 해시는 Codex가 계산한다(명령 문자열의 단순 SHA-256이 아님, 확인함). 그래서 Pod는 Codex에 직접 묻는다. `codex -c approval_policy=never -s read-only -a never app-server`(stdio JSON-RPC, `CREATE_NO_WINDOW`)를 띄우고 `initialize` → `hooks/list`로 각 훅의 `key`, `currentHash`, `trustStatus`를 받는다. Pod가 방금 쓴 명령과 정확히 같고 Pod가 쓴 hooks.json에 있는 훅 중 신뢰되지 않은 것만(rm-o4: 다른 파일이나 다른 실행 파일의 Pod 모양 명령은 사용자가 직접 승인) `config/batchWrite {keyPath: "hooks.state", mergeStrategy: "upsert"}`로 기록한다. 쓰기 전에 `config.toml`을 백업하고, 다시 `hooks/list`로 모두 trusted인지 확인한다. `CODEX_HOME`을 명시적으로 넘기므로 `--home`으로 설치하면 실제 설정은 절대 건드리지 않는다. Codex 0.159.0에서 로그인 없이 동작하고, 모델 턴은 없다. codex가 없거나 실패하면 설치는 계속하고 note로 알린다(Codex 안에서 직접 승인해야 한다).
 - **제거 시 Codex 신뢰 항목**: 남겨 둔다. 해시가 이전 훅 내용에 고정되어 있어서 아무 효과가 없다.
 - **이 머신에서 실제 설치는 하지 않았다.** 검토 후 코디네이터가 실행할 명령:
   ```

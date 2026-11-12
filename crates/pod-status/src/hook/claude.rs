@@ -1,13 +1,13 @@
 //! Claude Code hook events: how each one maps to Pod states, and the events
 //! Pod installs in Claude's settings.
 
-use super::{ChildEffect, HookEffect, QUESTION_TOOLS, RootEffect, child_id, s};
+use super::{ChildEffect, HookEffect, QUESTION_TOOLS, RootEffect, child_id, s, text};
 use crate::types::{AgentState, BlockedKind, Outcome};
 use serde_json::Value;
 
 pub(super) fn map_claude(event: &str, p: &Value) -> HookEffect {
     let agent_id = s(p, "agent_id");
-    let tool = s(p, "tool_name");
+    let tool = text(p, "tool_name");
     match event {
         "SessionStart" => {
             if s(p, "source").as_deref() == Some("compact") {
@@ -39,9 +39,10 @@ pub(super) fn map_claude(event: &str, p: &Value) -> HookEffect {
         }
         "PostToolUse" | "PostToolUseFailure" => HookEffect::set(AgentState::Working, None),
         "PermissionRequest" => HookEffect::set(AgentState::Blocked(BlockedKind::Permission), tool),
-        "Elicitation" => {
-            HookEffect::set(AgentState::Blocked(BlockedKind::Question), s(p, "message"))
-        }
+        "Elicitation" => HookEffect::set(
+            AgentState::Blocked(BlockedKind::Question),
+            text(p, "message"),
+        ),
         "ElicitationResult" => HookEffect {
             root: RootEffect::RestoreFromWait,
             ..HookEffect::none()
@@ -60,7 +61,7 @@ pub(super) fn map_claude(event: &str, p: &Value) -> HookEffect {
             }
         }
         "StopFailure" => {
-            let msg = s(p, "error").or_else(|| s(p, "error_message"));
+            let msg = text(p, "error").or_else(|| text(p, "error_message"));
             HookEffect {
                 outcome: Some(Outcome::Failed),
                 ..HookEffect::set(AgentState::Error, msg)
@@ -71,7 +72,7 @@ pub(super) fn map_claude(event: &str, p: &Value) -> HookEffect {
                 child: Some(ChildEffect::Set {
                     id: child_id(&id),
                     state: AgentState::Working,
-                    title: s(p, "agent_type"),
+                    title: text(p, "agent_type"),
                 }),
                 ..HookEffect::none()
             },

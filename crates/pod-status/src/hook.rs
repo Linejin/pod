@@ -30,6 +30,14 @@ pub const MAX_HOOK_LINE: usize = 4 * 1024 * 1024;
 pub const TRUNCATED_KEY: &str = "pod_truncated";
 /// Scalar payload fields up to this size survive a cut (ids, names, kinds).
 const KEEP_FIELD_BYTES: usize = 4096;
+/// Longest event name a hook message may carry (`PostToolUseFailure` is 18).
+pub const MAX_EVENT_NAME: usize = 64;
+/// Longest `terminal_id` a hook message may carry.
+pub const MAX_TERMINAL_ID: usize = 64;
+/// Hook text shown as status (tool name, prompt message, error, subagent
+/// type) is cut to this many characters (TM-22: hook input is evidence,
+/// not a channel for arbitrary text).
+pub const MAX_HOOK_TEXT: usize = 256;
 
 /// Env vars `pod-hook` reads (injected into each PTY by podd).
 pub const ENV_TERMINAL_ID: &str = "POD_TERMINAL_ID";
@@ -141,6 +149,31 @@ impl HookMessage {
         serde_json::from_str(line.trim_end())
     }
 
+    /// The shape podd accepts from an authenticated sender (TM-22): a short
+    /// printable `terminal_id`, an event name of letters and digits (or
+    /// none), and a payload that is an object or `null`. Anything else is
+    /// rejected before it reaches the engine.
+    pub fn check(&self) -> Result<(), &'static str> {
+        if self.terminal_id.is_empty()
+            || self.terminal_id.len() > MAX_TERMINAL_ID
+            || !self.terminal_id.bytes().all(|b| b.is_ascii_graphic())
+        {
+            return Err("bad terminal id");
+        }
+        if !valid_event_name(&self.event) {
+            return Err("bad event name");
+        }
+        if !matches!(self.payload, Value::Object(_) | Value::Null) {
+            return Err("payload is not an object");
+        }
+        if let Some(name) = self.payload.get("hook_event_name")
+            && !name.as_str().is_some_and(valid_event_name)
+        {
+            return Err("bad hook_event_name");
+        }
+        Ok(())
+    }
+
     /// The effective event name.
     pub fn event_name(&self) -> &str {
         if !self.event.is_empty() {
@@ -243,11 +276,38 @@ pub static PAYLOAD_FIELDS: &[(&str, &str, &str, bool)] = &[
 /// Tool names that mean "the agent asks the user a question".
 pub static QUESTION_TOOLS: &[&str] = &["AskUserQuestion", "request_user_input"];
 
+/// An event name `podd` accepts: ASCII letters, digits and `_`, at most
+/// [`MAX_EVENT_NAME`] bytes (empty: the payload's `hook_event_name` decides).
+pub fn valid_event_name(e: &str) -> bool {
+    e.len() <= MAX_EVENT_NAME && e.bytes().all(|b| b.is_ascii_alphanumeric() || b == b'_')
+}
+
 fn s(v: &Value, key: &str) -> Option<String> {
     v.get(key)
         .and_then(Value::as_str)
         .filter(|x| !x.is_empty())
         .map(str::to_string)
+}
+
+/// Text from the payload that becomes visible status (message, title,
+/// tool name): control and bidi-override characters removed, at most
+/// [`MAX_HOOK_TEXT`] characters.
+fn text(v: &Value, key: &str) -> Option<String> {
+    let raw = v.get(key).and_then(Value::as_str)?;
+    let clean: String = raw
+        .chars()
+        .filter(|c| !c.is_control() && !is_bidi_control(*c))
+        .take(MAX_HOOK_TEXT)
+        .collect();
+    let clean = clean.trim();
+    (!clean.is_empty()).then(|| clean.to_string())
+}
+
+fn is_bidi_control(c: char) -> bool {
+    matches!(
+        c,
+        '\u{061C}' | '\u{200E}' | '\u{200F}' | '\u{202A}'..='\u{202E}' | '\u{2066}'..='\u{2069}'
+    )
 }
 
 fn child_id(agent_id: &str) -> String {
@@ -273,7 +333,7 @@ pub fn map_hook(agent: HookAgent, event: &str, payload: &Value) -> HookEffect {
     };
     eff.session_id = s(payload, "session_id");
     if eff.tool_name.is_none() {
-        eff.tool_name = s(payload, "tool_name");
+        eff.tool_name = text(payload, "tool_name");
     }
     eff
 }
@@ -349,6 +409,86 @@ mod tests {
         assert_eq!(back.payload["session_id"], "s9");
         assert_eq!(back.payload["hook_event_name"], "Stop");
         assert!(back.payload[TRUNCATED_KEY].is_object());
+    }
+
+    /// TM-22: podd takes only short, plain event names, a short printable
+    /// terminal id and an object (or null) payload.
+    #[test]
+    fn message_shape_checked() {
+        assert_eq!(msg(json!({"session_id": "s"})).check(), Ok(()));
+        assert_eq!(msg(Value::Null).check(), Ok(()));
+        let mut m = msg(json!({}));
+        m.event = String::new();
+        assert_eq!(m.check(), Ok(()), "event from the payload");
+        for (event, why) in [
+            ("Stop\nforged", "bad event name"),
+            ("Stop Stop", "bad event name"),
+            (&"E".repeat(MAX_EVENT_NAME + 1)[..], "bad event name"),
+        ] {
+            let mut m = msg(json!({}));
+            m.event = event.into();
+            assert_eq!(m.check(), Err(why), "{event:?}");
+        }
+        for payload in [json!([1, 2]), json!("text"), json!(7)] {
+            assert_eq!(
+                msg(payload.clone()).check(),
+                Err("payload is not an object"),
+                "{payload}"
+            );
+        }
+        assert_eq!(
+            msg(json!({"hook_event_name": "Stop\u{1b}[2J"})).check(),
+            Err("bad hook_event_name")
+        );
+        for id in ["", "t 1", "t\u{7}", &"t".repeat(MAX_TERMINAL_ID + 1)[..]] {
+            let mut m = msg(json!({}));
+            m.terminal_id = id.into();
+            assert_eq!(m.check(), Err("bad terminal id"), "{id:?}");
+        }
+        assert!(valid_event_name("PostToolUseFailure"));
+        assert!(!valid_event_name("Pre-Tool"));
+    }
+
+    /// TM-22: payload text that becomes status (message, tool name, error,
+    /// subagent title) loses control and bidi characters and is capped.
+    #[test]
+    fn hook_text_is_cleaned_and_capped() {
+        let long = "q".repeat(MAX_HOOK_TEXT * 4);
+        let m = HookMessage::new(
+            "t1",
+            HookAgent::Claude,
+            "Elicitation",
+            json!({"message": format!("\u{202E}Approve\u{1b}[31m\r\n{long}")}),
+        );
+        let RootEffect::Set {
+            msg: Some(text), ..
+        } = map_message(&m).root
+        else {
+            panic!("blocked with a message");
+        };
+        assert!(text.starts_with("Approve[31m"), "{text:?}");
+        assert!(!text.chars().any(|c| c.is_control() || is_bidi_control(c)));
+        assert_eq!(text.chars().count(), MAX_HOOK_TEXT);
+
+        let m = HookMessage::new(
+            "t1",
+            HookAgent::Codex,
+            "PermissionRequest",
+            json!({"tool_name": format!("Bash\u{7}{long}")}),
+        );
+        let eff = map_message(&m);
+        let tool = eff.tool_name.unwrap();
+        assert!(tool.starts_with("Bash") && tool.chars().count() == MAX_HOOK_TEXT);
+        let only_controls = HookMessage::new(
+            "t1",
+            HookAgent::Claude,
+            "StopFailure",
+            json!({"error": "\u{1b}\u{202E}\r\n"}),
+        );
+        let RootEffect::Set { msg, .. } = map_message(&only_controls).root else {
+            panic!("error state");
+        };
+        assert_eq!(msg, None);
     }
 
     /// Many small fields that do not fit either: only the marker is left.

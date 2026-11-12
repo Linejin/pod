@@ -441,6 +441,13 @@ fn message(run: &RunEntry, m: &Mail, reply: bool) -> Div {
                 s::NOT_READ
             }
         )));
+    // O1: where it comes from, from records, apart from the text.
+    d = d.child(
+        div()
+            .text_xs()
+            .text_color(rgb(t.text_muted))
+            .child(model::provenance_label(run, m)),
+    );
     let body = super::ko::body(m);
     if !body.trim().is_empty() && body.trim() != subject.trim() {
         // Long bodies are cut; the whole text is in `pod orch` / the agent's terminal.

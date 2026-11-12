@@ -1,18 +1,20 @@
 //! Wire contract golden (refactor card D-F0, docs/20-refactor/daemon.md
 //! §3, completion condition W). Taken from master before the protocol
 //! types move to their own crate; later cards keep these tests green
-//! without touching the golden files.
+//! without touching the golden files. Rewritten for v20 (docs/17 R4:
+//! `terminal.input_once`, `terminal.snapshot`, the `AttachResult` chunk
+//! fields, `attach.chunks` and the remote framing constants).
 //!
-//! - `fixtures/schema-v19.json`: the whole `podd schema` output.
-//! - `fixtures/wire-v19.json`: the params and result type of each of the
-//!   104 methods, the event type of each of the 18 notifications, and
+//! - `fixtures/schema-v20.json`: the whole `podd schema` output.
+//! - `fixtures/wire-v20.json`: the params and result type of each of the
+//!   105 methods, the event type of each of the 19 notifications, and
 //!   samples of every such type: one per enum variant position (`full#k`,
 //!   every optional field set, the k-th variant of every enum), only the
 //!   required fields (`min`) and every nullable field null (`null`). A
 //!   sample's `in` goes through the real Rust type of the method
 //!   (deserialize, then serialize) and must give `out` (`in` when absent).
 //!   Also: error codes and error data, `connection.hello` negotiation,
-//!   the v18 downgrade of every result and event sample, envelopes,
+//!   the v18 and v19 downgrades of every result and event sample, envelopes,
 //!   base64 and the protocol constants.
 //!
 //! Objects compare without key order; everything else (absent vs null,
@@ -32,10 +34,12 @@ use serde::Serialize;
 use serde::de::DeserializeOwned;
 use serde_json::{Map, Value, json};
 
-const WIRE: &str = "wire-v19.json";
-const SCHEMA: &str = "schema-v19.json";
+const WIRE: &str = "wire-v20.json";
+const SCHEMA: &str = "schema-v20.json";
 /// The newest protocol without the v19 `unreachable` terminal state.
 const DOWNGRADE_TO: u32 = 18;
+/// The newest protocol without the v20 attach chunk fields.
+const DOWNGRADE_TO_V19: u32 = 19;
 
 // ───────────────────────────── the Rust types ─────────────────────────────
 
@@ -159,6 +163,7 @@ method_types!(
     SessionsResume,
     SessionsHide,
     ConnectionHello,
+    TerminalInputOnce,
     MobileDevices,
     MobileRevoke,
     MobilePolicy,
@@ -184,6 +189,7 @@ fn notification_types() -> Vec<(&'static str, RoundTrip)> {
         NOTIFY_RESIZED => ResizedEvent,
         NOTIFY_EXITED => ExitedEvent,
         NOTIFY_LAGGED => LaggedEvent,
+        NOTIFY_SNAPSHOT => SnapshotChunkEvent,
         NOTIFY_STATUS_CHANGED => StatusChangedEvent,
         NOTIFY_STATUS_LAGGED => StatusLaggedEvent,
         NOTIFY_GATE_CHANGED => GateChangedEvent,
@@ -272,6 +278,14 @@ fn constants() -> Value {
         "PROTOCOL_MIN": PROTOCOL_MIN,
         "HELLO_PROTOCOL": HELLO_PROTOCOL,
         "UNREACHABLE_PROTOCOL": UNREACHABLE_PROTOCOL,
+        "CHUNKED_ATTACH_PROTOCOL": CHUNKED_ATTACH_PROTOCOL,
+        "remote_framing": {
+            "REMOTE_OUTPUT_CHUNK": REMOTE_OUTPUT_CHUNK,
+            "REMOTE_ATTACH_QUEUE": REMOTE_ATTACH_QUEUE,
+            "MAX_SNAPSHOT_BYTES": MAX_SNAPSHOT_BYTES,
+            "INPUT_STREAMS_KEPT": INPUT_STREAMS_KEPT,
+            "INPUT_STREAM_MAX": INPUT_STREAM_MAX,
+        },
         "JSONRPC_VERSION": JSONRPC_VERSION,
         "HOLDER_PROTOCOL": HOLDER_PROTOCOL,
         "HOLDER_PROTOCOL_MIN": HOLDER_PROTOCOL_MIN,
@@ -403,8 +417,8 @@ fn schema_matches_master_golden() {
     }
     d.check("schema (whole)", &now, &golden);
     d.assert_none();
-    assert_eq!(golden["methods"].as_object().unwrap().len(), 104);
-    assert_eq!(golden["notifications"].as_object().unwrap().len(), 18);
+    assert_eq!(golden["methods"].as_object().unwrap().len(), 105);
+    assert_eq!(golden["notifications"].as_object().unwrap().len(), 19);
 }
 
 /// `podd schema` prints the same schema.
@@ -441,7 +455,7 @@ fn every_method_and_notification_roundtrips_its_golden_samples() {
         .keys()
         .map(String::as_str)
         .collect();
-    assert_eq!(methods.len(), 104, "method table");
+    assert_eq!(methods.len(), 105, "method table");
     assert_eq!(names, in_golden, "methods: Rust table vs golden");
     assert_eq!(names, in_schema, "methods: Rust table vs schema()");
     for m in &methods {
@@ -572,6 +586,27 @@ fn v18_downgrade_matches_master_golden() {
     }
 }
 
+/// Every result and event sample, rewritten for a v19 client: only the v20
+/// attach chunk fields go (the `unreachable` state stays).
+#[test]
+fn v19_downgrade_matches_golden() {
+    let golden = load(WIRE);
+    let now = downgrades_to(&golden, DOWNGRADE_TO_V19, "v19");
+    let want = golden["downgrade_v19"].as_array().unwrap();
+    assert!(!want.is_empty());
+    let mut d = Diffs::default();
+    d.check("downgrade_v19 count", &json!(now.len()), &json!(want.len()));
+    for (i, (got, want)) in now.iter().zip(want).enumerate() {
+        d.check(format!("downgrade_v19[{i}]"), got, want);
+    }
+    d.assert_none();
+    for case in want {
+        let v19 = case["v19"].to_string();
+        assert!(!v19.contains("snapshot_chunks"), "{v19}");
+        assert!(!v19.contains("scrollback_omitted"), "{v19}");
+    }
+}
+
 // ───────────────────────────── shared by tests and writer ─────────────────────────────
 
 fn negotiate_json(p: &HelloParams) -> Value {
@@ -601,14 +636,20 @@ fn outgoing_keys(golden: &Value) -> Vec<String> {
 
 /// `{type, case, v18}` for every outgoing sample the downgrade changes.
 fn downgrades(golden: &Value) -> Vec<Value> {
+    downgrades_to(golden, DOWNGRADE_TO, "v18")
+}
+
+/// `{type, case, <label>}` for every outgoing sample the downgrade to
+/// `protocol` changes.
+fn downgrades_to(golden: &Value, protocol: u32, label: &str) -> Vec<Value> {
     let mut out = Vec::new();
     for key in outgoing_keys(golden) {
         for s in golden["types"][&key].as_array().unwrap() {
             let v = sample_out(s);
             let mut down = v.clone();
-            downgrade_json(&mut down, DOWNGRADE_TO);
+            downgrade_json(&mut down, protocol);
             if &down != v {
-                out.push(json!({ "type": key, "case": s["case"], "v18": down }));
+                out.push(json!({ "type": key, "case": s["case"], label: down }));
             }
         }
     }
@@ -682,7 +723,7 @@ fn write_golden() {
     );
 
     let mut golden = json!({
-        "about": "Wire golden of protocol v19 (refactor card D-F0); see crates/podd/tests/protocol_wire.rs",
+        "about": "Wire golden of protocol v20 (refactor card D-F0, rewritten for docs/17 R4); see crates/podd/tests/protocol_wire.rs",
         "constants": constants(),
         "methods": methods,
         "notifications": notifications,
@@ -725,6 +766,7 @@ fn write_golden() {
         }
     }
     golden["downgrade_v18"] = Value::Array(downgrades(&golden));
+    golden["downgrade_v19"] = Value::Array(downgrades_to(&golden, DOWNGRADE_TO_V19, "v19"));
 
     for (name, v, levels) in [(WIRE, &golden, 3), (SCHEMA, &schema, 2)] {
         let mut text = String::new();
@@ -799,6 +841,11 @@ fn negotiate_cases() -> Vec<Value> {
         json!({ "min_protocol": 12, "max_protocol": 19, "require": ["remote.files"] }),
         json!({ "min_protocol": 19, "max_protocol": 12 }),
         json!({ "min_protocol": 12, "max_protocol": 19, "client": "pod-app 1.0" }),
+        // v20 (docs/17 R4): a client newer than this podd only, an older
+        // remote client (keeps v19), and one that needs chunked attach.
+        json!({ "min_protocol": 21, "max_protocol": 30 }),
+        json!({ "min_protocol": 12, "max_protocol": 19, "client": "pod 0.19" }),
+        json!({ "min_protocol": 12, "max_protocol": 20, "require": ["attach.chunks"] }),
     ];
     cases
         .into_iter()

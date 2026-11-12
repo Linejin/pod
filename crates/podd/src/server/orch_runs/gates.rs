@@ -3,19 +3,49 @@
 //! decision is mailed back; `orch.gate.request` / `orch.gate.decide` go
 //! through the gate store's single decision path.
 
-use pod_orch::engine::NewMail;
+use pod_orch::engine::{NewMail, Orch};
 use pod_orch::model::{attempt_mailbox, run_mailbox};
+use pod_orch::policy::{self, GateFacts, Policy};
 use serde_json::json;
 
 use super::identity::who;
-use super::rpc::oe;
+use super::rpc::{NEEDS_PERSON, oe};
 use super::state::{cached, remember};
 use crate::protocol::*;
 use crate::server::gates::{Decide, Decided};
 use crate::server::orch_store::GateActor;
 use crate::server::{Daemon, log, status};
 
+/// The broker's view of a gate: its kind from what it asks, the rest from
+/// the daemon's records (the requesting attempt's run).
+fn gate_facts(o: &Orch, g: &GateInfo) -> GateFacts {
+    let requester_run = g
+        .requested_by
+        .as_deref()
+        .and_then(|r| r.strip_prefix("attempt:"))
+        .and_then(|a| o.attempt(a).ok())
+        .map(|a| a.run.clone());
+    GateFacts {
+        id: g.id.clone(),
+        run: g.run.clone(),
+        requested_by: g.requested_by.clone(),
+        requester_run,
+        kind: policy::classify(&g.title, &g.message, &g.options),
+    }
+}
+
 impl Daemon {
+    /// The person's agent trust policy (`<state>\orch\policy.json`, O1),
+    /// read at each use so an edit applies at once. No file: the default.
+    pub(super) fn orch_policy(&self) -> Policy {
+        let path = self.runs.state_dir.join("orch").join(policy::POLICY_FILE);
+        let (p, notes) = Policy::load(&path);
+        for n in notes {
+            log(&format!("orch policy: {n}"));
+        }
+        p
+    }
+
     /// The run and item a gate is about (checked against the engine).
     pub(in crate::server) fn orch_gate_target(
         &self,
@@ -69,6 +99,19 @@ impl Daemon {
             .as_deref()
             .is_some_and(|r| r.starts_with("attempt:"))
         {
+            // O1: say up front whether the coordinator may decide it.
+            let facts = gate_facts(&o, g);
+            let kind = facts.kind;
+            let decider = match policy::check(
+                &self.orch_policy(),
+                &policy::Actor::Coordinator {
+                    run: run.to_string(),
+                },
+                &policy::Action::DecideGate(facts),
+            ) {
+                Ok(()) => "coordinator",
+                Err(_) => "person",
+            };
             let subject = MsgText::new(pod_orch::text::GATE_REQUESTED)
                 .with("gate", &g.id)
                 .with("title", &g.title);
@@ -78,6 +121,9 @@ impl Daemon {
             if !g.options.is_empty() {
                 body = body.with("options", g.options.join(" | "));
             }
+            if decider == "person" {
+                body = body.with("kind", kind.as_str()).with("decider", decider);
+            }
             let m = NewMail::pod(
                 g.requested_by.clone().unwrap_or_default(),
                 run_mailbox(run),
@@ -85,9 +131,10 @@ impl Daemon {
                 subject,
             )
             .body_text(body)
-            .payload(
-                json!({"gate": g.id, "options": g.options, "item": g.item, "state": "pending"}),
-            );
+            .payload(json!({
+                "gate": g.id, "options": g.options, "item": g.item, "state": "pending",
+                "kind": kind.as_str(), "decider": decider,
+            }));
             if let Err(e) = self.post(&mut o, None, m) {
                 log(&format!("orch: gate {} mail: {}", g.id, e.message));
             }
@@ -297,14 +344,26 @@ impl Daemon {
                         ),
                     ));
                 }
-                if g.requested_by.as_deref() == Some(run_mailbox(&run).as_str()) {
-                    return Err(RpcError::new(
-                        codes::INVALID_PARAMS,
-                        format!(
-                            "gate {} was asked by this coordinator: a person decides it",
-                            g.id
-                        ),
+                // O1: the broker. Text in the gate or in any mail plays no
+                // part; the kind comes from the gate, the rest from records.
+                let facts = gate_facts(&o, &g);
+                let policy = self.orch_policy();
+                if let Err(r) = policy::check(
+                    &policy,
+                    &policy::Actor::Coordinator { run: run.clone() },
+                    &policy::Action::DecideGate(facts),
+                ) {
+                    let code = match r {
+                        policy::Refusal::OwnGate => codes::INVALID_PARAMS,
+                        _ => NEEDS_PERSON,
+                    };
+                    log(&format!(
+                        "orch: {} may not decide gate {} ({:?})",
+                        run_mailbox(&run),
+                        g.id,
+                        r
                     ));
+                    return Err(RpcError::new(code, r.message(&g.id)));
                 }
                 GateActor::Agent {
                     from: run_mailbox(&run),

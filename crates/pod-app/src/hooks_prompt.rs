@@ -36,8 +36,10 @@ use crate::workspace::{ToastKind, Workspace};
 pub trait HookCli: Send + Sync {
     /// `pod hooks status --json` (stdout).
     fn status(&self) -> Result<String, String>;
-    /// `pod hooks install [--dry-run] --json` (stdout).
-    fn install(&self, dry_run: bool) -> Result<String, String>;
+    /// `pod hooks install [--dry-run] --json [--confirm <digest>]` (stdout).
+    /// The real install passes the digest of the dry run the user saw, so
+    /// a plan that changed since is refused (TM-22).
+    fn install(&self, dry_run: bool, confirm: Option<&str>) -> Result<String, String>;
     /// Identifies the `pod-hook.exe` this app ships (dismissals are per build).
     fn source_key(&self) -> String;
 }
@@ -100,6 +102,23 @@ pub struct InstallOutcome {
     pub files: Vec<FileResult>,
     #[serde(default)]
     pub notes: Vec<String>,
+    /// The dry run's plan digest; the confirmed install passes it back.
+    #[serde(default)]
+    pub confirm: Option<String>,
+}
+
+/// `pod` arguments of an install: the dry run, or the real install of the
+/// plan the user confirmed.
+pub fn install_args(dry_run: bool, confirm: Option<&str>) -> Vec<&str> {
+    let mut a = vec!["hooks", "install"];
+    if dry_run {
+        a.push("--dry-run");
+    }
+    a.push("--json");
+    if let (false, Some(d)) = (dry_run, confirm) {
+        a.extend(["--confirm", d]);
+    }
+    a
 }
 
 /// What the launch check found.
@@ -237,12 +256,8 @@ impl HookCli for PodCli {
     fn status(&self) -> Result<String, String> {
         self.run(&["hooks", "status", "--json"])
     }
-    fn install(&self, dry_run: bool) -> Result<String, String> {
-        if dry_run {
-            self.run(&["hooks", "install", "--dry-run", "--json"])
-        } else {
-            self.run(&["hooks", "install", "--json"])
-        }
+    fn install(&self, dry_run: bool, confirm: Option<&str>) -> Result<String, String> {
+        self.run(&install_args(dry_run, confirm))
     }
     fn source_key(&self) -> String {
         file_fingerprint(&self.hook)
@@ -256,7 +271,12 @@ pub struct MockHookCli {
     pub status_json: String,
     pub key: String,
     pub installs: std::sync::Mutex<Vec<bool>>,
+    /// The `--confirm` digest each real install passed.
+    pub confirms: std::sync::Mutex<Vec<Option<String>>>,
 }
+
+/// The digest the mock's dry run reports.
+pub const MOCK_DIGEST: &str = "0123456789abcdef";
 
 impl MockHookCli {
     /// Claude and Codex in use, no Pod hooks yet (fixture paths only).
@@ -272,6 +292,7 @@ impl MockHookCli {
             status_json: status.to_string(),
             key: "fixture-hook-1".into(),
             installs: Default::default(),
+            confirms: Default::default(),
         }
     }
 }
@@ -280,11 +301,17 @@ impl HookCli for MockHookCli {
     fn status(&self) -> Result<String, String> {
         Ok(self.status_json.clone())
     }
-    fn install(&self, dry_run: bool) -> Result<String, String> {
+    fn install(&self, dry_run: bool, confirm: Option<&str>) -> Result<String, String> {
         self.installs
             .lock()
             .map_err(|e| e.to_string())?
             .push(dry_run);
+        if !dry_run {
+            self.confirms
+                .lock()
+                .map_err(|e| e.to_string())?
+                .push(confirm.map(str::to_string));
+        }
         let (claude, codex) = (
             "C:/Users/fixture/.claude/settings.json",
             "C:/Users/fixture/.codex/hooks.json",
@@ -296,7 +323,8 @@ impl HookCli for MockHookCli {
                 {"agent": "claude", "path": claude, "action": if dry_run { "would update" } else { "updated" }, "backup": backup(claude)},
                 {"agent": "codex", "path": codex, "action": if dry_run { "would update" } else { "updated" }, "backup": backup(codex)}
             ],
-            "notes": []
+            "notes": [],
+            "confirm": MOCK_DIGEST
         })
         .to_string())
     }
@@ -414,7 +442,9 @@ impl Workspace {
         self.hooks.busy = true;
         cx.notify();
         self.hooks._task = Some(cx.spawn_in(window, async move |this, cx| {
-            let result = cx.background_spawn(async move { cli.install(true) }).await;
+            let result = cx
+                .background_spawn(async move { cli.install(true, None) })
+                .await;
             let _ = this.update_in(cx, |w, window, cx| {
                 w.hooks.busy = false;
                 match result.and_then(|j| {
@@ -440,9 +470,12 @@ impl Workspace {
         cx: &mut Context<Self>,
     ) {
         let lines = preview_lines(&preview);
+        // The install runs exactly the plan this preview shows.
+        let confirm = preview.confirm.clone();
         let ws = cx.entity().downgrade();
         window.open_dialog(cx, move |d: Dialog, _, _| {
             let ws = ws.clone();
+            let confirm = confirm.clone();
             let mut body = div()
                 .id("hooks-preview")
                 .flex()
@@ -490,8 +523,10 @@ impl Workspace {
                                     .primary()
                                     .on_click(move |_, window, cx| {
                                         window.close_dialog(cx);
-                                        let _ =
-                                            ws.update(cx, |w, cx| w.run_hook_install(window, cx));
+                                        let confirm = confirm.clone();
+                                        let _ = ws.update(cx, |w, cx| {
+                                            w.run_hook_install(confirm, window, cx)
+                                        });
                                     }),
                             ),
                         ),
@@ -499,15 +534,23 @@ impl Workspace {
         });
     }
 
-    /// The user confirmed: the real `pod hooks install`.
-    fn run_hook_install(&mut self, window: &mut Window, cx: &mut Context<Self>) {
+    /// The user confirmed: the real `pod hooks install` of the previewed
+    /// plan (`confirm`: its digest; a plan that changed since is refused).
+    fn run_hook_install(
+        &mut self,
+        confirm: Option<String>,
+        window: &mut Window,
+        cx: &mut Context<Self>,
+    ) {
         let Some(cli) = self.hooks.cli.clone() else {
             return;
         };
         self.hooks.busy = true;
         cx.notify();
         self.hooks._task = Some(cx.spawn_in(window, async move |this, cx| {
-            let result = cx.background_spawn(async move { cli.install(false) }).await;
+            let result = cx
+                .background_spawn(async move { cli.install(false, confirm.as_deref()) })
+                .await;
             let _ = this.update(cx, |w, cx| {
                 w.hooks.busy = false;
                 match result.and_then(|j| {
@@ -733,7 +776,8 @@ mod tests {
     #[test]
     fn preview_lists_files_backups_and_codex_trust() {
         let cli = MockHookCli::missing();
-        let o: InstallOutcome = serde_json::from_str(&cli.install(true).unwrap()).unwrap();
+        let o: InstallOutcome = serde_json::from_str(&cli.install(true, None).unwrap()).unwrap();
+        assert_eq!(o.confirm.as_deref(), Some(MOCK_DIGEST));
         let lines = preview_lines(&o);
         assert!(lines[0].contains("pod-hook.exe"));
         assert!(
@@ -744,6 +788,33 @@ mod tests {
         assert!(lines.iter().any(|l| l.starts_with("Codex · ")));
         assert!(lines.iter().any(|l| l.contains("config.toml")));
         assert_eq!(*cli.installs.lock().unwrap(), vec![true], "dry run only");
+    }
+
+    /// TM-22: the dry run asks for the plan; the real install passes the
+    /// digest of the plan the user saw (`pod` refuses a changed plan).
+    #[test]
+    fn install_passes_the_previewed_plans_digest() {
+        assert_eq!(
+            install_args(true, None),
+            ["hooks", "install", "--dry-run", "--json"]
+        );
+        assert_eq!(
+            install_args(false, Some("0123456789abcdef")),
+            [
+                "hooks",
+                "install",
+                "--json",
+                "--confirm",
+                "0123456789abcdef"
+            ]
+        );
+        assert_eq!(install_args(false, None), ["hooks", "install", "--json"]);
+        let cli = MockHookCli::missing();
+        cli.install(false, Some(MOCK_DIGEST)).unwrap();
+        assert_eq!(
+            *cli.confirms.lock().unwrap(),
+            vec![Some(MOCK_DIGEST.to_string())]
+        );
     }
 
     #[test]

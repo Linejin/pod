@@ -193,6 +193,77 @@ pub(in crate::server) fn err_response(id: Value, error: RpcError) -> Response {
     }
 }
 
+/// Does this connection use the v20 remote framing (its hello chose 20 or
+/// newer)? Local clients send no hello.
+pub(in crate::server) fn remote_framing() -> bool {
+    CONN_PROTOCOL
+        .try_with(|c| c.get())
+        .ok()
+        .flatten()
+        .is_some_and(|p| p >= CHUNKED_ATTACH_PROTOCOL)
+}
+
+/// The per-attach queue limit: the daemon's, or for the v20 remote framing
+/// the 2 MiB remote one when that is smaller (docs/17 §2.3).
+pub(in crate::server) fn attach_queue_for(remote: bool, daemon_limit: usize) -> usize {
+    if remote {
+        daemon_limit.min(REMOTE_ATTACH_QUEUE)
+    } else {
+        daemon_limit
+    }
+}
+
+/// The notifications for one stream message. Output is split into pieces of
+/// at most `chunk` bytes with contiguous `seq`s (the clients' contract since
+/// v2). The flag says the message is the last of the stream.
+fn stream_notifications(id: &str, msg: StreamMsg, chunk: usize) -> (Vec<Notification>, bool) {
+    match msg {
+        StreamMsg::Output { seq, data } => {
+            let mut at = seq;
+            let out = data
+                .chunks(chunk.max(1))
+                .map(|piece| {
+                    let n = notification(
+                        NOTIFY_OUTPUT,
+                        OutputEvent {
+                            id: id.to_string(),
+                            seq: at,
+                            data: b64_encode(piece),
+                        },
+                    );
+                    at += piece.len() as u64;
+                    n
+                })
+                .collect();
+            (out, false)
+        }
+        StreamMsg::Resized { seq, cols, rows } => (
+            vec![notification(
+                NOTIFY_RESIZED,
+                ResizedEvent {
+                    id: id.to_string(),
+                    seq,
+                    cols,
+                    rows,
+                },
+            )],
+            false,
+        ),
+        StreamMsg::Exited(e) => (
+            vec![notification(
+                NOTIFY_EXITED,
+                ExitedEvent {
+                    id: id.to_string(),
+                    seq: e.seq,
+                    exit_code: e.exit_code,
+                    killed: e.killed,
+                },
+            )],
+            true,
+        ),
+    }
+}
+
 pub(in crate::server) fn notification<T: Serialize>(method: &str, params: T) -> Notification {
     Notification {
         jsonrpc: JSONRPC_VERSION.into(),
@@ -226,14 +297,69 @@ impl Daemon {
             Ok(x) => x,
             Err(e) => return write_json(&mut write, &err_response(id, e)).await,
         };
-        let (snapshot, seq, mut sub) = t.attach(scrollback);
-        let result = AttachResult {
-            terminal: t.info(),
-            seq,
-            snapshot: b64_encode(&snapshot),
+        // v20 remote framing (docs/17 R4) for a connection whose hello chose
+        // 20 or newer: chunked snapshot, output chunks of at most 32 KiB and
+        // the 2 MiB queue. Local attaches and older hellos are unchanged.
+        let remote = remote_framing();
+        let a = t.attach_with(terminal::AttachSpec {
+            scrollback,
+            queue_limit: attach_queue_for(remote, terminal::attach_queue_limit()),
+            max_snapshot: remote.then_some(MAX_SNAPSHOT_BYTES),
+        });
+        let (seq, mut sub) = (a.seq, a.rx);
+        if remote {
+            let chunks: Vec<&[u8]> = a.snapshot.chunks(REMOTE_OUTPUT_CHUNK).collect();
+            let total = chunks.len() as u32;
+            let result = AttachResult {
+                terminal: t.info(),
+                seq,
+                snapshot: String::new(),
+                snapshot_chunks: Some(total),
+                snapshot_bytes: Some(a.snapshot.len() as u64),
+                scrollback_omitted: (a.scrollback_omitted > 0).then_some(a.scrollback_omitted),
+            };
+            write_json(&mut write, &ok_response(id, serde_json::to_value(result)?)).await?;
+            for (index, data) in chunks.into_iter().enumerate() {
+                let n = notification(
+                    NOTIFY_SNAPSHOT,
+                    SnapshotChunkEvent {
+                        id: t.id.clone(),
+                        seq,
+                        index: index as u32,
+                        total,
+                        data: b64_encode(data),
+                    },
+                );
+                write_json(&mut write, &n).await?;
+            }
+            log(&format!(
+                "attach {} at seq {seq} (remote: {} bytes in {total} chunks{})",
+                t.id,
+                a.snapshot.len(),
+                if a.scrollback_omitted > 0 {
+                    format!(", {} scrollback lines left out", a.scrollback_omitted)
+                } else {
+                    String::new()
+                }
+            ));
+        } else {
+            let result = AttachResult {
+                terminal: t.info(),
+                seq,
+                snapshot: b64_encode(&a.snapshot),
+                snapshot_chunks: None,
+                snapshot_bytes: None,
+                scrollback_omitted: None,
+            };
+            write_json(&mut write, &ok_response(id, serde_json::to_value(result)?)).await?;
+            log(&format!("attach {} at seq {seq}", t.id));
+        }
+        drop(a.snapshot);
+        let chunk = if remote {
+            REMOTE_OUTPUT_CHUNK
+        } else {
+            usize::MAX
         };
-        write_json(&mut write, &ok_response(id, serde_json::to_value(result)?)).await?;
-        log(&format!("attach {} at seq {seq}", t.id));
 
         loop {
             tokio::select! {
@@ -245,7 +371,7 @@ impl Daemon {
                             id: t.id.clone(),
                             seq: lag.seq,
                             queued_bytes: lag.queued_bytes,
-                            limit_bytes: terminal::attach_queue_limit() as u64,
+                            limit_bytes: sub.shared.limit as u64,
                         });
                         log(&format!(
                             "attach {} lagged at seq {} ({} bytes queued); dropped",
@@ -256,18 +382,15 @@ impl Daemon {
                     }
                     let Some(msg) = msg else { break };
                     sub.taken(&msg);
-                    let (n, last) = match msg {
-                        StreamMsg::Output { seq, data } => (notification(NOTIFY_OUTPUT, OutputEvent {
-                            id: t.id.clone(), seq, data: b64_encode(&data),
-                        }), false),
-                        StreamMsg::Resized { seq, cols, rows } => (notification(NOTIFY_RESIZED, ResizedEvent {
-                            id: t.id.clone(), seq, cols, rows,
-                        }), false),
-                        StreamMsg::Exited(e) => (notification(NOTIFY_EXITED, ExitedEvent {
-                            id: t.id.clone(), seq: e.seq, exit_code: e.exit_code, killed: e.killed,
-                        }), true),
-                    };
-                    if write_json(&mut write, &n).await.is_err() || last {
+                    let (out, last) = stream_notifications(&t.id, msg, chunk);
+                    let mut failed = false;
+                    for n in &out {
+                        if write_json(&mut write, n).await.is_err() {
+                            failed = true;
+                            break;
+                        }
+                    }
+                    if failed || last {
                         break;
                     }
                 }
@@ -281,5 +404,61 @@ impl Daemon {
         }
         log(&format!("detach {}", t.id));
         Ok(())
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn output(n: &Notification) -> OutputEvent {
+        assert_eq!(n.method, NOTIFY_OUTPUT);
+        serde_json::from_value(n.params.clone()).unwrap()
+    }
+
+    #[test]
+    fn remote_attaches_get_the_smaller_queue() {
+        const MIB: usize = 1024 * 1024;
+        assert_eq!(attach_queue_for(true, 16 * MIB), 2 * MIB);
+        assert_eq!(attach_queue_for(true, 32 * 1024), 32 * 1024);
+        assert_eq!(attach_queue_for(false, 16 * MIB), 16 * MIB);
+    }
+
+    /// v20 remote framing: output pieces of at most 32 KiB with contiguous
+    /// offsets; without a chunk limit one notification as before.
+    #[test]
+    fn output_is_split_into_contiguous_chunks() {
+        let data: Arc<[u8]> = (0..70_000u32).map(|i| i as u8).collect::<Vec<_>>().into();
+        let msg = StreamMsg::Output {
+            seq: 10,
+            data: data.clone(),
+        };
+        let (out, last) = stream_notifications("t1", msg.clone(), REMOTE_OUTPUT_CHUNK);
+        assert!(!last);
+        let events: Vec<OutputEvent> = out.iter().map(output).collect();
+        let seqs: Vec<u64> = events.iter().map(|e| e.seq).collect();
+        assert_eq!(seqs, [10, 10 + 32_768, 10 + 65_536]);
+        let mut joined = Vec::new();
+        for e in &events {
+            let piece = b64_decode(&e.data).unwrap();
+            assert!(piece.len() <= REMOTE_OUTPUT_CHUNK);
+            joined.extend(piece);
+        }
+        assert_eq!(joined, &data[..]);
+
+        let (out, _) = stream_notifications("t1", msg, usize::MAX);
+        assert_eq!(out.len(), 1);
+        assert_eq!(b64_decode(&output(&out[0]).data).unwrap(), &data[..]);
+
+        let (out, last) = stream_notifications(
+            "t1",
+            StreamMsg::Resized {
+                seq: 3,
+                cols: 80,
+                rows: 24,
+            },
+            REMOTE_OUTPUT_CHUNK,
+        );
+        assert_eq!((out.len(), last), (1, false));
     }
 }

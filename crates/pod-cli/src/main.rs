@@ -21,6 +21,7 @@ mod machine;
 mod mobile;
 mod orch;
 mod orch_run;
+mod orch_trust;
 mod output;
 mod pr;
 mod reconnect;

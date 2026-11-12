@@ -42,8 +42,8 @@ fn seed(home: &Path) -> (String, String) {
     (claude.into(), codex.into())
 }
 
-fn pod(args: &[&str], home: &Path, bin: &Path) -> Value {
-    let out = Command::new(POD)
+fn pod_out(args: &[&str], home: &Path, bin: &Path) -> std::process::Output {
+    Command::new(POD)
         .arg("--json")
         .args(args)
         .arg("--home")
@@ -53,13 +53,30 @@ fn pod(args: &[&str], home: &Path, bin: &Path) -> Value {
         .arg("--source")
         .arg(POD) // any file stands in for pod-hook.exe here
         .output()
-        .unwrap();
+        .unwrap()
+}
+
+fn pod(args: &[&str], home: &Path, bin: &Path) -> Value {
+    let out = pod_out(args, home, bin);
     assert!(
         out.status.success(),
         "pod {args:?}: {}",
         String::from_utf8_lossy(&out.stderr)
     );
     serde_json::from_slice(&out.stdout).unwrap()
+}
+
+/// `pod hooks install <args>` as a user confirms it (TM-22): the dry run
+/// shows the plan and its digest, `--confirm <digest>` installs exactly it.
+fn install(args: &[&str], home: &Path, bin: &Path) -> Value {
+    let mut dry = vec!["hooks", "install", "--dry-run"];
+    dry.extend_from_slice(args);
+    let d = pod(&dry, home, bin);
+    let digest = d["confirm"].as_str().expect("dry run digest").to_string();
+    let mut real = vec!["hooks", "install"];
+    real.extend_from_slice(args);
+    real.extend_from_slice(&["--confirm", &digest]);
+    pod(&real, home, bin)
 }
 
 /// `canonicalize` without the verbatim prefix: the long, on-disk spelling.
@@ -127,7 +144,7 @@ fn install_reinstall_status_uninstall_keep_foreign_entries() {
     assert_eq!(std::fs::read_to_string(&settings).unwrap(), claude0);
     assert!(!bin.join("pod-hook.exe").exists());
 
-    let r = pod(&["hooks", "install", "--no-codex-trust"], &home, &bin);
+    let r = install(&["--no-codex-trust"], &home, &bin);
     assert_eq!(r["binary_copied"], json!(true));
     let exe = bin.join("pod-hook.exe");
     assert_eq!(std::fs::read(&exe).unwrap(), std::fs::read(POD).unwrap());
@@ -218,11 +235,7 @@ fn uninstall_removes_pod_codex_trust_entries_from_temp_config() {
     let home = tmp("untrust");
     let bin = tmp("bin4");
     seed(&home);
-    pod(
-        &["hooks", "install", "--no-codex-trust", "--agent", "codex"],
-        &home,
-        &bin,
-    );
+    install(&["--no-codex-trust", "--agent", "codex"], &home, &bin);
     let hooks = home.join(".codex").join("hooks.json");
     let key = |ev: &str, g: usize| format!("{}:{ev}:{g}:0", hooks.display());
     // Other tool: index 0 of SessionStart/Stop; Pod: index 1 there, 0 elsewhere.
@@ -312,7 +325,23 @@ fn status_reports_binary_paths_and_versions() {
     assert_eq!(st["bin_exists"], json!(false));
     assert!(st.get("bin_version").is_none());
     assert_eq!(st["source"], json!(source));
-    run(&["hooks", "install", "--no-codex-trust", "--agent", "claude"]);
+    let dry = run(&[
+        "hooks",
+        "install",
+        "--dry-run",
+        "--no-codex-trust",
+        "--agent",
+        "claude",
+    ]);
+    run(&[
+        "hooks",
+        "install",
+        "--no-codex-trust",
+        "--agent",
+        "claude",
+        "--confirm",
+        dry["confirm"].as_str().unwrap(),
+    ]);
     let st = run(&["hooks", "status"]);
     assert_eq!(st["bin_current"], json!(true));
     if hook.is_file() {
@@ -340,11 +369,7 @@ fn short_spelled_dirs_reach_agent_configs_in_long_spelling() {
         let _ = std::fs::remove_dir_all(&bin);
         return;
     };
-    let r = pod(
-        &["hooks", "install", "--no-codex-trust"],
-        &short_home,
-        &short_bin,
-    );
+    let r = install(&["--no-codex-trust"], &short_home, &short_bin);
     let exe = long_spelling(&bin).join("pod-hook.exe");
     assert_eq!(r["hook_exe"], json!(exe), "{r:#}");
     let exe_cmd = exe.display().to_string().replace('\\', "/");
@@ -372,15 +397,98 @@ fn install_creates_missing_files_and_uninstall_does_not() {
     let u = pod(&["hooks", "uninstall"], &home, &bin);
     assert!(u["files"].as_array().unwrap().is_empty());
     assert!(!home.join(".claude").exists());
-    let r = pod(
-        &["hooks", "install", "--no-codex-trust", "--agent", "claude"],
-        &home,
-        &bin,
-    );
+    let r = install(&["--no-codex-trust", "--agent", "claude"], &home, &bin);
     assert_eq!(r["files"][0]["action"], json!("created"));
     assert!(r["files"][0].get("backup").is_none());
     assert!(home.join(".claude/settings.json").exists());
     assert!(!home.join(".codex/hooks.json").exists());
+    let _ = std::fs::remove_dir_all(&home);
+    let _ = std::fs::remove_dir_all(&bin);
+}
+
+/// TM-22: a real install that changes agent configuration is confirmed.
+/// Without a console and without `--confirm` nothing is written (the
+/// message points at the dry run); a digest from before the settings
+/// changed is refused; the dry run's own digest installs; the hook command
+/// is the absolute pod-hook path.
+#[test]
+fn install_needs_the_users_confirmation_of_this_exact_plan() {
+    let home = tmp("confirm");
+    let bin = tmp("bin6");
+    let (claude0, codex0) = seed(&home);
+    let settings = home.join(".claude/settings.json");
+    let untouched = || {
+        assert_eq!(std::fs::read_to_string(&settings).unwrap(), claude0);
+        assert_eq!(
+            std::fs::read_to_string(home.join(".codex/hooks.json")).unwrap(),
+            codex0
+        );
+        assert!(!bin.join("pod-hook.exe").exists());
+        assert!(backups(&home.join(".claude"), "settings.json").is_empty());
+    };
+
+    let out = pod_out(&["hooks", "install", "--no-codex-trust"], &home, &bin);
+    assert!(!out.status.success());
+    let err = String::from_utf8_lossy(&out.stderr);
+    assert!(
+        err.contains("needs confirmation")
+            && err.contains("--dry-run")
+            && err.contains("--confirm"),
+        "{err}"
+    );
+    untouched();
+
+    let d = pod(
+        &["hooks", "install", "--dry-run", "--no-codex-trust"],
+        &home,
+        &bin,
+    );
+    let digest = d["confirm"].as_str().unwrap().to_string();
+    assert!(
+        digest.len() == 16 && digest.bytes().all(|b| b.is_ascii_hexdigit()),
+        "{digest}"
+    );
+    // The user edits the settings after the preview: that plan is gone.
+    let edited = claude0.replace("\"opus\"", "\"sonnet\"");
+    std::fs::write(&settings, &edited).unwrap();
+    let out = pod_out(
+        &["hooks", "install", "--no-codex-trust", "--confirm", &digest],
+        &home,
+        &bin,
+    );
+    assert!(!out.status.success());
+    assert!(
+        String::from_utf8_lossy(&out.stderr).contains("differs from the one confirmed"),
+        "{}",
+        String::from_utf8_lossy(&out.stderr)
+    );
+    assert_eq!(std::fs::read_to_string(&settings).unwrap(), edited);
+    assert!(!bin.join("pod-hook.exe").exists());
+
+    let r = install(&["--no-codex-trust"], &home, &bin);
+    let exe = long_spelling(&bin).join("pod-hook.exe");
+    assert!(exe.is_absolute());
+    let s = read_json(&settings);
+    assert_eq!(s["model"], json!("sonnet"), "the user's edit is kept");
+    let stop = commands(&s["hooks"]["Stop"]);
+    assert_eq!(
+        stop,
+        [format!(
+            "{} claude Stop",
+            exe.display().to_string().replace('\\', "/")
+        )]
+    );
+    assert_eq!(r["binary_copied"], json!(true));
+    // Installed: the same plan has nothing to change and needs no confirm.
+    let again = pod(&["hooks", "install", "--no-codex-trust"], &home, &bin);
+    assert!(
+        again["files"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .all(|f| f["action"] == json!("unchanged")),
+        "{again:#}"
+    );
     let _ = std::fs::remove_dir_all(&home);
     let _ = std::fs::remove_dir_all(&bin);
 }
@@ -401,7 +509,7 @@ fn codex_hooks_trusted_via_app_server_in_temp_home() {
     let bin = tmp("bin3");
     seed(&home);
     std::fs::write(home.join(".codex/config.toml"), "model = \"x\"\n").unwrap();
-    let r = pod(&["hooks", "install", "--agent", "codex"], &home, &bin);
+    let r = install(&["--agent", "codex"], &home, &bin);
     let t = &r["codex_trust"];
     assert_eq!(t["pod_hooks"], json!(9), "{r:#}");
     assert_eq!(t["newly_trusted"], json!(9));
@@ -423,7 +531,7 @@ fn codex_hooks_trusted_via_app_server_in_temp_home() {
     );
 
     // Again: nothing new to trust.
-    let r = pod(&["hooks", "install", "--agent", "codex"], &home, &bin);
+    let r = install(&["--agent", "codex"], &home, &bin);
     assert_eq!(r["codex_trust"]["newly_trusted"], json!(0));
     assert_eq!(r["codex_trust"]["untrusted"], json!(0));
 

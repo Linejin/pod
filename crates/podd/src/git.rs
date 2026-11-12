@@ -12,13 +12,15 @@
 //! guarded or bounded call of the worker paths, kept apart; `parse` reads
 //! git's output and runs nothing; `worktree` adds, lists and removes task
 //! worktrees; `query` answers questions about a repository or a worktree;
-//! `worker_commit` commits for a sandboxed worker. Pod's path-identity rule
+//! `worker_commit` commits for a sandboxed worker; `pin` opens and holds a
+//! worker's paths without following links. Pod's path-identity rule
 //! lives here. The public names are the ones this module always had.
 
 use std::path::{Path, PathBuf};
 
 mod command;
 mod parse;
+pub(crate) mod pin;
 mod query;
 mod worker_commit;
 mod worktree;
@@ -29,7 +31,7 @@ pub use query::{
     base_rev, branch_exists, default_base, diff, facts, is_ancestor, merge_base, ref_exists,
     repo_root, resolve_commit, show_file, valid_branch_name,
 };
-pub use worker_commit::commit_for_worker;
+pub use worker_commit::{commit_for_task_worker, commit_for_worker};
 pub use worktree::{
     WorktreeEntry, branch_delete, sparse_checkout, worktree_add, worktree_add_existing,
     worktree_add_no_checkout, worktree_list, worktree_prune, worktree_remove,

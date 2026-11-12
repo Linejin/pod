@@ -3,16 +3,20 @@
 # scripted Responses API (codex-mock-responses.py) that makes it run fixed
 # shell commands through its own exec policy and sandbox.
 #
-#   tools\e2e\codex-allowance-probe.ps1 [-NoBuild]
+#   tools\e2e\codex-allowance-probe.ps1 [-NoBuild] [-PolicyOnly]
+#
+# -PolicyOnly: only section 0, the offline exec-policy matrix (`codex
+# execpolicy check`: no model, no podd, no build; needs target\debug\pod.exe).
 #
 # Isolation: a temp repository + linked worktree, its own podd (pipe, state,
 # worktrees), `codex exec --ephemeral` (no session files). The user's Codex
 # config is read (as a real worker would) but never written. The rules are
-# the ones podd writes (taken from crates/podd/src/server/codex_allowance.rs).
+# the ones podd writes (taken from crates/podd/src/server/codex_allowance.rs:
+# RULES plus the PIN of this build's pod.exe, docs/19 §18.6).
 # Section 4 starts a real Pod worker (an idle PowerShell as its agent) for
 # the repository-filter check (docs/19 §18.5).
 # Evidence: target/e2e/codex-allowance/ (probe.log, mock logs, exec output).
-param([switch]$NoBuild, [int]$Port = 18431)
+param([switch]$NoBuild, [switch]$PolicyOnly, [int]$Port = 18431)
 $ErrorActionPreference = 'Stop'
 $Repo = Resolve-Path (Join-Path $PSScriptRoot '..\..')
 $Bin = Join-Path $Repo 'target\debug'
@@ -22,11 +26,11 @@ $Log = Join-Path $Out 'probe.log'
 Set-Content $Log "codex-allowance probe $(Get-Date -Format s)"
 function Note($s) { Write-Host $s; Add-Content $Log $s }
 
-if (-not $NoBuild) {
+if (-not $NoBuild -and -not $PolicyOnly) {
   & cargo build -p podd --bins -p pod-cli --bin pod
   if ($LASTEXITCODE) { throw 'build failed' }
 }
-$python = (Get-Command python -ErrorAction Stop).Source
+if (-not $PolicyOnly) { $python = (Get-Command python -ErrorAction Stop).Source }
 Note "codex: $((Get-Command codex).Source) $(codex --version)"
 
 # Temp repository + linked worktree (a Pod worker's layout).
@@ -45,10 +49,68 @@ git -C $Main worktree add -q -b pod/probe $Wt
 $src = Get-Content -Raw (Join-Path $Repo 'crates\podd\src\server\codex_allowance.rs')
 $rules = [regex]::Match($src, 'pub const RULES: &str = r#"(?s)(.*?)"#;').Groups[1].Value
 $excl = [regex]::Match($src, 'pub const EXCLUDE_LINE: &str = "(.*?)";').Groups[1].Value
-function Install-Rules {
+$pinT = [regex]::Match($src, 'pub const PIN: &str = r#"(?s)(.*?)"#;').Groups[1].Value
+# The pod.exe podd pins (beside podd, on-disk spelling) and the rules file.
+$PodPin = (Get-Item (Join-Path $Bin 'pod.exe')).FullName
+function Rules-Text([string]$pod) { $rules + $pinT.Replace('{pod}', $pod.Replace('\', '\\').Replace('"', '\"')) }
+$pinned = Rules-Text $PodPin
+# -Unpinned: the rules before TM-21 (no host_executable), for "before" runs.
+function Install-Rules([switch]$Unpinned) {
   New-Item -ItemType Directory -Force (Join-Path $Wt '.codex\rules') | Out-Null
-  [IO.File]::WriteAllText((Join-Path $Wt '.codex\rules\pod-worker.rules'), $rules)
+  [IO.File]::WriteAllText((Join-Path $Wt '.codex\rules\pod-worker.rules'), $(if ($Unpinned) { $rules } else { $pinned }))
   Add-Content (Join-Path $Main '.git\info\exclude') $excl
+}
+
+# 0. Offline exec-policy matrix (docs/19 §18.6): what Codex's own policy
+# checker says about the rules podd writes. No model, no sandbox, no podd.
+# `--resolve-host-executables` matches a program given as a path by its
+# base name, gated by host_executable(); a fake pod.exe in the worktree is
+# what a sandboxed worker can write.
+$fails0 = 0
+function Policy([string]$rulesFile, [string[]]$cmd, [switch]$Extra) {
+  $a = @('execpolicy', 'check', '-r', $rulesFile)
+  if ($Extra) { $a += @('-r', (Join-Path $Root 'repo-own.rules')) }
+  $out = (& codex @a --resolve-host-executables @cmd 2>&1 | Out-String)
+  $j = $out | ConvertFrom-Json -ErrorAction SilentlyContinue
+  [pscustomobject]@{ allow = ($j.decision -eq 'allow'); raw = $out.Trim() }
+}
+$fakeDir = Join-Path $Root 'elsewhere'; New-Item -ItemType Directory -Force $fakeDir | Out-Null
+Copy-Item C:\Windows\System32\cmd.exe (Join-Path $Wt 'pod.exe')
+Copy-Item C:\Windows\System32\cmd.exe (Join-Path $fakeDir 'pod.exe')
+$fPinned = Join-Path $Root 'pinned.rules'; [IO.File]::WriteAllText($fPinned, $pinned)
+$fOld = Join-Path $Root 'unpinned.rules'; [IO.File]::WriteAllText($fOld, $rules)
+[IO.File]::WriteAllText((Join-Path $Root 'repo-own.rules'), "host_executable(name=`"pod`", paths=[`"$((Join-Path $fakeDir 'pod.exe').Replace('\', '\\'))`"])`n")
+$matrix = @(
+  @{ what = 'bare pod orch check'; cmd = @('pod', 'orch', 'check'); pinned = $true; old = $true },
+  @{ what = 'the pinned pod.exe by path'; cmd = @($PodPin, 'orch', 'check'); pinned = $true; old = $true },
+  @{ what = 'fake pod.exe in the worktree, by path'; cmd = @((Join-Path $Wt 'pod.exe'), 'orch', 'check'); pinned = $false; old = $true },
+  @{ what = 'fake pod.exe elsewhere, by path'; cmd = @((Join-Path $fakeDir 'pod.exe'), 'orch', 'check'); pinned = $false; old = $true },
+  @{ what = 'pod orch worker start (not allowed)'; cmd = @('pod', 'orch', 'worker', 'start'); pinned = $false; old = $false },
+  @{ what = 'git commit (not allowed)'; cmd = @('git', 'commit', '-m', 'x'); pinned = $false; old = $false }
+)
+Push-Location $Wt
+try {
+  foreach ($m in $matrix) {
+    $p = Policy $fPinned $m.cmd; $o = Policy $fOld $m.cmd
+    $ok = ($p.allow -eq $m.pinned) -and ($o.allow -eq $m.old)
+    if (-not $ok) { $fails0++ }
+    Note ("{0}  policy: {1}: pinned {2}, unpinned (before) {3}" -f $(if ($ok) { 'PASS' } else { 'FAIL' }), $m.what, $(if ($p.allow) { 'allow' } else { 'no match' }), $(if ($o.allow) { 'allow' } else { 'no match' }))
+    if (-not $ok) { Note "      $($p.raw) | $($o.raw)" }
+  }
+  foreach ($c in @('.\pod.exe', 'pod.exe')) {
+    $p = Policy $fPinned @($c, 'orch', 'check')
+    if ($p.allow) { $fails0++ }
+    Note ("{0}  policy: fake {1} in the cwd (the worktree): pinned {2}" -f $(if (-not $p.allow) { 'PASS' } else { 'FAIL' }), $c, $(if ($p.allow) { 'allow' } else { 'no match' }))
+  }
+  # Why Pod adds nothing next to the repository's own rules: a later
+  # host_executable for `pod` replaces Pod's pin.
+  $p = Policy $fPinned @((Join-Path $fakeDir 'pod.exe'), 'orch', 'check') -Extra
+  Note ("INFO  policy: a repository rules file after Pod's re-pins pod to its own exe: {0}" -f $(if ($p.allow) { 'allow (so Pod refuses .codex with other files)' } else { 'no match' }))
+} finally { Pop-Location; Remove-Item (Join-Path $Wt 'pod.exe') -ErrorAction SilentlyContinue }
+if ($PolicyOnly) {
+  Remove-Item -Recurse -Force $Root -ErrorAction SilentlyContinue
+  Note $(if ($fails0) { "RESULT: $fails0 FAILED" } else { 'RESULT: PASS' })
+  exit [int]($fails0 -gt 0)
 }
 
 # Isolated podd; `pod` from this build first on PATH.
@@ -89,7 +151,7 @@ Add-Type -Namespace PodProbe -Name Env -MemberDefinition '[DllImport("kernel32.d
 function Set-RawEnv($k, $v) { [void][PodProbe.Env]::SetEnvironmentVariable($k, [string]$v) }
 function Code($o) { if ($o -match 'Process exited with code (\d+)') { [int]$Matches[1] } else { -1 } }
 
-$fails = 0
+$fails = $fails0
 function Check($what, $ok, $detail) {
   $s = if ($ok) { 'PASS' } else { $script:fails++; 'FAIL' }
   Note "$s  $what"
@@ -131,6 +193,28 @@ try {
   $lim = $r['pod orch limits --set max_workers=2']
   Check 'pod orch limits (not allowed) stays sandboxed' ((Code $lim) -ne 0) $lim
   Note "exec mode never asks: a command outside the rules fails in the sandbox instead of asking."
+  # 2b. A fake pod.exe (docs/19 §18.6, TM-21): a copy of cmd.exe the worker
+  # could write into its worktree, run by path with an allowed prefix and a
+  # trailing `/c` that writes OUTSIDE the worktree (the sandbox refuses
+  # that write). Rules before TM-21 (unpinned), then the pinned ones.
+  $fk = Join-Path $env:USERPROFILE "pod-codex-fakepod-$PID.txt"
+  Copy-Item C:\Windows\System32\cmd.exe (Join-Path $Wt 'pod.exe')
+  $fake = ".\pod.exe orch check /c `"echo fake > $fk`""
+  $fakeAbs = "$(Join-Path $Wt 'pod.exe') orch check /c `"echo fake-abs > $fk`""
+  $env:POD_ATTEMPT_ID = 'a99'; $env:POD_ATTEMPT_TOKEN = 'probe'; $env:POD_TERMINAL_ID = 't1'
+  try {
+    Install-Rules -Unpinned
+    $r = Probe 'fakepod-unpinned' @($fake)
+    Note ("INFO  before (unpinned rules): the fake pod.exe wrote outside the sandbox: {0} | {1}" -f (Test-Path $fk), ($r[$fake] -replace "`n", ' | '))
+    Remove-Item $fk -ErrorAction SilentlyContinue
+    Install-Rules
+    $r = Probe 'fakepod-pinned' @($fake, $fakeAbs, 'pod orch queue')
+    Check 'pinned: a fake pod.exe in the worktree (relative or absolute) stays in the sandbox' (-not (Test-Path $fk)) (($r.Values | ForEach-Object { $_ -replace "`n", ' ' }) -join ' | ')
+    Check 'pinned: Pod''s own pod still reaches the pipe' ((Code $r['pod orch queue']) -eq 0) $r['pod orch queue']
+  } finally {
+    Remove-Item Env:POD_ATTEMPT_ID, Env:POD_ATTEMPT_TOKEN, Env:POD_TERMINAL_ID -ErrorAction SilentlyContinue
+    Remove-Item (Join-Path $Wt 'pod.exe'), $fk -ErrorAction SilentlyContinue
+  }
   # 3. Escape attempts (docs/19 §18.1): a command that runs outside the
   # sandbox must not pick up a git config the sandboxed agent wrote. The
   # agent cannot touch the worktree's own `.git` file, but it can build

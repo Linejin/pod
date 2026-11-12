@@ -162,12 +162,101 @@ pub struct Lag {
 }
 
 /// One attached client's queue accounting (shared with its stream task).
-#[derive(Default)]
 pub struct SubShared {
     /// Output bytes sent into the channel and not yet taken by the stream task.
     pub queued: AtomicUsize,
+    /// This client's queue limit: the daemon's (`--attach-queue-limit`), or
+    /// the smaller remote one (v20, docs/17 R4).
+    pub limit: usize,
     /// Set (once) when the subscription was dropped for lagging.
     pub lag: Mutex<Option<Lag>>,
+}
+
+impl SubShared {
+    fn new(limit: usize) -> Self {
+        Self {
+            queued: AtomicUsize::new(0),
+            limit: limit.max(1),
+            lag: Mutex::new(None),
+        }
+    }
+}
+
+/// How one attach takes its snapshot and queues output.
+#[derive(Clone, Copy, Debug)]
+pub struct AttachSpec {
+    /// Scrollback lines asked for.
+    pub scrollback: usize,
+    /// Per-client queue limit (bytes).
+    pub queue_limit: usize,
+    /// Largest snapshot: scrollback is halved until it fits (v20 chunked
+    /// snapshots). `None`: no limit (local attach, unchanged).
+    pub max_snapshot: Option<usize>,
+}
+
+/// A taken attach: snapshot, its offset and the subscription.
+pub struct Attached {
+    pub snapshot: Vec<u8>,
+    pub seq: u64,
+    pub rx: AttachRx,
+    /// Scrollback lines left out to fit [`AttachSpec::max_snapshot`].
+    pub scrollback_omitted: usize,
+}
+
+/// `terminal.input_once` bookkeeping (docs/17 R4): the newest applied `seq`
+/// of the most recently used input streams of one terminal.
+#[derive(Default)]
+pub struct InputLedger {
+    /// Least recently used first.
+    streams: VecDeque<(String, InputEntry)>,
+}
+
+/// The newest input seen on one stream.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct InputEntry {
+    pub seq: u64,
+    /// Bytes written for it (0 when fenced).
+    pub bytes: usize,
+    /// False when a `check` fenced it before it arrived.
+    pub written: bool,
+}
+
+impl InputLedger {
+    /// Streams kept; the least recently used one is forgotten past this.
+    pub const KEPT: usize = crate::protocol::INPUT_STREAMS_KEPT;
+
+    /// The stream's newest entry when `seq` is not above it (seen before);
+    /// marks the stream used.
+    pub fn seen(&mut self, stream: &str, seq: u64) -> Option<InputEntry> {
+        let i = self.streams.iter().position(|(s, _)| s == stream)?;
+        let item = self.streams.remove(i)?;
+        let entry = item.1;
+        self.streams.push_back(item);
+        (seq <= entry.seq).then_some(entry)
+    }
+
+    /// Record `seq` as the stream's newest (written or fenced).
+    pub fn record(&mut self, stream: &str, entry: InputEntry) {
+        if let Some(i) = self.streams.iter().position(|(s, _)| s == stream) {
+            self.streams.remove(i);
+        }
+        self.streams.push_back((stream.to_string(), entry));
+        while self.streams.len() > Self::KEPT {
+            self.streams.pop_front();
+        }
+    }
+}
+
+/// What `terminal.input_once` did.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum OnceOutcome {
+    /// Written now: bytes forwarded and query replies dropped.
+    Written { bytes: usize, dropped: Filtered },
+    /// Seen before (this `seq` or a newer one); nothing written. `bytes`
+    /// is what was written for this very `seq` (0 for an older one).
+    Already { bytes: usize },
+    /// `check` of a `seq` never written: fenced, it never will be.
+    Fenced,
 }
 
 struct Sub {
@@ -216,11 +305,10 @@ impl TState {
     /// Send to every attached client. A client whose queue would pass the
     /// limit is dropped (its stream task reports `terminal.lagged`).
     fn broadcast(&mut self, msg: StreamMsg) {
-        let limit = attach_queue_limit();
         self.subs.retain(|s| {
             if let StreamMsg::Output { seq, data } = &msg {
                 let queued = s.shared.queued.load(Ordering::Relaxed);
-                if queued + data.len() > limit {
+                if queued + data.len() > s.shared.limit {
                     *s.shared.lag.lock().unwrap() = Some(Lag {
                         seq: *seq,
                         queued_bytes: queued as u64,
@@ -269,6 +357,8 @@ pub struct Terminal {
     expect: Mutex<Expectations>,
     /// What a person typed (attach input): unsent drafts (docs/19 짠4.3).
     human: Mutex<pod_orch::wake::DraftTracker>,
+    /// `terminal.input_once` streams (v20).
+    input_ledger: Mutex<InputLedger>,
 }
 
 impl Terminal {
@@ -380,6 +470,7 @@ impl Terminal {
             last_output_ms: AtomicU64::new(0),
             expect: Mutex::new(Expectations::default()),
             human: Mutex::new(Default::default()),
+            input_ledger: Mutex::new(InputLedger::default()),
         });
         let t = term.clone();
         tokio::spawn(async move {
@@ -467,6 +558,7 @@ impl Terminal {
             last_output_ms: AtomicU64::new(0),
             expect: Mutex::new(Expectations::default()),
             human: Mutex::new(Default::default()),
+            input_ledger: Mutex::new(InputLedger::default()),
             id,
         }))
     }
@@ -642,6 +734,45 @@ impl Terminal {
         Ok((n, dropped))
     }
 
+    /// `terminal.input_once` (v20): [`Terminal::attach_input`] at most once
+    /// per `(stream, seq)`; with `check` only report and fence. Look-up,
+    /// write and record happen under the ledger lock, so a delivery and a
+    /// check (or two deliveries) racing on two connections never both see
+    /// "not seen". Input the holder refused is not recorded.
+    pub fn input_once(
+        &self,
+        stream: &str,
+        seq: u64,
+        bytes: &[u8],
+        check: bool,
+    ) -> Result<OnceOutcome, InputRefused> {
+        let mut ledger = self.input_ledger.lock().unwrap();
+        if let Some(e) = ledger.seen(stream, seq) {
+            return Ok(match (e.seq == seq, e.written) {
+                (true, true) => OnceOutcome::Already { bytes: e.bytes },
+                (true, false) => OnceOutcome::Fenced,
+                (false, _) => OnceOutcome::Already { bytes: 0 },
+            });
+        }
+        if check {
+            let entry = InputEntry {
+                seq,
+                bytes: 0,
+                written: false,
+            };
+            ledger.record(stream, entry);
+            return Ok(OnceOutcome::Fenced);
+        }
+        let (n, dropped) = self.attach_input(bytes)?;
+        let entry = InputEntry {
+            seq,
+            bytes: n,
+            written: true,
+        };
+        ledger.record(stream, entry);
+        Ok(OnceOutcome::Written { bytes: n, dropped })
+    }
+
     /// Record input a person sent from an attach client. True when they typed
     /// (not just focus reports or query replies).
     pub fn note_human_input(&self, bytes: &[u8]) -> bool {
@@ -715,12 +846,32 @@ impl Terminal {
             .any(|l| l.contains(needle) && strip(l).contains(needle))
     }
 
-    /// Snapshot + subscription, atomically. Returns (snapshot ANSI, seq, receiver).
+    /// Snapshot + subscription, atomically, with the daemon's queue limit.
+    /// Returns (snapshot ANSI, seq, receiver).
     pub fn attach(&self, scrollback: usize) -> (Vec<u8>, u64, AttachRx) {
+        let a = self.attach_with(AttachSpec {
+            scrollback,
+            queue_limit: attach_queue_limit(),
+            max_snapshot: None,
+        });
+        (a.snapshot, a.seq, a.rx)
+    }
+
+    /// Snapshot + subscription, atomically. With `max_snapshot` the
+    /// scrollback is halved (down to none) until the snapshot fits; the
+    /// visible screen alone is never cut.
+    pub fn attach_with(&self, spec: AttachSpec) -> Attached {
         let (tx, rx) = mpsc::unbounded_channel();
-        let shared = Arc::new(SubShared::default());
+        let shared = Arc::new(SubShared::new(spec.queue_limit));
         let mut st = self.state.lock().unwrap();
-        let snapshot = st.vt.snapshot_ansi(scrollback);
+        let mut lines = spec.scrollback;
+        let mut snapshot = st.vt.snapshot_ansi(lines);
+        if let Some(max) = spec.max_snapshot {
+            while snapshot.len() > max && lines > 0 {
+                lines /= 2;
+                snapshot = st.vt.snapshot_ansi(lines);
+            }
+        }
         let seq = st.vt.seq();
         match &st.exit {
             Some(e) => {
@@ -731,7 +882,12 @@ impl Terminal {
                 shared: shared.clone(),
             }),
         }
-        (snapshot, seq, AttachRx { rx, shared })
+        Attached {
+            snapshot,
+            seq,
+            rx: AttachRx { rx, shared },
+            scrollback_omitted: spec.scrollback - lines,
+        }
     }
 }
 
@@ -744,6 +900,40 @@ mod tests {
 
     fn timed_out(r: io::Result<Arc<Terminal>>) -> bool {
         matches!(r, Err(e) if e.kind() == io::ErrorKind::TimedOut)
+    }
+
+    fn written(seq: u64, bytes: usize) -> InputEntry {
+        InputEntry {
+            seq,
+            bytes,
+            written: true,
+        }
+    }
+
+    /// `terminal.input_once` ledger (docs/17 R4): per stream the newest seq;
+    /// anything not above it was seen; least recently used streams go first.
+    #[test]
+    fn input_ledger_remembers_the_newest_seq_per_stream() {
+        let mut l = InputLedger::default();
+        assert_eq!(l.seen("a", 1), None, "unknown stream");
+        l.record("a", written(1, 5));
+        assert_eq!(l.seen("a", 1), Some(written(1, 5)));
+        assert_eq!(l.seen("a", 0), Some(written(1, 5)), "older seqs too");
+        assert_eq!(l.seen("a", 2), None, "the next one is new");
+        assert_eq!(l.seen("b", 1), None, "streams are separate");
+        l.record("a", written(2, 3));
+        assert_eq!(l.seen("a", 2), Some(written(2, 3)));
+
+        // Fill past the limit: "a" is used again, so the oldest other goes.
+        for i in 0..InputLedger::KEPT - 1 {
+            l.record(&format!("s{i}"), written(1, 1));
+        }
+        assert!(l.seen("a", 2).is_some(), "a touched: most recently used");
+        l.record("new", written(1, 1));
+        assert_eq!(l.streams.len(), InputLedger::KEPT);
+        assert!(l.seen("s0", 1).is_none(), "least recently used forgotten");
+        assert!(l.seen("a", 2).is_some());
+        assert!(l.seen("new", 1).is_some());
     }
 
     /// Every frame in `bytes` (encoded), in order.

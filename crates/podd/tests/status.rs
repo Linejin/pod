@@ -589,17 +589,28 @@ fn pod_cli_wait_status_and_ls() {
             .contains("pod-hook")
     );
     assert!(!tmp.exists(), "dry run must not create anything");
-    // A real install, into the temporary profile dirs only.
-    let out = Command::new(&pod)
-        .args(["hooks", "install", "--scope", "profile", "--no-codex-trust"])
-        .arg("--claude-config-dir")
-        .arg(&cl)
-        .arg("--codex-home")
-        .arg(&cx)
-        .arg("--bin-dir")
-        .arg(tmp.join("bin"))
-        .output()
-        .unwrap();
+    // A real install, into the temporary profile dirs only. It changes
+    // agent configuration, so it needs the dry run's digest (TM-22).
+    let install = |extra: &[&str]| {
+        Command::new(&pod)
+            .args(["hooks", "install", "--scope", "profile", "--no-codex-trust"])
+            .args(extra)
+            .arg("--claude-config-dir")
+            .arg(&cl)
+            .arg("--codex-home")
+            .arg(&cx)
+            .arg("--bin-dir")
+            .arg(tmp.join("bin"))
+            .output()
+            .unwrap()
+    };
+    let out = install(&[]);
+    assert!(!out.status.success(), "unconfirmed install refused");
+    assert!(!tmp.exists(), "a refused install writes nothing");
+    let out = install(&["--dry-run", "--json"]);
+    let plan: serde_json::Value = serde_json::from_slice(&out.stdout).unwrap();
+    let digest = plan["confirm"].as_str().expect("confirm digest");
+    let out = install(&["--confirm", digest]);
     assert!(
         out.status.success(),
         "{}",

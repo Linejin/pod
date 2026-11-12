@@ -30,7 +30,7 @@ fn name_via_old<M: podd::protocol::Method>() -> &'static str {
 }
 
 fn golden() -> Value {
-    let path = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures/wire-v19.json");
+    let path = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures/wire-v20.json");
     let text = std::fs::read_to_string(&path).unwrap_or_else(|e| panic!("{path:?}: {e}"));
     serde_json::from_str(&text).unwrap()
 }
@@ -171,7 +171,11 @@ fn shared_items_and_reexports_are_the_same() {
     same::<podd::orch_run_protocol::MsgText, pod_orch::text::MsgText>();
     same::<podd::protocol::DiscoveredAgent, pod_discover::Agent>();
 
-    assert_eq!(podd::protocol::PROTOCOL_VERSION, 19);
+    // v20 (docs/17 R4): chunked attach and `terminal.input_once`.
+    assert_eq!(podd::protocol::PROTOCOL_VERSION, 20);
+    same::<podd::protocol::InputOnceParams, pod_protocol::remote_protocol::InputOnceParams>();
+    same::<podd::protocol::SnapshotChunkEvent, pod_protocol::remote_protocol::SnapshotChunkEvent>();
+    same::<podd::protocol::TerminalInputOnce, pod_protocol::protocol::TerminalInputOnce>();
     assert_eq!(podd::protocol::PROTOCOL_MIN, 11);
     assert_eq!(
         podd::protocol::PROTOCOL_VERSION,

@@ -213,9 +213,17 @@ fn english(t: &MsgText) -> String {
                     p("gate")
                 )
             };
-            b.push_str(&format!(
-                "\n\nDecide with `{how}`; a person can decide it in the Gates panel too."
-            ));
+            if p("decider") == "person" {
+                // O1 (docs/19 §19): the trust policy keeps this gate for a person.
+                b.push_str(&format!(
+                    "\n\nA person decides this {} gate (the Gates panel or the phone); the agent trust policy does not let the coordinator decide it.",
+                    p("kind")
+                ));
+            } else {
+                b.push_str(&format!(
+                    "\n\nDecide with `{how}`; a person can decide it in the Gates panel too."
+                ));
+            }
             b
         }
         GATE_SETTLED_BODY => {
@@ -294,6 +302,21 @@ mod tests {
             body,
             "m\n\noptions: a | b\n\nDecide with `pod orch gate decide g2 --choice <option> (or --reject)`; a person can decide it in the Gates panel too."
         );
+    }
+
+    #[test]
+    fn a_gate_for_a_person_says_so() {
+        let t = MsgText::new(GATE_REQUESTED_BODY)
+            .with("gate", "g2")
+            .with("message", "merge a1 into master?")
+            .with("kind", "merge")
+            .with("decider", "person");
+        let en = t.en();
+        assert!(
+            en.starts_with("merge a1 into master?\n\nA person decides this merge gate"),
+            "{en}"
+        );
+        assert!(!en.contains("pod orch gate decide"), "{en}");
     }
 
     #[test]

@@ -1,12 +1,12 @@
 //! Codex hook events: how each one maps to Pod states, and the events Pod
 //! installs in Codex's hooks config.
 
-use super::{ChildEffect, HookEffect, QUESTION_TOOLS, child_id, s};
+use super::{ChildEffect, HookEffect, QUESTION_TOOLS, child_id, s, text};
 use crate::types::{AgentState, BlockedKind, Outcome};
 use serde_json::Value;
 
 pub(super) fn map_codex(event: &str, p: &Value) -> HookEffect {
-    let tool = s(p, "tool_name");
+    let tool = text(p, "tool_name");
     match event {
         "SessionStart" => HookEffect {
             session_boundary: true,
@@ -34,7 +34,7 @@ pub(super) fn map_codex(event: &str, p: &Value) -> HookEffect {
                 child: Some(ChildEffect::Set {
                     id: child_id(&id),
                     state: AgentState::Working,
-                    title: s(p, "agent_type"),
+                    title: text(p, "agent_type"),
                 }),
                 ..HookEffect::none()
             },

@@ -379,6 +379,67 @@ impl Daemon {
         })
     }
 
+    /// `terminal.input_once` (v20, docs/17 R4): `terminal.input` at most once
+    /// per `(stream, seq)`; `check` reports and fences without writing.
+    pub(in crate::server) fn input_once(
+        &self,
+        p: InputOnceParams,
+    ) -> Result<InputOnceResult, RpcError> {
+        if !valid_input_stream(&p.stream) {
+            return Err(RpcError::new(
+                codes::INVALID_PARAMS,
+                format!("stream: 1-{INPUT_STREAM_MAX} characters A-Za-z0-9_- expected"),
+            ));
+        }
+        // A check may ask about a terminal that has exited since.
+        let t = if p.check {
+            self.resolve(&p.target)?
+        } else {
+            self.running(&p.target)?
+        };
+        let bytes = if p.check {
+            Vec::new()
+        } else {
+            b64_decode(&p.data)
+                .map_err(|e| RpcError::new(codes::INVALID_PARAMS, format!("data: {e}")))?
+        };
+        let outcome = t
+            .input_once(&p.stream, p.seq, &bytes, p.check)
+            .map_err(|e| input_err(&t, e))?;
+        let (outcome, n, dropped) = match outcome {
+            terminal::OnceOutcome::Written { bytes: n, dropped } => {
+                if t.note_human_input(&bytes) {
+                    self.orch_on_human_input(&t.id);
+                }
+                if dropped.total() > 0 {
+                    log(&format!(
+                        "{}: dropped query replies from attach input ({} duplicate, {} late)",
+                        t.id, dropped.duplicate, dropped.late
+                    ));
+                }
+                let dropped = (dropped.total() > 0).then_some(DroppedReplies {
+                    duplicate: dropped.duplicate,
+                    late: dropped.late,
+                });
+                (InputOnceOutcome::Written, n, dropped)
+            }
+            terminal::OnceOutcome::Already { bytes: n } => {
+                log(&format!(
+                    "{}: input {}#{} seen before; not written again",
+                    t.id, p.stream, p.seq
+                ));
+                (InputOnceOutcome::Already, n, None)
+            }
+            terminal::OnceOutcome::Fenced => (InputOnceOutcome::Fenced, 0, None),
+        };
+        Ok(InputOnceResult {
+            id: t.id.clone(),
+            outcome,
+            bytes: n,
+            dropped_replies: dropped,
+        })
+    }
+
     pub(in crate::server) fn read(&self, p: ReadParams) -> Result<ReadResult, RpcError> {
         let t = self.resolve(&p.target)?;
         let (mut lines, cursor, suggestion) = if p.raw {

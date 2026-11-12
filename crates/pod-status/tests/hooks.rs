@@ -9,6 +9,8 @@ use pod_status::install::{
     ApplyOptions, HookCommandSpec, InstallScope, apply_plan, claude_hooks_block, codex_hooks_block,
     is_user_agent_config, merge_hooks, plan_install, plan_uninstall, remove_pod_hooks,
 };
+use std::path::Path;
+
 use pod_status::{AgentState, BlockedKind, HookAgent, HookMessage, Outcome};
 use serde_json::{Value, json};
 
@@ -569,6 +571,103 @@ fn malformed_existing_file_is_an_error_not_overwritten() {
         std::fs::read_to_string(tmp.path().join("settings.json")).unwrap(),
         "{ not json"
     );
+}
+
+/// TM-22: only an absolute local `pod-hook.exe` without shell-expanded
+/// characters is written into agent configs; the plan refuses anything
+/// else (uninstall plans do not need an executable).
+#[test]
+fn hook_exe_must_be_absolute_plain_pod_hook() {
+    use pod_status::install::check_hook_exe;
+    for ok in [
+        r"C:\Users\u\AppData\Local\Pod\bin\pod-hook.exe",
+        "C:/Program Files (x86)/Pod & Co/pod-hook.exe",
+        r"D:\사용자\Pod\bin\POD-HOOK.EXE",
+    ] {
+        assert!(check_hook_exe(Path::new(ok)).is_ok(), "{ok}");
+    }
+    for bad in [
+        "pod-hook.exe",
+        r"bin\pod-hook.exe",
+        r"\\server\share\pod-hook.exe",
+        "//server/share/pod-hook.exe",
+        r"\\?\C:\pod\pod-hook.exe",
+        r"C:\pod\evil.exe",
+        r"C:\pod\pod-hook.exe.cmd",
+        r"C:\100%\pod-hook.exe",
+        r"C:\$HOME\pod-hook.exe",
+        r"C:\a`b\pod-hook.exe",
+        r"C:\a!b\pod-hook.exe",
+        "C:\\a\nb\\pod-hook.exe",
+    ] {
+        assert!(check_hook_exe(Path::new(bad)).is_err(), "{bad:?}");
+    }
+    let tmp = tempfile::tempdir().unwrap();
+    let scope = InstallScope::Profile {
+        claude_config_dir: tmp.path().join("c"),
+        codex_home: tmp.path().join("x"),
+    };
+    let relative = HookCommandSpec::new("pod-hook.exe");
+    let err = plan_install(&scope, &relative, &[HookAgent::Claude]).unwrap_err();
+    assert_eq!(err.kind(), std::io::ErrorKind::InvalidInput, "{err}");
+    assert!(plan_uninstall(&scope, &relative, &[HookAgent::Claude]).is_ok());
+}
+
+/// Paths with anything but letters, digits and `-_./:` are quoted (a `&`
+/// or `(` would split the command in cmd/bash otherwise); plain ones stay
+/// as they were, so existing installs stay unchanged.
+#[test]
+fn hook_command_quoting() {
+    let cmd = |p: &str| HookCommandSpec::new(p).command(HookAgent::Claude, "Stop");
+    assert_eq!(
+        cmd(r"C:\Users\u\AppData\Local\Pod\bin\pod-hook.exe"),
+        "C:/Users/u/AppData/Local/Pod/bin/pod-hook.exe claude Stop"
+    );
+    assert_eq!(
+        cmd(r"D:\사용자\bin\pod-hook.exe"),
+        "D:/사용자/bin/pod-hook.exe claude Stop"
+    );
+    assert_eq!(
+        cmd(r"C:\Tom&Jerry\pod-hook.exe"),
+        "\"C:/Tom&Jerry/pod-hook.exe\" claude Stop"
+    );
+    assert_eq!(
+        cmd(r"C:\Program Files\Pod\pod-hook.exe"),
+        "\"C:/Program Files/Pod/pod-hook.exe\" claude Stop"
+    );
+}
+
+/// A command is Pod's only in Pod's exact shape; another tool whose command
+/// merely mentions `pod-hook` keeps its hook through install and uninstall.
+#[test]
+fn only_exact_pod_commands_are_pods() {
+    use pod_status::install::is_pod_command;
+    for pod in [
+        "C:/Users/u/AppData/Local/Pod/bin/pod-hook.exe claude Stop",
+        "\"C:/Program Files/Pod/pod-hook.exe\" codex PermissionRequest",
+        r"C:\old\POD-HOOK.EXE claude SessionStart",
+        "pod-hook claude Stop",
+    ] {
+        assert!(is_pod_command(pod), "{pod}");
+    }
+    for other in [
+        "C:/tools/my-pod-hook-logger.exe claude Stop",
+        "C:/tools/notify.cmd --after pod-hook",
+        "C:/pod/pod-hook.exe claude Stop && evil.exe",
+        "C:/pod/pod-hook.exe gemini Stop",
+        "C:/pod/pod-hook.exe claude",
+        "\"C:/pod/pod-hook.exe claude Stop",
+        "C:/pod/pod-hook.exe.cmd claude Stop",
+    ] {
+        assert!(!is_pod_command(other), "{other}");
+    }
+    let foreign = json!({"hooks": {"Stop": [
+        {"hooks": [{"type": "command", "command": "C:/tools/my-pod-hook-logger.exe claude Stop"}]},
+        {"hooks": [{"type": "command", "command": "C:/tools/notify.cmd --after pod-hook"}]}
+    ]}});
+    let installed = merge_hooks(foreign.clone(), &claude_hooks_block(&spec()));
+    assert_eq!(installed["hooks"]["Stop"].as_array().unwrap().len(), 3);
+    assert_eq!(remove_pod_hooks(installed), foreign);
 }
 
 // ───────────── pinned mapping matrix (refactor D-P7) ─────────────

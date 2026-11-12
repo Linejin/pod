@@ -48,7 +48,7 @@ use super::terminal::Terminal;
 use super::{Daemon, log, params, to_value};
 use crate::protocol::*;
 use hub::hub;
-use ingest::{load_token, same_secret, token_path};
+use ingest::{HookGate, Rejected, load_token, sweep_tokens, token_path};
 use stream::status_wait;
 
 pub use hub::now;
@@ -71,9 +71,11 @@ const TITLE_MAX: usize = 1024;
 
 // ───────────────────────────── ticker ─────────────────────────────
 
-/// Called once by `serve`: start the ticker.
+/// Called once by `serve`, after rediscovery: revoke the hook tokens no
+/// holder owns any more, then start the ticker.
 pub(super) fn start(daemon: &Arc<Daemon>) {
     set_state_dir(&daemon.config.state_dir);
+    sweep_tokens(daemon);
     let daemon = daemon.clone();
     tokio::spawn(async move {
         let mut iv = tokio::time::interval(Duration::from_millis(SCREEN_INTERVAL_MS));
@@ -156,12 +158,28 @@ fn save_persisted(id: &str, p: &Persisted) {
     }
 }
 
-/// The hook message as persisted: no token, no large payload fields.
+/// The persisted payload as a whole stays under this (fields in order; a
+/// flood of small fields cannot make every hook a large write).
+const PERSIST_PAYLOAD_MAX: usize = 32 * 1024;
+
+/// The hook message as persisted: no token, no large payload fields, no
+/// more than [`PERSIST_PAYLOAD_MAX`] of payload, only an object payload.
 fn slim_hook(msg: &HookMessage) -> HookMessage {
     let mut m = msg.clone();
     m.token = None;
-    if let Value::Object(map) = &mut m.payload {
-        map.retain(|_, v| serde_json::to_string(v).is_ok_and(|s| s.len() <= PERSIST_FIELD_MAX));
+    match &mut m.payload {
+        Value::Object(map) => {
+            let mut used = 0;
+            map.retain(|k, v| {
+                let n = serde_json::to_string(v).map_or(usize::MAX, |s| s.len());
+                let keep = n <= PERSIST_FIELD_MAX && used + k.len() + n <= PERSIST_PAYLOAD_MAX;
+                if keep {
+                    used += k.len() + n;
+                }
+                keep
+            });
+        }
+        other => *other = Value::Null,
     }
     m
 }
@@ -180,7 +198,8 @@ struct Inner {
     last_screen: String,
     last_screen_at: Millis,
     last_tick: Millis,
-    token: Option<String>,
+    /// Hook admission: token, lifetime, flood limit (TM-22).
+    gate: HookGate,
     hooks_accepted: u64,
     hooks_rejected: u64,
     /// Last published status and its sequence number.
@@ -245,7 +264,7 @@ impl TermStatus {
                 last_screen: String::new(),
                 last_screen_at: 0,
                 last_tick: now,
-                token: None,
+                gate: HookGate::default(),
                 hooks_accepted: 0,
                 hooks_rejected: 0,
                 published: None,
@@ -288,10 +307,15 @@ impl TermStatus {
         g.engine.on_input(data, now());
     }
 
-    /// The terminal's root process exited (or its holder vanished).
+    /// The terminal's root process exited (or its holder vanished): its
+    /// hook token dies with it (TM-22), so a leftover child holding it can
+    /// no longer report.
     pub fn on_exit(&self) {
         let mut g = self.inner.lock().unwrap();
         g.engine.on_process_exit(now());
+        if g.gate.revoke() {
+            ingest::revoke_token(&self.id);
+        }
         self.publish(&mut g);
     }
 
@@ -360,30 +384,23 @@ impl TermStatus {
         super::mods::sample(daemon, t, changed_screen.as_deref(), title);
     }
 
-    /// A hook message addressed to this terminal. Rejected unless its token
-    /// matches the one injected into this terminal's environment.
-    fn on_hook(&self, msg: &HookMessage) -> Result<(), &'static str> {
+    /// A hook message addressed to this terminal. Rejected (and counted)
+    /// unless its token matches the one injected into this terminal's
+    /// environment, the terminal still runs, the message is well formed and
+    /// the terminal is not flooding (`ingest::HookGate`). A rejection is
+    /// published at once only while it is reported; flood rejections reach
+    /// subscribers with the next ticker sample.
+    fn on_hook(&self, msg: &HookMessage) -> Result<(), Rejected> {
         let mut g = self.inner.lock().unwrap();
-        if g.token.is_none() {
-            g.token = load_token(&self.id);
-        }
-        let ok = match (&g.token, &msg.token) {
-            (Some(want), Some(got)) => same_secret(want, got),
-            _ => false,
-        };
-        if !ok {
+        let now = now();
+        if let Err(r) = g.gate.admit(msg, now, || load_token(&self.id)) {
             g.hooks_rejected += 1;
-            self.publish(&mut g);
-            return Err(if msg.token.is_none() {
-                "missing token"
-            } else if g.token.is_none() {
-                "no token on record"
-            } else {
-                "token mismatch"
-            });
+            if r.report.is_some() {
+                self.publish(&mut g);
+            }
+            return Err(r);
         }
         g.hooks_accepted += 1;
-        let now = now();
         g.engine.on_hook(msg, now);
         g.persisted.hook = Some(slim_hook(msg));
         g.persisted.hook_ms = now;

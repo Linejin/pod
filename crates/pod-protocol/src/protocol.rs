@@ -72,7 +72,15 @@ pub const JSONRPC_VERSION: &str = "2.0";
 /// holders a restarted daemon could not re-attach are listed instead of
 /// hidden (daemon-03). Clients that said `connection.hello` with an older
 /// protocol get them as `exited` + `lost` (see [`TerminalInfo::for_protocol`]).
-pub const PROTOCOL_VERSION: u32 = 19;
+/// v20 = v19 + remote attach resilience (docs/17 R4, `remote_protocol.rs`):
+/// on a connection whose `connection.hello` chose 20 or newer, the
+/// `terminal.attach` snapshot comes as `terminal.snapshot` chunks
+/// (`AttachResult.snapshot_chunks`/`snapshot_bytes`/`scrollback_omitted`),
+/// output notifications carry at most 32 KiB and the attach queue is 2 MiB;
+/// `terminal.input_once` (input applied at most once per `(stream, seq)`)
+/// and the `attach.chunks` capability. Nothing changes for connections
+/// without hello or with an older one (see [`downgrade_json`]).
+pub const PROTOCOL_VERSION: u32 = 20;
 
 // ---------------------------------------------------------------------------
 // Envelope
@@ -457,15 +465,28 @@ pub struct TerminalInfo {
 /// v19 `unreachable` terminal state anywhere in it becomes what that client
 /// can read. Objects shaped like [`TerminalInfo`] go through
 /// [`TerminalInfo::for_protocol`]; any other `state: "unreachable"` (e.g.
-/// `terminal.read`) becomes `exited`. No-op for v19 and later.
+/// `terminal.read`) becomes `exited`. Before v20 an [`AttachResult`] loses
+/// its chunk fields (the daemon never chunks for such a connection; this is
+/// the safety net). No-op for the current version.
 pub fn downgrade_json(v: &mut Value, protocol: u32) {
-    if protocol >= UNREACHABLE_PROTOCOL {
+    if protocol >= PROTOCOL_VERSION {
         return;
     }
     match v {
         Value::Array(items) => items.iter_mut().for_each(|x| downgrade_json(x, protocol)),
         Value::Object(map) => {
-            if map.get("state").and_then(Value::as_str) == Some("unreachable") {
+            if protocol < CHUNKED_ATTACH_PROTOCOL
+                && map.contains_key("snapshot")
+                && map.contains_key("terminal")
+                && map.contains_key("seq")
+            {
+                for k in ["snapshot_chunks", "snapshot_bytes", "scrollback_omitted"] {
+                    map.remove(k);
+                }
+            }
+            if protocol < UNREACHABLE_PROTOCOL
+                && map.get("state").and_then(Value::as_str) == Some("unreachable")
+            {
                 if map.contains_key("argv")
                     && let Ok(info) =
                         serde_json::from_value::<TerminalInfo>(Value::Object(map.clone()))
@@ -783,8 +804,21 @@ pub struct AttachResult {
     /// notification starts exactly here.
     pub seq: u64,
     /// ANSI bytes (base64) that reproduce the screen and some scrollback on a
-    /// terminal of `terminal.cols` x `terminal.rows`.
+    /// terminal of `terminal.cols` x `terminal.rows`. Empty when the snapshot
+    /// comes in chunks (`snapshot_chunks`).
     pub snapshot: String,
+    /// v20, connections whose hello chose 20 or newer: the snapshot follows
+    /// in exactly this many `terminal.snapshot` notifications, before any
+    /// other notification of the stream.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub snapshot_chunks: Option<u32>,
+    /// v20: total raw (decoded) bytes of those chunks.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub snapshot_bytes: Option<u64>,
+    /// v20: scrollback lines left out of the requested ones so the snapshot
+    /// stays within [`MAX_SNAPSHOT_BYTES`] (only with chunks).
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub scrollback_omitted: Option<usize>,
 }
 
 /// `terminal.output`: raw PTY output bytes `[seq, seq + len)`.
@@ -1272,6 +1306,7 @@ pub fn schema() -> Value {
         entry::<SessionsResume>(),
         entry::<SessionsHide>(),
         entry::<ConnectionHello>(),
+        entry::<TerminalInputOnce>(),
         entry::<MobileDevices>(),
         entry::<MobileRevoke>(),
         entry::<MobilePolicy>(),
@@ -1297,6 +1332,7 @@ pub fn schema() -> Value {
             NOTIFY_RESIZED: schemars::schema_for!(ResizedEvent),
             NOTIFY_EXITED: schemars::schema_for!(ExitedEvent),
             NOTIFY_LAGGED: schemars::schema_for!(LaggedEvent),
+            NOTIFY_SNAPSHOT: schemars::schema_for!(SnapshotChunkEvent),
             NOTIFY_STATUS_CHANGED: schemars::schema_for!(StatusChangedEvent),
             NOTIFY_STATUS_LAGGED: schemars::schema_for!(StatusLaggedEvent),
             NOTIFY_GATE_CHANGED: schemars::schema_for!(GateChangedEvent),
@@ -1359,6 +1395,39 @@ mod tests {
         }
     }
 
+    /// v20 chunk fields of `terminal.attach` exist only for v20 clients;
+    /// the unreachable rewrite still reaches the nested terminal.
+    #[test]
+    fn v20_attach_fields_are_dropped_for_older_clients() {
+        let mut u = TerminalInfo::new("t5", vec![], "", TerminalState::Unreachable, 0, 0, 1);
+        u.unreachable = Some("busy".into());
+        let chunked = json!({"jsonrpc": "2.0", "id": 1, "result": {
+            "terminal": u, "seq": 7, "snapshot": "",
+            "snapshot_chunks": 3, "snapshot_bytes": 70000, "scrollback_omitted": 500}});
+        let mut same = chunked.clone();
+        downgrade_json(&mut same, PROTOCOL_VERSION);
+        assert_eq!(same, chunked, "v20 untouched");
+        let mut v19 = chunked.clone();
+        downgrade_json(&mut v19, CHUNKED_ATTACH_PROTOCOL - 1);
+        let r = &v19["result"];
+        for k in ["snapshot_chunks", "snapshot_bytes", "scrollback_omitted"] {
+            assert!(r.get(k).is_none(), "{k} left for v19: {r}");
+        }
+        assert_eq!(
+            r["terminal"]["state"], "unreachable",
+            "v19 knows unreachable"
+        );
+        let mut v18 = chunked.clone();
+        downgrade_json(&mut v18, UNREACHABLE_PROTOCOL - 1);
+        assert_eq!(v18["result"]["terminal"]["state"], "exited");
+        assert!(v18["result"].get("snapshot_chunks").is_none());
+        // Other objects with the same key names are left alone.
+        let other = json!({"snapshot_chunks": 1, "seq": 2});
+        let mut o = other.clone();
+        downgrade_json(&mut o, PROTOCOL_MIN);
+        assert_eq!(o, other);
+    }
+
     #[test]
     fn wait_until_wire_shape() {
         assert_eq!(
@@ -1412,7 +1481,7 @@ mod tests {
             .chain(MOBILE_METHODS)
             .chain(SESSION_METHODS)
             .chain(SESSIONS_METHODS)
-            .chain([&ConnectionHello::NAME])
+            .chain([&ConnectionHello::NAME, &TerminalInputOnce::NAME])
         {
             assert!(s["methods"].get(*m).is_some(), "{m} missing from schema");
         }

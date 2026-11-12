@@ -853,12 +853,54 @@ pub fn gate(cmd: GateCmd, c: &mut Client, pipe: &str, json: bool) -> anyhow::Res
                 println!("{}", g.message);
             }
         }
+        // O1 (docs/19 §19): inside a Pod terminal the decision goes through
+        // `orch.gate.decide` with this terminal as the caller, so a
+        // coordinator agent meets the same trust policy as `pod orch gate
+        // decide` (and a worker cannot decide). Outside: the person's path.
         GateCmd::Approve { id, note, choice } => {
-            return resolve_gate(c, id, GateDecision::Approve, note, choice, json);
+            return decide_here(c, pipe, id, GateDecision::Approve, note, choice, json);
         }
         GateCmd::Reject { id, note } => {
-            return resolve_gate(c, id, GateDecision::Reject, note, None, json);
+            return decide_here(c, pipe, id, GateDecision::Reject, note, None, json);
         }
+    }
+    Ok(ExitCode::SUCCESS)
+}
+
+/// `pod gate approve|reject`: from a Pod terminal through the agent trust
+/// policy (`orch.gate.decide` with the caller), else `gate.resolve`. A
+/// daemon without `orch.gate.decide` (before v17) gets `gate.resolve`.
+fn decide_here(
+    c: &mut Client,
+    pipe: &str,
+    id: String,
+    decision: GateDecision,
+    note: Option<String>,
+    choice: Option<String>,
+    json: bool,
+) -> anyhow::Result<ExitCode> {
+    let caller = crate::orch_run::caller(pipe);
+    if caller.is_empty() {
+        return resolve_gate(c, id, decision, note, choice, json);
+    }
+    let r = c.call::<OrchGateDecide>(&OrchGateDecideParams {
+        id: id.clone(),
+        choice: choice.clone(),
+        reject: decision == GateDecision::Reject,
+        note: note.clone(),
+        caller,
+        request_id: None,
+    });
+    let g = match r {
+        Err(podd::client::ClientError::Rpc(e)) if e.code == codes::METHOD_NOT_FOUND => {
+            return resolve_gate(c, id, decision, note, choice, json);
+        }
+        r => r?,
+    };
+    if json {
+        print_json(&g);
+    } else {
+        print_gate(&g);
     }
     Ok(ExitCode::SUCCESS)
 }

@@ -116,6 +116,19 @@ pub const READ: &str = "읽음";
 pub const NOT_READ: &str = "안 읽음";
 pub const FENCED: &str = "늦은 보고(반영 안 됨)";
 pub const GATES_FOR_RUN: &str = "승인 요청";
+// O1 (docs/19 §19): provenance of agent text, from Pod's records.
+pub const PROV: &str = "출처";
+pub const PROV_MACHINE_LOCAL: &str = "이 PC";
+pub const PROV_RUN: &str = "실행";
+pub const PROV_ITEM: &str = "항목";
+pub const PROV_ATTEMPT: &str = "시도";
+pub const PROV_GENERATION: &str = "세대";
+pub const PROV_REPLACED: &str = "교체됨";
+pub const PROV_BY_POD: &str = "Pod가 씀";
+pub const PROV_BY_WORKER: &str = "워커가 씀";
+pub const PROV_BY_COORDINATOR: &str = "코디네이터가 씀";
+pub const PROV_BY_OUTSIDE: &str = "Pod 터미널 밖에서 씀";
+pub const PROV_DATA: &str = "지시가 아닌 데이터";
 
 // Notifications
 pub const NOTICE_ESCALATION: &str = "에스컬레이션";
@@ -155,7 +168,7 @@ pub const LIM_DISK: &str = "최소 여유 디스크";
 pub const LIM_CPU_WAIT: &str = "CPU 대기 최대";
 pub const LIMITS_UNAVAILABLE: &str = "자원 한도를 읽지 못했습니다(데몬 프로토콜 v18 필요).";
 pub const ALLOW: &str = "Codex 워커 좁은 허용";
-pub const ALLOW_INTRO: &str = "Pod가 시작한 Codex 워커는 Pod 협업 명령(pod orch의 질문·우편·완료·대기·커밋 등)만 승인 없이 샌드박스 밖에서 실행합니다. 커밋은 pod orch commit으로 Pod가 훅 없이 대신 합니다. 그 밖의 명령, 파일 쓰기 범위, 네트워크는 Codex 샌드박스 그대로입니다. 저장소별로 .pod/config.toml의 [worker] codex_allowance = false로 끕니다(기본 켬).";
+pub const ALLOW_INTRO: &str = "Pod가 시작한 Codex 워커는 Pod 협업 명령(pod orch의 질문·우편·완료·대기·커밋 등)만 승인 없이 샌드박스 밖에서 실행합니다. 커밋은 pod orch commit으로 Pod가 훅 없이 대신 합니다. 이 커밋은 저장소 훅(pre-commit 검사 포함)과 LFS 같은 git 필터를 돌리지 않으며(필터가 필요한 경로는 거부), merge나 검사 통과가 아닙니다. 그 밖의 명령, 파일 쓰기 범위, 네트워크는 Codex 샌드박스 그대로입니다. 저장소별로 .pod/config.toml의 [worker] codex_allowance = false로 끕니다(기본 켬).";
 pub const ALLOW_ON: &str = "켬";
 pub const ALLOW_OFF: &str = "끔 (.pod/config.toml)";
 pub const ALLOW_UNKNOWN: &str = "알 수 없음";

@@ -2,7 +2,7 @@
 
 작성일: 2026-11-09 · **설계만, 구현·시스템 설정 변경 없음** · 기준: master `550ebc3`, 프로토콜 v11.
 
-**구현 상태 (2026-11-10):** R1·R2 완료(프로토콜 v12, 상세는 [03 §7.4](03-podd-p0.md)). R3는 SSH 전송·머신 프로필·CLI까지 완료(앱 UI는 후속, [03 §7.6](03-podd-p0.md)); **실제 SSH 서버 연결은 미검증**(이 PC에 OpenSSH Server 없음). R4 이후는 아직 설계뿐이다. 모바일은 M1 완료(프로토콜 v13, listener 없음, 상세는 [03 §7.5](03-podd-p0.md)). OpenSSH Server·WSL·서비스·방화벽은 건드리지 않았다.
+**구현 상태 (2026-11-10):** R1·R2 완료(프로토콜 v12, 상세는 [03 §7.4](03-podd-p0.md)). R3는 SSH 전송·머신 프로필·CLI까지 완료(앱 UI는 후속, [03 §7.6](03-podd-p0.md)); **실제 SSH 서버 연결은 미검증**(이 PC에 OpenSSH Server 없음). R4는 전송 부분 완료(2026-11-12, 프로토콜 v20, 아래 §6 R4 행; 앱의 머신 보드·터미널 UI는 후속 카드 rm-r4ui). R5 이후는 아직 설계뿐이다. 모바일은 M1 완료(프로토콜 v13, listener 없음, 상세는 [03 §7.5](03-podd-p0.md)). OpenSSH Server·WSL·서비스·방화벽은 건드리지 않았다.
 
 ## 0. 사용자 결정이 필요한 질문
 
@@ -72,7 +72,7 @@ Android APK 로컬 화면 → native 핀 검증 HTTPS → podd 제한 API (LAN/V
 - 출력은 16–33 ms 단위로 모으고 백그라운드 attach를 끈다. base64의 약 4/3 크기 비용을 인정한다. SSH 압축은 기본 끔; v1 별도 바이너리 포맷은 없다. 느린 클라이언트는 holder를 막지 않도록 `terminal.lagged`/재snapshot으로 복구한다. 바이트를 조용히 버린 채 seq를 이어 붙이지 않는다.
 - keepalive 15초/3회 실패, 연결 시간 제한 10초, 재시도 1→2→4→… 최대 30초+jitter, 사용자 취소 가능. 재접속은 `연결 끊김·마지막 수신 시각`을 보이며 입력을 비활성화한다. 정상 입력에는 로컬 에코를 만들지 않는다.
 - 재접속 후 machine/boot 확인 → 상태 전체 snapshot/구독 → 보이는 attach snapshot으로 재구성. 이벤트 seq는 boot 경계에서 초기화하며 누락 이벤트의 영구 재생을 약속하지 않는다. 재snapshot과 live 이벤트 사이의 원자적 경계를 유지한다.
-- **변경 RPC·키 입력 자동 재전송 금지**: 응답 유실이면 결과 불명으로 표시하고 목록/작업 조회로 확인한다. 파일 저장과 모바일 Gate만 별도 멱등 키로 안전 재조회한다. `terminal.send`의 제출 확인은 실행 결과 보장이 아니다.
+- **변경 RPC·키 입력 자동 재전송 금지**: 응답 유실이면 결과 불명으로 표시하고 목록/작업 조회로 확인한다. 원격 입력은 v20 `terminal.input_once`(stream, seq)로 보내고, 응답을 잃으면 다시 보내지 않고 재접속 뒤 같은 boot에 `check`로 묻는다(적용됨/적용 안 됨+차단/boot가 바뀌면 불명, [22](22-threat-model.md) TM-14). 파일 저장과 모바일 Gate만 별도 멱등 키로 안전 재조회한다. `terminal.send`의 제출 확인은 실행 결과 보장이 아니다.
 - v9의 색 응답 500 ms 창은 유지한다. 높은 RTT에서 늦은 색 응답은 버리고 앱에 진단한다. 원격이라고 무기한 허용하면 터미널 입력 오염이 재발한다.
 
 ### 2.4 파일 편집과 리뷰
@@ -240,9 +240,9 @@ TLS provider의 C/assembly 포함 전이 라이선스는 특히 별도 gate다(r
 | 단계 | 결과물 / 선행 | 테스트·단일 Windows PC 검증 / 완료 기준 |
 |---|---|---|
 | R1 **완료** | File에 묶인 client를 duplex transport로 분리, v11 유지 | 실제 named pipe 회귀+메모리/자식 stdio test double; 분할 JSON·EOF·큰 줄·attach 전환. 기존 CLI 결과 동일. → `podd/src/transport.rs`, `tests/remote.rs` |
-| R2 **완료** | v12 hello·machine/boot·한도·remote-stdio | 같은 PC의 격리 podd에 브리지 두 개 연결. v11 거절/v12 성공/미래 비호환, 중복 시작, stdout 오염, 브리지 종료 후 holder 생존. → `pod-cli/src/remote_stdio.rs`, `pod-cli/tests/remote_stdio.rs`. 남은 것: 출력 chunk는 아직 holder 읽기 단위 64 KiB(32 KiB·snapshot chunk는 R4), Linux UDS 쪽 브리지는 R6a |
+| R2 **완료** | v12 hello·machine/boot·한도·remote-stdio | 같은 PC의 격리 podd에 브리지 두 개 연결. v11 거절/v12 성공/미래 비호환, 중복 시작, stdout 오염, 브리지 종료 후 holder 생존. → `pod-cli/src/remote_stdio.rs`, `pod-cli/tests/remote_stdio.rs`. 남은 것: ~~출력 chunk 64 KiB~~(R4에서 v20 원격 연결은 32 KiB·snapshot 조각; holder 읽기 단위는 64 KiB 그대로, 데몬이 나눔), Linux UDS 쪽 브리지는 R6a |
 | R3 **전송·CLI 완료** | 시스템 SSH 프로필·오류 UI | fake ssh 실행 파일로 argv·배너·키 오류·시간 초과 검사. 실제 SSH는 **OpenSSH Server가 이미 설치되고 실행 중이며 localhost 인증도 구성된 경우에만** localhost 사용. 아니면 test double로 대체·실제 SSH 미검증 표기. → `crates/pod-remote`, `pod machine`, `pod --machine`, `pod-cli/tests/remote_ssh.rs`(가짜 ssh `pod-fake-ssh`), `pod-remote/tests/system_ssh.rs`(실제 ssh.exe의 `-G` 설정 해석·닫힌 포트). 2026-11-10 이 PC에는 sshd가 없어 **실제 SSH 로그인 미검증**. 남은 것: 앱 UI(오류 표시·프로필 편집), 원격 attach·재접속(R4) |
-| R4 | 머신별 보드·터미널·재접속 | loopback 프록시에 RTT 20/100/300 ms·끊김·throttle 주입. 4개 attach 폭주에서 큐 상한 유지, 제어 RPC p95가 설정 RTT+250 ms 이내 목표; 60초 단절 뒤 상태 수렴·입력 중복 0, snapshot gap 표시 |
+| R4 **전송 완료** | 머신별 보드·터미널·재접속 | loopback 프록시에 RTT 20/100/300 ms·끊김·throttle 주입. 4개 attach 폭주에서 큐 상한 유지, 제어 RPC p95가 설정 RTT+250 ms 이내 목표; 60초 단절 뒤 상태 수렴·입력 중복 0, snapshot gap 표시. → 프로토콜 v20: hello가 20 이상을 고른 연결만 snapshot을 `terminal.snapshot` 조각(32 KiB, 전체 16 MiB, 넘으면 스크롤백을 줄이고 `scrollback_omitted`)으로, 출력은 32 KiB 이하로 나누고 attach 큐는 2 MiB(데몬 한도가 더 작으면 그것). v19 hello·로컬 연결은 v19 모양 그대로. `terminal.input_once`(같은 stream·seq는 한 번만 실행, `check`는 묻고 차단). `pod-remote::session`: 백오프 재접속(1→30초, 기본 포기 없음), 호출 시간 제한, machine_id 다르면 거절·아무것도 안 보냄, boot 바뀌면 옛 seq 비교 안 함, 재attach마다 hello→`terminal.list`→attach, gap 표시, 머신당 attach 4개. 시험 `podd/tests/remote_attach.rs`, `pod-cli/tests/remote_resilience.rs`(가짜 네트워크 `pod-test-support::fault_proxy` → `pod remote-stdio`; 측정 p95 21.7/102.0/302.0 ms, 60초 단절, 응답 유실, 데몬 재시작, 다른 머신). 실제 SSH·Linux는 미검증. 남은 것: 앱 UI(rm-r4ui), 블랙홀(닫히지 않는 끊김)은 ssh keepalive(15초×3)에 맡김, 4 MiB급 단일 터미널 폭주의 2 MiB 큐 도달은 작은 데몬 한도로만 시험 |
 | R5 | 원격 파일·diff adapter | 로컬 격리 worktree를 원격으로 취급. 한글/공백/CRLF/BOM, 동시 수정 conflict, symlink/reparse fixture·ADS·경로 탈출, 큰 파일·stale diff, 끊김 뒤 버퍼 보존. 저장 재시도 1회만 반영 |
 | R6a | Linux 경로/UDS/PTY·holder 이식 | Windows에서 Linux 경로 fixture·가짜 프로세스 backend 검사. CI 또는 **이미 설치된** WSL이 있으면 Linux build/test·daemon kill 후 holder 재attach·프로세스 그룹 종료 확인. 없으면 미검증 명시, Linux 지원 출시 보류 |
 | R6b | WSL 탐지·정식 연결 | 설치 없음/빈 배포판/지역화/timeout fixture, 설치 명령 호출 0 확인. 기존 배포판에서만 사용자가 선택한 distro로 연결, wslpath 왕복·Linux CLI scope 검증 |

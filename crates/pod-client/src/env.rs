@@ -163,20 +163,81 @@ pub fn git_config_entries(env: &BTreeMap<String, String>) -> Vec<(String, String
         .collect()
 }
 
-/// docs/19 §18.5: the guard for an orchestration worker's own git (and
-/// the git its agent program runs outside its sandbox): every filter
-/// driver in `drivers` or set in `base`'s command-line config emptied and
+/// `GIT_CONFIG_PARAMETERS` (how `git -c` hands its config to child gits):
+/// `'key'='value'` entries (or the older `'key=value'`), single-quoted with
+/// `'\''` / `'\!'` escapes, separated by spaces. Stops at the first entry
+/// it cannot read.
+pub fn parse_config_parameters(s: &str) -> Vec<(String, String)> {
+    fn quoted(it: &mut std::iter::Peekable<std::str::Chars<'_>>) -> Option<String> {
+        if it.next() != Some('\'') {
+            return None;
+        }
+        let mut s = String::new();
+        loop {
+            match it.next()? {
+                '\'' if it.peek() == Some(&'\\') => {
+                    it.next();
+                    s.push(it.next()?);
+                    if it.next() != Some('\'') {
+                        return None;
+                    }
+                }
+                '\'' => return Some(s),
+                c => s.push(c),
+            }
+        }
+    }
+    let mut out = Vec::new();
+    let mut it = s.chars().peekable();
+    loop {
+        while it.peek().is_some_and(|c| c.is_whitespace()) {
+            it.next();
+        }
+        if it.peek().is_none() {
+            break;
+        }
+        let Some(key) = quoted(&mut it) else { break };
+        if it.peek() == Some(&'=') {
+            it.next();
+            let Some(value) = quoted(&mut it) else { break };
+            out.push((key, value));
+        } else if let Some((k, v)) = key.split_once('=') {
+            out.push((k.to_string(), v.to_string()));
+        } else {
+            out.push((key, String::new()));
+        }
+    }
+    out
+}
+
+/// `s` single-quoted the way git writes `GIT_CONFIG_PARAMETERS`.
+fn sq_quote(s: &str) -> String {
+    format!("'{}'", s.replace('\'', "'\\''").replace('!', "'\\!'"))
+}
+
+/// docs/19 §18.5, §18.6: the guard for an orchestration worker's own git
+/// (and the git its agent program runs outside its sandbox): every filter
+/// driver in `drivers` or set in `base`'s command-line config
+/// (`GIT_CONFIG_COUNT` entries and `GIT_CONFIG_PARAMETERS`) emptied and
 /// not required, fsmonitor off, hooks from `no_hooks` (an empty folder).
 /// Returned as environment overrides that append to the command-line
-/// config `base` already has (the user's entries keep their places).
+/// config `base` already has (the user's entries keep their places). git
+/// applies `GIT_CONFIG_PARAMETERS` after the counted entries, so when
+/// `base` has one the guard is appended there too and still comes last.
+/// Drivers configured after the worker started are not in it (the policy
+/// is in docs/19 §18.6).
 pub fn worker_git_guard(
     base: &BTreeMap<String, String>,
     drivers: &[String],
     no_hooks: &str,
 ) -> BTreeMap<String, String> {
     let user = git_config_entries(base);
+    let params = get_var(base, "GIT_CONFIG_PARAMETERS").filter(|p| !p.trim().is_empty());
     let mut drivers = drivers.to_vec();
-    for (k, v) in &user {
+    for (k, v) in user
+        .iter()
+        .chain(&params.map(parse_config_parameters).unwrap_or_default())
+    {
         push_driver(&mut drivers, k, v);
     }
     let mut cfg: Vec<(String, String)> = vec![
@@ -199,6 +260,13 @@ pub fn worker_git_guard(
         "GIT_CONFIG_COUNT".to_string(),
         (first + cfg.len()).to_string(),
     );
+    if let Some(p) = params {
+        let mut all = p.trim_end().to_string();
+        for (k, v) in &cfg {
+            all.push_str(&format!(" {}={}", sq_quote(k), sq_quote(v)));
+        }
+        out.insert("GIT_CONFIG_PARAMETERS".to_string(), all);
+    }
     for (i, (k, v)) in cfg.into_iter().enumerate() {
         out.insert(format!("GIT_CONFIG_KEY_{}", first + i), k);
         out.insert(format!("GIT_CONFIG_VALUE_{}", first + i), v);
@@ -254,6 +322,72 @@ mod tests {
         assert_eq!(g["GIT_CONFIG_KEY_0"], "core.fsmonitor");
         let bad: BTreeMap<_, _> = [("GIT_CONFIG_COUNT".to_string(), "x".to_string())].into();
         assert_eq!(worker_git_guard(&bad, &[], "h")["GIT_CONFIG_COUNT"], "2");
+    }
+
+    #[test]
+    fn config_parameters_parse_like_git() {
+        assert_eq!(
+            parse_config_parameters(
+                "'core.fsmonitor'='false' 'old.style=1'  'a.b'='it'\\''s'\\!'' 'bare.key' 'x.y'"
+            ),
+            [
+                ("core.fsmonitor".to_string(), "false".to_string()),
+                ("old.style".into(), "1".into()),
+                ("a.b".into(), "it's!".into()),
+                ("bare.key".into(), String::new()),
+                ("x.y".into(), String::new()),
+            ]
+        );
+        assert_eq!(parse_config_parameters("'broken"), []);
+        assert_eq!(sq_quote("it's!"), "'it'\\''s'\\!''");
+        assert_eq!(
+            parse_config_parameters(&format!("{}={}", sq_quote("k.k"), sq_quote("it's!")))[0].1,
+            "it's!"
+        );
+    }
+
+    /// TM-21 (docs/19 §18.6): `GIT_CONFIG_PARAMETERS` in the worker's base
+    /// environment wins over `GIT_CONFIG_COUNT`, so the guard is appended
+    /// there as well; its drivers are emptied. Checked with git itself.
+    #[test]
+    fn worker_git_guard_wins_over_inherited_config_parameters() {
+        let base: BTreeMap<String, String> = [(
+            "GIT_CONFIG_PARAMETERS".to_string(),
+            "'core.hookspath'='C:/evil/hooks' 'filter.p.clean'='prog %f'".to_string(),
+        )]
+        .into();
+        let g = worker_git_guard(&base, &[], r"C:\s\orch\no-hooks");
+        let params = parse_config_parameters(&g["GIT_CONFIG_PARAMETERS"]);
+        assert_eq!(
+            params[0],
+            ("core.hookspath".into(), "C:/evil/hooks".into()),
+            "user's first"
+        );
+        assert!(
+            params.contains(&("filter.p.clean".into(), String::new())),
+            "{params:?}"
+        );
+        let mut env = base.clone();
+        for (k, v) in &g {
+            set_var(&mut env, k, v.clone());
+        }
+        let get = |key: &str| {
+            let o = std::process::Command::new("git")
+                .args(["config", "--get", key])
+                .env_clear()
+                .envs(std::env::vars().filter(|(k, _)| !k.to_ascii_uppercase().starts_with("GIT_")))
+                .envs(&env)
+                .output()
+                .unwrap();
+            String::from_utf8_lossy(&o.stdout).trim().to_string()
+        };
+        assert_eq!(get("core.hooksPath"), "C:/s/orch/no-hooks");
+        assert_eq!(get("filter.p.clean"), "");
+        assert_eq!(get("core.fsmonitor"), "false");
+        // Without inherited parameters nothing about them is added.
+        assert!(
+            !worker_git_guard(&BTreeMap::new(), &[], "h").contains_key("GIT_CONFIG_PARAMETERS")
+        );
     }
 
     fn env(pairs: &[(&str, &str)]) -> Vec<(String, String)> {

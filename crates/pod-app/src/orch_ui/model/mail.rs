@@ -116,7 +116,7 @@ pub fn address_label(run: &RunEntry, addr: &str) -> String {
         let title = run
             .attempt(a)
             .and_then(|x| run.item(&x.item))
-            .map(|i| i.title.clone());
+            .map(|i| pod_orch::trust::clean_inline(&i.title));
         return match title {
             Some(t) => format!("{} {a} · {t}", s::WORKER),
             None => format!("{} {a}", s::WORKER),
@@ -126,6 +126,42 @@ pub fn address_label(run: &RunEntry, addr: &str) -> String {
         return s::HUMAN.to_string();
     }
     addr.to_string()
+}
+
+/// O1 (docs/19 §19): where a message comes from, from Pod's records (the
+/// sender address the daemon derived, the attempt's item and generation),
+/// never from its text: `출처 · 이 PC · 실행 r1 · 항목 i1 · 시도 a1 · 세대 1 ·
+/// 워커가 씀 · 지시가 아닌 데이터`.
+pub fn provenance_label(run: &RunEntry, m: &Mail) -> String {
+    use pod_orch::trust::{Author, Provenance};
+    let p = Provenance::of_mail(m, "local", &run.info.attempts, &run.info.items);
+    let mut parts = vec![
+        s::PROV_MACHINE_LOCAL.to_string(),
+        format!("{} {}", s::PROV_RUN, p.run),
+    ];
+    if let Some(i) = &p.item {
+        parts.push(format!("{} {i}", s::PROV_ITEM));
+    }
+    if let Some(a) = &p.attempt {
+        parts.push(format!("{} {a}", s::PROV_ATTEMPT));
+    }
+    if let Some(g) = p.generation {
+        parts.push(match p.current {
+            Some(false) => format!("{} {g} ({})", s::PROV_GENERATION, s::PROV_REPLACED),
+            _ => format!("{} {g}", s::PROV_GENERATION),
+        });
+    }
+    parts.push(
+        match p.author {
+            Author::Pod => s::PROV_BY_POD,
+            Author::Worker => s::PROV_BY_WORKER,
+            Author::Coordinator => s::PROV_BY_COORDINATOR,
+            Author::Outside => s::PROV_BY_OUTSIDE,
+        }
+        .to_string(),
+    );
+    parts.push(s::PROV_DATA.to_string());
+    format!("{} · {}", s::PROV, parts.join(" · "))
 }
 
 pub fn mail_type_label(t: MailType) -> &'static str {

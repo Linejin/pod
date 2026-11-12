@@ -84,15 +84,23 @@ pub enum HooksCmd {
     /// Install Pod's agent hooks: copy pod-hook.exe to the bin dir, merge the
     /// hooks into the agents' config (backups first, other tools' hooks
     /// kept), and trust Pod's Codex hooks via `codex app-server`.
+    ///
+    /// An install that changes anything is confirmed first: a y/N prompt in
+    /// a console, or --confirm with the digest --dry-run printed for the
+    /// same plan (refused when the binary or a config file changed since).
     Install {
         #[command(flatten)]
         target: HookTarget,
-        /// Print what would change; write nothing.
+        /// Print what would change and its confirm digest; write nothing.
         #[arg(long)]
         dry_run: bool,
         /// Do not write Codex [hooks.state] trust entries.
         #[arg(long)]
         no_codex_trust: bool,
+        /// Install exactly the plan a --dry-run printed with this digest
+        /// (refused if anything changed since).
+        #[arg(long, value_name = "DIGEST")]
+        confirm: Option<String>,
     },
     /// Remove Pod's hook entries (backups first); everything else stays.
     Uninstall {
@@ -235,6 +243,7 @@ fn request(
     t: HookTarget,
     dry_run: bool,
     codex_trust: bool,
+    confirm: Option<String>,
 ) -> anyhow::Result<crate::hooks_install::Request> {
     let agents = match t.agent {
         AgentArg::Claude => vec![HookAgent::Claude],
@@ -286,7 +295,34 @@ fn request(
         source,
         dry_run,
         codex_trust,
+        confirm,
     })
+}
+
+/// The install confirmation: a y/N prompt when stdin and stderr are a
+/// console; otherwise an error that points at --dry-run / --confirm.
+fn ask_in_console(
+    source: PathBuf,
+) -> impl FnMut(&crate::hooks_install::Outcome) -> anyhow::Result<bool> {
+    move |preview| {
+        use std::io::{BufRead, IsTerminal, Write};
+        if !(std::io::stdin().is_terminal() && std::io::stderr().is_terminal()) {
+            bail!(
+                "this changes agent configuration and needs confirmation: review it with \
+                 `pod hooks install --dry-run`, then pass --confirm <digest> (or run it in a console)"
+            );
+        }
+        let mut err = std::io::stderr().lock();
+        write!(
+            err,
+            "{}Install Pod hooks? [y/N] ",
+            crate::hooks_install::prompt_text(preview, &source)
+        )?;
+        err.flush()?;
+        let mut answer = String::new();
+        std::io::stdin().lock().read_line(&mut answer)?;
+        Ok(crate::hooks_install::is_yes(&answer))
+    }
 }
 
 pub fn hooks(cmd: HooksCmd, json: bool) -> anyhow::Result<ExitCode> {
@@ -296,7 +332,7 @@ pub fn hooks(cmd: HooksCmd, json: bool) -> anyhow::Result<ExitCode> {
             target,
             check_codex,
         } => {
-            let st = hi::status(&request(target, true, false)?, check_codex)?;
+            let st = hi::status(&request(target, true, false, None)?, check_codex)?;
             if json {
                 println!("{}", serde_json::to_string_pretty(&st)?);
                 return Ok(ExitCode::SUCCESS);
@@ -339,12 +375,14 @@ pub fn hooks(cmd: HooksCmd, json: bool) -> anyhow::Result<ExitCode> {
             target,
             dry_run,
             no_codex_trust,
-        } => (
-            hi::install(&request(target, dry_run, !no_codex_trust)?)?,
-            "install",
-        ),
+            confirm,
+        } => {
+            let req = request(target, dry_run, !no_codex_trust, confirm)?;
+            let mut ask = ask_in_console(req.source.clone());
+            (hi::install(&req, &mut ask)?, "install")
+        }
         HooksCmd::Uninstall { target, dry_run } => (
-            hi::uninstall(&request(target, dry_run, false)?)?,
+            hi::uninstall(&request(target, dry_run, false, None)?)?,
             "uninstall",
         ),
     };
@@ -388,6 +426,11 @@ pub fn hooks(cmd: HooksCmd, json: bool) -> anyhow::Result<ExitCode> {
     }
     for n in &outcome.notes {
         println!("note: {n}");
+    }
+    if outcome.dry_run
+        && let Some(d) = &outcome.confirm
+    {
+        println!("confirm: {d}  (install exactly this: pod hooks install --confirm {d})");
     }
     Ok(ExitCode::SUCCESS)
 }

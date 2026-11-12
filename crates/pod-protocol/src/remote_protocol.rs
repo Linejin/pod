@@ -26,17 +26,139 @@ pub const PROTOCOL_MIN: u32 = 11;
 /// The first protocol with `connection.hello`; remote connections need it.
 pub const HELLO_PROTOCOL: u32 = 12;
 
-/// Capability names (docs/17 §5). None is implemented yet, so the daemon
-/// advertises none of them; a client that requires one is refused.
+/// Capability names (docs/17 §5). Only `attach.chunks` is implemented
+/// (v20); a client that requires another one is refused.
 pub mod capability {
     pub const REMOTE_FILES: &str = "remote.files";
     pub const REMOTE_DIFF: &str = "remote.diff";
+    /// v20: on a connection whose hello chose [`super::CHUNKED_ATTACH_PROTOCOL`]
+    /// or newer, attach snapshots come as `terminal.snapshot` chunks and
+    /// output notifications carry at most [`super::REMOTE_OUTPUT_CHUNK`] bytes.
     pub const ATTACH_CHUNKS: &str = "attach.chunks";
     pub const GATE_CAS: &str = "gate.cas";
 }
 
-/// Capabilities this daemon offers.
-pub const CAPABILITIES: &[&str] = &[];
+/// Capabilities this daemon offers (to a connection that chose v20 or newer;
+/// see [`capabilities_for`]).
+pub const CAPABILITIES: &[&str] = &[capability::ATTACH_CHUNKS];
+
+/// The capabilities a connection that chose `protocol` gets in its hello
+/// result: an older client is told nothing it cannot use.
+pub fn capabilities_for(protocol: u32) -> Vec<String> {
+    CAPABILITIES
+        .iter()
+        .filter(|c| **c != capability::ATTACH_CHUNKS || protocol >= CHUNKED_ATTACH_PROTOCOL)
+        .map(|c| c.to_string())
+        .collect()
+}
+
+/// v20 (docs/17 R4): the first protocol with chunked attach snapshots,
+/// remote attach framing and `terminal.input_once`.
+pub const CHUNKED_ATTACH_PROTOCOL: u32 = 20;
+/// v20 remote framing: the largest raw output chunk in one
+/// `terminal.output`, and the size of each `terminal.snapshot` chunk.
+pub const REMOTE_OUTPUT_CHUNK: usize = 32 * 1024;
+/// v20 remote framing: per-attach queue of a remote connection (output not
+/// yet written to it); past it the client gets `terminal.lagged`. The
+/// daemon's own limit applies when it is smaller.
+pub const REMOTE_ATTACH_QUEUE: usize = 2 * 1024 * 1024;
+/// v20: a chunked snapshot is at most this large; scrollback is reduced
+/// (`AttachResult.scrollback_omitted`) to fit.
+pub const MAX_SNAPSHOT_BYTES: usize = 16 * 1024 * 1024;
+
+/// v20 `terminal.snapshot`: one piece of a chunked attach snapshot.
+pub const NOTIFY_SNAPSHOT: &str = "terminal.snapshot";
+
+/// `terminal.snapshot` (v20): piece `index` of `total` of the snapshot whose
+/// `terminal.attach` reply had this `seq`. Chunks come in order, right after
+/// the reply and before any other notification; their concatenation is the
+/// snapshot ANSI.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq)]
+pub struct SnapshotChunkEvent {
+    pub id: String,
+    /// The snapshot's output offset (`AttachResult.seq`).
+    pub seq: u64,
+    /// 0-based position of this chunk.
+    pub index: u32,
+    /// Number of chunks (`AttachResult.snapshot_chunks`).
+    pub total: u32,
+    /// Base64, at most [`REMOTE_OUTPUT_CHUNK`] raw bytes.
+    pub data: String,
+}
+
+method!(
+    TerminalInputOnce,
+    "terminal.input_once",
+    InputOnceParams,
+    InputOnceResult
+);
+
+/// `terminal.input_once` (v20): `terminal.input` with an identity, applied at
+/// most once per `(stream, seq)` and terminal (docs/17 R4, docs/22 TM-14).
+/// A client whose answer was lost does **not** resend the input: after
+/// reconnecting to the same daemon start it asks with `check: true`, which
+/// says whether that input was applied and fences it (a delivery of that
+/// `seq` that is still on its way is then never written). The daemon
+/// remembers the newest `seq` of the [`INPUT_STREAMS_KEPT`] most recently
+/// used streams of each terminal, for this daemon start only: after a new
+/// `boot_id` the result of a lost input stays unknown.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq)]
+pub struct InputOnceParams {
+    #[serde(flatten)]
+    pub target: crate::protocol::TerminalRef,
+    /// Raw input bytes, base64 (standard alphabet, padded). Ignored with
+    /// `check`.
+    #[serde(default)]
+    pub data: String,
+    /// The sender's input stream: 1–64 characters `A-Za-z0-9_-`, random per
+    /// client session.
+    pub stream: String,
+    /// Increases with every new input of the stream. A `seq` not above the
+    /// newest one seen is never written (`already`).
+    pub seq: u64,
+    /// Only ask whether `(stream, seq)` was applied; never writes. A `seq`
+    /// not applied yet is fenced (`fenced`).
+    #[serde(default, skip_serializing_if = "std::ops::Not::not")]
+    pub check: bool,
+}
+
+/// What `terminal.input_once` did.
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, JsonSchema, PartialEq, Eq)]
+#[serde(rename_all = "snake_case")]
+pub enum InputOnceOutcome {
+    /// Written by this request.
+    Written,
+    /// This `seq` (or a newer one of the stream) was seen before: nothing
+    /// written now. For this very `seq`, `bytes` is what was written then.
+    Already,
+    /// A `check` fenced this `seq`: it was never written and never will be
+    /// (the answer to the check, and to a late delivery of that input).
+    Fenced,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq)]
+pub struct InputOnceResult {
+    pub id: String,
+    pub outcome: InputOnceOutcome,
+    /// Bytes written to the terminal for this `seq` (0 when `fenced`).
+    pub bytes: usize,
+    /// Query replies removed from the input (see `terminal.input`).
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub dropped_replies: Option<crate::protocol::DroppedReplies>,
+}
+
+/// Input streams remembered per terminal by `terminal.input_once`.
+pub const INPUT_STREAMS_KEPT: usize = 64;
+/// Longest `InputOnceParams.stream`.
+pub const INPUT_STREAM_MAX: usize = 64;
+
+/// Is `s` a valid `terminal.input_once` stream name?
+pub fn valid_input_stream(s: &str) -> bool {
+    !s.is_empty()
+        && s.len() <= INPUT_STREAM_MAX
+        && s.bytes()
+            .all(|b| b.is_ascii_alphanumeric() || b == b'_' || b == b'-')
+}
 
 /// Error codes added with protocol v12.
 pub mod remote_codes {
@@ -199,6 +321,35 @@ mod tests {
             negotiate(&hello(12, 12, &["x"]), (11, 12), &["x", "y"]),
             Ok(12)
         );
+    }
+
+    #[test]
+    fn attach_chunks_is_offered_from_v20_only() {
+        assert!(capabilities_for(CHUNKED_ATTACH_PROTOCOL - 1).is_empty());
+        assert_eq!(
+            capabilities_for(CHUNKED_ATTACH_PROTOCOL),
+            [capability::ATTACH_CHUNKS]
+        );
+        assert_eq!(
+            negotiate(
+                &hello(12, 20, &[capability::ATTACH_CHUNKS]),
+                (11, 20),
+                CAPABILITIES
+            ),
+            Ok(20)
+        );
+    }
+
+    #[test]
+    fn input_stream_names() {
+        assert!(valid_input_stream("a"));
+        assert!(valid_input_stream(&"f".repeat(64)));
+        assert!(valid_input_stream("pod-remote_0123"));
+        assert!(!valid_input_stream(""));
+        assert!(!valid_input_stream(&"f".repeat(65)));
+        assert!(!valid_input_stream("a b"));
+        assert!(!valid_input_stream("a/b"));
+        assert!(!valid_input_stream("한"));
     }
 
     #[test]

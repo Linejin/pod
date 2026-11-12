@@ -22,11 +22,16 @@ path = "src/bin/pod-fake-ssh.rs"
 podd = { package = "pod-client", path = "../pod-client" }
 pod-status = { path = "../pod-status" }
 pod-remote = { path = "../pod-remote" }
+# Agent text as data and the trust policy (O1): no new third-party deps.
+pod-orch = { path = "../pod-orch" }
 anyhow = "1"
 base64 = "0.22"
 clap = { version = "4", features = ["derive"] }
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
+# Digest of a confirmed `pod hooks install` plan (MIT OR Apache-2.0; already
+# in the workspace through podd/pod-orch).
+sha2 = "0.10"
 # Codex config.toml edits that keep comments and layout (MIT OR Apache-2.0).
 toml_edit = "0.22"
 windows-sys = { version = "0.61", features = ["Win32_Foundation", "Win32_Storage_FileSystem", "Win32_System_Console", "Win32_System_IO"] }

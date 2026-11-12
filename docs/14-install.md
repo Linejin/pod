@@ -84,7 +84,7 @@ Rust는 `rust-version`(루트 `Cargo.toml`)보다 낮으면 빌드를 거부한�
 
 훅 설치는 사용자 에이전트 설정(`~/.claude/settings.json`, `~/.codex/hooks.json`, Codex 신뢰 항목)을 고치므로 **설치 프로그램이 스스로 하지 않는다**.
 
-- 설치·업그레이드 끝(`ssPostInstall`)에 `{app}\pod.exe hooks status`를 실행한다(읽기만). 출력에 `differs from this build`(설치된 `%LOCALAPPDATA%\Pod\bin\pod-hook.exe`가 이 패키지의 것과 다름), `missing`(파일 없음·훅이 가리키는 exe 없음), ` 0 Pod event`(훅 없음)가 있으면 마지막 페이지에 **체크 해제된** "에이전트 상태 훅 설치·업데이트" 항목과, 그 위에 이유와 `pod hooks install`이 하는 일을 보인다. 고르면 콘솔 창에서 `pod hooks install`을 실행하고 결과를 보여 준다(`pause`). 조용한 설치에서는 절대 실행하지 않는다(`skipifsilent` + 기본 해제).
+- 설치·업그레이드 끝(`ssPostInstall`)에 `{app}\pod.exe hooks status`를 실행한다(읽기만). 출력에 `differs from this build`(설치된 `%LOCALAPPDATA%\Pod\bin\pod-hook.exe`가 이 패키지의 것과 다름), `missing`(파일 없음·훅이 가리키는 exe 없음), ` 0 Pod event`(훅 없음)가 있으면 마지막 페이지에 **체크 해제된** "에이전트 상태 훅 설치·업데이트" 항목과, 그 위에 이유와 `pod hooks install`이 하는 일을 보인다. 고르면 콘솔 창에서 `pod hooks install`을 실행하고 결과를 보여 준다(`pause`). 바뀔 것이 있으면 그 콘솔에서 바뀔 파일과 절대 pod-hook 경로를 보여 주고 y/N을 한 번 더 묻는다(rm-o4, [07 §9.1](07-pod-status.md#91-pod-hooks-installuninstallstatus); 콘솔이 아니면 `--dry-run`의 digest를 `--confirm`으로 넘겨야 한다). 조용한 설치에서는 절대 실행하지 않는다(`skipifsilent` + 기본 해제).
 - 훅은 언제나 `%LOCALAPPDATA%\Pod\bin\pod-hook.exe`를 가리킨다(07 §9). 설치 폴더의 `pod-hook.exe`는 그 원본일 뿐이라 업그레이드가 실행 중인 훅을 깨지 않는다. 새 pod-hook을 쓰려면 `pod hooks install`을 다시 실행한다.
 - 제거 때: `pod hooks status`에 Pod 훅(`runs …`)이 있으면 "훅도 제거할까요?"(기본 **아니요**, 조용한 모드 아니요). 예 → `pod hooks uninstall`(백업 후 Pod 항목만 제거, pod-cli에 이미 있음) 성공 시 `%LOCALAPPDATA%\pod\bin`도 지운다. 아니요 → 훅과 `pod-hook.exe`가 남고, Pod 밖에서는 아무 일도 하지 않는다.
 

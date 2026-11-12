@@ -1,0 +1,86 @@
+codex-allowance probe 2026-11-12T17:43:42
+codex: C:\Users\User\AppData\Local\Programs\OpenAI\Codex\bin\codex.exe codex-cli 0.159.0
+PASS  policy: bare pod orch check: pinned allow, unpinned (before) allow
+PASS  policy: the pinned pod.exe by path: pinned allow, unpinned (before) allow
+PASS  policy: fake pod.exe in the worktree, by path: pinned no match, unpinned (before) allow
+PASS  policy: fake pod.exe elsewhere, by path: pinned no match, unpinned (before) allow
+PASS  policy: pod orch worker start (not allowed): pinned no match, unpinned (before) no match
+PASS  policy: git commit (not allowed): pinned no match, unpinned (before) no match
+PASS  policy: fake .\pod.exe in the cwd (the worktree): pinned no match
+PASS  policy: fake pod.exe in the cwd (the worktree): pinned no match
+INFO  policy: a repository rules file after Pod's re-pins pod to its own exe: allow (so Pod refuses .codex with other files)
+PASS  control: pod ls is denied in the sandbox
+PASS  control: git add is denied (index.lock)
+PASS  rules file hidden from git
+PASS  the worker identity reaches commands Codex runs
+PASS  pod --version runs
+PASS  pod orch queue reaches the pipe
+PASS  pod orch commit reaches podd (allowed)
+PASS  pod ls stays in the sandbox (no terminal listing)
+PASS  pod read stays in the sandbox (no terminal reading)
+PASS  git status runs (sandbox)
+PASS  git add stays in the sandbox (index.lock denied)
+PASS  git commit stays in the sandbox
+PASS  git log runs (sandbox)
+PASS  git diff runs (sandbox)
+PASS  writing outside the worktree is still denied
+PASS  pod orch limits (not allowed) stays sandboxed
+exec mode never asks: a command outside the rules fails in the sandbox instead of asking.
+INFO  before (unpinned rules): the fake pod.exe wrote outside the sandbox: True | Chunk ID: 6eaee4 | Wall time: 4.6044 seconds | Process exited with code 0 | Original token count: 0 | Output: | 
+PASS  pinned: a fake pod.exe in the worktree (relative or absolute) stays in the sandbox
+PASS  pinned: Pod's own pod still reaches the pipe
+PASS  (a) the worktree .git file cannot be rewritten
+PASS  (a) the worktree .git file cannot be deleted
+PASS  nested repos with hooks were set up in the sandbox
+PASS  nested repo payloads cannot fire inside the sandbox
+PASS  control: the payloads fire when git runs unsandboxed
+PASS  (b/c) commit in a nested repo (workdir) [as is]: no hook/fsmonitor outside the sandbox
+PASS  (b/c) add in a nested repo (workdir) [as is]: no hook/fsmonitor outside the sandbox
+PASS  (b/c) cd into a nested repo, commit [as is]: no hook/fsmonitor outside the sandbox
+PASS  (b/c) GIT_DIR=<nested> git commit [as is]: no hook/fsmonitor outside the sandbox
+PASS  (b/c) git --git-dir=<nested> commit [as is]: no hook/fsmonitor outside the sandbox
+PASS  (b/c) commit in a nested repo (workdir) [safe.directory=*]: no hook/fsmonitor outside the sandbox
+PASS  (b/c) add in a nested repo (workdir) [safe.directory=*]: no hook/fsmonitor outside the sandbox
+PASS  (b/c) cd into a nested repo, commit [safe.directory=*]: no hook/fsmonitor outside the sandbox
+PASS  (b/c) GIT_DIR=<nested> git commit [safe.directory=*]: no hook/fsmonitor outside the sandbox
+PASS  (b/c) git --git-dir=<nested> commit [safe.directory=*]: no hook/fsmonitor outside the sandbox
+PASS  (c) git add of a path outside the worktree is refused
+PASS  control: the filter runs on a plain git add
+worker start: {
+  "run": "r1",
+  "item": "i1",
+  "attempt": {
+    "id": "a1",
+    "run": "r1",
+    "item": "i1",
+    "generation": 1,
+    "state": "starting",
+    "worker": "active",
+    "agent": "argv",
+    "place": "new",
+    "depth": 1,
+    "task": "probe/r1-a1",
+    "terminal": "t2",
+    "brief_path": "C:\\Users\\User\\AppData\\Local\\Temp\\pod-codex-probe-61348\\state\\briefs\\probe\\r1-a1.md",
+    "created_ms": 1794473177334,
+    "seen_turn": 0,
+    "reopens": 0
+  },
+  "task": "probe/r1-a1",
+  "terminal": "t2",
+  "stage": "started",
+  "state": "starting",
+  "next": "Do not poll: Pod types `pod mail: ...` into your terminal when the worker asks or reports; then run `pod orch check`. End your turn if you have nothing else to do."
+}
+
+PASS  a real worker with its own worktree started
+PASS  the worker env carries the git guard (filter demo emptied)
+PASS  first Codex session with the worker env ran no repository filter (no marker)
+PASS  the guard reaches git inside the sandbox (fsmonitor false, git works)
+PASS  the worker rewrote the filter script (sandbox write)
+PASS  pod orch commit of the rewritten script succeeds
+PASS  a path the filter handles is refused
+PASS  (d) pod orch commit ran none of the worker's filter code (no "pwned")
+PASS  next Codex session ran none of the worker's rewritten filter
+PASS  control: the rewritten script is live for a plain git add
+RESULT: PASS

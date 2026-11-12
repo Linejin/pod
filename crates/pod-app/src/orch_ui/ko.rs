@@ -95,7 +95,15 @@ pub fn render(t: &MsgText) -> Option<String> {
             if !p("options").is_empty() {
                 b.push_str(&format!("\n\n선택지: {}", p("options")));
             }
-            b.push_str("\n\n여기서 선택하거나 승인 요청 패널에서 정할 수 있습니다.");
+            if p("decider") == "person" {
+                // O1: the agent trust policy keeps this gate for a person.
+                b.push_str(&format!(
+                    "\n\n{} 승인 요청은 사람이 정합니다(승인 요청 패널·휴대폰). 에이전트 신뢰 정책상 코디네이터는 정할 수 없습니다.",
+                    gate_kind(p("kind"))
+                ));
+            } else {
+                b.push_str("\n\n여기서 선택하거나 승인 요청 패널에서 정할 수 있습니다.");
+            }
             b
         }
         tx::GATE_SETTLED_BODY => {
@@ -131,20 +139,37 @@ pub fn render(t: &MsgText) -> Option<String> {
     })
 }
 
-/// A message's subject as shown in the app.
-pub fn subject(m: &Mail) -> String {
-    m.text
-        .as_ref()
-        .and_then(render)
-        .unwrap_or_else(|| m.subject.clone())
+/// O1: a gate kind in Korean.
+fn gate_kind(k: &str) -> &str {
+    match k {
+        "merge" => "병합",
+        "permission" => "권한",
+        "sensitive" => "민감한",
+        "approval" => "단순 승인",
+        "choice" => "선택",
+        other => other,
+    }
 }
 
-/// A message's body as shown in the app.
-pub fn body(m: &Mail) -> String {
-    m.body_text
+/// A message's subject as shown in the app: one cleaned line (O1: agent
+/// text is data; hidden characters and chat role tokens are shown).
+pub fn subject(m: &Mail) -> String {
+    let s = m
+        .text
         .as_ref()
         .and_then(render)
-        .unwrap_or_else(|| m.body.clone())
+        .unwrap_or_else(|| m.subject.clone());
+    pod_orch::trust::clean_inline(&s)
+}
+
+/// A message's body as shown in the app, cleaned the same way (O1).
+pub fn body(m: &Mail) -> String {
+    let b = m
+        .body_text
+        .as_ref()
+        .and_then(render)
+        .unwrap_or_else(|| m.body.clone());
+    pod_orch::trust::clean_text(&b)
 }
 
 /// A worker's `next` as shown in the app.

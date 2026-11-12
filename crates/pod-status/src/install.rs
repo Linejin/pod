@@ -19,8 +19,77 @@ use serde_json::{Map, Value, json};
 
 use crate::hook::{CLAUDE_EVENTS, CLAUDE_MATCHER_EVENTS, CODEX_EVENTS, HookAgent};
 
-/// Substring that identifies a Pod hook entry (used for idempotent merge/removal).
+/// The relay's file stem. A hook entry is Pod's when its command is exactly
+/// `<…/pod-hook[.exe]> claude|codex <Event>` ([`is_pod_command`]); a command
+/// that merely mentions `pod-hook` belongs to someone else and is kept.
 pub const POD_HOOK_MARKER: &str = "pod-hook";
+
+/// Characters a hook executable path may not contain: agents run hook
+/// commands through a shell (cmd or Git Bash), where these expand or end
+/// the quoting even inside double quotes.
+const FORBIDDEN_EXE_CHARS: &[char] = &['"', '%', '$', '`', '!'];
+
+/// TM-22: the executable written into agent configs must be an absolute
+/// local path (drive or root, no UNC/device path) to a file named
+/// `pod-hook[.exe]`, without characters a shell would expand.
+pub fn check_hook_exe(exe: &Path) -> io::Result<()> {
+    let bad = |why: &str| {
+        Err(io::Error::new(
+            io::ErrorKind::InvalidInput,
+            format!("hook executable {}: {why}", exe.display()),
+        ))
+    };
+    let s = exe.to_string_lossy();
+    if s.starts_with(r"\\") || s.starts_with("//") {
+        return bad("UNC and device paths are not allowed");
+    }
+    if !exe.is_absolute() {
+        return bad("must be an absolute path");
+    }
+    if let Some(c) = s
+        .chars()
+        .find(|c| c.is_control() || FORBIDDEN_EXE_CHARS.contains(c))
+    {
+        return bad(&format!("contains {c:?}"));
+    }
+    let name = exe.file_name().and_then(|n| n.to_str()).unwrap_or("");
+    if !is_hook_file_name(name) {
+        return bad("the file must be pod-hook.exe");
+    }
+    Ok(())
+}
+
+fn is_hook_file_name(name: &str) -> bool {
+    name.eq_ignore_ascii_case("pod-hook.exe") || name.eq_ignore_ascii_case(POD_HOOK_MARKER)
+}
+
+/// A hook command Pod wrote: `<exe> <agent> <Event>` where the executable's
+/// file name is `pod-hook[.exe]` (quoted or not), the agent is `claude` or
+/// `codex` and the event a plain name. Other commands, even ones that
+/// mention `pod-hook`, are not Pod's.
+pub fn is_pod_command(cmd: &str) -> bool {
+    let c = cmd.trim();
+    let (exe, rest) = match c.strip_prefix('"') {
+        Some(r) => match r.split_once('"') {
+            Some(x) => x,
+            None => return false,
+        },
+        None => c.split_once(char::is_whitespace).unwrap_or((c, "")),
+    };
+    let name = exe.rsplit(['/', '\\']).next().unwrap_or("");
+    if !is_hook_file_name(name) {
+        return false;
+    }
+    let mut args = rest.split_whitespace();
+    match (args.next(), args.next(), args.next()) {
+        (Some(agent), Some(event), None) => {
+            HookAgent::parse(agent).is_some()
+                && !event.is_empty()
+                && crate::hook::valid_event_name(event)
+        }
+        _ => false,
+    }
+}
 
 /// Where hooks go. Which one Pod uses is an open user decision (docs/04 §6).
 #[derive(Debug, Clone, PartialEq, Eq, Serialize)]
@@ -92,14 +161,14 @@ impl HookCommandSpec {
         }
     }
 
-    /// `"C:/path/pod-hook.exe" claude PreToolUse` (forward slashes, quoted if needed).
+    /// `"C:/path/pod-hook.exe" claude PreToolUse` (forward slashes; quoted
+    /// when the path has anything but letters, digits and `-_./:`).
     pub fn command(&self, agent: HookAgent, event: &str) -> String {
         let p = self.exe.display().to_string().replace('\\', "/");
-        let p = if p.contains(' ') {
-            format!("\"{p}\"")
-        } else {
-            p
-        };
+        let plain = p
+            .chars()
+            .all(|c| c.is_alphanumeric() || "-_./:".contains(c));
+        let p = if plain { p } else { format!("\"{p}\"") };
         format!("{p} {} {event}", agent.as_str())
     }
 }
@@ -175,7 +244,7 @@ fn is_pod_group(group: &Value) -> bool {
                 && hs.iter().all(|h| {
                     h.get("command")
                         .and_then(Value::as_str)
-                        .is_some_and(|c| c.contains(POD_HOOK_MARKER))
+                        .is_some_and(is_pod_command)
                 })
         })
 }
@@ -276,6 +345,9 @@ pub fn plan(
     agents: &[HookAgent],
     remove: bool,
 ) -> io::Result<InstallPlan> {
+    if !remove {
+        check_hook_exe(&spec.exe)?;
+    }
     let mut files = Vec::new();
     for &agent in agents {
         let path = scope.config_path(agent);

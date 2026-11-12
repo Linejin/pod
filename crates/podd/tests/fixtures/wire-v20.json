@@ -1,5 +1,5 @@
 {
-  "about": "Wire golden of protocol v19 (refactor card D-F0); see crates/podd/tests/protocol_wire.rs",
+  "about": "Wire golden of protocol v20 (refactor card D-F0, rewritten for docs/17 R4); see crates/podd/tests/protocol_wire.rs",
   "base64": [
     {
       "bytes": [],
@@ -23,14 +23,17 @@
     }
   ],
   "constants": {
-    "CAPABILITIES": [],
+    "CAPABILITIES": [
+      "attach.chunks"
+    ],
+    "CHUNKED_ATTACH_PROTOCOL": 20,
     "HELLO_PROTOCOL": 12,
     "HOLDER_PROTOCOL": 3,
     "HOLDER_PROTOCOL_MIN": 1,
     "HOOK_MESSAGE_VERSION": 1,
     "JSONRPC_VERSION": "2.0",
     "PROTOCOL_MIN": 11,
-    "PROTOCOL_VERSION": 19,
+    "PROTOCOL_VERSION": 20,
     "UNREACHABLE_PROTOCOL": 19,
     "capability": [
       "remote.files",
@@ -113,6 +116,7 @@
       "terminal.resized",
       "terminal.exited",
       "terminal.lagged",
+      "terminal.snapshot",
       "status.changed",
       "status.lagged",
       "gate.changed",
@@ -128,12 +132,29 @@
       "orch.mail",
       "sessions.changed"
     ],
+    "remote_framing": {
+      "INPUT_STREAMS_KEPT": 64,
+      "INPUT_STREAM_MAX": 64,
+      "MAX_SNAPSHOT_BYTES": 16777216,
+      "REMOTE_ATTACH_QUEUE": 2097152,
+      "REMOTE_OUTPUT_CHUNK": 32768
+    },
     "server_range": [
       11,
-      19
+      20
     ]
   },
   "downgrade_v18": [
+    {
+      "case": "full#0",
+      "type": "AttachResult",
+      "v18": {"seq":7,"snapshot":"x","terminal":{"argv":["x"],"attached":7,"cols":7,"conpty":"x","created_ms":7,"cwd":"x","exit_code":7,"exited_ms":7,"holder_pid":7,"id":"x","incompatible_holder":"x","killed":true,"lost":true,"name":"x","parent_task":"x","parent_terminal":"x","pid":7,"rows":7,"state":"running","status":{"agent":"x","app":"x","badge":"x","blocked_children":7,"confidence":1.5,"final_state":"x","hooks_accepted":7,"hooks_rejected":7,"kind":"x","msg":"x","outcome":"x","progress":7,"records":7,"running_children":7,"since":7,"source":"x","state":"x","title":"x","turn":7},"unreachable":"x"}}
+    },
+    {
+      "case": "full#1",
+      "type": "AttachResult",
+      "v18": {"seq":7,"snapshot":"x","terminal":{"argv":["x"],"attached":7,"cols":7,"conpty":"x","created_ms":7,"cwd":"x","exit_code":7,"exited_ms":7,"holder_pid":7,"id":"x","incompatible_holder":"x","killed":true,"lost":true,"name":"x","parent_task":"x","parent_terminal":"x","pid":7,"rows":7,"state":"exited","status":{"agent":"x","app":"x","badge":"x","blocked_children":7,"confidence":1.5,"final_state":"x","hooks_accepted":7,"hooks_rejected":7,"kind":"x","msg":"x","outcome":"x","progress":7,"records":7,"running_children":7,"since":7,"source":"x","state":"x","title":"x","turn":7},"unreachable":"x"}}
+    },
     {
       "case": "full#2",
       "type": "AttachResult",
@@ -200,6 +221,23 @@
       "v18": {"outcome":"exited","terminal":{"argv":["x"],"attached":7,"cols":7,"conpty":"x","created_ms":7,"cwd":"x","exit_code":7,"exited_ms":7,"holder_pid":7,"id":"x","incompatible_holder":"x","killed":true,"lost":true,"name":"x","parent_task":"x","parent_terminal":"x","pid":7,"rows":7,"state":"exited","status":{"agent":"x","app":"x","badge":"x","blocked_children":7,"confidence":1.5,"final_state":"x","hooks_accepted":7,"hooks_rejected":7,"kind":"x","msg":"x","outcome":"x","progress":7,"records":7,"running_children":7,"since":7,"source":"x","state":"x","title":"x","turn":7},"unreachable":"x"},"waited_ms":7}
     }
   ],
+  "downgrade_v19": [
+    {
+      "case": "full#0",
+      "type": "AttachResult",
+      "v19": {"seq":7,"snapshot":"x","terminal":{"argv":["x"],"attached":7,"cols":7,"conpty":"x","created_ms":7,"cwd":"x","exit_code":7,"exited_ms":7,"holder_pid":7,"id":"x","incompatible_holder":"x","killed":true,"lost":true,"name":"x","parent_task":"x","parent_terminal":"x","pid":7,"rows":7,"state":"running","status":{"agent":"x","app":"x","badge":"x","blocked_children":7,"confidence":1.5,"final_state":"x","hooks_accepted":7,"hooks_rejected":7,"kind":"x","msg":"x","outcome":"x","progress":7,"records":7,"running_children":7,"since":7,"source":"x","state":"x","title":"x","turn":7},"unreachable":"x"}}
+    },
+    {
+      "case": "full#1",
+      "type": "AttachResult",
+      "v19": {"seq":7,"snapshot":"x","terminal":{"argv":["x"],"attached":7,"cols":7,"conpty":"x","created_ms":7,"cwd":"x","exit_code":7,"exited_ms":7,"holder_pid":7,"id":"x","incompatible_holder":"x","killed":true,"lost":true,"name":"x","parent_task":"x","parent_terminal":"x","pid":7,"rows":7,"state":"exited","status":{"agent":"x","app":"x","badge":"x","blocked_children":7,"confidence":1.5,"final_state":"x","hooks_accepted":7,"hooks_rejected":7,"kind":"x","msg":"x","outcome":"x","progress":7,"records":7,"running_children":7,"since":7,"source":"x","state":"x","title":"x","turn":7},"unreachable":"x"}}
+    },
+    {
+      "case": "full#2",
+      "type": "AttachResult",
+      "v19": {"seq":7,"snapshot":"x","terminal":{"argv":["x"],"attached":7,"cols":7,"conpty":"x","created_ms":7,"cwd":"x","exit_code":7,"exited_ms":7,"holder_pid":7,"id":"x","incompatible_holder":"x","killed":true,"lost":true,"name":"x","parent_task":"x","parent_terminal":"x","pid":7,"rows":7,"state":"unreachable","status":{"agent":"x","app":"x","badge":"x","blocked_children":7,"confidence":1.5,"final_state":"x","hooks_accepted":7,"hooks_rejected":7,"kind":"x","msg":"x","outcome":"x","progress":7,"records":7,"running_children":7,"since":7,"source":"x","state":"x","title":"x","turn":7},"unreachable":"x"}}
+    }
+  ],
   "errors": [
     {
       "in": {"code":-32601,"message":"method not found: x"}
@@ -236,7 +274,7 @@
       "in": {"code":-32071,"data":{"exit_code":1,"output":"boom"},"message":"archive script failed"}
     },
     {
-      "in": {"code":-32051,"data":{"capabilities":[],"max_protocol":19,"min_protocol":11,"missing":[]},"message":"no common protocol: client speaks 1..=10, this podd 11..=19; install matching Pod versions"}
+      "in": {"code":-32051,"data":{"capabilities":["attach.chunks"],"max_protocol":20,"min_protocol":11,"missing":[]},"message":"no common protocol: client speaks 1..=10, this podd 11..=20; install matching Pod versions"}
     }
   ],
   "methods": {
@@ -612,6 +650,10 @@
       "params": "InputParams",
       "result": "SendResult"
     },
+    "terminal.input_once": {
+      "params": "InputOnceParams",
+      "result": "InputOnceResult"
+    },
     "terminal.keep": {
       "params": "KeepParams",
       "result": "Retention"
@@ -663,7 +705,7 @@
       "params": {"max_protocol":19,"min_protocol":11}
     },
     {
-      "outcome": {"ok":19},
+      "outcome": {"ok":20},
       "params": {"max_protocol":25,"min_protocol":12}
     },
     {
@@ -671,15 +713,15 @@
       "params": {"max_protocol":11,"min_protocol":1}
     },
     {
-      "outcome": {"error":{"code":-32051,"data":{"capabilities":[],"max_protocol":19,"min_protocol":11,"missing":[]},"message":"no common protocol: client speaks 1..=10, this podd 11..=19; install matching Pod versions"}},
+      "outcome": {"error":{"code":-32051,"data":{"capabilities":["attach.chunks"],"max_protocol":20,"min_protocol":11,"missing":[]},"message":"no common protocol: client speaks 1..=10, this podd 11..=20; install matching Pod versions"}},
       "params": {"max_protocol":10,"min_protocol":1}
     },
     {
-      "outcome": {"error":{"code":-32051,"data":{"capabilities":[],"max_protocol":19,"min_protocol":11,"missing":[]},"message":"no common protocol: client speaks 20..=30, this podd 11..=19; install matching Pod versions"}},
+      "outcome": {"ok":20},
       "params": {"max_protocol":30,"min_protocol":20}
     },
     {
-      "outcome": {"error":{"code":-32051,"data":{"capabilities":[],"max_protocol":19,"min_protocol":11,"missing":["remote.files"]},"message":"this podd lacks required capabilities: remote.files"}},
+      "outcome": {"error":{"code":-32051,"data":{"capabilities":["attach.chunks"],"max_protocol":20,"min_protocol":11,"missing":["remote.files"]},"message":"this podd lacks required capabilities: remote.files"}},
       "params": {"max_protocol":19,"min_protocol":12,"require":["remote.files"]}
     },
     {
@@ -689,6 +731,18 @@
     {
       "outcome": {"ok":19},
       "params": {"client":"pod-app 1.0","max_protocol":19,"min_protocol":12}
+    },
+    {
+      "outcome": {"error":{"code":-32051,"data":{"capabilities":["attach.chunks"],"max_protocol":20,"min_protocol":11,"missing":[]},"message":"no common protocol: client speaks 21..=30, this podd 11..=20; install matching Pod versions"}},
+      "params": {"max_protocol":30,"min_protocol":21}
+    },
+    {
+      "outcome": {"ok":19},
+      "params": {"client":"pod 0.19","max_protocol":19,"min_protocol":12}
+    },
+    {
+      "outcome": {"ok":20},
+      "params": {"max_protocol":20,"min_protocol":12,"require":["attach.chunks"]}
     }
   ],
   "notification_envelopes": [
@@ -714,7 +768,8 @@
     "terminal.exited": "ExitedEvent",
     "terminal.lagged": "LaggedEvent",
     "terminal.output": "OutputEvent",
-    "terminal.resized": "ResizedEvent"
+    "terminal.resized": "ResizedEvent",
+    "terminal.snapshot": "SnapshotChunkEvent"
   },
   "requests": [
     {
@@ -751,11 +806,11 @@
       {"case":"null","in":{"cols":null,"id":null,"name":null,"rows":null,"scrollback":null},"out":{}}
     ],
     "AttachResult": [
-      {"case":"full#0","in":{"seq":7,"snapshot":"x","terminal":{"argv":["x"],"attached":7,"cols":7,"conpty":"x","created_ms":7,"cwd":"x","exit_code":7,"exited_ms":7,"holder_pid":7,"id":"x","incompatible_holder":"x","killed":true,"lost":true,"name":"x","parent_task":"x","parent_terminal":"x","pid":7,"rows":7,"state":"running","status":{"agent":"x","app":"x","badge":"x","blocked_children":7,"confidence":1.5,"final_state":"x","hooks_accepted":7,"hooks_rejected":7,"kind":"x","msg":"x","outcome":"x","progress":7,"records":7,"running_children":7,"since":7,"source":"x","state":"x","title":"x","turn":7},"unreachable":"x"}}},
-      {"case":"full#1","in":{"seq":7,"snapshot":"x","terminal":{"argv":["x"],"attached":7,"cols":7,"conpty":"x","created_ms":7,"cwd":"x","exit_code":7,"exited_ms":7,"holder_pid":7,"id":"x","incompatible_holder":"x","killed":true,"lost":true,"name":"x","parent_task":"x","parent_terminal":"x","pid":7,"rows":7,"state":"exited","status":{"agent":"x","app":"x","badge":"x","blocked_children":7,"confidence":1.5,"final_state":"x","hooks_accepted":7,"hooks_rejected":7,"kind":"x","msg":"x","outcome":"x","progress":7,"records":7,"running_children":7,"since":7,"source":"x","state":"x","title":"x","turn":7},"unreachable":"x"}}},
-      {"case":"full#2","in":{"seq":7,"snapshot":"x","terminal":{"argv":["x"],"attached":7,"cols":7,"conpty":"x","created_ms":7,"cwd":"x","exit_code":7,"exited_ms":7,"holder_pid":7,"id":"x","incompatible_holder":"x","killed":true,"lost":true,"name":"x","parent_task":"x","parent_terminal":"x","pid":7,"rows":7,"state":"unreachable","status":{"agent":"x","app":"x","badge":"x","blocked_children":7,"confidence":1.5,"final_state":"x","hooks_accepted":7,"hooks_rejected":7,"kind":"x","msg":"x","outcome":"x","progress":7,"records":7,"running_children":7,"since":7,"source":"x","state":"x","title":"x","turn":7},"unreachable":"x"}}},
+      {"case":"full#0","in":{"scrollback_omitted":7,"seq":7,"snapshot":"x","snapshot_bytes":7,"snapshot_chunks":7,"terminal":{"argv":["x"],"attached":7,"cols":7,"conpty":"x","created_ms":7,"cwd":"x","exit_code":7,"exited_ms":7,"holder_pid":7,"id":"x","incompatible_holder":"x","killed":true,"lost":true,"name":"x","parent_task":"x","parent_terminal":"x","pid":7,"rows":7,"state":"running","status":{"agent":"x","app":"x","badge":"x","blocked_children":7,"confidence":1.5,"final_state":"x","hooks_accepted":7,"hooks_rejected":7,"kind":"x","msg":"x","outcome":"x","progress":7,"records":7,"running_children":7,"since":7,"source":"x","state":"x","title":"x","turn":7},"unreachable":"x"}}},
+      {"case":"full#1","in":{"scrollback_omitted":7,"seq":7,"snapshot":"x","snapshot_bytes":7,"snapshot_chunks":7,"terminal":{"argv":["x"],"attached":7,"cols":7,"conpty":"x","created_ms":7,"cwd":"x","exit_code":7,"exited_ms":7,"holder_pid":7,"id":"x","incompatible_holder":"x","killed":true,"lost":true,"name":"x","parent_task":"x","parent_terminal":"x","pid":7,"rows":7,"state":"exited","status":{"agent":"x","app":"x","badge":"x","blocked_children":7,"confidence":1.5,"final_state":"x","hooks_accepted":7,"hooks_rejected":7,"kind":"x","msg":"x","outcome":"x","progress":7,"records":7,"running_children":7,"since":7,"source":"x","state":"x","title":"x","turn":7},"unreachable":"x"}}},
+      {"case":"full#2","in":{"scrollback_omitted":7,"seq":7,"snapshot":"x","snapshot_bytes":7,"snapshot_chunks":7,"terminal":{"argv":["x"],"attached":7,"cols":7,"conpty":"x","created_ms":7,"cwd":"x","exit_code":7,"exited_ms":7,"holder_pid":7,"id":"x","incompatible_holder":"x","killed":true,"lost":true,"name":"x","parent_task":"x","parent_terminal":"x","pid":7,"rows":7,"state":"unreachable","status":{"agent":"x","app":"x","badge":"x","blocked_children":7,"confidence":1.5,"final_state":"x","hooks_accepted":7,"hooks_rejected":7,"kind":"x","msg":"x","outcome":"x","progress":7,"records":7,"running_children":7,"since":7,"source":"x","state":"x","title":"x","turn":7},"unreachable":"x"}}},
       {"case":"min","in":{"seq":7,"snapshot":"x","terminal":{"argv":[],"cols":7,"created_ms":7,"cwd":"x","id":"x","rows":7,"state":"running"}},"out":{"seq":7,"snapshot":"x","terminal":{"argv":[],"attached":0,"cols":7,"created_ms":7,"cwd":"x","id":"x","killed":false,"lost":false,"rows":7,"state":"running"}}},
-      {"case":"null","in":{"seq":7,"snapshot":"x","terminal":{"argv":[],"cols":7,"conpty":null,"created_ms":7,"cwd":"x","exit_code":null,"exited_ms":null,"holder_pid":null,"id":"x","incompatible_holder":null,"name":null,"parent_task":null,"parent_terminal":null,"pid":null,"rows":7,"state":"running","status":null,"unreachable":null}},"out":{"seq":7,"snapshot":"x","terminal":{"argv":[],"attached":0,"cols":7,"created_ms":7,"cwd":"x","id":"x","killed":false,"lost":false,"rows":7,"state":"running"}}}
+      {"case":"null","in":{"scrollback_omitted":null,"seq":7,"snapshot":"x","snapshot_bytes":null,"snapshot_chunks":null,"terminal":{"argv":[],"cols":7,"conpty":null,"created_ms":7,"cwd":"x","exit_code":null,"exited_ms":null,"holder_pid":null,"id":"x","incompatible_holder":null,"name":null,"parent_task":null,"parent_terminal":null,"pid":null,"rows":7,"state":"running","status":null,"unreachable":null}},"out":{"seq":7,"snapshot":"x","terminal":{"argv":[],"attached":0,"cols":7,"created_ms":7,"cwd":"x","id":"x","killed":false,"lost":false,"rows":7,"state":"running"}}}
     ],
     "CleanupParams": [
       {"case":"full#0","in":{"inactive_days":7,"repo":"x"}},
@@ -935,6 +990,18 @@
     "HelloResult": [
       {"case":"full#0","in":{"boot_id":"x","capabilities":["x"],"limits":{"attach_queue_bytes":7,"max_line_bytes":7,"max_output_chunk_bytes":7,"max_request_bytes":7},"machine_id":"x","max_protocol":7,"min_protocol":7,"os":"x","protocol":7,"version":"x"}},
       {"case":"min","in":{"boot_id":"x","capabilities":[],"limits":{"attach_queue_bytes":7,"max_line_bytes":7,"max_output_chunk_bytes":7,"max_request_bytes":7},"machine_id":"x","max_protocol":7,"min_protocol":7,"os":"x","protocol":7,"version":"x"}}
+    ],
+    "InputOnceParams": [
+      {"case":"full#0","in":{"check":true,"data":"x","id":"x","name":"x","seq":7,"stream":"x"}},
+      {"case":"min","in":{"seq":7,"stream":"x"},"out":{"data":"","seq":7,"stream":"x"}},
+      {"case":"null","in":{"id":null,"name":null,"seq":7,"stream":"x"},"out":{"data":"","seq":7,"stream":"x"}}
+    ],
+    "InputOnceResult": [
+      {"case":"full#0","in":{"bytes":7,"dropped_replies":{"duplicate":7,"late":7},"id":"x","outcome":"written"}},
+      {"case":"full#1","in":{"bytes":7,"dropped_replies":{"duplicate":7,"late":7},"id":"x","outcome":"already"}},
+      {"case":"full#2","in":{"bytes":7,"dropped_replies":{"duplicate":7,"late":7},"id":"x","outcome":"fenced"}},
+      {"case":"min","in":{"bytes":7,"id":"x","outcome":"written"}},
+      {"case":"null","in":{"bytes":7,"dropped_replies":null,"id":"x","outcome":"written"},"out":{"bytes":7,"id":"x","outcome":"written"}}
     ],
     "InputParams": [
       {"case":"full#0","in":{"data":"x","id":"x","name":"x"}},
@@ -1564,6 +1631,9 @@
       {"case":"full#0","in":{"enabled":true,"preview":true}},
       {"case":"min","in":{}},
       {"case":"null","in":{"enabled":null,"preview":null},"out":{}}
+    ],
+    "SnapshotChunkEvent": [
+      {"case":"full#0","in":{"data":"x","id":"x","index":7,"seq":7,"total":7}}
     ],
     "StatusChangedEvent": [
       {"case":"full#0","in":{"from":"x","id":"x","removed":true,"seq":7,"status":{"agent":"x","app":"x","badge":"x","blocked_children":7,"confidence":1.5,"final_state":"x","hooks_accepted":7,"hooks_rejected":7,"kind":"x","msg":"x","outcome":"x","progress":7,"records":7,"running_children":7,"since":7,"source":"x","state":"x","title":"x","turn":7}}},

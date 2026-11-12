@@ -65,11 +65,14 @@ impl Daemon {
                 return Err(e);
             }
         };
+        // v20 remote framing (docs/17 R4) only for a client that chose 20;
+        // an older client keeps the values it was told before.
+        let remote = protocol >= CHUNKED_ATTACH_PROTOCOL;
         to_value(HelloResult {
             protocol,
             min_protocol: range.0,
             max_protocol: range.1,
-            capabilities: CAPABILITIES.iter().map(|c| c.to_string()).collect(),
+            capabilities: capabilities_for(protocol),
             machine_id: self.machine_id.clone(),
             boot_id: self.boot_id.clone(),
             version: env!("CARGO_PKG_VERSION").into(),
@@ -77,8 +80,15 @@ impl Daemon {
             limits: FrameLimits {
                 max_line_bytes: REMOTE_MAX_LINE as u64,
                 max_request_bytes: super::MAX_LINE as u64,
-                max_output_chunk_bytes: crate::holder::OUTPUT_CHUNK as u64,
-                attach_queue_bytes: self.config.attach_queue_limit as u64,
+                max_output_chunk_bytes: if remote {
+                    REMOTE_OUTPUT_CHUNK as u64
+                } else {
+                    crate::holder::OUTPUT_CHUNK as u64
+                },
+                attach_queue_bytes: super::connection::attach_queue_for(
+                    remote,
+                    self.config.attach_queue_limit,
+                ) as u64,
             },
         })
     }

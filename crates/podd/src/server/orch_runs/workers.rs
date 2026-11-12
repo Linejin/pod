@@ -351,7 +351,7 @@ impl Daemon {
         Ok(a)
     }
 
-    /// `orch.commit` (docs/19 §18.1): stage and commit in the calling
+    /// `orch.commit` (docs/19 §18.1, §18.6): stage and commit in the calling
     /// worker's own task worktree. podd runs git itself (plumbing only;
     /// hooks, fsmonitor and repository filter programs never run, §18.5),
     /// so a sandboxed worker can commit without being allowed an
@@ -397,24 +397,39 @@ impl Daemon {
                 ),
             ));
         };
-        let wt = PathBuf::from(self.task_record(&task)?.worktree);
+        let rec = self.task_record(&task)?;
+        let wt = PathBuf::from(&rec.worktree);
+        // TM-21: the worktree must still be a linked worktree of the task's
+        // repository (the fixed root), not whatever its `.git` names now.
+        let repo = self
+            .registry
+            .lock()
+            .unwrap()
+            .repos
+            .iter()
+            .find(|r| r.name == rec.repo)
+            .map(|r| PathBuf::from(&r.path));
         let no_hooks = self.config.state_dir.join("orch").join("no-hooks");
         let (msg, all, paths) = (p.message.clone(), p.all, p.paths.clone());
         let r = crate::server::tasks::blocking(move || {
             std::fs::create_dir_all(&no_hooks)
                 .map_err(|e| format!("{}: {e}", no_hooks.display()))?;
-            crate::git::commit_for_worker(&wt, &no_hooks, &msg, all, &paths)
+            match &repo {
+                Some(repo) => {
+                    crate::git::commit_for_task_worker(&wt, repo, &no_hooks, &msg, all, &paths)
+                }
+                None => Err("the task's repository is not registered any more; podd does not commit for workers outside one. Commit with git (with approval) or ask a human".to_string()),
+            }
         })
         .await?;
         let (commit, summary) = r.map_err(|e| RpcError::new(codes::INVALID_PARAMS, e))?;
-        log(&format!("orch: {attempt} committed {commit} in {task}"));
+        log(&format!(
+            "orch: {attempt} committed {commit} in {task} (no hooks, no git filters)"
+        ));
         Ok(OrchCommitResult {
             attempt,
             task,
-            next: format!(
-                "Committed {} on your branch. Report with `pod orch done` when the work is finished.",
-                &commit[..commit.len().min(12)]
-            ),
+            next: commit_next(&commit),
             commit,
             summary,
         })
@@ -440,6 +455,39 @@ impl Daemon {
                 ));
                 status::publish_orch_changed(&run, Some(&item), Some(&id));
             }
+        }
+    }
+}
+
+/// The `next` line of `orch.commit` (TM-21, docs/19 §18.6): the commit ran
+/// no repository hook (pre-commit checks included) and no git filter (LFS
+/// paths are refused, not stored unconverted), and it is neither a merge
+/// nor a passing check.
+fn commit_next(commit: &str) -> String {
+    format!(
+        "Committed {} on your branch. Pod ran no repository hooks (pre-commit checks did not run) and no git filters such as LFS (paths that need one are refused): this commit is not a merge and not a passing check. Report with `pod orch done` when the work is finished.",
+        &commit[..commit.len().min(12)]
+    )
+}
+
+#[cfg(test)]
+mod tests {
+    #[test]
+    fn a_worker_commit_says_hooks_and_filters_were_skipped() {
+        let n = super::commit_next("0123456789abcdef0123");
+        assert!(
+            n.starts_with("Committed 0123456789ab on your branch."),
+            "{n}"
+        );
+        for word in [
+            "no repository hooks",
+            "pre-commit",
+            "LFS",
+            "not a merge",
+            "not a passing check",
+            "pod orch done",
+        ] {
+            assert!(n.contains(word), "{word}: {n}");
         }
     }
 }

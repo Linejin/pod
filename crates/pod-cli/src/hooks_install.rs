@@ -17,6 +17,14 @@
 //!   `--home` install never touches the real configuration.
 //! - The hooks are no-ops outside Pod: `pod-hook` exits at once when
 //!   `POD_TERMINAL_ID`/`POD_SOCKET` are unset.
+//! - TM-22: the hooks run an absolute, local `pod-hook.exe`
+//!   (`install::check_hook_exe`), and a real install that would change
+//!   anything (the binary or a config file) needs the user's confirmation
+//!   of exactly that change: a y/N prompt in a console, or `--confirm
+//!   <digest>` with the digest a `--dry-run` printed for the same plan. A
+//!   plan that changed since (new binary, edited settings) has another
+//!   digest and is refused, so it is confirmed again. Codex trust is
+//!   written only for Pod's own commands in the hooks.json Pod wrote.
 
 use std::io::{BufRead, BufReader, Write};
 use std::path::{Path, PathBuf};
@@ -26,11 +34,10 @@ use std::time::{Duration, Instant, SystemTime, UNIX_EPOCH};
 
 use anyhow::{Context, bail};
 use pod_status::HookAgent;
-use pod_status::install::{
-    self, ApplyOptions, HookCommandSpec, InstallPlan, InstallScope, POD_HOOK_MARKER,
-};
+use pod_status::install::{self, ApplyOptions, HookCommandSpec, InstallPlan, InstallScope};
 use serde::Serialize;
 use serde_json::{Value, json};
+use sha2::{Digest, Sha256};
 
 /// `p` in its long, on-disk spelling: absolute, the deepest existing
 /// ancestor resolved with `canonicalize` (8.3 short names such as
@@ -177,6 +184,76 @@ pub struct Outcome {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub codex_untrust: Option<CodexUntrust>,
     pub notes: Vec<String>,
+    /// Install: the digest of exactly this plan (binary, hook path, every
+    /// file's new content, Codex trust). `--confirm <it>` installs it.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub confirm: Option<String>,
+}
+
+/// The digest a user confirms: SHA-256 (first 16 hex digits) over the hook
+/// executable path, the bytes of the binary that will be copied there, the
+/// Codex trust choice and every planned file (path, unchanged or not, full
+/// new content). Any change to what would be written changes it.
+pub fn plan_digest(
+    hook_exe: &Path,
+    binary: Option<&[u8]>,
+    codex_trust: bool,
+    plan: &InstallPlan,
+) -> String {
+    let mut h = Sha256::new();
+    h.update(b"pod-hooks-install 1\n");
+    h.update(format!("exe {}\n", hook_exe.display()).as_bytes());
+    match binary {
+        Some(b) => h.update(format!("binary {:x}\n", Sha256::digest(b)).as_bytes()),
+        None => h.update(b"binary missing\n"),
+    }
+    h.update(format!("codex-trust {codex_trust}\n").as_bytes());
+    for f in &plan.files {
+        h.update(
+            format!(
+                "file {} {} {} {}\n",
+                f.agent.as_str(),
+                f.path.display(),
+                f.unchanged,
+                f.content.len()
+            )
+            .as_bytes(),
+        );
+        h.update(f.content.as_bytes());
+    }
+    let hex = format!("{:x}", h.finalize());
+    hex[..16].to_string()
+}
+
+/// What `pod hooks install` shows before asking (stderr, console only).
+pub fn prompt_text(o: &Outcome, source: &Path) -> String {
+    let mut s = String::from("pod hooks install will:\n");
+    s.push_str(&format!("  run hooks from {}", o.hook_exe.display()));
+    if o.binary_copied {
+        s.push_str(&format!(" (copied from {})", source.display()));
+    }
+    s.push('\n');
+    for f in &o.files {
+        s.push_str(&format!(
+            "  {}: {} {}\n",
+            f.agent,
+            f.action,
+            f.path.display()
+        ));
+    }
+    for n in &o.notes {
+        s.push_str(&format!("  note: {n}\n"));
+    }
+    s.push_str(
+        "Only Pod's hook entries change; other settings and other tools' hooks stay, \
+         and every changed file is backed up first.\n",
+    );
+    s
+}
+
+/// `y` / `yes` (any case) confirms; anything else does not.
+pub fn is_yes(answer: &str) -> bool {
+    matches!(answer.trim().to_ascii_lowercase().as_str(), "y" | "yes")
 }
 
 fn agent_name(a: HookAgent) -> &'static str {
@@ -227,6 +304,8 @@ pub struct Request {
     pub source: PathBuf,
     pub dry_run: bool,
     pub codex_trust: bool,
+    /// `--confirm <digest>`: the plan the user confirmed (see [`plan_digest`]).
+    pub confirm: Option<String>,
 }
 
 fn codex_home(scope: &InstallScope) -> PathBuf {
@@ -236,30 +315,82 @@ fn codex_home(scope: &InstallScope) -> PathBuf {
     }
 }
 
-pub fn install(req: &Request) -> anyhow::Result<Outcome> {
+/// Install (or, `req.dry_run`, plan) Pod's hooks. When the install would
+/// change anything and `req.confirm` is not this plan's digest, `ask` gets
+/// the preview (a dry-run outcome) and must say yes; `ask` returning an
+/// error (no console) or `false` writes nothing.
+pub fn install(
+    req: &Request,
+    ask: &mut dyn FnMut(&Outcome) -> anyhow::Result<bool>,
+) -> anyhow::Result<Outcome> {
     let stamp = utc_stamp(SystemTime::now());
     let hook_exe = req.bin_dir.join("pod-hook.exe");
     let mut notes = Vec::new();
-    let binary_copied = if req.dry_run {
-        false
-    } else {
-        if !req.source.is_file() {
-            bail!(
-                "{} not found (build pod-hook or pass --source)",
-                req.source.display()
-            );
-        }
-        install_binary(&req.source, &req.bin_dir, &stamp)?.1
-    };
+    if !req.dry_run && !req.source.is_file() {
+        bail!(
+            "{} not found (build pod-hook or pass --source)",
+            req.source.display()
+        );
+    }
     let spec = HookCommandSpec::new(&hook_exe);
     let plan = install::plan_install(&req.scope, &spec, &req.agents)?;
-    let files = apply(&plan, &stamp, req.dry_run)?;
+    let binary = std::fs::read(&req.source).ok();
+    let binary_changes = binary.is_some() && std::fs::read(&hook_exe).ok() != binary;
+    let codex = req.agents.contains(&HookAgent::Codex);
+    let digest = plan_digest(
+        &hook_exe,
+        binary.as_deref(),
+        codex && req.codex_trust,
+        &plan,
+    );
+    let preview = Outcome {
+        dry_run: true,
+        hook_exe: hook_exe.clone(),
+        binary_copied: binary_changes,
+        files: apply(&plan, &stamp, true)?,
+        codex_trust: None,
+        codex_untrust: None,
+        notes: plan.notes.clone(),
+        confirm: Some(digest.clone()),
+    };
+    if req.dry_run {
+        let mut o = preview;
+        o.binary_copied = false;
+        if codex {
+            o.notes.insert(0, if req.codex_trust {
+                "would ask `codex app-server` to trust Pod's Codex hooks ([hooks.state] in config.toml)".into()
+            } else {
+                "--no-codex-trust: Codex will list Pod's hooks as untrusted until they are approved in Codex".into()
+            });
+        }
+        return Ok(o);
+    }
+    let changes = binary_changes || plan.files.iter().any(|f| !f.unchanged);
+    if changes {
+        match req.confirm.as_deref() {
+            Some(d) if d == digest => {}
+            Some(_) => bail!(
+                "the planned change differs from the one confirmed (the binary or a config file changed since); \
+                 review it again with `pod hooks install --dry-run`; nothing was written"
+            ),
+            None => {
+                if !ask(&preview)? {
+                    bail!("not confirmed; nothing was written");
+                }
+            }
+        }
+    }
+    let binary_copied = install_binary(&req.source, &req.bin_dir, &stamp)?.1;
+    let files = apply(&plan, &stamp, false)?;
     let mut codex_trust = None;
-    if req.agents.contains(&HookAgent::Codex) {
-        if req.dry_run {
-            notes.push("would ask `codex app-server` to trust Pod's Codex hooks ([hooks.state] in config.toml)".into());
-        } else if req.codex_trust {
-            match trust_codex_hooks(&codex_home(&req.scope), &stamp) {
+    if codex {
+        if req.codex_trust {
+            let hooks_json = req.scope.config_path(HookAgent::Codex);
+            let want: Vec<String> = pod_status::hook::CODEX_EVENTS
+                .iter()
+                .map(|ev| spec.command(HookAgent::Codex, ev))
+                .collect();
+            match trust_codex_hooks(&codex_home(&req.scope), &hooks_json, &want, &stamp) {
                 Ok(t) => codex_trust = Some(t),
                 Err(e) => notes.push(format!(
                     "Codex hook trust not written ({e:#}); Codex will list Pod's hooks as untrusted until they are approved in Codex"
@@ -271,13 +402,14 @@ pub fn install(req: &Request) -> anyhow::Result<Outcome> {
     }
     notes.extend(plan.notes);
     Ok(Outcome {
-        dry_run: req.dry_run,
+        dry_run: false,
         hook_exe,
         binary_copied,
         files,
         codex_trust,
         codex_untrust: None,
         notes,
+        confirm: Some(digest),
     })
 }
 
@@ -329,6 +461,7 @@ pub fn uninstall(req: &Request) -> anyhow::Result<Outcome> {
         codex_trust: None,
         codex_untrust,
         notes,
+        confirm: None,
     })
 }
 
@@ -571,8 +704,10 @@ fn parse_hook_version(out: &str) -> Option<String> {
         .filter(|v| !v.is_empty())
 }
 
+/// Pod's exact hook command shape (another tool's command that merely
+/// mentions `pod-hook` is not Pod's).
 fn is_pod_command(c: &str) -> bool {
-    c.contains(POD_HOOK_MARKER)
+    install::is_pod_command(c)
 }
 
 /// The executable of a hook command line (`"C:/a b/x.exe" args` or `C:/x.exe args`).
@@ -669,8 +804,20 @@ pub fn status(req: &Request, check_codex: bool) -> anyhow::Result<Status> {
 
 struct PodHook {
     key: String,
+    command: String,
     hash: String,
     trusted: bool,
+}
+
+impl PodHook {
+    /// One of the commands Pod just wrote (`want`), in the hooks.json Pod
+    /// wrote: only these get a trust entry. A Pod-shaped command elsewhere
+    /// (another file, another executable) is left for the user to approve.
+    fn is_ours(&self, hooks_json: &Path, want: &[String]) -> bool {
+        // `<hooks.json path>:<event>:<group>:<hook>`; the path has colons too.
+        let path = self.key.rsplitn(4, ':').nth(3).unwrap_or("");
+        want.contains(&self.command) && same_file(path, hooks_json)
+    }
 }
 
 /// Minimal client of `codex app-server` (newline-delimited JSON-RPC on stdio).
@@ -798,6 +945,7 @@ impl CodexAppServer {
                 }
                 out.push(PodHook {
                     key: key.to_string(),
+                    command: cmd.to_string(),
                     hash: hash.to_string(),
                     trusted: h.get("trustStatus").and_then(Value::as_str) == Some("trusted"),
                 });
@@ -814,10 +962,22 @@ impl Drop for CodexAppServer {
     }
 }
 
-/// Trust Pod's (and only Pod's) Codex hooks in `<codex_home>/config.toml`.
-pub fn trust_codex_hooks(codex_home: &Path, stamp: &str) -> anyhow::Result<CodexTrust> {
+/// Trust Pod's (and only Pod's) Codex hooks in `<codex_home>/config.toml`:
+/// the commands in `want` in `hooks_json` (see [`PodHook::is_ours`]).
+pub fn trust_codex_hooks(
+    codex_home: &Path,
+    hooks_json: &Path,
+    want: &[String],
+    stamp: &str,
+) -> anyhow::Result<CodexTrust> {
     let mut s = CodexAppServer::start(codex_home)?;
-    let hooks = s.pod_hooks()?;
+    let ours = |s: &mut CodexAppServer| -> anyhow::Result<Vec<PodHook>> {
+        Ok(s.pod_hooks()?
+            .into_iter()
+            .filter(|h| h.is_ours(hooks_json, want))
+            .collect())
+    };
+    let hooks = ours(&mut s)?;
     let todo: Vec<&PodHook> = hooks.iter().filter(|h| !h.trusted).collect();
     let mut out = CodexTrust {
         pod_hooks: hooks.len(),
@@ -838,7 +998,7 @@ pub fn trust_codex_hooks(codex_home: &Path, stamp: &str) -> anyhow::Result<Codex
         )?;
         out.newly_trusted = todo.len();
     }
-    out.untrusted = s.pod_hooks()?.iter().filter(|h| !h.trusted).count();
+    out.untrusted = ours(&mut s)?.iter().filter(|h| !h.trusted).count();
     Ok(out)
 }
 
@@ -854,6 +1014,183 @@ mod tests {
         assert_eq!(utc_stamp(t), "20261108-123456");
         let leap = UNIX_EPOCH + Duration::from_secs(951_782_400); // 2000-02-29
         assert_eq!(utc_stamp(leap), "20000229-000000");
+    }
+
+    fn temp(tag: &str) -> PathBuf {
+        let nanos = SystemTime::now()
+            .duration_since(UNIX_EPOCH)
+            .unwrap()
+            .as_nanos();
+        let d = std::env::temp_dir().join(format!(
+            "pod-cli-hooks-{tag}-{}-{nanos}",
+            std::process::id()
+        ));
+        std::fs::create_dir_all(&d).unwrap();
+        d
+    }
+
+    fn req(t: &Path, dry_run: bool, confirm: Option<&str>) -> Request {
+        Request {
+            scope: InstallScope::Profile {
+                claude_config_dir: t.join("claude"),
+                codex_home: t.join("codex"),
+            },
+            agents: vec![HookAgent::Claude],
+            bin_dir: t.join("bin"),
+            source: t.join("src").join("pod-hook.exe"),
+            dry_run,
+            codex_trust: false,
+            confirm: confirm.map(str::to_string),
+        }
+    }
+
+    fn never(_: &Outcome) -> anyhow::Result<bool> {
+        panic!("asked although nothing needed confirming")
+    }
+
+    /// TM-22: a change needs the user's yes (or the dry run's digest); a
+    /// no, a stale digest or no console writes nothing; once installed, the
+    /// same plan needs no confirmation; a new binary asks again.
+    #[test]
+    fn install_is_confirmed_and_asks_again_when_content_changes() {
+        let t = temp("confirm");
+        std::fs::create_dir_all(t.join("src")).unwrap();
+        std::fs::write(t.join("src").join("pod-hook.exe"), b"build 1").unwrap();
+        let settings = t.join("claude").join("settings.json");
+        let written = || settings.exists() || t.join("bin").exists();
+
+        let dry = install(&req(&t, true, None), &mut never).unwrap();
+        let digest = dry.confirm.clone().expect("a dry run names its digest");
+        assert_eq!(digest.len(), 16);
+        assert!(!written(), "a dry run writes nothing");
+
+        // No console: refused. Asked and declined: refused.
+        let mut no_console = |_: &Outcome| -> anyhow::Result<bool> { bail!("no console") };
+        assert!(install(&req(&t, false, None), &mut no_console).is_err());
+        let mut asked = 0;
+        let mut decline = |o: &Outcome| -> anyhow::Result<bool> {
+            asked += 1;
+            assert!(o.dry_run && o.files[0].action == "would create", "{o:?}");
+            Ok(false)
+        };
+        let e = install(&req(&t, false, None), &mut decline).unwrap_err();
+        assert!(e.to_string().contains("not confirmed"), "{e}");
+        assert_eq!(asked, 1);
+        assert!(!written());
+
+        // A digest of another plan (the settings changed since the dry run).
+        std::fs::create_dir_all(t.join("claude")).unwrap();
+        std::fs::write(&settings, "{\"theme\": \"dark\"}\n").unwrap();
+        let e = install(&req(&t, false, Some(&digest)), &mut never).unwrap_err();
+        assert!(e.to_string().contains("differs"), "{e}");
+        assert_eq!(
+            std::fs::read_to_string(&settings).unwrap(),
+            "{\"theme\": \"dark\"}\n"
+        );
+        assert!(!t.join("bin").exists());
+
+        // The fresh dry run's digest installs it.
+        let digest = install(&req(&t, true, None), &mut never)
+            .unwrap()
+            .confirm
+            .unwrap();
+        let o = install(&req(&t, false, Some(&digest)), &mut never).unwrap();
+        assert!(o.binary_copied && o.files[0].action == "updated");
+        assert_eq!(o.confirm.as_deref(), Some(digest.as_str()));
+        let text = std::fs::read_to_string(&settings).unwrap();
+        assert!(text.contains("\"theme\": \"dark\""), "{text}");
+        let exe = t.join("bin").join("pod-hook.exe");
+        assert!(text.contains(&exe.display().to_string().replace('\\', "/")));
+
+        // Nothing to change: no confirmation needed.
+        let o = install(&req(&t, false, None), &mut never).unwrap();
+        assert!(!o.binary_copied && o.files[0].action == "unchanged");
+
+        // A new pod-hook build changes the plan: asked again, yes installs.
+        std::fs::write(t.join("src").join("pod-hook.exe"), b"build 2").unwrap();
+        let mut asked = 0;
+        let mut accept = |o: &Outcome| -> anyhow::Result<bool> {
+            asked += 1;
+            assert!(o.binary_copied, "the preview names the new binary");
+            Ok(true)
+        };
+        let o = install(&req(&t, false, None), &mut accept).unwrap();
+        assert_eq!(asked, 1);
+        assert!(o.binary_copied);
+        assert_eq!(std::fs::read(&exe).unwrap(), b"build 2");
+        let _ = std::fs::remove_dir_all(&t);
+    }
+
+    #[test]
+    fn digest_covers_path_binary_trust_and_content() {
+        let t = temp("digest");
+        let r = req(&t, true, None);
+        let spec = HookCommandSpec::new(r.bin_dir.join("pod-hook.exe"));
+        let plan = install::plan_install(&r.scope, &spec, &r.agents).unwrap();
+        let exe = r.bin_dir.join("pod-hook.exe");
+        let d = plan_digest(&exe, Some(b"x"), false, &plan);
+        assert_eq!(d, plan_digest(&exe, Some(b"x"), false, &plan));
+        assert_ne!(d, plan_digest(&exe, Some(b"y"), false, &plan));
+        assert_ne!(d, plan_digest(&exe, None, false, &plan));
+        assert_ne!(d, plan_digest(&exe, Some(b"x"), true, &plan));
+        assert_ne!(
+            d,
+            plan_digest(
+                &t.join("other").join("pod-hook.exe"),
+                Some(b"x"),
+                false,
+                &plan
+            )
+        );
+        let mut edited = plan.clone();
+        edited.files[0].content.push(' ');
+        assert_ne!(d, plan_digest(&exe, Some(b"x"), false, &edited));
+        assert!(is_yes(" Y\r\n") && is_yes("yes") && !is_yes("") && !is_yes("n"));
+        let _ = std::fs::remove_dir_all(&t);
+    }
+
+    /// Codex trust goes only to the commands Pod wrote, in the hooks.json
+    /// Pod wrote; a Pod-shaped command in another file or with another
+    /// executable is left for the user.
+    #[test]
+    fn codex_trust_only_for_pods_own_commands() {
+        let hooks_json = Path::new(r"C:\Users\x\.codex\hooks.json");
+        let want = vec!["C:/p/pod-hook.exe codex Stop".to_string()];
+        let h = |key: &str, command: &str| PodHook {
+            key: key.into(),
+            command: command.into(),
+            hash: "sha256:x".into(),
+            trusted: false,
+        };
+        assert!(
+            h(
+                r"c:/users/x/.codex/hooks.json:stop:1:0",
+                "C:/p/pod-hook.exe codex Stop"
+            )
+            .is_ours(hooks_json, &want)
+        );
+        for (key, command) in [
+            // Another file (a project-level hooks.json).
+            (
+                r"D:\repo\.codex\hooks.json:stop:0:0",
+                "C:/p/pod-hook.exe codex Stop",
+            ),
+            // Pod-shaped, another executable.
+            (
+                r"C:\Users\x\.codex\hooks.json:stop:2:0",
+                "C:/evil/pod-hook.exe codex Stop",
+            ),
+            // A command Pod did not write.
+            (
+                r"C:\Users\x\.codex\hooks.json:stop:3:0",
+                "C:/p/pod-hook.exe codex Stop && calc",
+            ),
+        ] {
+            assert!(
+                !h(key, command).is_ours(hooks_json, &want),
+                "{key} {command}"
+            );
+        }
     }
 
     #[test]

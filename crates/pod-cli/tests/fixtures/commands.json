@@ -137,7 +137,7 @@
         "--help"
       ],
       "exit": 0,
-      "stdout": "Install Pod's agent hooks: copy pod-hook.exe to the bin dir, merge the hooks into the agents' config (backups first, other tools' hooks kept), and trust Pod's Codex hooks via `codex app-server`\n\nUsage: pod.exe hooks install [OPTIONS]\n\nOptions:\n      --json\n          Print machine-readable JSON instead of text\n\n      --scope <SCOPE>\n          global: ~/.claude/settings.json + ~/.codex/hooks.json (the decided policy). profile: separate CLAUDE_CONFIG_DIR / CODEX_HOME dirs\n\n          Possible values:\n          - global:  `~/.claude/settings.json` + `~/.codex/hooks.json` (env-guarded hooks)\n          - profile: Separate profile dirs, used via CLAUDE_CONFIG_DIR / CODEX_HOME\n          \n          [default: global]\n\n      --agent <AGENT>\n          [default: all]\n          [possible values: claude, codex, all]\n\n      --pipe <PIPE>\n          Pipe name or path (default: $POD_SOCKET, else \\\\.\\pipe\\podd-<username>)\n\n      --home <HOME>\n          Home directory for --scope global (default: %USERPROFILE%). Tests use a temporary one\n\n      --machine <NAME>\n          Run the command on this SSH machine profile (`pod machine add`) instead of the local daemon\n\n      --claude-config-dir <CLAUDE_CONFIG_DIR>\n          Claude profile dir for --scope profile (default: %LOCALAPPDATA%\\pod\\profiles\\default\\claude)\n\n      --codex-home <CODEX_HOME>\n          Codex profile dir for --scope profile (default: %LOCALAPPDATA%\\pod\\profiles\\default\\codex)\n\n      --bin-dir <BIN_DIR>\n          Stable directory the hooks run pod-hook.exe from (default: %LOCALAPPDATA%\\Pod\\bin)\n\n      --source <SOURCE>\n          pod-hook.exe to install (default: next to pod.exe)\n\n      --dry-run\n          Print what would change; write nothing\n\n      --no-codex-trust\n          Do not write Codex [hooks.state] trust entries\n\n  -h, --help\n          Print help (see a summary with '-h')\n",
+      "stdout": "Install Pod's agent hooks: copy pod-hook.exe to the bin dir, merge the hooks into the agents' config (backups first, other tools' hooks kept), and trust Pod's Codex hooks via `codex app-server`.\n\nAn install that changes anything is confirmed first: a y/N prompt in a console, or --confirm with the digest --dry-run printed for the same plan (refused when the binary or a config file changed since).\n\nUsage: pod.exe hooks install [OPTIONS]\n\nOptions:\n      --json\n          Print machine-readable JSON instead of text\n\n      --scope <SCOPE>\n          global: ~/.claude/settings.json + ~/.codex/hooks.json (the decided policy). profile: separate CLAUDE_CONFIG_DIR / CODEX_HOME dirs\n\n          Possible values:\n          - global:  `~/.claude/settings.json` + `~/.codex/hooks.json` (env-guarded hooks)\n          - profile: Separate profile dirs, used via CLAUDE_CONFIG_DIR / CODEX_HOME\n          \n          [default: global]\n\n      --agent <AGENT>\n          [default: all]\n          [possible values: claude, codex, all]\n\n      --pipe <PIPE>\n          Pipe name or path (default: $POD_SOCKET, else \\\\.\\pipe\\podd-<username>)\n\n      --home <HOME>\n          Home directory for --scope global (default: %USERPROFILE%). Tests use a temporary one\n\n      --machine <NAME>\n          Run the command on this SSH machine profile (`pod machine add`) instead of the local daemon\n\n      --claude-config-dir <CLAUDE_CONFIG_DIR>\n          Claude profile dir for --scope profile (default: %LOCALAPPDATA%\\pod\\profiles\\default\\claude)\n\n      --codex-home <CODEX_HOME>\n          Codex profile dir for --scope profile (default: %LOCALAPPDATA%\\pod\\profiles\\default\\codex)\n\n      --bin-dir <BIN_DIR>\n          Stable directory the hooks run pod-hook.exe from (default: %LOCALAPPDATA%\\Pod\\bin)\n\n      --source <SOURCE>\n          pod-hook.exe to install (default: next to pod.exe)\n\n      --dry-run\n          Print what would change and its confirm digest; write nothing\n\n      --no-codex-trust\n          Do not write Codex [hooks.state] trust entries\n\n      --confirm <DIGEST>\n          Install exactly the plan a --dry-run printed with this digest (refused if anything changed since)\n\n  -h, --help\n          Print help (see a summary with '-h')\n",
       "stderr": ""
     },
     {
@@ -1591,7 +1591,7 @@
         "guide"
       ],
       "exit": 0,
-      "stdout": "Pod guides (pod <VERSION> · protocol v19)\n\n  pod guide orchestration  coordinate workers in new worktrees; ask / reply / check / done; gates; limits; etiquette\n\n  pod guide install --repo <path> --target skill|agents-md [--write]\n                       put a pointer to the guide into a repository (preview without --write)\n\n가이드는 이 pod 버전에 맞춰 출력됩니다. 에이전트는 `pod guide orchestration`을 읽고 따르세요.\n",
+      "stdout": "Pod guides (pod <VERSION> · protocol v20)\n\n  pod guide orchestration  coordinate workers in new worktrees; ask / reply / check / done; gates; limits; etiquette\n\n  pod guide install --repo <path> --target skill|agents-md [--write]\n                       put a pointer to the guide into a repository (preview without --write)\n\n가이드는 이 pod 버전에 맞춰 출력됩니다. 에이전트는 `pod guide orchestration`을 읽고 따르세요.\n",
       "stderr": ""
     },
     {
@@ -1603,7 +1603,7 @@
         "schema"
       ],
       "exit": 0,
-      "stdout": "<podd/tests/fixtures/schema-v19.json>",
+      "stdout": "<podd/tests/fixtures/schema-v20.json>",
       "stderr": ""
     },
     {
@@ -1776,7 +1776,7 @@
       "exit": 0,
       "stdout_json": {
         "version": "<VERSION>",
-        "protocol": 19,
+        "protocol": 20,
         "pid": "<N>",
         "pipe": "<PIPE>",
         "started_ms": "<N>",

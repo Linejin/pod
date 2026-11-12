@@ -27,6 +27,73 @@ pub(super) fn parse_filter_drivers(s: &str) -> Vec<String> {
     names
 }
 
+/// `config -z --list --show-origin --show-scope` output
+/// (`scope\0origin\0key\nvalue\0`…) read in `dir` → (filter drivers with a
+/// program, every config file read plus every include target named, read
+/// or not). Relative origins are relative to `dir`, relative includes to
+/// their file's folder, `~/` to `home`.
+pub(super) fn parse_config_list(
+    s: &str,
+    dir: &std::path::Path,
+    home: Option<&std::path::Path>,
+) -> (Vec<String>, Vec<std::path::PathBuf>) {
+    use std::path::{Path, PathBuf};
+    let mut drivers: Vec<String> = Vec::new();
+    let mut sources: Vec<PathBuf> = Vec::new();
+    let mut add = |p: PathBuf| {
+        if !sources.contains(&p) {
+            sources.push(p);
+        }
+    };
+    let fields: Vec<&str> = s.split('\0').collect();
+    for t in fields.chunks(3) {
+        let [_scope, origin, kv] = t else { continue };
+        let file = origin.strip_prefix("file:").map(|f| {
+            let f = native_path(f);
+            if f.is_absolute() { f } else { dir.join(f) }
+        });
+        if let Some(f) = &file {
+            add(f.clone());
+        }
+        let (key, value) = kv.split_once('\n').unwrap_or((kv, ""));
+        let key_l = key.to_ascii_lowercase();
+        let include = key_l == "include.path"
+            || (key_l.starts_with("includeif.") && key_l.ends_with(".path"));
+        if include && !value.trim().is_empty() {
+            let v = value.trim();
+            let target = if let Some(rest) = v.strip_prefix("~/").or_else(|| v.strip_prefix("~\\"))
+            {
+                home.map(|h| h.join(native_path(rest)))
+            } else {
+                let p = native_path(v);
+                if p.is_absolute() {
+                    Some(p)
+                } else {
+                    file.as_deref().and_then(Path::parent).map(|d| d.join(p))
+                }
+            };
+            if let Some(t) = target {
+                add(t);
+            }
+        }
+        if value.trim().is_empty() {
+            continue;
+        }
+        if let Some((name, field)) = key
+            .strip_prefix("filter.")
+            .and_then(|rest| rest.rsplit_once('.'))
+            && matches!(
+                field.to_ascii_lowercase().as_str(),
+                "clean" | "smudge" | "process"
+            )
+            && !drivers.iter().any(|n| n == name)
+        {
+            drivers.push(name.to_string());
+        }
+    }
+    (drivers, sources)
+}
+
 /// Parse `git worktree list --porcelain -z`: attribute lines separated by
 /// NUL, records separated by an empty attribute.
 pub fn parse_worktree_list(s: &str) -> Vec<WorktreeEntry> {
@@ -240,5 +307,34 @@ mod tests {
         let c = parse_commit("abc\0fix: thing\0Pod Test\x001700000000\n").unwrap();
         assert_eq!(c.summary, "fix: thing");
         assert_eq!(c.time_ms, 1_700_000_000_000);
+    }
+
+    /// TM-21: every config file and include target (missing ones too), and
+    /// the drivers with a program.
+    #[test]
+    fn config_list_sources_and_drivers() {
+        use std::path::{Path, PathBuf};
+        let s = "system\0file:C:/Git/etc/gitconfig\0filter.lfs.clean\ngit-lfs clean -- %f\0\
+                 local\0file:.git/config\0include.path\n../wt/evil.cfg\0\
+                 local\0file:.git/config\0includeif.gitdir:C:/x/.path\n~/inc.cfg\0\
+                 local\0file:.git/config\0includeIf.onbranch:main.path\nD:/abs.cfg\0\
+                 local\0file:C:/r/wt/evil.cfg\0filter.Evil.process\nsh e.sh\0\
+                 local\0file:C:/r/wt/evil.cfg\0filter.off.smudge\n\0\
+                 command\0command line:\0filter.cli.clean\nx\0";
+        let (drivers, sources) =
+            parse_config_list(s, Path::new(r"C:\r"), Some(Path::new(r"C:\home")));
+        assert_eq!(drivers, ["lfs", "Evil", "cli"]);
+        let want: Vec<PathBuf> = [
+            r"C:\Git\etc\gitconfig",
+            r"C:\r\.git\config",
+            r"C:\r\.git\..\wt\evil.cfg",
+            r"C:\home\inc.cfg",
+            r"D:\abs.cfg",
+            r"C:\r\wt\evil.cfg",
+        ]
+        .iter()
+        .map(PathBuf::from)
+        .collect();
+        assert_eq!(sources, want);
     }
 }
