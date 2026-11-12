@@ -198,6 +198,11 @@ impl Env {
         {
             return json!("<n>");
         }
+        // Bundled or system ConPTY is the machine's setup, not behaviour (a CI
+        // runner picked the system one once); command_contract masks it too.
+        if key == Some("conpty") && v.is_string() {
+            return json!("<CONPTY>");
+        }
         match v {
             Value::String(s) => json!(self.text(s)),
             Value::Array(a) => Value::Array(a.iter().map(|x| self.value(None, x)).collect()),
@@ -625,12 +630,12 @@ pod run --name agent --cols 80 --rows 24 -- <BIN>\examples/fake-agent.exe paste-
 pod wait agent --status idle --timeout 30 -> exit 0 stdout "t1 idle (turn 0)\n" stderr ""
 pod send agent hello acceptance -> exit 0 stdout "" stderr ""
 pod wait agent --output > hello acceptance --timeout 30 -> exit 0 stdout "t1 matched\n" stderr ""
-pod --json wait agent --status idle --timeout 30 -> exit 0 stdout {"outcome":"matched","status":{"badge":"idle","blocked_children":0,"confidence":0.9,"hooks_accepted":0,"hooks_rejected":0,"records":0,"running_children":0,"since":"<n>","source":"osc","state":"idle","turn":"<n>"},"terminal":{"argv":["<BIN>\\examples/fake-agent.exe","paste-loop:<ROOT>\\agents\\pastes.log"],"attached":0,"cols":80,"conpty":"bundled:<BIN>\\conpty.dll","created_ms":"<n>","cwd":"<ROOT>\\tmp","holder_pid":"<n>","id":"t1","killed":false,"lost":false,"name":"agent","pid":"<n>","rows":24,"state":"running","status":{"badge":"idle","blocked_children":0,"confidence":0.9,"hooks_accepted":0,"hooks_rejected":0,"records":0,"running_children":0,"since":"<n>","source":"osc","state":"idle","turn":"<n>"}},"waited_ms":"<n>"} stderr ""
-pod --json ls -> exit 0 stdout {"retention_ms":"<n>","terminals":[{"argv":["<BIN>\\examples/fake-agent.exe","paste-loop:<ROOT>\\agents\\pastes.log"],"attached":0,"cols":80,"conpty":"bundled:<BIN>\\conpty.dll","created_ms":"<n>","cwd":"<ROOT>\\tmp","holder_pid":"<n>","id":"t1","killed":false,"lost":false,"name":"agent","pid":"<n>","rows":24,"state":"running","status":{"badge":"idle","blocked_children":0,"confidence":0.9,"hooks_accepted":0,"hooks_rejected":0,"records":0,"running_children":0,"since":"<n>","source":"osc","state":"idle","turn":"<n>"}}]} stderr ""
+pod --json wait agent --status idle --timeout 30 -> exit 0 stdout {"outcome":"matched","status":{"badge":"idle","blocked_children":0,"confidence":0.9,"hooks_accepted":0,"hooks_rejected":0,"records":0,"running_children":0,"since":"<n>","source":"osc","state":"idle","turn":"<n>"},"terminal":{"argv":["<BIN>\\examples/fake-agent.exe","paste-loop:<ROOT>\\agents\\pastes.log"],"attached":0,"cols":80,"conpty":"<CONPTY>","created_ms":"<n>","cwd":"<ROOT>\\tmp","holder_pid":"<n>","id":"t1","killed":false,"lost":false,"name":"agent","pid":"<n>","rows":24,"state":"running","status":{"badge":"idle","blocked_children":0,"confidence":0.9,"hooks_accepted":0,"hooks_rejected":0,"records":0,"running_children":0,"since":"<n>","source":"osc","state":"idle","turn":"<n>"}},"waited_ms":"<n>"} stderr ""
+pod --json ls -> exit 0 stdout {"retention_ms":"<n>","terminals":[{"argv":["<BIN>\\examples/fake-agent.exe","paste-loop:<ROOT>\\agents\\pastes.log"],"attached":0,"cols":80,"conpty":"<CONPTY>","created_ms":"<n>","cwd":"<ROOT>\\tmp","holder_pid":"<n>","id":"t1","killed":false,"lost":false,"name":"agent","pid":"<n>","rows":24,"state":"running","status":{"badge":"idle","blocked_children":0,"confidence":0.9,"hooks_accepted":0,"hooks_rejected":0,"records":0,"running_children":0,"since":"<n>","source":"osc","state":"idle","turn":"<n>"}}]} stderr ""
 pod --json status agent -> exit 0 stdout {"badge":"idle","blocked_children":0,"confidence":0.9,"hooks_accepted":0,"hooks_rejected":0,"records":0,"running_children":0,"since":"<n>","source":"osc","state":"idle","turn":"<n>"} stderr ""
 pod server stop -> exit 0 stdout "podd stopped (1 running terminal(s) stay alive in their holders)\n" stderr ""
 pod server status -> exit 3 stdout "podd is not running (<PIPE>)\n" stderr ""
-pod --json ls -> exit 0 stdout {"retention_ms":"<n>","terminals":[{"argv":["<BIN>\\examples/fake-agent.exe","paste-loop:<ROOT>\\agents\\pastes.log"],"attached":0,"cols":80,"conpty":"bundled:<BIN>\\conpty.dll","created_ms":"<n>","cwd":"<ROOT>\\tmp","holder_pid":"<n>","id":"t1","killed":false,"lost":false,"name":"agent","pid":"<n>","rows":24,"state":"running","status":{"badge":"idle","blocked_children":0,"confidence":0.9,"hooks_accepted":0,"hooks_rejected":0,"records":0,"running_children":0,"since":"<n>","source":"osc","state":"idle","turn":"<n>"}}]} stderr ""
+pod --json ls -> exit 0 stdout {"retention_ms":"<n>","terminals":[{"argv":["<BIN>\\examples/fake-agent.exe","paste-loop:<ROOT>\\agents\\pastes.log"],"attached":0,"cols":80,"conpty":"<CONPTY>","created_ms":"<n>","cwd":"<ROOT>\\tmp","holder_pid":"<n>","id":"t1","killed":false,"lost":false,"name":"agent","pid":"<n>","rows":24,"state":"running","status":{"badge":"idle","blocked_children":0,"confidence":0.9,"hooks_accepted":0,"hooks_rejected":0,"records":0,"running_children":0,"since":"<n>","source":"osc","state":"idle","turn":"<n>"}}]} stderr ""
 pod wait agent --status idle --timeout 30 -> exit 0 stdout "t1 idle (turn 1)\n" stderr ""
 pod send agent after restart -> exit 0 stdout "" stderr ""
 pod wait agent --output > after restart --timeout 30 -> exit 0 stdout "t1 matched\n" stderr ""
