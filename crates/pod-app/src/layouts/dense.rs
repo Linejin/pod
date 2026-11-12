@@ -118,26 +118,26 @@ pub struct DenseView {
     /// The host: frame reads, change observation, slot focus, panels,
     /// intents, podd and updates.
     actions: LayoutActions,
-    pub(crate) log: EventLog,
-    pub(crate) selected: Option<Sel>,
+    log: EventLog,
+    selected: Option<Sel>,
     seen_sidebar: Option<String>,
     seen_focus: Option<String>,
-    pub(crate) log_focus: FocusHandle,
-    pub(crate) details_focus: FocusHandle,
+    log_focus: FocusHandle,
+    details_focus: FocusHandle,
     /// Selected log line (`LogEvent::seq`).
-    pub(crate) log_sel: Option<u64>,
+    log_sel: Option<u64>,
     log_scroll: UniformListScrollHandle,
     /// Lines before this `seq` are hidden (출력 지우기).
     cleared: u64,
-    pub(crate) show_tree: bool,
-    pub(crate) show_output: bool,
-    pub(crate) show_details: bool,
+    show_tree: bool,
+    show_output: bool,
+    show_details: bool,
     lines: HashMap<String, (String, Vec<String>)>,
     reading: HashSet<String>,
     busy: HashMap<String, GateDecision>,
     errors: HashMap<String, String>,
     /// "Now" of the log lines and the details column (frozen in fixture runs).
-    pub(crate) clock: Clock,
+    clock: Clock,
     _subs: Vec<Subscription>,
 }
 
@@ -158,7 +158,7 @@ fn view(actions: &LayoutActions, window: &mut Window, cx: &mut App) -> Entity<De
 
 /// The view if the layout was ever shown in the window of host `ws`.
 #[cfg(test)]
-pub(crate) fn existing_view(ws: EntityId, cx: &App) -> Option<Entity<DenseView>> {
+fn existing_view(ws: EntityId, cx: &App) -> Option<Entity<DenseView>> {
     kit::state::<DenseView>(kit::WindowKey(ws), cx)
 }
 
@@ -344,11 +344,11 @@ impl DenseView {
     }
 
     #[cfg(test)]
-    pub(crate) fn last_lines(&self, id: &str) -> Option<&[String]> {
+    fn last_lines(&self, id: &str) -> Option<&[String]> {
         self.lines.get(id).map(|(_, l)| l.as_slice())
     }
 
-    pub(crate) fn select(&mut self, sel: Sel, cx: &mut Context<Self>) {
+    fn select(&mut self, sel: Sel, cx: &mut Context<Self>) {
         self.selected = Some(sel);
         let read = self.actions.read(cx, |f| self.line_read(f)).flatten();
         self.finish(true, read, cx);
@@ -404,7 +404,7 @@ impl DenseView {
     }
 
     /// F6 / Shift+F6: the next / previous region.
-    pub(crate) fn cycle(&mut self, forward: bool, window: &mut Window, cx: &mut Context<Self>) {
+    fn cycle(&mut self, forward: bool, window: &mut Window, cx: &mut Context<Self>) {
         let regions = self.regions(window, cx);
         if regions.is_empty() {
             return;
@@ -453,12 +453,12 @@ impl DenseView {
         }
     }
 
-    pub(crate) fn focus_output(&mut self, window: &mut Window, cx: &mut Context<Self>) {
+    fn focus_output(&mut self, window: &mut Window, cx: &mut Context<Self>) {
         self.show_output = true;
         self.focus_region(Region::Output, self.log_focus.clone(), window, cx);
     }
 
-    pub(crate) fn focus_details(&mut self, window: &mut Window, cx: &mut Context<Self>) {
+    fn focus_details(&mut self, window: &mut Window, cx: &mut Context<Self>) {
         self.show_details = true;
         self.focus_region(Region::Details, self.details_focus.clone(), window, cx);
     }

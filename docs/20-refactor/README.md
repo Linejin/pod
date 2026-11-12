@@ -47,3 +47,15 @@ G1 안에서는 크기가 큰(L) 카드를 먼저 띄워, 작은 카드가 빈 �
 | A-T2c | dense·kanban | T2a 뒤 병렬 |
 | A-T2d | blocks·review | T2a 뒤 병렬 |
 | A-T2z | 작업대 renderer, legacy hook 제거, `main.rs`·`native_qa/layout_contract.rs`, 7개 모드 순환 검사, fan-in/out 재측정 | 마지막 |
+
+## 재평가 뒤 정리 (2026-11-12)
+
+[rescore.md](rescore.md)의 다음 작업 5개와 남은 버그 1건(좁은 패널 서랍에서 내용 잘림)을 카드로 나눈다.
+
+| 카드 | 내용 | 순서 |
+|---|---|---|
+| rf2-kit | host 계약을 render 단계와 update 단계로 나누기, ActionSink 기본 무동작 제거(시험용 sink는 시험 영역으로), 순서 회귀 시험, 낡은 주석·A-T2a 표 정정 | 먼저 |
+| rf2-bounds | check-boundaries에 금지 간선 추가(app/cli/remote→podd, protocol/client→daemon·GUI), pod-forge bounded 재수출 제거 | 먼저 |
+| rf2-verify | 격리 데몬의 attach/status 알림 순서 golden, 7개 모드 순환에서 modal 키 필터 제거, acceptance 자체 helper 예외 명시 | 먼저 |
+| rf2-vis | 레이아웃 내부 pub(crate) 축소, 좁은 패널 서랍 최소 폭 버그 | rf2-kit 뒤 |
+| rf2-guide | 새 레이아웃·RPC·도메인을 추가할 때 고칠 곳 안내서(Codex Astra) | 마지막 |

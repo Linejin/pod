@@ -537,3 +537,38 @@ fn orch_pages_opened_on_the_board_show_in_the_drawer() {
     assert!(shows(&mut h), "the inbox opens the drawer on 패널");
     assert!(dock_focused(&mut h), "with the keyboard in it");
 }
+
+/// The gates inbox (right-docked at its own 380 px) opened on the board shows
+/// whole in the drawer's 패널 view at 960 and 1440 px: the drawer runs the
+/// width of the board, so nothing is cut off on the right.
+#[test]
+fn a_right_docked_panel_fits_in_the_drawer_at_960_and_1440() {
+    for (name, width, height) in [
+        ("kanban-drawer-fit-960", 960., 640.),
+        ("kanban-drawer-fit-1440", 1440., 960.),
+    ] {
+        let mut h = Harness::sized(name, 1.0, size(px(width), px(height)), seed_two_tasks);
+        set_layout(&mut h, "kanban");
+        let b = board(&mut h);
+        let ws = h.ws.clone();
+        h.cx.update(|window, cx| ws.update(cx, |w, cx| w.open_gates(window, cx)));
+        h.settle();
+        assert!(
+            h.cx.update(|_, cx| {
+                let b = b.read(cx);
+                b.drawer_open && b.show_dock
+            }),
+            "{width}: the drawer shows the dock"
+        );
+        let drawer = h.bounds("kanban-drawer").expect("the drawer");
+        let gates = h.bounds("gates-panel").expect("the gates inbox is drawn");
+        assert!(
+            gates.left() >= drawer.left() && gates.right() <= drawer.right() + px(0.5),
+            "{width}: the gates inbox is inside the drawer: {gates:?} / {drawer:?}"
+        );
+        assert!(
+            gates.bottom() <= drawer.bottom() + px(0.5),
+            "{width}: and above its bottom edge: {gates:?} / {drawer:?}"
+        );
+    }
+}

@@ -21,7 +21,7 @@ pub fn row_height(ui: f32) -> f32 {
 }
 
 /// Height of a panel header (출력, 세부 정보): the style's, at least a row.
-pub(crate) fn header_height(ui: f32) -> f32 {
+pub(super) fn header_height(ui: f32) -> f32 {
     pod_ui::themes::metrics()
         .density
         .panel_header
@@ -62,7 +62,7 @@ impl Sel {
 }
 
 /// The selection the column shows: nothing when its task or terminal vanished.
-pub(crate) fn shown_selection(
+pub(super) fn shown_selection(
     sel: Option<&Sel>,
     tasks: &[TaskVm],
     terminals: &[TerminalVm],
@@ -75,7 +75,7 @@ pub(crate) fn shown_selection(
 }
 
 /// Status key of a terminal: 마지막 줄 is re-read only when it changes.
-pub(crate) fn line_key(t: &TerminalVm) -> String {
+pub(super) fn line_key(t: &TerminalVm) -> String {
     let s = t.status.as_ref();
     format!(
         "{:?}|{}|{}|{:?}",
@@ -87,7 +87,7 @@ pub(crate) fn line_key(t: &TerminalVm) -> String {
 }
 
 /// The log follows its newest line unless the user selected an older one.
-pub(crate) fn at_tail(selected: Option<u64>, newest: Option<u64>) -> bool {
+pub(super) fn at_tail(selected: Option<u64>, newest: Option<u64>) -> bool {
     selected.is_none_or(|s| newest.is_none_or(|n| n == s))
 }
 
@@ -104,7 +104,7 @@ pub enum Region {
 
 /// F6 / Shift+F6 over `n` shown regions (`n > 0`) from the one holding focus;
 /// from outside them, the first.
-pub(crate) fn cycle_step(at: Option<usize>, n: usize, forward: bool) -> usize {
+pub(super) fn cycle_step(at: Option<usize>, n: usize, forward: bool) -> usize {
     match at {
         Some(i) if forward => (i + 1) % n,
         Some(i) => (i + n - 1) % n,
@@ -114,7 +114,7 @@ pub(crate) fn cycle_step(at: Option<usize>, n: usize, forward: bool) -> usize {
 
 /// A key on the 출력 log.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub(crate) enum LogKey {
+pub(super) enum LogKey {
     /// Select this line.
     Select(usize),
     /// Enter / Space: the selected line (if any) into the details column;
@@ -124,7 +124,7 @@ pub(crate) enum LogKey {
 
 /// ↑↓ Home End PageUp PageDown select, Enter / Space activate; `at` is the
 /// selected line of `len` visible ones. `None`: not the log's key (or no lines).
-pub(crate) fn log_key(key: &str, at: Option<usize>, len: usize) -> Option<LogKey> {
+pub(super) fn log_key(key: &str, at: Option<usize>, len: usize) -> Option<LogKey> {
     if len == 0 {
         return None;
     }
@@ -151,7 +151,7 @@ pub(crate) fn log_key(key: &str, at: Option<usize>, len: usize) -> Option<LogKey
 
 /// A panel of the layout the activity bar shows or hides.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub(crate) enum Panel {
+pub(super) enum Panel {
     Tree,
     Output,
     Details,
@@ -159,7 +159,7 @@ pub(crate) enum Panel {
 
 /// One entry of the activity bar, top to bottom.
 #[derive(Clone, Debug, PartialEq)]
-pub(crate) enum BarEntry {
+pub(super) enum BarEntry {
     /// Shows or hides a panel; marked while it is shown.
     Toggle {
         panel: Panel,
@@ -182,7 +182,7 @@ pub(crate) enum BarEntry {
 
 /// Tree toggle, files, agent tree, search, gates; output/details toggles and
 /// settings at the bottom.
-pub(crate) fn activity_bar() -> Vec<BarEntry> {
+pub(super) fn activity_bar() -> Vec<BarEntry> {
     let command =
         |id: &'static str, icon: Icon, label: &'static str, tip: &'static str, intent: UiIntent| {
             BarEntry::Command {
@@ -258,12 +258,12 @@ pub(crate) fn activity_bar() -> Vec<BarEntry> {
 
 /// Muted, secondary and info lines read in the primary text colour; the
 /// others in their tone's.
-pub(crate) fn plain_text(tone: Tone) -> bool {
+pub(super) fn plain_text(tone: Tone) -> bool {
     matches!(tone, Tone::Muted | Tone::Secondary | Tone::Info)
 }
 
 /// `#12 열림 · title`.
-pub(crate) fn pr_text(pr: &p::TaskPr) -> String {
+pub(super) fn pr_text(pr: &p::TaskPr) -> String {
     let state = format!("{:?}", pr.state).to_lowercase();
     let state = match state.as_str() {
         "open" if pr.draft => copy::PR_DRAFT,
@@ -277,7 +277,7 @@ pub(crate) fn pr_text(pr: &p::TaskPr) -> String {
 
 /// The pending gate of a terminal decided inline: the first by gate id, as in
 /// the session's gate map (`OrchState::gates`), whatever order `gates` is in.
-pub(crate) fn pending_gate<'a>(gates: &'a [GateInfo], terminal: &str) -> Option<&'a GateInfo> {
+pub(super) fn pending_gate<'a>(gates: &'a [GateInfo], terminal: &str) -> Option<&'a GateInfo> {
     gates
         .iter()
         .filter(|g| g.state == GateState::Pending && g.terminal.as_deref() == Some(terminal))
@@ -286,21 +286,21 @@ pub(crate) fn pending_gate<'a>(gates: &'a [GateInfo], terminal: &str) -> Option<
 
 /// One decision button of an inline gate.
 #[derive(Clone, Debug, PartialEq)]
-pub(crate) struct GateButton {
-    pub(crate) decision: GateDecision,
-    pub(crate) label: String,
+pub(super) struct GateButton {
+    pub(super) decision: GateDecision,
+    pub(super) label: String,
     /// Element id (`dense-allow-<gate>[-<i>]`, `dense-reject-<gate>`).
-    pub(crate) id: String,
+    pub(super) id: String,
     /// The option picked (v17 gates with options).
-    pub(crate) choice: Option<String>,
-    pub(crate) tone: Tone,
+    pub(super) choice: Option<String>,
+    pub(super) tone: Tone,
     /// Accessible name.
-    pub(crate) name: String,
+    pub(super) name: String,
 }
 
 /// A gate with options (v17) is approved by picking one; otherwise 이번만
 /// 허용. 거부 comes last.
-pub(crate) fn gate_buttons(g: &GateInfo) -> Vec<GateButton> {
+pub(super) fn gate_buttons(g: &GateInfo) -> Vec<GateButton> {
     let approve: Vec<(String, String, Option<String>)> = if g.options.is_empty() {
         vec![(
             copy::ALLOW_ONCE.to_string(),
@@ -349,7 +349,7 @@ pub(crate) fn gate_buttons(g: &GateInfo) -> Vec<GateButton> {
 
 /// A decision button while `busy` is on its way: the one sent loads, the
 /// others wait.
-pub(crate) fn button_state(busy: Option<GateDecision>, d: GateDecision) -> ControlState {
+pub(super) fn button_state(busy: Option<GateDecision>, d: GateDecision) -> ControlState {
     match busy {
         Some(b) if b == d => ControlState::Loading,
         Some(_) => ControlState::Disabled,
@@ -359,7 +359,7 @@ pub(crate) fn button_state(busy: Option<GateDecision>, d: GateDecision) -> Contr
 
 /// What a text action of the details column does.
 #[derive(Clone, Debug, PartialEq)]
-pub(crate) enum Act {
+pub(super) enum Act {
     /// Hand a UI request to the host.
     Intent(UiIntent),
     /// 다시 실행 this terminal's command (the view's controller).
@@ -368,17 +368,17 @@ pub(crate) enum Act {
 
 /// A text action of the details column.
 #[derive(Clone, Debug, PartialEq)]
-pub(crate) struct Link {
-    pub(crate) id: &'static str,
-    pub(crate) label: &'static str,
+pub(super) struct Link {
+    pub(super) id: &'static str,
+    pub(super) label: &'static str,
     /// Accessible name.
-    pub(crate) name: String,
-    pub(crate) icon: Icon,
-    pub(crate) act: Act,
+    pub(super) name: String,
+    pub(super) icon: Icon,
+    pub(super) act: Act,
 }
 
 /// A terminal's first action: 터미널 열기 while it runs, else 다시 실행.
-pub(crate) fn terminal_link(t: &TerminalVm, label: &str) -> Link {
+pub(super) fn terminal_link(t: &TerminalVm, label: &str) -> Link {
     if t.is_running() {
         Link {
             id: "dense-open-terminal",
@@ -402,7 +402,7 @@ pub(crate) fn terminal_link(t: &TerminalVm, label: &str) -> Link {
 }
 
 /// 변경 검토 · 파일 열기 (with a worktree) · PR 보기 of a task.
-pub(crate) fn task_links(k: &TaskVm) -> Vec<Link> {
+pub(super) fn task_links(k: &TaskVm) -> Vec<Link> {
     let mut links = vec![Link {
         id: "dense-review",
         label: copy::REVIEW,
@@ -437,7 +437,7 @@ pub(crate) fn task_links(k: &TaskVm) -> Vec<Link> {
 }
 
 /// 다시 실행: the same command in the same folder and task (`terminal.run`).
-pub(crate) fn rerun_spec(t: &TerminalVm) -> RunSpec {
+pub(super) fn rerun_spec(t: &TerminalVm) -> RunSpec {
     RunSpec {
         argv: t.argv.clone(),
         cwd: Some(t.cwd.clone()),

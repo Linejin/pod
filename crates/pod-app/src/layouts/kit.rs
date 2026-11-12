@@ -2,9 +2,10 @@
 //! layout mode renders against, and the presentation pieces the modes share.
 //!
 //! Nothing here names the Workspace: `workspace/layout_host.rs` (A-F1)
-//! implements [`LayoutHost`] and [`ActionSink`] over it. Every mode (the
-//! workbench too) draws through the [`LayoutRenderer`] its
-//! `LayoutModule::renderer` returns (card T2).
+//! implements [`LayoutHost`] and both halves of `model::ActionSink` over it —
+//! [`HostHandles`] (render-safe) and [`HostCommands`] (update phase), no
+//! default methods (rf2-kit). Every mode (the workbench too) draws through
+//! the [`LayoutRenderer`] its `LayoutModule::renderer` returns (card T2).
 mod clock;
 mod host;
 mod metrics;
@@ -23,8 +24,8 @@ pub(crate) use host::{
 pub(crate) use host::{release_window, state};
 pub(crate) use metrics::{LayoutMetrics, color};
 pub(crate) use model::{
-    ActionSink, FrameToasts, LayoutActions, LayoutFrame, LayoutHost, LayoutRenderer, OpenPanels,
-    PanelDetail, Slot, UiIntent,
+    FrameToasts, HostCommands, HostHandles, LayoutActions, LayoutFrame, LayoutHost, LayoutRenderer,
+    OpenPanels, PanelDetail, Slot, UiIntent,
 };
 pub(crate) use widgets::{
     BodyFlow, ConnectionShell, Island, ToastAnchor, panel_header, warning_banner,

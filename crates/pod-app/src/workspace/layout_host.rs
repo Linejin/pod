@@ -15,6 +15,11 @@
 //! change observation (workspace notify, dock `LayoutChanged`, tree), dock and
 //! panel access, window-less [`HostUpdate`]s and the gate path, so a mode's
 //! own views reach all of it through [`LayoutActions`].
+//!
+//! rf2-kit: [`Sink`] implements both halves of the kit's host side with no
+//! defaults — [`HostHandles`] from handles captured at creation (never the
+//! workspace, so they work while it renders) and [`HostCommands`] through
+//! the weak workspace.
 use std::rc::Rc;
 
 use gpui_kit::component::dock::{DockArea, DockEvent, PanelId};
@@ -22,9 +27,9 @@ use gpui_kit::*;
 use podd::protocol::{GateInfo, GateResolveParams};
 
 use crate::layouts::kit::{
-    ActionSink, AppOnce, FrameToasts, GateDone, HostChange, HostUpdate, LayoutActions, LayoutFrame,
-    LayoutHost, LayoutMetrics, LayoutRenderer, OnChange, OnChangeIn, OpenPanels, PanelDetail, Slot,
-    UiIntent, WindowKey,
+    AppOnce, FrameToasts, GateDone, HostChange, HostCommands, HostHandles, HostUpdate,
+    LayoutActions, LayoutFrame, LayoutHost, LayoutMetrics, LayoutRenderer, OnChange, OnChangeIn,
+    OpenPanels, PanelDetail, Slot, UiIntent, WindowKey,
 };
 use crate::panel::TerminalPanel;
 use crate::review::ReviewPanel;
@@ -101,13 +106,16 @@ impl Workspace {
 
     /// Handle for a mode's event closures and long-lived views.
     pub(crate) fn layout_actions(&self, cx: &Context<Self>) -> LayoutActions {
-        // The dock, the sidebar and the source are set once in Workspace::new
-        // and never replaced: capture them so a renderer can use them while
-        // the workspace itself is leased (inside Workspace::render).
+        // The dock, the sidebar, both focus handles and the source are set
+        // once in Workspace::new and never replaced: capture them so a
+        // renderer can use them while the workspace itself is leased (inside
+        // Workspace::render) — the kit's render-safe half.
         LayoutActions::new(Rc::new(Sink {
             ws: cx.entity().downgrade(),
             dock: self.dock.clone(),
             sidebar: self.sidebar.clone(),
+            sidebar_focus: self.sidebar_focus_handle(cx),
+            toast_focus: self.toast_focus.clone(),
             source: self.source.clone(),
         }))
     }
@@ -141,17 +149,6 @@ impl Workspace {
         let gates = self.orch.pending();
         let frame = self.layout_frame(&gates, cx);
         renderer.title_bar_extra(&frame, &actions, cx)
-    }
-
-    /// Keyboard focus of a slot: the dock area, the sidebar tree and the toast
-    /// stack; the hook banner has none of its own.
-    fn slot_focus(&self, slot: Slot, cx: &App) -> Option<FocusHandle> {
-        match slot {
-            Slot::Dock => Some(self.dock.read(cx).focus_handle(cx)),
-            Slot::Sidebar => Some(self.sidebar_focus_handle(cx)),
-            Slot::Toasts => Some(self.toast_focus.clone()),
-            Slot::HookBanner => None,
-        }
     }
 
     /// Carries out a mode's intent with the workspace method it maps to.
@@ -261,42 +258,34 @@ impl LayoutHost for Host {
 }
 
 /// The workspace behind [`LayoutActions`], held weakly: once the window is
-/// gone there is no frame and intents do nothing. The dock, sidebar and
-/// source handles are captured at creation (never reassigned), so the methods
-/// that only need them work during render, while the workspace is leased.
+/// gone there is no frame and intents do nothing. The dock, the sidebar, the
+/// sidebar and toast focus handles and the source are captured at creation
+/// (never reassigned): the render-safe half ([`HostHandles`]) uses only them
+/// and `upgrade`, so it works during render, while the workspace is leased.
 struct Sink {
     ws: WeakEntity<Workspace>,
     dock: Entity<DockArea>,
     sidebar: Entity<Sidebar>,
+    sidebar_focus: FocusHandle,
+    toast_focus: FocusHandle,
     source: PoddSource,
 }
 
-impl ActionSink for Sink {
-    fn with_frame(&self, cx: &App, f: &mut dyn FnMut(&LayoutFrame<'_>)) {
-        let Some(ws) = self.ws.upgrade() else {
-            return;
-        };
-        let ws = ws.read(cx);
-        let gates = ws.orch.pending();
-        f(&ws.layout_frame(&gates, cx));
+impl HostHandles for Sink {
+    fn window_key(&self) -> WindowKey {
+        WindowKey(self.ws.entity_id())
     }
 
     fn focus_handle(&self, slot: Slot, cx: &App) -> Option<FocusHandle> {
         match slot {
             Slot::Dock => Some(self.dock.read(cx).focus_handle(cx)),
-            Slot::Sidebar => Some(self.sidebar.read(cx).focus.clone()),
-            _ => self.ws.upgrade()?.read(cx).slot_focus(slot, cx),
+            Slot::Sidebar => Some(self.sidebar_focus.clone()),
+            Slot::Toasts => {
+                self.ws.upgrade()?;
+                Some(self.toast_focus.clone())
+            }
+            Slot::HookBanner => None,
         }
-    }
-
-    fn dispatch(&self, intent: UiIntent, window: &mut Window, cx: &mut App) {
-        let _ = self
-            .ws
-            .update(cx, |ws, cx| ws.dispatch_intent(intent, window, cx));
-    }
-
-    fn window_key(&self) -> WindowKey {
-        WindowKey(self.ws.entity_id())
     }
 
     fn on_release(&self, cx: &mut App, f: AppOnce) -> bool {
@@ -355,6 +344,28 @@ impl ActionSink for Sink {
             Slot::Sidebar => Some(self.sidebar.clone().into()),
             Slot::Toasts | Slot::HookBanner => None,
         }
+    }
+
+    fn source(&self, _cx: &App) -> Option<PoddSource> {
+        self.ws.upgrade()?;
+        Some(self.source.clone())
+    }
+}
+
+impl HostCommands for Sink {
+    fn with_frame(&self, cx: &App, f: &mut dyn FnMut(&LayoutFrame<'_>)) {
+        let Some(ws) = self.ws.upgrade() else {
+            return;
+        };
+        let ws = ws.read(cx);
+        let gates = ws.orch.pending();
+        f(&ws.layout_frame(&gates, cx));
+    }
+
+    fn dispatch(&self, intent: UiIntent, window: &mut Window, cx: &mut App) {
+        let _ = self
+            .ws
+            .update(cx, |ws, cx| ws.dispatch_intent(intent, window, cx));
     }
 
     fn current_task(&self, window: &Window, cx: &App) -> Option<String> {
@@ -424,11 +435,6 @@ impl ActionSink for Sink {
         Some(panel)
     }
 
-    fn source(&self, _cx: &App) -> Option<PoddSource> {
-        self.ws.upgrade()?;
-        Some(self.source.clone())
-    }
-
     fn post(&self, updates: Vec<HostUpdate>, cx: &mut App) -> bool {
         self.ws
             .update(cx, |ws, cx| {
@@ -457,8 +463,11 @@ mod tests {
     use std::cell::{Cell, RefCell};
     use std::rc::Rc;
 
-    use gpui_kit::{AppContext as _, Entity, Subscription, WeakEntity, WindowOptions};
-    use podd::protocol::{GateDecision, GateResolveParams, orch_codes};
+    use gpui_kit::{
+        AnyWindowHandle, App, AppContext as _, Entity, Subscription, WeakEntity, Window,
+        WindowOptions,
+    };
+    use podd::protocol::{GateDecision, GateInfo, GateResolve, GateResolveParams, orch_codes};
 
     use super::{Sink, Workspace};
     use crate::layouts::kit::{
@@ -510,6 +519,75 @@ mod tests {
     struct Probe {
         seen: Vec<HostChange>,
         sub: Option<Subscription>,
+    }
+
+    fn fixture_gate() -> GateInfo {
+        crate::orch_ui::fixture::gates_for_test()
+            .into_iter()
+            .next()
+            .expect("a fixture gate")
+    }
+
+    /// A second window with its own workspace and scripted backend (served
+    /// only when the test calls it), and the actions of that workspace.
+    fn second_window(
+        h: &mut Harness,
+    ) -> (
+        AnyWindowHandle,
+        WeakEntity<Workspace>,
+        LayoutActions,
+        TestBackend,
+    ) {
+        let (source, events, backend) = PoddSource::scripted();
+        let (handle, weak_ws) = h.cx.update(|_, cx| {
+            let slot = RefCell::new(None);
+            let handle = cx
+                .open_window(WindowOptions::default(), |window, cx| {
+                    let ws = cx.new(|cx| {
+                        Workspace::new(source, events, StartOptions::default(), window, cx)
+                    });
+                    *slot.borrow_mut() = Some(ws.downgrade());
+                    cx.new(|cx| gpui_kit::base::Root::new(ws, window, cx))
+                })
+                .expect("second window");
+            (handle, slot.into_inner().expect("second workspace"))
+        });
+        let actions = h.cx.update(|_, cx| {
+            weak_ws
+                .upgrade()
+                .expect("second workspace")
+                .update(cx, |w, cx| w.layout_actions(cx))
+        });
+        (handle.into(), weak_ws, actions, backend)
+    }
+
+    /// Where a layout sees the focus from its actions: the number of
+    /// terminal panels, the terminal whose dock panel holds the window focus
+    /// and the frame's focused terminal.
+    fn focus_seen(a: &LayoutActions, window: &Window, cx: &App) -> String {
+        let panels = a.terminal_panels(cx);
+        let window_focus = a
+            .focused_dock_panel(window, cx)
+            .and_then(|(id, _)| panels.iter().find(|p| p.entity_id() == id))
+            .map(|p| p.read(cx).terminal_id.clone());
+        let frame_focus = a
+            .read(cx, |f| f.focused_terminal.map(str::to_owned))
+            .flatten();
+        format!(
+            "panels={} window={} frame={}",
+            panels.len(),
+            window_focus.as_deref().unwrap_or("-"),
+            frame_focus.as_deref().unwrap_or("-")
+        )
+    }
+
+    /// What a layout reads about gate answers: the gates it knows, the toasts.
+    fn gate_seen(a: &LayoutActions, cx: &App) -> String {
+        a.read(cx, |f| {
+            let ids: Vec<&str> = f.all_gates.keys().map(String::as_str).collect();
+            format!("gates=[{}] toasts={}", ids.join(","), f.toasts.len())
+        })
+        .unwrap_or_else(|| "gone".into())
     }
 
     #[test]
@@ -958,26 +1036,7 @@ mod tests {
             s1.downgrade()
         });
         // A second window with its own workspace: its own slot, dropped with it.
-        let (source, events, _backend) = PoddSource::scripted();
-        let (handle, weak_ws) = h.cx.update(|_, cx| {
-            let slot = RefCell::new(None);
-            let handle = cx
-                .open_window(WindowOptions::default(), |window, cx| {
-                    let ws = cx.new(|cx| {
-                        Workspace::new(source, events, StartOptions::default(), window, cx)
-                    });
-                    *slot.borrow_mut() = Some(ws.downgrade());
-                    cx.new(|cx| gpui_kit::base::Root::new(ws, window, cx))
-                })
-                .expect("second window");
-            (handle, slot.into_inner().expect("second workspace"))
-        });
-        let b = h.cx.update(|_, cx| {
-            weak_ws
-                .upgrade()
-                .expect("second workspace")
-                .update(cx, |w, cx| w.layout_actions(cx))
-        });
+        let (handle, weak_ws, b, _backend) = second_window(&mut h);
         let key = b.window_key();
         let second = h.cx.update(|_, cx| {
             handle
@@ -1022,11 +1081,14 @@ mod tests {
                 ws: WeakEntity::new_invalid(),
                 dock: w.dock.clone(),
                 sidebar: w.sidebar.clone(),
+                sidebar_focus: w.sidebar_focus_handle(cx),
+                toast_focus: w.toast_focus.clone(),
                 source: w.source.clone(),
             }))
         });
         h.cx.update(|window, cx| {
             assert!(gone.read(cx, |_| ()).is_none());
+            assert!(gone.focus_handle(Slot::Toasts, cx).is_none());
             assert!(gone.dock(cx).is_none());
             assert!(gone.view(Slot::Dock, cx).is_none());
             assert!(gone.source(cx).is_none());
@@ -1102,5 +1164,325 @@ mod tests {
         });
         h.settle();
         assert_eq!(dock_json(&mut h), before, "neither went into the dock");
+    }
+
+    /// rf2-kit: every render-safe call (the kit's `HostHandles` half and the
+    /// `LayoutActions` methods built on it) works while the workspace is
+    /// leased, as inside a renderer's `render_body`. The toast focus used to
+    /// read the workspace (a double lease there).
+    #[test]
+    fn every_render_safe_call_works_while_the_workspace_is_leased() {
+        let mut h = Harness::new("layout-host-render-safe", seed_two_tasks);
+        open(&mut h, &["w1"]);
+        let a = actions(&mut h);
+        let ws = h.ws.clone();
+        let (toast_focus, w1) = h.cx.update(|_, cx| {
+            let w = ws.read(cx);
+            (w.toast_focus.clone(), w.live_panels()[0].entity_id())
+        });
+        let (fired, deferred) = (Rc::new(Cell::new(0)), Rc::new(Cell::new(false)));
+        let subs = h.cx.update(|window, cx| {
+            let key = WindowKey(ws.entity_id());
+            ws.update(cx, |_, cx| {
+                assert_eq!(a.window_key(), key);
+                for slot in [Slot::Dock, Slot::Sidebar] {
+                    assert!(a.focus_handle(slot, cx).is_some(), "{slot:?}");
+                }
+                assert_eq!(a.focus_handle(Slot::Toasts, cx), Some(toast_focus.clone()));
+                assert!(a.focus_handle(Slot::HookBanner, cx).is_none());
+                assert!(a.dock(cx).is_some());
+                assert!(a.view(Slot::Dock, cx).is_some());
+                assert!(a.view(Slot::Sidebar, cx).is_some());
+                assert!(a.source(cx).is_some());
+                assert_eq!(a.focused_dock_panel(window, cx).map(|(id, _)| id), Some(w1));
+                let made = a.state_or_insert_with(window, cx, |_, cx| cx.new(|_| Probe::default()));
+                assert_eq!(
+                    a.state::<Probe>(cx).map(|s| s.entity_id()),
+                    Some(made.entity_id())
+                );
+                let f = fired.clone();
+                let data = a.observe(&[HostChange::Data], cx, move |_, _, _| f.set(f.get() + 1));
+                let dock = a.observe_in(&[HostChange::DockLayout], window, cx, |_, _, _, _| {});
+                // The deferred intent runs after the lease, in the update phase.
+                a.defer(UiIntent::RevealTerminal { id: "w1".into() }, window, cx);
+                let d = deferred.clone();
+                window.defer(cx, move |_, _| d.set(true));
+                (data, dock)
+            })
+        });
+        assert!(subs.0.is_some() && subs.1.is_some());
+        h.cx.update(|_, cx| ws.update(cx, |_, cx| cx.notify()));
+        h.settle();
+        assert!(deferred.get());
+        assert!(fired.get() >= 1, "the data observer fires after the lease");
+        drop(subs);
+    }
+
+    /// rescore §3.4: dock change → notify → focus, as a layout sees it.
+    /// `dispatch_then` calls `then` once the dispatch returned (the new panel
+    /// exists, the window focus moved) but before any observer ran. Then the
+    /// dock's `LayoutChanged`; the host's notify comes from its own reaction
+    /// to that event (`touch`), so a `window.defer` from `then` (the rail's
+    /// rearrange and focus) runs after `DockLayout` but before `Data`. The
+    /// frame's focused terminal follows the window focus only once the window
+    /// drew (the test platform draws a dirty window at the end of the flush,
+    /// the app on its next frame), with one more `Data`.
+    #[test]
+    fn dock_change_then_notify_then_focus_after_dispatch_then() {
+        let mut h = Harness::new("layout-host-event-order", seed_two_tasks);
+        let a = actions(&mut h);
+        let log = Rc::new(RefCell::new(Vec::<String>::new()));
+        let probe = h.cx.update(|window, cx| {
+            let (a2, log) = (a.clone(), log.clone());
+            let changes = [HostChange::DockLayout, HostChange::Data];
+            cx.new(|cx| Probe {
+                sub: a.observe_in(&changes, window, cx, move |_: &mut Probe, c, window, cx| {
+                    log.borrow_mut()
+                        .push(format!("{c:?} {}", focus_seen(&a2, window, cx)));
+                }),
+                ..Default::default()
+            })
+        });
+        h.settle();
+        log.borrow_mut().clear();
+        h.cx.update(|window, cx| {
+            let (a2, log) = (a.clone(), log.clone());
+            let intent = UiIntent::OpenTaskTerminals { task: TASK.into() };
+            a.dispatch_then(intent, window, cx, move |window, cx| {
+                log.borrow_mut()
+                    .push(format!("then {}", focus_seen(&a2, window, cx)));
+                window.defer(cx, move |window, cx| {
+                    log.borrow_mut()
+                        .push(format!("deferred {}", focus_seen(&a2, window, cx)));
+                });
+            });
+        });
+        let flushed = std::mem::take(&mut *log.borrow_mut());
+        h.settle();
+        let drawn = std::mem::take(&mut *log.borrow_mut());
+        assert_eq!(
+            flushed,
+            [
+                "then panels=1 window=w1 frame=-",
+                "DockLayout panels=1 window=w1 frame=-",
+                "deferred panels=1 window=w1 frame=-",
+                "Data panels=1 window=w1 frame=-",
+                "Data panels=1 window=w1 frame=w1",
+            ],
+            "after the draws: {drawn:?}"
+        );
+        assert!(drawn.is_empty(), "all of it in one flush: {drawn:?}");
+        assert_eq!(h.focused_terminal().as_deref(), Some("w1"));
+        drop(probe);
+    }
+
+    /// rescore §5.1: a window closes while requests it started are out. The
+    /// late answers reach nothing of the gone host and nothing panics: the
+    /// gate path's `done` still runs (the caller's busy state lives in its
+    /// own view), a layout's own request that hands its answer back with
+    /// `post` gets `false`. After the release `post` and `resolve_gate` are
+    /// no-ops that send nothing.
+    #[test]
+    fn a_window_closed_before_a_late_answer_takes_nothing() {
+        let mut h = Harness::new("layout-host-late-answer", seed_two_tasks);
+        let gate = fixture_gate();
+        let (handle, weak_ws, b, mut backend) = second_window(&mut h);
+        let answer = serde_json::to_value(&gate).expect("gate json");
+        let mut n = 0;
+        backend.rpc = Some(Box::new(move |method, _| {
+            (method == "gate.resolve").then(|| {
+                n += 1;
+                if n == 2 {
+                    Err(SourceError {
+                        code: None,
+                        message: "늦은 실패".into(),
+                    })
+                } else {
+                    Ok(answer.clone())
+                }
+            })
+        }));
+        let done = Rc::new(RefCell::new(Vec::new()));
+        let posted = Rc::new(RefCell::new(Vec::new()));
+        h.cx.update(|_, cx| {
+            for _ in 0..2 {
+                let done = done.clone();
+                assert!(b.resolve_gate(params(&gate.id), cx, move |r, _| {
+                    done.borrow_mut().push(r.map_err(|e| e.text))
+                }));
+            }
+            // A layout's own request (review, blocks): the answer goes back
+            // through `post`, as `[ApplyGate, Notify]` or `[Toast, Notify]`.
+            let rx = b
+                .source(cx)
+                .expect("source")
+                .call::<GateResolve>(&params(&gate.id));
+            let (b, posted) = (b.clone(), posted.clone());
+            cx.spawn(async move |cx| {
+                let r = rx.await;
+                cx.update(|cx| {
+                    let first = match r {
+                        Ok(g) => HostUpdate::ApplyGate(g),
+                        Err(e) => HostUpdate::Toast {
+                            kind: ToastKind::Error,
+                            title: "실패".into(),
+                            body: e.message.into(),
+                        },
+                    };
+                    posted
+                        .borrow_mut()
+                        .push(b.post(vec![first, HostUpdate::Notify], cx));
+                });
+            })
+            .detach();
+        });
+        let ws = h.ws.clone();
+        let main = |h: &mut Harness| {
+            h.cx.update(|_, cx| {
+                let w = ws.read(cx);
+                (w.toasts.len(), w.orch.gates.len())
+            })
+        };
+        let main_before = main(&mut h);
+        h.cx.update(|_, cx| {
+            let _ = handle.update(cx, |_, window, _| window.remove_window());
+        });
+        h.settle();
+        assert!(weak_ws.upgrade().is_none(), "the second workspace is gone");
+        assert!(done.borrow().is_empty() && posted.borrow().is_empty());
+        // podd answers now, after the window closed.
+        backend.serve();
+        h.settle();
+        let sent = |b: &TestBackend| {
+            b.calls
+                .iter()
+                .filter(|c| c.starts_with("gate.resolve"))
+                .count()
+        };
+        assert_eq!(sent(&backend), 3);
+        assert_eq!(
+            *done.borrow(),
+            [Ok(()), Err("늦은 실패".to_string())],
+            "done runs once per request"
+        );
+        assert_eq!(*posted.borrow(), [false], "nothing to post to");
+        assert_eq!(main(&mut h), main_before, "the other window got nothing");
+        // After the release: no-ops that send nothing.
+        h.cx.update(|_, cx| {
+            assert!(!b.post(vec![HostUpdate::Notify], cx));
+            assert!(!b.resolve_gate(params(&gate.id), cx, |_, _| {
+                panic!("no done for a gone host")
+            }));
+        });
+        h.settle();
+        backend.serve();
+        assert_eq!(sent(&backend), 3, "nothing sent after the release");
+    }
+
+    /// rescore §3.4, §5.1: the order a gate answer lands in, on the real
+    /// host. The gate path merges the answer (or raises the failure toast)
+    /// and touches the host, then calls `done` in the same update: `done`
+    /// reads the merged gate or the toast, and the `Data` observers run
+    /// after `done`. `post` applies its list in one update, so the observer
+    /// runs once and sees all of it, whatever the order of `Notify`.
+    #[test]
+    fn gate_answers_land_before_done_and_the_observers() {
+        let mut h = Harness::new("layout-host-gate-order", seed_two_tasks);
+        let a = actions(&mut h);
+        let gate = fixture_gate();
+        let answer = serde_json::to_value(&gate).expect("gate json");
+        h.backend.rpc = Some(Box::new(move |method, params| {
+            (method == "gate.resolve").then(|| {
+                if params.get("id").and_then(|v| v.as_str()) == Some("g-fail") {
+                    Err(SourceError {
+                        code: Some(orch_codes::GATE_RESOLVED),
+                        message: "already decided".into(),
+                    })
+                } else {
+                    Ok(answer.clone())
+                }
+            })
+        }));
+        let log = Rc::new(RefCell::new(Vec::<String>::new()));
+        let probe = h.cx.update(|_, cx| {
+            let (a2, log) = (a.clone(), log.clone());
+            cx.new(|cx| Probe {
+                sub: a.observe(&[HostChange::Data], cx, move |_: &mut Probe, _, cx| {
+                    log.borrow_mut()
+                        .push(format!("Data {}", gate_seen(&a2, cx)));
+                }),
+                ..Default::default()
+            })
+        });
+        h.settle();
+        let t =
+            h.cx.update(|_, cx| a.read(cx, |f| f.toasts.len()).expect("frame"));
+        let step = |h: &mut Harness, run: &dyn Fn(&mut App)| {
+            log.borrow_mut().clear();
+            h.cx.update(|_, cx| run(cx));
+            h.settle();
+            std::mem::take(&mut *log.borrow_mut())
+        };
+        let decide = |id: &'static str| {
+            let (a, log) = (a.clone(), log.clone());
+            move |cx: &mut App| {
+                let (a2, log) = (a.clone(), log.clone());
+                assert!(a.resolve_gate(params(id), cx, move |r, cx| {
+                    let r = if r.is_ok() { "Ok" } else { "Err" };
+                    log.borrow_mut()
+                        .push(format!("done {r} {}", gate_seen(&a2, cx)));
+                }));
+            }
+        };
+        let post = |updates: Vec<HostUpdate>| {
+            let a = a.clone();
+            move |cx: &mut App| assert!(a.post(updates.clone(), cx))
+        };
+        let g = gate.id.clone();
+        let mut also = gate.clone();
+        also.id = "g-post".into();
+        let both = {
+            let mut ids = [g.clone(), also.id.clone()];
+            ids.sort();
+            ids.join(",")
+        };
+        // The gate path: success, then a failure (nothing merged).
+        let g_ok: &'static str = Box::leak(g.clone().into_boxed_str());
+        assert_eq!(
+            step(&mut h, &decide(g_ok)),
+            [
+                format!("done Ok gates=[{g}] toasts={t}"),
+                format!("Data gates=[{g}] toasts={t}"),
+            ],
+            "success: merged and touched, then done, then the observers"
+        );
+        assert_eq!(
+            step(&mut h, &decide("g-fail")),
+            [
+                format!("done Err gates=[{g}] toasts={}", t + 1),
+                format!("Data gates=[{g}] toasts={}", t + 1),
+            ],
+            "failure: the toast, then done, then the observers"
+        );
+        // The review and block layouts' own path, through `post`.
+        let toast = HostUpdate::Toast {
+            kind: ToastKind::Error,
+            title: "결정 실패".into(),
+            body: "이유".into(),
+        };
+        assert_eq!(
+            step(&mut h, &post(vec![toast, HostUpdate::Notify])),
+            [format!("Data gates=[{g}] toasts={}", t + 2)],
+            "[Toast, Notify]: one observer call, the toast raised"
+        );
+        assert_eq!(
+            step(
+                &mut h,
+                &post(vec![HostUpdate::Notify, HostUpdate::ApplyGate(also)])
+            ),
+            [format!("Data gates=[{both}] toasts={}", t + 2)],
+            "[Notify, ApplyGate]: the observer runs after the whole list"
+        );
+        drop(probe);
     }
 }

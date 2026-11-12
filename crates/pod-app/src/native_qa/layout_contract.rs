@@ -94,17 +94,12 @@ fn state_of(mode: LayoutMode, key: WindowKey, cx: &App) -> Option<EntityId> {
     }
 }
 
-/// Key bindings, without pod-ui's three modal keys: `pod_ui::apply_theme`
-/// binds those again on every settings apply (each layout switch here), a
-/// pod-ui leak outside this card.
+/// Every key binding in the app's keymap. Nothing is filtered: each settings
+/// apply (every layout switch here) runs `pod_ui::apply_theme`, whose modal
+/// keys now bind once per app (fx-app), so any binding added again on a
+/// switch, a visit or a second window grows this count.
 fn keymap_len(h: &mut Harness) -> usize {
-    h.cx.update(|_, cx| {
-        cx.key_bindings()
-            .borrow()
-            .bindings()
-            .filter(|b| !b.action().name().starts_with("pod_modal::"))
-            .count()
-    })
+    h.cx.update(|_, cx| cx.key_bindings().borrow().bindings().count())
 }
 
 /// Reads one step: the line pinned in [`EXPECTED`].

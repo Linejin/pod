@@ -62,6 +62,7 @@ Pod는 Claude Code·Codex 같은 터미널 에이전트를 작업(git worktree)�
 | [17 원격](docs/17-remote.md) | SSH 원격 머신, WSL, 모바일 승인 |
 | [18 세션 찾기](docs/18-session-discovery.md) | 이 PC의 에이전트 세션을 Pod에 등록 |
 | [19 워크트리 세션·오케스트레이션](docs/19-worktree-sessions-orchestration.md) | 세션 자동화, 워커·코디네이터 |
+| [21 확장 가이드](docs/21-extending.md) | 리팩터 후 RPC·데몬 도메인·레이아웃·설정 패널 추가와 검증 |
 
 기여 방법은 [CONTRIBUTING.md](CONTRIBUTING.md), 보안 문제 보고는 [SECURITY.md](SECURITY.md).
 

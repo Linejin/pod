@@ -6,10 +6,10 @@
 //!   `git` and `gh` CLIs (JSON output only), [`fake::FakeForge`] with an
 //!   in-memory (optionally file-backed) state for tests and UI fixtures.
 //! - [`runner`] spawns processes the Windows way: no console window, no
-//!   prompts, a timeout that kills the child, stdin from a string.
-//! - [`bounded`] is the shared bounded child-process runner (process-tree
-//!   Job Object, whole-call deadline, bounded output) that `runner` and
-//!   podd's archive scripts and group checks use.
+//!   prompts, a timeout that kills the child, stdin from a string. It runs
+//!   them through [`pod_process::bounded`] (process-tree Job Object,
+//!   whole-call deadline, bounded output), the runner podd's archive scripts
+//!   and group checks share.
 //! - [`ForgeError`] maps tool failures to kinds the UI can explain (not
 //!   logged in, no remote, no permission, rate limit...).
 //! - [`status::collect`] is the one "what is this branch's PR doing" query
@@ -18,7 +18,6 @@
 //! Nothing here creates repositories or remotes: without a GitHub remote the
 //! answer is [`ForgeErrorKind::NoRemote`].
 
-pub mod bounded;
 pub mod error;
 pub mod fake;
 pub mod fixtures;

@@ -32,7 +32,7 @@
 | mods/manager | 1 / 4 | lib:25 재수출; manager의 host/manifest/runtime/types 참조 |
 | diff/model | 2 / 1 | lib:21·58, eol:167·209 → model; model → eol. **model ↔ eol 순환** |
 
-호환성 면적: editor의 workspace는 테스트 모듈 전 4,854행에 공개 함수 64개, LSP store는 1,893행에 51개다. orch engine은 1,852행에 62개이고 나머지 1,058행은 시험 구역이다. 따라서 “2,910행 엔진 전체가 제품 로직”이라고 해석하지 않는다. `pod_editor::{EditorWorkspace,EditorSession,EditorEvent}`와 `pod_editor::lsp::{store::*,…}` 경로, `pod_orch::engine::*`와 루트 재수출, `pod_forge::bounded::*`를 그대로 유지해야 한다. 기존 `Forge`/`Runner`, `Source`, `Host`가 이미 확장점이다(`forge/runner.rs:89`, `discover/lib.rs:213`, `mods/host.rs`).
+호환성 면적: editor의 workspace는 테스트 모듈 전 4,854행에 공개 함수 64개, LSP store는 1,893행에 51개다. orch engine은 1,852행에 62개이고 나머지 1,058행은 시험 구역이다. 따라서 “2,910행 엔진 전체가 제품 로직”이라고 해석하지 않는다. `pod_editor::{EditorWorkspace,EditorSession,EditorEvent}`와 `pod_editor::lsp::{store::*,…}` 경로, `pod_orch::engine::*`와 루트 재수출, `pod_forge::bounded::*`를 그대로 유지해야 한다(재수출은 소비자 0이라 rf2-bounds에서 제거, `pod_process::bounded`를 쓴다). 기존 `Forge`/`Runner`, `Source`, `Host`가 이미 확장점이다(`forge/runner.rs:89`, `discover/lib.rs:213`, `mods/host.rs`).
 
 ### 가장 큰 문제 10개
 
@@ -57,7 +57,7 @@ pod-test-support git::{git_output, git_ok}, wait::{until, stays}, tools::missing
                  # publish=false, 소비자는 dev-dependencies만
 
 pod-forge        Forge / GhForge / FakeForge, Runner / Invocation, 오류 분류 유지
-                 bounded.rs는 pod-process::bounded 호환 재수출
+                 bounded.rs는 pod-process::bounded 호환 재수출(rf2-bounds에서 제거)
 pod-orch         engine.rs: Orch façade, 타입·단일 상태 소유자
                  engine/{persistence,items,attempts,admission,completion,mail,wake_state,requests,tests}.rs
                  model/store/resource/wake/text의 기존 경계 유지

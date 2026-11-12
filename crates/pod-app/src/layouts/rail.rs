@@ -387,9 +387,9 @@ pub struct RailState {
     actions: LayoutActions,
     /// The workbench dock (the host's), which owns every panel.
     workbench: WeakEntity<DockArea>,
-    pub(crate) dock: Entity<DockArea>,
-    pub(crate) current: Option<String>,
-    pub(crate) drawer: Option<Drawer>,
+    dock: Entity<DockArea>,
+    current: Option<String>,
+    drawer: Option<Drawer>,
     recent: Vec<String>,
     /// Workbench panels at the last sync: (id, presentation, owner), dock order.
     inner: Vec<(PanelId, Arc<dyn PanelView>, Owner)>,
@@ -401,16 +401,16 @@ pub struct RailState {
     /// Task whose panels the rail dock holds.
     shown_task: Option<String>,
     quiet: Arc<AtomicBool>,
-    pub(crate) rows: Vec<TaskRow>,
-    pub(crate) tabs: Vec<usize>,
-    pub(crate) attention: Vec<usize>,
+    rows: Vec<TaskRow>,
+    tabs: Vec<usize>,
+    attention: Vec<usize>,
     font: f32,
     last_focus: Option<FocusHandle>,
     // Keyboard: tracked handles so focus can come back to the opener.
-    pub(crate) buttons: [FocusHandle; 5],
-    pub(crate) strip_focus: FocusHandle,
-    pub(crate) switcher_focus: FocusHandle,
-    pub(crate) list_focus: FocusHandle,
+    buttons: [FocusHandle; 5],
+    strip_focus: FocusHandle,
+    switcher_focus: FocusHandle,
+    list_focus: FocusHandle,
     strip_cursor: Option<String>,
     list_cursor: usize,
     list_scroll: UniformListScrollHandle,
@@ -420,7 +420,7 @@ pub struct RailState {
 
 /// Rail buttons, top to bottom (index into [`RailState::buttons`]).
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub(crate) enum RailButton {
+enum RailButton {
     Workspace = 0,
     Terminal = 1,
     Files = 2,
@@ -491,7 +491,7 @@ impl RailState {
 
     /// Re-read the workbench dock and the workspace data, then show the current
     /// task's panels. Runs on change events only.
-    pub(crate) fn sync(&mut self, window: &mut Window, cx: &mut Context<Self>) {
+    fn sync(&mut self, window: &mut Window, cx: &mut Context<Self>) {
         let Some(workbench) = self.workbench.upgrade() else {
             return;
         };
@@ -585,7 +585,7 @@ impl RailState {
     }
 
     /// Make `task` the current task. `focus_content` moves focus to its shown panel.
-    pub(crate) fn switch_to(
+    fn switch_to(
         &mut self,
         task: &str,
         focus_content: bool,
@@ -630,7 +630,7 @@ impl RailState {
     }
 
     /// Forget the current task's arrangement and lay it out again (Ctrl+Shift+G here).
-    pub(crate) fn rearrange(&mut self, window: &mut Window, cx: &mut Context<Self>) {
+    fn rearrange(&mut self, window: &mut Window, cx: &mut Context<Self>) {
         if let Some(t) = self.current.clone() {
             self.shapes.remove(&t);
             self.shown_task = None;
@@ -639,14 +639,14 @@ impl RailState {
         }
     }
 
-    pub(crate) fn current_row(&self) -> Option<&TaskRow> {
+    fn current_row(&self) -> Option<&TaskRow> {
         self.current
             .as_deref()
             .and_then(|c| self.rows.iter().find(|r| r.id == c))
     }
 
     /// Panels in the rail dock right now.
-    pub(crate) fn shown_panels(&self, cx: &App) -> Vec<PanelId> {
+    fn shown_panels(&self, cx: &App) -> Vec<PanelId> {
         self.dock
             .read(cx)
             .layout(DockPlacement::Center)
@@ -664,12 +664,7 @@ impl RailState {
 
     // ---- drawers ----
 
-    pub(crate) fn toggle_drawer(
-        &mut self,
-        which: Drawer,
-        window: &mut Window,
-        cx: &mut Context<Self>,
-    ) {
+    fn toggle_drawer(&mut self, which: Drawer, window: &mut Window, cx: &mut Context<Self>) {
         if self.drawer == Some(which) {
             self.close_drawer(window, cx);
             return;
@@ -700,7 +695,7 @@ impl RailState {
         }
     }
 
-    pub(crate) fn close_drawer(&mut self, window: &mut Window, cx: &mut Context<Self>) {
+    fn close_drawer(&mut self, window: &mut Window, cx: &mut Context<Self>) {
         let Some(which) = self.drawer.take() else {
             return;
         };
@@ -807,7 +802,7 @@ impl RailState {
     /// rail (the new panels synced), the rail rearranges and focuses.
     /// Deferred on the window, not on the rail: the follow-up updates the rail
     /// again (from the rail's own deferred update it was a double lease).
-    pub(crate) fn open_task_terminals(&mut self, window: &mut Window, cx: &mut Context<Self>) {
+    fn open_task_terminals(&mut self, window: &mut Window, cx: &mut Context<Self>) {
         let Some(task) = self.current.clone() else {
             return;
         };
@@ -819,7 +814,12 @@ impl RailState {
                 window,
                 cx,
                 |window, cx| {
-                    // Behind the dock's `LayoutChanged` and the host's notify.
+                    // Behind the dock's `LayoutChanged` (the rail synced the
+                    // new panels on `DockLayout`), but ahead of the host's
+                    // notify: the workspace queues that from its own
+                    // `LayoutChanged` subscription, behind this defer
+                    // (`layout_host::tests::dock_change_then_notify_then_focus_after_dispatch_then`).
+                    // The rail does not wait for it.
                     window.defer(cx, move |window, cx| {
                         let _ = rail.update(cx, |r, cx| {
                             r.rearrange(window, cx);

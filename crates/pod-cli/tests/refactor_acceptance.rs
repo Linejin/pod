@@ -52,6 +52,10 @@ fn fixture(rel: &str) -> PathBuf {
     p
 }
 
+// Own copy on purpose, not `pod_test_support::wait::until`: this file must
+// also compile on the 64e9530 baseline, where the golden is recorded and that
+// crate does not exist (docs/20-refactor/daemon-validation.md, "공용 helper
+// 예외").
 fn until<T>(what: &str, secs: u64, mut f: impl FnMut() -> Option<T>) -> T {
     let deadline = Instant::now() + Duration::from_secs(secs);
     loop {

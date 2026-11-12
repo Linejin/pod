@@ -24,6 +24,7 @@ use std::collections::{HashMap, HashSet};
 
 use futures::StreamExt as _;
 use futures::channel::mpsc;
+use gpui_kit::component::dock::{DockArea, DockPlacement};
 use gpui_kit::component::input::{InputEvent, InputState};
 use gpui_kit::*;
 use podd::protocol::{self as p, GateInfo};
@@ -55,7 +56,7 @@ struct Stream {
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub enum Region {
+pub(super) enum Region {
     Tasks,
     Feed,
     Input,
@@ -79,23 +80,23 @@ pub struct Feed {
     actions: LayoutActions,
     /// "Now" of block starts and ends, status steps and the fixture.
     clock: Clock,
-    pub task: Option<String>,
+    pub(in crate::layouts) task: Option<String>,
     /// Only this terminal's blocks (`None`: all agents).
-    pub filter: Option<String>,
-    pub selected: Option<BlockKey>,
+    pub(super) filter: Option<String>,
+    pub(super) selected: Option<BlockKey>,
     /// Folds the user chose (over [`default_expanded`]).
-    pub toggled: HashMap<BlockKey, bool>,
+    toggled: HashMap<BlockKey, bool>,
     /// The terminal the bottom input types into.
-    pub target: Option<String>,
+    pub(in crate::layouts) target: Option<String>,
     /// The raw terminal is shown instead of the blocks.
-    pub raw: bool,
+    pub(super) raw: bool,
     raw_terminal: Option<String>,
     own_panel: Option<Entity<TerminalPanel>>,
     streams: HashMap<String, Stream>,
     pub(super) focus: FocusHandle,
-    pub(super) task_focus: HashMap<String, FocusHandle>,
+    pub(in crate::layouts) task_focus: HashMap<String, FocusHandle>,
     block_focus: HashMap<BlockKey, FocusHandle>,
-    pub input: Entity<InputState>,
+    pub(in crate::layouts) input: Entity<InputState>,
     pub(super) scroll: ScrollHandle,
     pub(super) task_scroll: UniformListScrollHandle,
     /// Gates being resolved.
@@ -111,7 +112,7 @@ pub struct Feed {
     entered: bool,
     shown: bool,
     /// The panel drawer at the right (the host's dock) is open.
-    pub drawer_open: bool,
+    pub(in crate::layouts) drawer_open: bool,
     /// Tracked on the drawer: the keyboard is somewhere in it.
     pub(super) drawer_focus: FocusHandle,
     /// The dock's panels other than terminals, last frame (a rise opens the drawer).
@@ -128,7 +129,7 @@ pub struct Feed {
 pub(super) struct Shown {
     /// The selected task's terminals.
     pub(super) terms: Vec<TerminalVm>,
-    pub(super) feed: Vec<FeedBlock>,
+    pub(in crate::layouts) feed: Vec<FeedBlock>,
     /// Focus handle of each block of `feed`, in order.
     pub(super) focus: Vec<FocusHandle>,
     pub(super) tasks: Vec<TaskVm>,
@@ -146,6 +147,21 @@ pub(super) struct Shown {
     pub(super) panels: usize,
     /// The host's dock, while the drawer is open.
     pub(super) dock: Option<AnyView>,
+    /// What the dock's open side docks keep for themselves (left + right),
+    /// while the drawer is open: the drawer is at least that wide.
+    pub(super) side: f32,
+}
+
+/// Width the open left and right docks keep for themselves: the dock draws
+/// them at their own size (a right-docked gates inbox 380 px) and its centre
+/// only in the rest (`dock_extent` in the dock area).
+fn side_docks(area: &DockArea) -> f32 {
+    [DockPlacement::Left, DockPlacement::Right]
+        .into_iter()
+        .filter(|p| area.is_dock_open(*p))
+        .filter_map(|p| area.dock_size(p))
+        .map(f32::from)
+        .sum()
 }
 
 impl Feed {
@@ -217,28 +233,36 @@ impl Feed {
     }
 
     #[cfg(test)]
-    pub fn own_panel(&self) -> Option<Entity<TerminalPanel>> {
+    pub(in crate::layouts) fn own_panel(&self) -> Option<Entity<TerminalPanel>> {
         self.own_panel.clone()
     }
     #[cfg(test)]
-    pub fn attached(&self) -> Vec<String> {
+    pub(in crate::layouts) fn attached(&self) -> Vec<String> {
         let mut v: Vec<String> = self.streams.keys().cloned().collect();
         v.sort();
         v
     }
     /// Test hook: output for a terminal as if the attach stream delivered it.
     #[cfg(test)]
-    pub fn ingest(&mut self, id: &str, chunk: Chunk, cx: &mut Context<Self>) {
+    pub(in crate::layouts) fn ingest(&mut self, id: &str, chunk: Chunk, cx: &mut Context<Self>) {
         self.apply_chunks(id, vec![chunk], cx);
     }
 
-    pub fn block_focus(&mut self, key: &BlockKey, cx: &mut Context<Self>) -> FocusHandle {
+    pub(in crate::layouts) fn block_focus(
+        &mut self,
+        key: &BlockKey,
+        cx: &mut Context<Self>,
+    ) -> FocusHandle {
         self.block_focus
             .entry(key.clone())
             .or_insert_with(|| cx.focus_handle())
             .clone()
     }
-    pub fn task_focus(&mut self, id: &str, cx: &mut Context<Self>) -> FocusHandle {
+    pub(in crate::layouts) fn task_focus(
+        &mut self,
+        id: &str,
+        cx: &mut Context<Self>,
+    ) -> FocusHandle {
         self.task_focus
             .entry(id.to_string())
             .or_insert_with(|| cx.focus_handle())
@@ -254,7 +278,7 @@ impl Feed {
 
     /// The task's terminals, the feed, and the gates (built from the frame every
     /// time), with the frame's terminal labels.
-    pub fn feed(&self, cx: &App) -> Vec<FeedBlock> {
+    pub(in crate::layouts) fn feed(&self, cx: &App) -> Vec<FeedBlock> {
         self.actions
             .read(cx, |f| {
                 let Some(task) = self.task.as_deref().and_then(|id| f.task(id)) else {
@@ -293,7 +317,7 @@ impl Feed {
             .unwrap_or_else(|| default_expanded(f))
     }
 
-    pub fn is_expanded(&self, key: &BlockKey, cx: &App) -> bool {
+    pub(in crate::layouts) fn is_expanded(&self, key: &BlockKey, cx: &App) -> bool {
         self.feed(cx)
             .iter()
             .find(|f| &f.key == key)
@@ -301,7 +325,7 @@ impl Feed {
     }
 
     /// Pick a task: its terminals' streams start, the target is its first running terminal.
-    pub fn set_task(&mut self, id: &str, cx: &mut Context<Self>) {
+    fn set_task(&mut self, id: &str, cx: &mut Context<Self>) {
         if self.task.as_deref() == Some(id) {
             return;
         }
@@ -420,7 +444,12 @@ impl Feed {
         cx.notify();
     }
 
-    pub fn select(&mut self, key: &BlockKey, window: &mut Window, cx: &mut Context<Self>) {
+    pub(in crate::layouts) fn select(
+        &mut self,
+        key: &BlockKey,
+        window: &mut Window,
+        cx: &mut Context<Self>,
+    ) {
         self.selected = Some(key.clone());
         let feed = self.feed(cx);
         if let Some(i) = feed.iter().position(|f| &f.key == key) {
@@ -437,13 +466,13 @@ impl Feed {
         cx.notify();
     }
 
-    pub fn toggle(&mut self, key: &BlockKey, cx: &mut Context<Self>) {
+    pub(super) fn toggle(&mut self, key: &BlockKey, cx: &mut Context<Self>) {
         let now = self.is_expanded(key, cx);
         self.toggled.insert(key.clone(), !now);
         cx.notify();
     }
 
-    pub fn copy(&mut self, key: &BlockKey, window: &mut Window, cx: &mut Context<Self>) {
+    pub(super) fn copy(&mut self, key: &BlockKey, window: &mut Window, cx: &mut Context<Self>) {
         let Some(f) = self.feed(cx).into_iter().find(|f| &f.key == key) else {
             return;
         };
@@ -464,7 +493,12 @@ impl Feed {
     }
 
     /// The raw terminal of `id` (or the target), focused.
-    pub fn show_raw(&mut self, id: Option<String>, window: &mut Window, cx: &mut Context<Self>) {
+    pub(super) fn show_raw(
+        &mut self,
+        id: Option<String>,
+        window: &mut Window,
+        cx: &mut Context<Self>,
+    ) {
         let id = id
             .or(self.target.clone())
             .or_else(|| self.selected.as_ref().map(|k| k.terminal.clone()));
@@ -477,7 +511,7 @@ impl Feed {
         self.notify_all(cx);
     }
 
-    pub fn hide_raw(&mut self, window: &mut Window, cx: &mut Context<Self>) {
+    fn hide_raw(&mut self, window: &mut Window, cx: &mut Context<Self>) {
         self.raw = false;
         match self.selected.clone() {
             Some(k) => self.select(&k, window, cx),
@@ -561,14 +595,14 @@ impl Feed {
             .unwrap_or_default()
     }
 
-    pub fn cycle(&mut self, back: bool, cx: &mut Context<Self>) {
+    pub(super) fn cycle(&mut self, back: bool, cx: &mut Context<Self>) {
         let terms = self.task_terms(cx);
         let refs: Vec<&TerminalVm> = terms.iter().collect();
         self.target = cycle_target(&refs, self.target.as_deref(), back);
         cx.notify();
     }
 
-    pub fn focus_region(&mut self, r: Region, window: &mut Window, cx: &mut Context<Self>) {
+    pub(super) fn focus_region(&mut self, r: Region, window: &mut Window, cx: &mut Context<Self>) {
         match r {
             Region::Tasks => {
                 if let Some(t) = self.task.clone() {
@@ -631,7 +665,7 @@ impl Feed {
     }
 
     #[cfg(test)]
-    pub fn drawer_has_focus(&self, window: &Window, cx: &App) -> bool {
+    pub(in crate::layouts) fn drawer_has_focus(&self, window: &Window, cx: &App) -> bool {
         self.in_drawer(window, cx)
     }
 
@@ -662,7 +696,7 @@ impl Feed {
     }
 
     /// F6: 작업 → 블록 → 입력 → 패널 → 작업 ([`next_region`]).
-    pub fn switch_region(&mut self, window: &mut Window, cx: &mut Context<Self>) {
+    pub(super) fn switch_region(&mut self, window: &mut Window, cx: &mut Context<Self>) {
         let drawer = self.drawer_open && self.actions.dock(cx).is_some();
         let current = self.region(window, cx);
         if let Some(r) = self.own_region(window, cx) {
@@ -673,7 +707,7 @@ impl Feed {
     }
 
     /// Open the drawer (the header's button) and move the keyboard into it.
-    pub fn open_drawer(&mut self, window: &mut Window, cx: &mut Context<Self>) {
+    fn open_drawer(&mut self, window: &mut Window, cx: &mut Context<Self>) {
         if let Some(r) = self.own_region(window, cx) {
             self.back_to = r;
         }
@@ -685,7 +719,7 @@ impl Feed {
     /// Close the drawer (Esc in it, its close button, the header's button);
     /// the keyboard goes back where it was in the feed. The panels stay open
     /// in the dock.
-    pub fn close_drawer(&mut self, window: &mut Window, cx: &mut Context<Self>) {
+    pub(in crate::layouts) fn close_drawer(&mut self, window: &mut Window, cx: &mut Context<Self>) {
         if !self.drawer_open {
             return;
         }
@@ -707,7 +741,7 @@ impl Feed {
     /// Approve / reject through the gate path (`gate.resolve`), as the gates
     /// inbox does: the request goes through the host's source, the answer
     /// (or the failure toast) and a notify into the host in one update.
-    pub fn resolve(
+    pub(super) fn resolve(
         &mut self,
         key: BlockKey,
         gate: GateInfo,
@@ -1043,14 +1077,16 @@ impl Feed {
             self.input
                 .update(cx, |i, cx| i.set_placeholder(placeholder, window, cx));
         }
-        let dock = if self.drawer_open {
-            self.actions.view(Slot::Dock, cx)
+        let (dock, side) = if self.drawer_open {
+            let side = self.actions.dock(cx).map_or(0., |d| side_docks(d.read(cx)));
+            (self.actions.view(Slot::Dock, cx), side)
         } else {
-            None
+            (None, 0.)
         };
         Some(Shown {
             panels,
             dock,
+            side,
             terms,
             feed,
             focus,

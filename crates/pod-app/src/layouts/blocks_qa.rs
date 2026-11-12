@@ -988,3 +988,159 @@ fn header_buttons_stay_beside_the_open_drawer_in_a_narrow_window() {
         "the button is left of the drawer: {toggle:?} / {drawer:?}"
     );
 }
+
+/// Width the dock's open side docks keep for themselves (left + right).
+fn side_docks(h: &mut Harness) -> f32 {
+    use gpui_kit::component::dock::DockPlacement;
+    let ws = h.ws.clone();
+    h.cx.update(|_, cx| {
+        let area = ws.read(cx).dock.read(cx);
+        [DockPlacement::Left, DockPlacement::Right]
+            .into_iter()
+            .filter(|p| area.is_dock_open(*p))
+            .filter_map(|p| area.dock_size(p))
+            .map(f32::from)
+            .sum()
+    })
+}
+
+/// The first block's header stays in the block beside the drawer: the
+/// status and the copy button are not pushed past its right edge.
+fn header_in_block(h: &mut Harness, what: &str) {
+    let feed = h.bounds("blocks-feed").expect("the feed");
+    let block = h.bounds("blocks-block-w1-0").expect("block painted");
+    let status = h.bounds("blocks-status-w1-0").expect("status painted");
+    let copy = h.bounds("blocks-copy-w1-0").expect("copy button painted");
+    assert!(
+        block.right() <= feed.right() + px(0.5)
+            && copy.right() <= block.right() + px(0.5)
+            && status.right() <= copy.left() + px(0.5),
+        "{what}: the header fits the block: status {status:?} copy {copy:?} block {block:?}"
+    );
+}
+
+/// The dock keeps a right-docked panel at its own width (the gates inbox and
+/// the agent tree 380 px, the orchestration inbox 420 px, the inspector
+/// 304 px) and gives its centre only the rest. In the drawer of a 960 px
+/// window (about 350 px) that cut the panel off on the right: the gates
+/// inbox's memo input and reload button were out of view. The drawer now
+/// holds the open side docks while the feed keeps 280 px and its header
+/// buttons beside it; at 1440 px the drawer was already wide enough.
+#[test]
+fn right_docked_panels_fit_in_the_drawer_at_960_and_1440() {
+    for (name, width, height) in [
+        ("blocks-drawer-fit-960", 960., 640.),
+        ("blocks-drawer-fit-1440", 1440., 960.),
+    ] {
+        // A terminal named like the fixture's agents ("Claude · Worker 0").
+        let seed = move |b: &mut TestBackend| {
+            with_worktree(name)(b);
+            let w1 = b.terminals.iter_mut().find(|t| t.id == "w1").expect("w1");
+            w1.name = Some("Claude · Worker 0 로그인 구현".into());
+        };
+        let mut h = Harness::sized(name, 1.0, size(px(width), px(height)), seed);
+        set_layout(&mut h, "block-terminal");
+        output(
+            &mut h,
+            "w1",
+            &format!(
+                "{A}PS> {B}cargo test -p pod-ui 넓은_글자\r\n{C}테스트 결과: 통과 1개\r\n\x1b]133;D;0\x07{A}PS> {B}"
+            ),
+        );
+        let ws = h.ws.clone();
+        h.cx.update(|window, cx| ws.update(cx, |w, cx| w.open_gates(window, cx)));
+        h.settle();
+        assert!(drawer_shown(&mut h), "{width}: the drawer shows the dock");
+        let drawer = h.bounds("blocks-drawer").expect("the drawer");
+        let gates = h.bounds("gates-panel").expect("the gates inbox is drawn");
+        assert!(
+            gates.left() >= drawer.left() && gates.right() <= drawer.right() + px(0.5),
+            "{width}: the gates inbox is inside the drawer: {gates:?} / {drawer:?}"
+        );
+        assert!(
+            f32::from(gates.size.width) >= 379.,
+            "{width}: at its own width: {gates:?}"
+        );
+        header_in_block(&mut h, &format!("{width} gates"));
+        let opens: [(&str, OpenPanel); 3] = [
+            ("agents", |w, window, cx| w.open_agent_tree(window, cx)),
+            ("inspector", |w, window, cx| w.open_inspector(window, cx)),
+            ("orch-inbox", |w, window, cx| {
+                assert!(crate::orch_ui::run(w, "orch-inbox", window, cx));
+            }),
+        ];
+        for (panel, open) in opens {
+            h.cx.update(|window, cx| ws.update(cx, |w, cx| open(w, window, cx)));
+            h.settle();
+            assert!(drawer_shown(&mut h), "{width} {panel}: the drawer is open");
+            let side = side_docks(&mut h);
+            let drawer = h.bounds("blocks-drawer").expect("the drawer");
+            assert!(
+                side >= 300. && f32::from(drawer.size.width) >= side,
+                "{width} {panel}: the drawer ({drawer:?}) holds the side docks ({side})"
+            );
+            let feed = h.bounds("blocks-feed").expect("the feed");
+            assert!(
+                f32::from(feed.size.width) >= 280. && feed.right() <= drawer.left() + px(0.5),
+                "{width} {panel}: the feed stays beside it: {feed:?}"
+            );
+            let toggle = h.bounds("blocks-drawer-toggle").expect("the drawer button");
+            assert!(
+                toggle.right() <= drawer.left(),
+                "{width} {panel}: the button is left of the drawer: {toggle:?}"
+            );
+            header_in_block(&mut h, &format!("{width} {panel}"));
+        }
+    }
+}
+
+/// The narrowest window (800 px) has no room for the dock's 380 px side: the
+/// drawer stays at its 280 px minimum, the dock keeps the panel at its width
+/// and scrolls sideways in the drawer. A vertical wheel leaves it where it is; a
+/// horizontal one brings its right edge into view.
+#[test]
+fn in_the_narrowest_window_the_dock_scrolls_sideways_in_the_drawer() {
+    let mut h = Harness::sized(
+        "blocks-drawer-scroll",
+        1.0,
+        size(px(800.), px(600.)),
+        with_worktree("blocks-drawer-scroll"),
+    );
+    set_layout(&mut h, "block-terminal");
+    let ws = h.ws.clone();
+    h.cx.update(|window, cx| ws.update(cx, |w, cx| w.open_gates(window, cx)));
+    h.settle();
+    assert!(drawer_shown(&mut h));
+    let drawer = h.bounds("blocks-drawer").expect("the drawer");
+    let gates = h.bounds("gates-panel").expect("the gates inbox is drawn");
+    let feed = h.bounds("blocks-feed").expect("the feed");
+    assert!(
+        f32::from(drawer.size.width) <= 280.5 && feed.right() <= drawer.left() + px(0.5),
+        "the drawer stays at its 280 px minimum beside the feed: {drawer:?} / {feed:?}"
+    );
+    assert!(
+        f32::from(gates.size.width) >= 379. && gates.right() > drawer.right(),
+        "the panel keeps its width past the drawer: {gates:?} / {drawer:?}"
+    );
+    let wheel = |h: &mut Harness, x: f32, y: f32| {
+        h.cx.simulate_event(ScrollEvent {
+            position: drawer.center(),
+            delta: ScrollDelta::Pixels(point(px(x), px(y))),
+            ..Default::default()
+        });
+        h.settle();
+    };
+    wheel(&mut h, 0., -200.);
+    let still = h.bounds("gates-panel").expect("the gates inbox");
+    assert_eq!(
+        still.left(),
+        gates.left(),
+        "a vertical wheel does not move it sideways"
+    );
+    wheel(&mut h, -400., 0.);
+    let moved = h.bounds("gates-panel").expect("the gates inbox");
+    assert!(
+        moved.right() <= drawer.right() + px(0.5) && moved.left() < gates.left(),
+        "a horizontal wheel brings its right edge in: {moved:?} / {drawer:?}"
+    );
+}

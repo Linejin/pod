@@ -63,7 +63,7 @@ use crate::workspace::ToastKind;
 actions!(pod_kanban, [SwitchRegion]);
 
 /// Key context of the board (F6 is bound only inside it).
-pub const KEY_CONTEXT: &str = "PodKanban";
+const KEY_CONTEXT: &str = "PodKanban";
 
 // ───────────────────────────── module ─────────────────────────────
 
@@ -120,7 +120,7 @@ impl LayoutRenderer for BoardRenderer {
 
 #[cfg(test)]
 /// The board of this app's window, if the kanban layout was shown once (tests).
-pub fn board(cx: &App) -> Option<Entity<Board>> {
+pub(super) fn board(cx: &App) -> Option<Entity<Board>> {
     crate::layouts::kit::states::<Board>(cx).into_iter().next()
 }
 
@@ -129,7 +129,7 @@ pub fn board(cx: &App) -> Option<Entity<Board>> {
 pub struct Board {
     /// The host: frame reads, focus slots, panels, podd and updates.
     actions: LayoutActions,
-    pub model: BoardModel,
+    pub(super) model: BoardModel,
     /// Focus of the board when it has no card.
     focus: FocusHandle,
     card_focus: HashMap<String, FocusHandle>,
@@ -139,10 +139,10 @@ pub struct Board {
     reading: HashSet<String>,
     /// Gates being resolved (a second press is ignored; the buttons stay focusable).
     busy: HashSet<String>,
-    pub drawer_open: bool,
+    pub(super) drawer_open: bool,
     drawer_max: bool,
     /// The drawer shows the dock (other panels) instead of the opened card.
-    pub show_dock: bool,
+    pub(super) show_dock: bool,
     /// Drawer panel for a terminal the workbench has no panel for.
     own_panel: Option<Entity<TerminalPanel>>,
     dock_signature: usize,
@@ -206,11 +206,11 @@ impl Board {
 
     #[cfg(test)]
     /// The drawer-owned panel, if any (tests).
-    pub fn own_panel(&self) -> Option<Entity<TerminalPanel>> {
+    pub(super) fn own_panel(&self) -> Option<Entity<TerminalPanel>> {
         self.own_panel.clone()
     }
 
-    pub fn card_focus(&mut self, id: &str, cx: &mut Context<Self>) -> FocusHandle {
+    pub(super) fn card_focus(&mut self, id: &str, cx: &mut Context<Self>) -> FocusHandle {
         self.card_focus
             .entry(id.to_string())
             .or_insert_with(|| cx.focus_handle())
@@ -219,7 +219,7 @@ impl Board {
 
     /// Cards of the frame's terminals, tasks and gates, named as the window
     /// names them (`LayoutFrame::label_of`).
-    pub fn cards(&self, cx: &App) -> Vec<Card> {
+    pub(super) fn cards(&self, cx: &App) -> Vec<Card> {
         self.actions.read(cx, Self::cards_of).unwrap_or_default()
     }
 
@@ -330,7 +330,7 @@ impl Board {
         self.actions.post(vec![HostUpdate::Notify], cx);
     }
 
-    pub fn select(&mut self, id: &str, window: &mut Window, cx: &mut Context<Self>) {
+    pub(super) fn select(&mut self, id: &str, window: &mut Window, cx: &mut Context<Self>) {
         self.model.selected = Some(id.to_string());
         let cols = self.model.columns(&self.cards(cx));
         if let Some((ci, _, i)) = self.model.column_with(&cols, id) {
@@ -342,7 +342,7 @@ impl Board {
     }
 
     /// Show `id` in the drawer; `focus` moves the keyboard into its terminal.
-    pub fn open(&mut self, id: &str, focus: bool, window: &mut Window, cx: &mut Context<Self>) {
+    fn open(&mut self, id: &str, focus: bool, window: &mut Window, cx: &mut Context<Self>) {
         self.model.selected = Some(id.to_string());
         self.model.opened = Some(id.to_string());
         self.drawer_open = true;
@@ -368,7 +368,7 @@ impl Board {
     }
 
     /// F6: board ↔ drawer.
-    pub fn switch_region(&mut self, window: &mut Window, cx: &mut Context<Self>) {
+    pub(super) fn switch_region(&mut self, window: &mut Window, cx: &mut Context<Self>) {
         // The dock is drawn inside the board's root, whose focus therefore
         // "contains" it: ask the dock first, or F6 from the dock lands on
         // the dock again instead of the board.
@@ -511,7 +511,7 @@ impl Board {
     /// Approve / reject through the one gate path (`gates::resolve_gate`);
     /// `choice` picks an option of a gate that has them (v17).
     /// Focus returns to the card when it was on the card's (now gone) buttons.
-    pub fn resolve(
+    pub(super) fn resolve(
         &mut self,
         card: String,
         gate: String,
@@ -547,7 +547,7 @@ impl Board {
     }
 
     /// `다시 실행`: the same command in the same folder and task.
-    pub fn rerun(&mut self, id: &str, cx: &mut Context<Self>) {
+    fn rerun(&mut self, id: &str, cx: &mut Context<Self>) {
         let Some(source) = self.actions.source(cx) else {
             return;
         };
@@ -630,13 +630,13 @@ impl Board {
     }
 
     #[cfg(test)]
-    pub fn line(&self, id: &str) -> Option<&str> {
+    pub(super) fn line(&self, id: &str) -> Option<&str> {
         self.lines.get(id).and_then(|(_, l)| l.as_deref())
     }
 
     /// Item height of every card (uniform list): grows with the UI font so
     /// Korean text is never clipped at any font size or scale.
-    pub fn card_height(cx: &App) -> f32 {
+    pub(super) fn card_height(cx: &App) -> f32 {
         let k = LayoutMetrics::current(cx);
         model::card_height(k.line(), pod_ui::hit_area(), k.style.border_width)
     }

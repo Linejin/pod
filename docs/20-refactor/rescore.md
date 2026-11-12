@@ -146,14 +146,14 @@ bare 항목 정규식은 줄 시작 `pub` 뒤 fn/struct/enum/trait/type/mod/use/
 
 확정된 구조 사실과 가능성인 위험을 구분했다. 기존 버그를 새 회귀라고 단정하지 않는다.
 
-1. **확정: 파일 분할이 공개 범위 확대를 동반했다.** app pub(crate) 257→461. 예를 들어 `layouts/rail.rs:390–413`의 dock/rows/tabs/focus와 `rail/model.rs:429,449`의 선택 helper가 crate 범위다. 다수는 자식 view/fixture/tests에서만 필요해 더 좁힐 후보이며, 모든 901개 제한 공개가 과도하다고 판단한 것은 아니다.
+1. **확정: 파일 분할이 공개 범위 확대를 동반했다.** app pub(crate) 257→461. (rf2-vis 이후: 레이아웃 내부를 private/`pub(super)`로 좁혀 468→354, kit 제외.) 예를 들어 `layouts/rail.rs:390–413`의 dock/rows/tabs/focus와 `rail/model.rs:429,449`의 선택 helper가 crate 범위다. 다수는 자식 view/fixture/tests에서만 필요해 더 좁힐 후보이며, 모든 901개 제한 공개가 과도하다고 판단한 것은 아니다.
 2. **확정: 테스트를 위한 무동작이 제품 host 계약에 들어갔다.** `layouts/kit/model.rs:270–352`는 “test sink stays small”을 위해 observe/dock/source/post/resolve_gate 등에 None/false 기본값을 준다. 새 host가 구현을 빠뜨려도 컴파일되므로 런타임 capability 누락을 감춘다. 반면 `source::TestBackend`와 kit의 state/release_window 재수출은 cfg(test)로 제대로 격리됐다(`source.rs:27,51`, `kit.rs:22`).
 3. **위험: host가 작은 Workspace 대리자로 커질 수 있다.** kit가 실제 DockArea/TerminalPanel/ReviewPanel/PoddSource를 반환(`kit/model.rs:303–342`)해 레이아웃에서 직접 dock 변경·RPC가 가능하다. Workspace 타입 0은 성과지만 모델·행동 경계의 완전 분리는 아니다. `workspace/layout_host.rs` 1,106줄 중 제품부는 449줄, 나머지는 시험이므로 전체를 새 1,106줄 제품 god object라고 부르지는 않는다.
 4. **위험: update 종료와 이벤트 전달 완료가 다르다.** `kit/host.rs:329`의 dispatch_then은 dispatch 직후 콜백을 부를 뿐 notify/dock 이벤트를 기다리지 않는다. rail:816–829가 두 번 window.defer하여 동기화 뒤 rearrange/focus를 보장한다. `workspace/layout_host.rs:432`의 post도 호출자가 순서대로 ApplyGate/Notify를 넣고 재진입을 피해야 한다. 현재 오류를 재현한 것은 아니며, host 계약을 오용하기 쉬운 새 표면이다.
-5. **확정: façade 중 일부는 호환 비용만 남는다.** forge/bounded.rs:8은 재수출 한 줄이고 제품 소비자 0; podd/env.rs:8도 재수출 전용이다. 전자는 폐기 정책 후보, 후자는 daemon의 기존 env 경로가 실제 사용되므로 dead code로 단정하지 않는다. ui/components와 app/strings façade는 안정적인 소비 경로를 유지하는 유효한 분할이다. legacy layout hook과 빈 renderer stub은 실제 제거됐다.
+5. **확정: façade 중 일부는 호환 비용만 남는다.** forge/bounded.rs:8은 재수출 한 줄이고 제품 소비자 0; podd/env.rs:8도 재수출 전용이다. 전자는 폐기 정책 후보, 후자는 daemon의 기존 env 경로가 실제 사용되므로 dead code로 단정하지 않는다. ui/components와 app/strings façade는 안정적인 소비 경로를 유지하는 유효한 분할이다. legacy layout hook과 빈 renderer stub은 실제 제거됐다. → 후속(rf2-bounds): forge/bounded.rs 제거, 소비자는 `pod_process::bounded`.
 6. **확정: 새 검증 코드가 helper 중복을 다시 만든다.** daemon/CLI acceptance의 자체 until·git은 공용 지원 crate와 따로 고쳐야 한다. 단, baseline에서도 같은 시험을 컴파일하고 고정 날짜로 golden을 얻는 이유가 있으므로 “공유 안 함=결함”은 아니다. 정책을 드러낸 adapter와 명시적 예외가 필요하다.
 7. **확정: 완료 문서와 중간 설명이 혼재한다.** `kit/model.rs:10–11`은 renderer가 없으면 Workspace fallback이라고 쓰지만 `layout_mode.rs:82`는 renderer 필수다. app.md의 A-T2a 표에는 제거된 Touch/TerminalInput/terminal_focus/mono_family가 남고 뒤 T2 기록에서만 삭제를 설명한다. daemon-validation의 SkipBuild 주의는 현 runner:109의 exe index로 이미 해결, libs-validation의 docs/13 주의도 현 docs/13:156에서는 수정됐다. 당시 기록은 유효하나 현재 주의사항과 구분하는 후속 표시가 필요하다.
-8. **확정: 새 핵심 의존 경계는 자동 검사 범위 밖이다.** `tools/check-boundaries.ps1:24`의 제거 간선 표는 editor→forge만 막는다. app/cli/remote→podd 복귀와 protocol/client→daemon·GUI 유입 금지도 추가해야 이번 성과가 회귀하지 않는다. protocol의 네 도메인 의존은 설계가 인정한 잔여 비용이다.
+8. **확정: 새 핵심 의존 경계는 자동 검사 범위 밖이다.** `tools/check-boundaries.ps1:24`의 제거 간선 표는 editor→forge만 막는다. app/cli/remote→podd 복귀와 protocol/client→daemon·GUI 유입 금지도 추가해야 이번 성과가 회귀하지 않는다. protocol의 네 도메인 의존은 설계가 인정한 잔여 비용이다. → 후속(rf2-bounds): app/cli/remote→podd, protocol/client→podd·GPUI·alacritty·tokio 런타임/OS 드라이버 기능 금지를 package 이름 기준으로 모든 의존 표·workspace 상속·[features]까지 검사.
 
 ## 4. 시험 근거와 점수
 
@@ -161,7 +161,7 @@ bare 항목 정규식은 줄 시작 `pub` 뒤 fn/struct/enum/trait/type/mod/use/
 
 - daemon-validation(`fefab34`): 64e9530에 같은 wire/acceptance 시험을 적용, 104-method 탐침·CLI 238-case·격리 restart/worker/mail/gate 흐름 및 golden 변이 실패. 단순 “컴파일 성공”보다 강하다. live attach/status 스트림의 알림 순서 직접 비교는 제외됐다고 명시돼 있다.
 - libs-validation(`303ea67`): baseline 기반 wire 5건·변이 2건, journal 실패/복구, save/LSP, worker git 필터; 통합 1,109 passed 기록. 시험을 파일로 옮긴 것과 신규 회귀 검출을 구분한다.
-- app.md T2: 391 passed·56장 픽셀 동일 기록. `native_qa/layout_contract.rs:47` golden은 **64e9530이 아니라 aff314e(T2z 직전)** 기준이다. 두 번 순환·두 창 수명·request/panel/dock/focus를 고정하지만 `:97–106`은 modal key 누적을 필터링한다. 보존된 focus/blocks/kanban 한계와 keymap 문제를 이번 리팩터가 해결했다고 점수에 반영하지 않았다.
+- app.md T2: 391 passed·56장 픽셀 동일 기록. `native_qa/layout_contract.rs:47` golden은 **64e9530이 아니라 aff314e(T2z 직전)** 기준이다. 두 번 순환·두 창 수명·request/panel/dock/focus를 고정하지만 `:97–106`은 modal key 누적을 필터링한다. (rf2-verify 이후: 필터를 없애 keymap 증가도 잡는다.) 보존된 focus/blocks/kanban 한계와 keymap 문제를 이번 리팩터가 해결했다고 점수에 반영하지 않았다.
 
 점수는 측정치를 바탕으로 한 판단이다. 5점은 기능 추가가 가능하지만 수정 지점이 넓은 상태, 8점은 책임별 진입점과 회귀 방어가 있으나 수명/경계 예외가 남은 상태로 보았다.
 
@@ -178,7 +178,7 @@ bare 항목 정규식은 줄 시작 `pub` 뒤 fn/struct/enum/trait/type/mod/use/
 ## 5. 다음 작업 5개
 
 1. **host 순서 계약을 고정:** render 중 사용 가능한 read/slot API와 update API를 구분하고, dispatch_then의 “이벤트 완료 아님”을 명시. 실제 host에서 dock 변경→notify→focus, 창 닫힘→늦은 RPC 완료, gate 성공/실패 순서를 회귀 시험으로 고정한다.
-2. **visibility와 ActionSink 축소:** rail/queue/dense 등의 내부 필드를 private/pub(super)로 좁히고 테스트용 기본 host 구현은 시험 영역으로 옮긴다. 제품 host의 필수 메서드는 구현 누락을 컴파일에서 잡는다.
-3. **의존 경계 자동화 완성:** app/cli/remote→podd, client/protocol→daemon·GUI의 금지 간선을 package alias·target/dev/build 표까지 검사한다. 사용자가 없는 forge bounded shim은 호환 정책을 정한 뒤 제거한다.
-4. **검증 공백과 중복 정리:** 격리 daemon의 attach/status 알림 순서, modal key 누적을 제외하지 않는 layout 순환을 추가한다. acceptance의 baseline 이식성·git 날짜 정책을 유지하면서 공용 대기/fixture와의 예외를 명문화한다.
+2. **visibility와 ActionSink 축소:** *(rf2-kit: host 계약 분리·기본 무동작 제거; rf2-vis: 레이아웃 visibility, app.md "rf2-vis")* rail/queue/dense 등의 내부 필드를 private/pub(super)로 좁히고 테스트용 기본 host 구현은 시험 영역으로 옮긴다. 제품 host의 필수 메서드는 구현 누락을 컴파일에서 잡는다.
+3. **의존 경계 자동화 완성:** app/cli/remote→podd, client/protocol→daemon·GUI의 금지 간선을 package alias·target/dev/build 표까지 검사한다. 사용자가 없는 forge bounded shim은 호환 정책을 정한 뒤 제거한다. → rf2-bounds에서 완료.
+4. **검증 공백과 중복 정리:** *(rf2-verify에서 처리: `podd/tests/stream_order.rs`, modal 필터 제거, acceptance helper 예외 명시)* 격리 daemon의 attach/status 알림 순서, modal key 누적을 제외하지 않는 layout 순환을 추가한다. acceptance의 baseline 이식성·git 날짜 정책을 유지하면서 공용 대기/fixture와의 예외를 명문화한다.
 5. **현재 확장 가이드 한 장으로 정리:** A-T2a API 표를 최종 API와 연결하고 오래된 fallback/해결된 주의를 표시한다. 새 레이아웃·RPC 하나를 넣을 때 고쳐야 할 enum/등록/schema/시험 위치를 정확히 나열하고, 다음 큰 파일은 pr_panel/discovery처럼 실제 변경 수요가 있는 곳부터 분리한다.

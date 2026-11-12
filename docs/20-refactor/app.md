@@ -421,7 +421,7 @@ T2는 다섯 장으로 나눠 했다(README "A-T2 나누기"). A-T1(`27d1809`)�
 **후속으로 남김(이 카드에서 바꾸지 않음)**
 
 - ~~블록 터미널에는 dock이 없어 그 모드에서 연 패널이 보이지 않는다. 칸반 서랍의 dock에서 F6을 눌러도 보드로 돌아가지 않는다.~~ fx-layouts에서 고침: 블록 터미널 오른쪽 패널 서랍(kit `Slot::Dock`, F6·Esc·포커스 복귀), 칸반 F6 보드↔dock, 칸반·리뷰에서 연 오케스트레이션 화면이 패널 보기로(kit `other_panels`에 orch 화면, `PanelWatch`). docs/10 §D5.5·D5.8·D5.9.
-- ~~`pod_ui::apply_theme`이 설정을 적용할 때마다 PodModal 키 3개를 다시 묶는다. 그래서 레이아웃·테마를 바꿀 때마다 keymap이 커진다(pod-ui). 순환 검사는 이 키를 빼고 센다.~~ fx-app에서 고침(아래). 순환 검사의 제외 필터는 이제 필요 없지만 그대로 둬도 결과는 같다.
+- ~~`pod_ui::apply_theme`이 설정을 적용할 때마다 PodModal 키 3개를 다시 묶는다. 그래서 레이아웃·테마를 바꿀 때마다 keymap이 커진다(pod-ui). 순환 검사는 이 키를 빼고 센다.~~ fx-app에서 고침(아래). 순환 검사의 제외 필터는 rf2-verify에서 없앴다(이제 keymap 증가도 순환 검사가 잡는다).
 - 순환 중 focus가 블록 입력, 리뷰, 작업 공간 root 순으로 옮겨 간다. 작업대로 돌아와도 터미널 focus는 돌아오지 않는다. 기존 동작이라 고정만 해 두었다.
 
 ## fx-app 버그 수정 (2026-11-11)
@@ -436,3 +436,52 @@ T2는 다섯 장으로 나눠 했다(README "A-T2 나누기"). A-T1(`27d1809`)�
 | `pod_ui::apply_theme`이 적용할 때마다 PodModal 키 3개를 다시 묶음 | `install_key_bindings`가 앱마다 한 번만 묶는다(전역 표시) | `crates/pod-ui/tests/theme_keys.rs` |
 
 V: 바뀐 화면은 실패한 의견 저장(초안 아래 오류 줄) 하나뿐이고 캡처 행렬에 그 장면이 없다. 8개 행렬 56장은 바뀌지 않는다.
+
+## A-T2a API 정정 (rf2-kit, 2026-11-12)
+
+위 "A-T2a 구현" 표는 그 카드 당시의 API다. 지금 API와 다른 곳(rescore §3.2·§3.4·§3.7):
+
+| A-T2a 표 | 지금 | 바뀐 카드 |
+|---|---|---|
+| `HostUpdate::{Touch, TerminalInput}` | 없음 | A-T2z(테스트 밖 호출자 없음) |
+| `LayoutActions::terminal_focus(id)` | 없음 | A-T2z |
+| `LayoutFrame::mono_family`(`counts`도) | 없음 | A-T2z |
+| `UiIntent::{TaskTerminal, ArrangeGrid, FocusRegion}`(표 밖) | 없음 | A-T2z |
+| `ActionSink` 한 trait, A-T2a 메서드는 `None`/`false` 기본값 | `HostHandles`(렌더 안전) + `HostCommands`(update 단계), 기본값 없음. `ActionSink`는 둘을 묶은 이름이고 kit 밖으로 내보내지 않음. 시험용 sink(`kit/tests.rs`)는 무동작을 직접 구현 | rf2-kit |
+| `dispatch_then`: "`then`은 update가 끝난 뒤" | dispatch가 **돌아온 직후**이지 notify·dock 이벤트 뒤가 아니다(아래 순서) | rf2-kit |
+| `focus_handle`은 토스트 슬롯에서 작업 공간을 읽음 | host가 만들 때 잡은 handle. 렌더 중에도 됨 | rf2-kit |
+
+**단계.** renderer의 `render_body`·`title_bar_extra`는 host(Workspace)가 빌려진 동안 돈다.
+
+- 렌더 안전(`HostHandles`, 어디서나): `window_key`, `focus_handle`, `state`·`state_or_insert_with`, `observe`·`observe_in`, `dock`, `view`, `focused_dock_panel`, `source`, `defer`(실행은 나중). 렌더 중 읽기는 인자로 받은 frame이다.
+- update 단계(`HostCommands`, host render·update 밖: 이벤트 핸들러, 관찰 콜백, defer, async 완료, 레이아웃 자기 view의 render): `read`(새 frame), `dispatch`, `dispatch_then`, `current_task`, `terminal_panels`·`terminal_panel`·`review_panels`, `new_terminal_panel`·`new_review_panel`, `post`, `resolve_gate`.
+
+**순서** (실제 host에서 고정, `workspace::layout_host::tests`):
+
+- dock 변경 → notify → focus: `then`(새 패널 있음, 창 focus 이동함) → `DockLayout` 관찰 → `then` 안의 `window.defer` → `Data`(host가 dock 변화에 `touch`로 응답한 notify) → 그린 뒤 frame의 `focused_terminal`과 `Data` 한 번 더. 그래서 defer는 dock 이벤트 뒤, host notify 앞이다. `rail.rs`의 "Behind … the host's notify" 주석은 이 점에서 틀렸지만(rf2-vis에서 고침), 레일은 `DockLayout`에도 동기화하므로 동작은 맞다.
+- gate: `resolve_gate`는 응답 병합(실패면 toast)과 `touch` → 같은 update에서 `done` → `Data` 관찰. `post`는 목록 전체를 update 한 번에 적용하고 관찰은 그 뒤 한 번이다(`Notify` 위치와 무관).
+- 창이 닫힌 뒤: `post`·`resolve_gate`는 `false`, 아무것도 보내지 않는다. 닫히기 전에 보낸 요청의 늦은 응답은 아무 데도 닿지 않고 panic도 없다. 단 `resolve_gate`의 `done`은 그래도 불린다(`gates::resolve_gate` 그대로).
+
+시험: `every_render_safe_call_works_while_the_workspace_is_leased`, `dock_change_then_notify_then_focus_after_dispatch_then`, `a_window_closed_before_a_late_answer_takes_nothing`, `gate_answers_land_before_done_and_the_observers`.
+
+## rf2-vis (2026-11-12)
+
+rescore §5의 2번 중 레이아웃 공개 범위와 좁은 패널 서랍 버그. 동작은 블록 터미널 패널 서랍(폭·가로 스크롤)과 블록 머리줄 말줄임만 바뀌었다.
+
+**공개 범위**(rescore §3.1). 다른 모듈이 실제로 쓰는 것(grep·컴파일)만 넓게 두었다.
+
+- rail·queue·dense: 상태 필드·메서드는 private(자식 view/model/fixture/tests는 조상의 private을 본다), model helper는 `pub(super)`. 남긴 `pub(crate)`: dense `fixture_view`·`fixture_select`(fixture_scenes)·`row_height`(kit 시험), workbench `EmptyState`(ui_review_qa, workspace 시험), `layouts::kit`.
+- kanban·review·blocks: `Board`·`ReviewView`·`Feed`의 bare `pub` 멤버를 자기만 쓰면 private, 형제 QA 파일(`*_qa.rs`)·kit 시험이 쓰면 `pub(super)`, `Feed`에서 `blocks_qa`가 쓰는 14개는 `pub(in crate::layouts)`. `KEY_CONTEXT`는 private.
+- 수치(`crates/pod-app/src`, 28520e2 → 이 브랜치): `pub(crate)` 출현 **468→354**(rescore의 461은 rf2-kit 전 값), bare `pub` 항목 1,613→1,564, 필드 459→447, 제한 공개 전체 918→921(`pub(crate)`이 대부분 `pub(super)`로 바뀌어 제한 공개 수 자체는 비슷하다). kit(119개)은 이 카드 밖이라 그대로.
+
+**좁은 패널 서랍 잘림.** 원인: dock은 오른쪽에 붙은 패널(승인함·에이전트 트리 380 px, 받은 편지함 420 px, 상태 검사 304 px)을 자기 폭으로 그리고 중앙에는 나머지만 준다. 960 px 창의 블록 터미널 서랍은 351 px라 패널 오른쪽(메모 입력, 새로고침, 거절·답장 단추)이 잘렸다. 칸반 서랍은 보드 폭 전체라 잘리지 않았다(같은 시험을 더함).
+
+- 서랍 폭 = 기존 폭(창의 42 %, 360–720, 블록 열 360 유지)과 "열린 왼쪽+오른쪽 dock + 테두리"(블록 열 280 px 남김) 중 큰 값(`blocks_model::drawer_width`). 1440 px 창에서는 원래 605 px라 그대로.
+- 800 px 창처럼 그것도 안 되면 서랍은 280 px로 남고 dock은 자기 폭 그대로 서랍 안에서 가로로 스크롤된다(가로 휠만, `restrict_scroll_to_axis`).
+- 블록 열이 280–330 px로 좁아지면 블록 머리줄의 에이전트 이름·상태가 `flex_shrink_0`이라 복사 단추가 블록 밖으로 밀렸다(첫 after 캡처에서 발견). 이제 명령 다음으로 이름·상태가 말줄임된다. 넓은 열에서는 그대로.
+- 시험(앞의 둘은 고치기 전 실패): `blocks_qa::right_docked_panels_fit_in_the_drawer_at_960_and_1440`(전: 서랍 351 px, 승인함 380 px가 x 989까지; 머리줄 검사는 전 머리줄에서 복사 단추 x 639–655 > 블록 565), `blocks_qa::in_the_narrowest_window_the_dock_scrolls_sideways_in_the_drawer`, `kanban_qa::a_right_docked_panel_fits_in_the_drawer_at_960_and_1440`, `blocks::tests::the_drawer_holds_the_side_docks_and_keeps_280_px_of_feed`. `gates.rs`와 복사 단추에는 시험 빌드 전용 `qa_id`만 더했다.
+- 캡처: `crates/pod-app/qa/rf2-vis/`(before/after, 960 px 창 = 1440×960 @150 %). 1440 px 창(2160 px)은 보조 모니터(1920 px)에 들어가지 않아 headless 시험으로만 본다.
+
+**레일 주석**(rf2-kit 보고 1). `open_task_terminals`의 지연 rearrange는 dock `LayoutChanged` 뒤, host notify 앞에 돈다. 주석만 고쳤다.
+
+**검증**: B 전체 `cargo test` 95 suites 1,245 통과·0 실패·4 무시, pod-app 410(기존 406 목록 그대로 + 새 4). J `wire_golden_matches_the_pre_split_source`, `native_qa/layout_contract` 7개 모드 순환, podd `protocol_compat` 11/11·`protocol_wire` 7(+1 무시) 통과. V: `dcc5aef` 릴리스 빌드, 기본 `tools/visual/capture.ps1`로 8개 행렬을 `a-f0/before-12e3c76`과 비교해 56/56 통과, 바뀐 픽셀 0, PNG SHA-256 56/56이 contract.json과 같음(서랍이 열린 장면은 행렬에 없어 baseline을 다시 찍지 않음). clippy `-p pod-app --all-targets -D warnings` 0, cargo deny `advisories ok, bans ok, licenses ok, sources ok`.

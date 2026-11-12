@@ -70,6 +70,10 @@ fn fixture(rel: &str) -> PathBuf {
     p
 }
 
+// Own copy on purpose, not `tests/common/fixtures.rs::until` or
+// `pod_test_support::wait::until`: this file must also compile on the
+// 64e9530 baseline, where the golden is recorded and neither exists
+// (docs/20-refactor/daemon-validation.md, "공용 helper 예외").
 fn until<T>(what: &str, secs: u64, mut f: impl FnMut() -> Option<T>) -> T {
     let deadline = Instant::now() + Duration::from_secs(secs);
     loop {
@@ -496,6 +500,10 @@ impl Drop for Flow {
     }
 }
 
+// Own copy on purpose, not `pod_test_support::git`: that crate is not on the
+// 64e9530 baseline this file must also compile on, and this one pins the
+// author/committer dates so the fixture commit id is the same in the golden
+// recorded there (docs/20-refactor/daemon-validation.md, "공용 helper 예외").
 fn git(dir: &Path, args: &[&str]) {
     let out = Command::new("git")
         .current_dir(dir)

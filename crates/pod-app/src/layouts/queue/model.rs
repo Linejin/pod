@@ -35,14 +35,14 @@ impl NeedKind {
             Self::Failed => copy::FAILED,
         }
     }
-    pub(crate) fn icon(self) -> Icon {
+    pub(super) fn icon(self) -> Icon {
         match self {
             Self::Approval | Self::Other => Icon::ShieldQuestion,
             Self::Question => Icon::MessageCircleQuestion,
             Self::Failed => Icon::OctagonX,
         }
     }
-    pub(crate) fn tone(self) -> Tone {
+    pub(super) fn tone(self) -> Tone {
         if self == Self::Failed {
             Tone::Danger
         } else {
@@ -50,7 +50,7 @@ impl NeedKind {
         }
     }
     /// The card's terminal action: 답하기 for a question, else 열기.
-    pub(crate) fn open_label(self) -> &'static str {
+    pub(super) fn open_label(self) -> &'static str {
         if self == Self::Question {
             copy::ANSWER
         } else {
@@ -85,7 +85,7 @@ pub struct Need {
 
 impl Need {
     /// Accessible name of the card: title, kind, agent (when known), meta.
-    pub(crate) fn accessible_name(&self) -> String {
+    pub(super) fn accessible_name(&self) -> String {
         match &self.agent {
             Some(a) => format!(
                 "{}, {}, {}, {}",
@@ -98,7 +98,7 @@ impl Need {
         }
     }
     /// A gate card always shows its buttons; other cards only while selected.
-    pub(crate) fn shows_actions(&self, selected: bool) -> bool {
+    pub(super) fn shows_actions(&self, selected: bool) -> bool {
         self.gate.is_some() || selected
     }
 }
@@ -116,7 +116,7 @@ pub struct Row {
 
 impl Row {
     /// Accessible name: label, agent, section (`done`: 완료, else 작업 중), task.
-    pub(crate) fn accessible_name(&self, done: bool) -> String {
+    pub(super) fn accessible_name(&self, done: bool) -> String {
         format!(
             "{}, {}, {}, {}",
             self.label,
@@ -354,7 +354,7 @@ impl QueueModel {
 /// place: while the selected key is listed its index is remembered; once it
 /// is gone the item now at that index (or the last one) is selected. Nothing
 /// selected stays nothing.
-pub(crate) fn follow_selection(
+pub(super) fn follow_selection(
     selected: &mut Option<String>,
     sel_index: &mut usize,
     keys: &[(String, Option<String>)],
@@ -373,7 +373,7 @@ pub(crate) fn follow_selection(
 
 /// A key on the queue list.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub(crate) enum ListKey {
+pub(super) enum ListKey {
     /// Select this item (the arrows start at the first item).
     Select(usize),
     /// Enter / Space: open the selected item, if any.
@@ -381,7 +381,7 @@ pub(crate) enum ListKey {
 }
 
 /// The list step for `key` with the selection at `at` among `len` (> 0) items.
-pub(crate) fn list_key(key: &str, at: Option<usize>, len: usize) -> Option<ListKey> {
+pub(super) fn list_key(key: &str, at: Option<usize>, len: usize) -> Option<ListKey> {
     match key {
         "down" => Some(ListKey::Select(at.map_or(0, |i| (i + 1).min(len - 1)))),
         "up" => Some(ListKey::Select(at.map_or(0, |i| i.saturating_sub(1)))),
@@ -394,7 +394,7 @@ pub(crate) fn list_key(key: &str, at: Option<usize>, len: usize) -> Option<ListK
 
 /// One decision button of a gate card.
 #[derive(Clone, Debug, PartialEq, Eq)]
-pub(crate) struct GateButton {
+pub(super) struct GateButton {
     pub decision: GateDecision,
     pub label: String,
     /// Element id: `queue-allow-<gate>[-<i>]` or `queue-reject-<gate>`.
@@ -405,13 +405,13 @@ pub(crate) struct GateButton {
 
 impl GateButton {
     /// `선택: <option>: <title>` for an option, `<label>: <title>` otherwise.
-    pub(crate) fn accessible_name(&self, title: &str) -> String {
+    pub(super) fn accessible_name(&self, title: &str) -> String {
         match &self.choice {
             Some(_) => format!("{}: {}: {title}", copy::CHOOSE, self.label),
             None => format!("{}: {title}", self.label),
         }
     }
-    pub(crate) fn tone(&self) -> Tone {
+    pub(super) fn tone(&self) -> Tone {
         match self.decision {
             GateDecision::Approve => Tone::Success,
             GateDecision::Reject => Tone::Danger,
@@ -420,7 +420,7 @@ impl GateButton {
 }
 
 /// A gate's buttons: one approval per option (v17) or 이번만 허용, then 거부.
-pub(crate) fn gate_buttons(gate: &str, options: &[String]) -> Vec<GateButton> {
+pub(super) fn gate_buttons(gate: &str, options: &[String]) -> Vec<GateButton> {
     let approve = |label: String, id: String, choice: Option<String>| GateButton {
         decision: GateDecision::Approve,
         label,
@@ -457,7 +457,7 @@ pub(crate) fn gate_buttons(gate: &str, options: &[String]) -> Vec<GateButton> {
 
 /// A decision button while `busy` (the decision in flight, if any) is pending:
 /// the pressed one loads, the others are disabled.
-pub(crate) fn button_state(busy: Option<GateDecision>, d: GateDecision) -> ControlState {
+pub(super) fn button_state(busy: Option<GateDecision>, d: GateDecision) -> ControlState {
     match busy {
         Some(b) if b == d => ControlState::Loading,
         Some(_) => ControlState::Disabled,

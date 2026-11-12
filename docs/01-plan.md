@@ -246,6 +246,7 @@ GPUI 채택으로 UI 단계가 길어짐. 대신 **P0와 UI 스파이크를 병�
 | 완료 | 전체 평가와 수정 2회(`docs/review/2026-11-10`): 6개 영역 평균 6.70 → 7.25, 1차 63건(해결 확인 52·부분 8) + 재평가 높음 4·중간 다수 수정(워커 커밋이 git filter/hook를 실행하던 탈출 차단, 외부 프로세스 트리·출력 제한, v19 unreachable holder), 전체 fmt·CI 파일(실행은 workflow 권한 필요), 기준 이미지 36장 0 실패 → master `643e6e6` (테스트 943) | 검증 | — |
 | 완료 | 공개 저장소 이전(2026-11-10): https://github.com/Linejin/pod `main`(새 이력, Linejin noreply 작성자, `publish-public.ps1 -Root`). 이전 SJin-Choi/pod는 그대로 둠 | P6 | — |
 | 완료 | 확장성 리팩터링(`docs/20-refactor`, 2026-11-10~11): 설계 3건(Codex Astra) → 카드 51장(워크트리 워커, 동시 빌드 3). 새 crate pod-protocol·pod-client·pod-process·pod-storage·pod-test-support, podd RPC 등록 표·server/git/status/holder/orch_runs 분할, pod-cli 명령 모듈, 편집기·LSP·orch·mods·discover·diff 분할, pod-app workspace/chrome/source/review/groups/orch_ui/mods/sessions 분할, 7개 레이아웃 전부 레이아웃 kit renderer(작업대 직접 접근 0). 동작 보존: 리팩터링 전 64e9530 기준 golden·계약 시험, 기준 화면 56장 0px. 덤으로 8.3 짧은 경로 버그·레일 터미널 버튼 패닉·holder 불안정 시험 수정 → master `73e698b` (테스트 1221) | P7 | — |
+| 완료 | 리팩터링 재평가(Codex Astra) 5.4→7.7 뒤 정리: 리팩터링 중 찾은 기존 버그 11건 수정(블록 터미널 패널 서랍·칸반 F6·리뷰 초안 보존·세션 재읽기·응답 해석 실패 시 연결 유지·단축키 누적·LSP 종료 대기·diff 빈 파일·podd 문서 경고+CI 문서 검사·서랍 폭), 재평가 권고 5가지(host 계약을 render/update 단계로 분리, 금지 의존 간선 검사, 실시간 알림 순서 golden, pod-app pub(crate) 468→354, 확장 안내서 `docs/21-extending.md`), CI 불안정 시험 3건 수정 → master `176b3a0` (테스트 1246) | P7 | — |
 | 대기 | P6-5 코드 서명: SignPath Foundation 오픈소스 신청(사용자 본인 신청 필요), 승인 후 GitHub Actions에서 설치 파일 서명 | P6 | 사용자 |
 
 ### 참고 출처

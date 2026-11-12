@@ -7,13 +7,34 @@
 //!   hook banner) and the [`LayoutActions`] handle.
 //! - [`LayoutActions`]: clone-able handle for event closures and views that
 //!   outlive a render. The weak workspace stays inside the host's [`ActionSink`].
-//! - [`LayoutRenderer`]: the narrow body renderer a mode may offer through
-//!   `LayoutModule::renderer`; without one the Workspace renderer is used.
+//! - [`LayoutRenderer`]: the body renderer every mode offers through
+//!   `LayoutModule::renderer` (required since T2: there is no Workspace
+//!   fallback).
 //!
 //! Only `workspace/layout_host.rs` (A-F1) implements [`LayoutHost`] and
 //! [`ActionSink`], so a mode written against this contract never names the
 //! Workspace type. [`UiIntent`] is a UI request, not a wire message: gate
 //! decisions and RPCs stay with their existing controllers.
+//!
+//! # Two phases (rf2-kit)
+//!
+//! A renderer's `render_body` and `title_bar_extra` run inside the host's own
+//! render, while the host (the Workspace) is leased; reading or updating it
+//! there is a double lease. So the host side has two halves, and
+//! [`LayoutActions`] groups its methods the same way (`kit/host.rs`):
+//!
+//! - [`HostHandles`], **render-safe**: the window key, the state slots, the
+//!   observers, the dock, sidebar and source handles and the slot focus. The
+//!   host captured them when it made the actions; none of them borrows the
+//!   host, so they work anywhere, a host render included. In a render the
+//!   frame is the argument the renderer gets.
+//! - [`HostCommands`], **update phase**: a fresh frame (`read`), `dispatch`,
+//!   `dispatch_then`, `post`, `resolve_gate`, the new panels, `current_task`
+//!   and the panel lists. They read or update the host, so they run outside
+//!   any host render or update: from event handlers, observers, deferred
+//!   closures, async completions, or a layout's own view's render.
+//!
+//! Neither half has default methods: a host that misses one does not compile.
 //!
 //! A-T2a added what the layout cards (A-P10…P14) still read or did through the
 //! workspace: saved labels, every gate, toasts, the tree selection and the
@@ -269,96 +290,85 @@ pub(crate) enum UiIntent {
     OpenFocusedReview,
 }
 
-/// What the host side does for [`LayoutActions`]; it holds the weak workspace.
-///
-/// The methods after `dispatch` (A-T2a) have inert defaults (`None`, empty,
-/// `false`) so a test sink stays small; the workspace host implements all.
-pub(crate) trait ActionSink {
-    /// Calls `f` with a frame of the current window state; does nothing when
-    /// the window is gone.
-    fn with_frame(&self, cx: &App, f: &mut dyn FnMut(&LayoutFrame<'_>));
-    /// Focus handle of a slot, if the slot has one.
-    fn focus_handle(&self, slot: Slot, cx: &App) -> Option<FocusHandle>;
-    /// Carries the intent out now. Never called while the host itself is
-    /// being updated (no re-entrant workspace update).
-    fn dispatch(&self, intent: UiIntent, window: &mut Window, cx: &mut App);
+/// The render-safe half of the host side: handles the host captured when it
+/// made the [`LayoutActions`]. None of these reads or updates the host
+/// itself, so they also work inside a host render (`render_body`,
+/// `title_bar_extra`) where the host is leased. A gone host answers `None` /
+/// `false` and keeps nothing.
+pub(crate) trait HostHandles {
     /// Key of the window: stable for the host's life, also once it is gone.
     fn window_key(&self) -> WindowKey;
+    /// Focus handle of a slot, if the slot has one.
+    fn focus_handle(&self, slot: Slot, cx: &App) -> Option<FocusHandle>;
     /// Runs `f` once when the host is released (detached); `false` and `f`
     /// dropped when it is already gone.
-    fn on_release(&self, _cx: &mut App, _f: AppOnce) -> bool {
-        false
-    }
+    fn on_release(&self, cx: &mut App, f: AppOnce) -> bool;
     /// Calls `f` after each `change`; `None` when the host is gone.
-    fn observe(&self, _change: HostChange, _cx: &mut App, _f: OnChange) -> Option<Subscription> {
-        None
-    }
+    fn observe(&self, change: HostChange, cx: &mut App, f: OnChange) -> Option<Subscription>;
     /// [`Self::observe`] with the window, like `Context::observe_in`.
     fn observe_in(
         &self,
-        _change: HostChange,
-        _window: &mut Window,
-        _cx: &mut App,
-        _f: OnChangeIn,
-    ) -> Option<Subscription> {
-        None
-    }
+        change: HostChange,
+        window: &mut Window,
+        cx: &mut App,
+        f: OnChangeIn,
+    ) -> Option<Subscription>;
     /// The live dock of the window.
-    fn dock(&self, _cx: &App) -> Option<Entity<DockArea>> {
-        None
-    }
+    fn dock(&self, cx: &App) -> Option<Entity<DockArea>>;
     /// A host view to draw outside a host render (dock, sidebar).
-    fn view(&self, _slot: Slot, _cx: &App) -> Option<AnyView> {
-        None
-    }
+    fn view(&self, slot: Slot, cx: &App) -> Option<AnyView>;
+    /// The podd source of the window.
+    fn source(&self, cx: &App) -> Option<PoddSource>;
+}
+
+/// The update-phase half of the host side: these read or update the host,
+/// so they are never called inside a host render or a host update (no
+/// re-entrant workspace lease). A gone host answers `None` / empty /
+/// `false`, runs nothing and sends nothing.
+pub(crate) trait HostCommands {
+    /// Calls `f` with a frame of the current window state; does nothing when
+    /// the window is gone.
+    fn with_frame(&self, cx: &App, f: &mut dyn FnMut(&LayoutFrame<'_>));
+    /// Carries the intent out now, in one host update.
+    fn dispatch(&self, intent: UiIntent, window: &mut Window, cx: &mut App);
     /// `Workspace::current_task`.
-    fn current_task(&self, _window: &Window, _cx: &App) -> Option<String> {
-        None
-    }
+    fn current_task(&self, window: &Window, cx: &App) -> Option<String>;
     /// Live terminal panels, dock order of creation (`Workspace::live_panels`).
-    fn terminal_panels(&self, _cx: &App) -> Vec<Entity<TerminalPanel>> {
-        Vec::new()
-    }
+    fn terminal_panels(&self, cx: &App) -> Vec<Entity<TerminalPanel>>;
     /// Live Review panels (`Workspace::live_reviews`).
-    fn review_panels(&self, _cx: &App) -> Vec<Entity<ReviewPanel>> {
-        Vec::new()
-    }
+    fn review_panels(&self, cx: &App) -> Vec<Entity<ReviewPanel>>;
     /// A terminal panel outside the dock, registered like dock panels.
     fn new_terminal_panel(
         &self,
-        _id: &str,
-        _window: &mut Window,
-        _cx: &mut App,
-    ) -> Option<Entity<TerminalPanel>> {
-        None
-    }
+        id: &str,
+        window: &mut Window,
+        cx: &mut App,
+    ) -> Option<Entity<TerminalPanel>>;
     /// A Review panel outside the dock, registered like dock reviews.
     fn new_review_panel(
         &self,
-        _task: &str,
-        _window: &mut Window,
-        _cx: &mut App,
-    ) -> Option<Entity<ReviewPanel>> {
-        None
-    }
-    /// The podd source of the window.
-    fn source(&self, _cx: &App) -> Option<PoddSource> {
-        None
-    }
+        task: &str,
+        window: &mut Window,
+        cx: &mut App,
+    ) -> Option<Entity<ReviewPanel>>;
     /// Applies the updates in order inside one host update; `false` when
-    /// the host is gone. Never called while the host is being updated.
-    fn post(&self, _updates: Vec<HostUpdate>, _cx: &mut App) -> bool {
-        false
-    }
+    /// the host is gone.
+    fn post(&self, updates: Vec<HostUpdate>, cx: &mut App) -> bool;
     /// The one gate decision path (`gates::resolve_gate`); `false` and `done`
     /// dropped when the host is gone.
-    fn resolve_gate(&self, _params: GateResolveParams, _cx: &mut App, _done: GateDone) -> bool {
-        false
-    }
+    fn resolve_gate(&self, params: GateResolveParams, cx: &mut App, done: GateDone) -> bool;
 }
 
+/// What the host side does for [`LayoutActions`] (it holds the weak
+/// workspace): both halves, every method required. The product host is
+/// `workspace/layout_host.rs`; the kit's tests have their own stub.
+pub(crate) trait ActionSink: HostHandles + HostCommands {}
+
+impl<T: HostHandles + HostCommands + ?Sized> ActionSink for T {}
+
 /// Clone-able handle to the host for event closures and long-lived views.
-/// Closures capture this and stable ids, never a borrowed frame.
+/// Closures capture this and stable ids, never a borrowed frame. Its
+/// methods come in the two phases of the module doc (`kit/host.rs`).
 #[derive(Clone)]
 pub(crate) struct LayoutActions(pub(super) Rc<dyn ActionSink>);
 
@@ -366,47 +376,22 @@ impl LayoutActions {
     pub(crate) fn new(sink: Rc<dyn ActionSink>) -> Self {
         Self(sink)
     }
-
-    /// Reads the window state through a fresh frame; `None` when it is gone.
-    pub(crate) fn read<R>(&self, cx: &App, f: impl FnOnce(&LayoutFrame<'_>) -> R) -> Option<R> {
-        let mut f = Some(f);
-        let mut out = None;
-        self.0.with_frame(cx, &mut |frame| {
-            if let Some(f) = f.take() {
-                out = Some(f(frame));
-            }
-        });
-        out
-    }
-
-    pub(crate) fn focus_handle(&self, slot: Slot, cx: &App) -> Option<FocusHandle> {
-        self.0.focus_handle(slot, cx)
-    }
-
-    /// Carries the intent out now, in the caller's order: for paths that call
-    /// the workspace synchronously today (e.g. focus that must move at once).
-    pub(crate) fn dispatch(&self, intent: UiIntent, window: &mut Window, cx: &mut App) {
-        self.0.dispatch(intent, window, cx);
-    }
-
-    /// Carries the intent out after the current effects (`Window::defer`):
-    /// only for paths that defer today.
-    pub(crate) fn defer(&self, intent: UiIntent, window: &mut Window, cx: &mut App) {
-        let sink = self.0.clone();
-        window.defer(cx, move |window, cx| sink.dispatch(intent, window, cx));
-    }
 }
 
 /// The host side of one render.
 pub(crate) trait LayoutHost {
     /// Lends a slot for this render; `None` when it has nothing to show.
     fn slot(&mut self, slot: Slot, window: &mut Window, cx: &mut App) -> Option<AnyElement>;
-    /// Handle for closures and views that outlive this render.
+    /// Handle for closures and views that outlive this render. During the
+    /// render itself only its render-safe half applies ([`HostHandles`]).
     fn actions(&self) -> LayoutActions;
 }
 
-/// A mode's narrow renderer (`LayoutModule::renderer`). When a mode has one,
-/// the host uses it for the body and the title-bar extra alike.
+/// A mode's narrow renderer (`LayoutModule::renderer`, required): the host
+/// uses it for the body and the title-bar extra alike. Both run inside the
+/// host's render, so they read the `frame` they get and call only the
+/// render-safe half of [`LayoutActions`]; update-phase calls go into the
+/// event handlers and views they build.
 pub(crate) trait LayoutRenderer {
     /// Everything between the title bar and the status bar.
     fn render_body(

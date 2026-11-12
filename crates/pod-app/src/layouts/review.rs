@@ -71,7 +71,7 @@ use crate::workspace::ToastKind;
 actions!(pod_review_layout, [NextRegion, PrevRegion, ToggleExpand]);
 
 /// Key context of the layout (its keys are bound only inside it).
-pub const KEY_CONTEXT: &str = "PodReviewLayout";
+const KEY_CONTEXT: &str = "PodReviewLayout";
 
 // ───────────────────────────── module ─────────────────────────────
 
@@ -92,7 +92,7 @@ impl Global for ReviewKeys {}
 
 #[cfg(test)]
 /// The view of the window that showed the layout (tests run one window).
-pub fn view(cx: &App) -> Option<Entity<ReviewView>> {
+pub(super) fn view(cx: &App) -> Option<Entity<ReviewView>> {
     crate::layouts::kit::states::<ReviewView>(cx)
         .into_iter()
         .next()
@@ -103,7 +103,7 @@ pub fn view(cx: &App) -> Option<Entity<ReviewView>> {
 pub struct ReviewView {
     /// The host: frame reads, focus slots, dock, panels, source and updates.
     actions: LayoutActions,
-    pub model: ReviewModel,
+    pub(super) model: ReviewModel,
     /// Focus of the task list when it has no row.
     focus: FocusHandle,
     row_focus: HashMap<String, FocusHandle>,
@@ -181,18 +181,18 @@ impl ReviewView {
     }
 
     #[cfg(test)]
-    pub fn own_review(&self) -> Option<Entity<ReviewPanel>> {
+    pub(super) fn own_review(&self) -> Option<Entity<ReviewPanel>> {
         self.own_review.clone()
     }
 
     #[cfg(test)]
-    pub fn own_panel_ids(&self) -> Vec<String> {
+    pub(super) fn own_panel_ids(&self) -> Vec<String> {
         let mut v: Vec<String> = self.own_panels.keys().cloned().collect();
         v.sort();
         v
     }
 
-    pub fn row_focus(&mut self, id: &str, cx: &mut Context<Self>) -> FocusHandle {
+    pub(super) fn row_focus(&mut self, id: &str, cx: &mut Context<Self>) -> FocusHandle {
         self.row_focus
             .entry(id.to_string())
             .or_insert_with(|| cx.focus_handle())
@@ -200,14 +200,14 @@ impl ReviewView {
     }
 
     /// Rows of the frame's tasks, terminals and pending gates.
-    pub fn rows(&self, cx: &App) -> Vec<TaskRow> {
+    fn rows(&self, cx: &App) -> Vec<TaskRow> {
         self.actions
             .read(cx, |f| build_rows(f.tasks, f.terminals, f.gates))
             .unwrap_or_default()
     }
 
     /// The selected task's docked tiles.
-    pub fn tiles(&self, cx: &App) -> Vec<String> {
+    fn tiles(&self, cx: &App) -> Vec<String> {
         self.model.tiles_in(&self.rows(cx))
     }
 
@@ -425,7 +425,7 @@ impl ReviewView {
     }
 
     /// Select task `id` in the list (switching the canvas) and focus its row.
-    pub fn select(&mut self, id: &str, window: &mut Window, cx: &mut Context<Self>) {
+    fn select(&mut self, id: &str, window: &mut Window, cx: &mut Context<Self>) {
         self.model.select(id);
         let rows = self.rows(cx);
         if let Some(i) = rows.iter().position(|r| r.id == id) {
@@ -437,7 +437,7 @@ impl ReviewView {
     }
 
     /// Move the keyboard into `region` (creating the panel it needs).
-    pub fn focus_region(&mut self, region: &Region, window: &mut Window, cx: &mut Context<Self>) {
+    fn focus_region(&mut self, region: &Region, window: &mut Window, cx: &mut Context<Self>) {
         match region {
             Region::Tasks => match self.model.selected.clone() {
                 Some(id) => self.select(&id, window, cx),
@@ -503,7 +503,7 @@ impl ReviewView {
     }
 
     /// F6 / Shift+F6.
-    pub fn cycle(&mut self, forward: bool, window: &mut Window, cx: &mut Context<Self>) {
+    fn cycle(&mut self, forward: bool, window: &mut Window, cx: &mut Context<Self>) {
         let regions = self.model.regions(&self.tiles(cx));
         let current = self.current_region(window, cx);
         let next = next_region(&regions, current.as_ref(), forward);
@@ -511,7 +511,7 @@ impl ReviewView {
     }
 
     /// Ctrl+Shift+X: the focused tile (else the expanded one, else the first) over the canvas, or back.
-    pub fn toggle_expand(&mut self, window: &mut Window, cx: &mut Context<Self>) {
+    fn toggle_expand(&mut self, window: &mut Window, cx: &mut Context<Self>) {
         let focused = match self.current_region(window, cx) {
             Some(Region::Terminal(id)) => Some(id),
             _ => None,
@@ -544,7 +544,7 @@ impl ReviewView {
     }
 
     /// Focus the terminal tile `id` (expanding it when it is not docked).
-    pub fn answer(&mut self, id: &str, window: &mut Window, cx: &mut Context<Self>) {
+    fn answer(&mut self, id: &str, window: &mut Window, cx: &mut Context<Self>) {
         let tiles = self.tiles(cx);
         self.model.answer(&tiles, id);
         self.focus_region(&Region::Terminal(id.to_string()), window, cx);
@@ -553,7 +553,7 @@ impl ReviewView {
     /// Approve / reject through the gate path (`gate.resolve`), as the gates
     /// inbox does: the request goes through the host's source, the answer (or
     /// the failure toast) and a notify into the host in one update.
-    pub fn resolve(
+    pub(super) fn resolve(
         &mut self,
         gate: String,
         decision: GateDecision,
@@ -693,7 +693,7 @@ impl ReviewView {
 
     /// Row height of the task list (uniform list): grows with the UI font so
     /// Korean text is never clipped at any font size or scale.
-    pub fn row_height(cx: &App) -> f32 {
+    pub(super) fn row_height(cx: &App) -> f32 {
         let k = LayoutMetrics::current(cx);
         model::row_height(k.line(), k.style.border_width)
     }

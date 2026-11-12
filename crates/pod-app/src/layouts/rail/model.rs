@@ -10,11 +10,11 @@ use super::{RAIL_WIDTH, TAB_TEXT_MAX, copy};
 use crate::vm::{TaskVm, TerminalVm};
 
 /// Tasks remembered for the tab strip after the rail leaves them.
-pub(crate) const RECENT_MAX: usize = 8;
+pub(super) const RECENT_MAX: usize = 8;
 
 /// Which task a dock panel belongs to.
 #[derive(Clone, Debug, PartialEq, Eq, Hash)]
-pub(crate) enum Owner {
+pub(super) enum Owner {
     Task(String),
     /// Settings, gates, agent tree, groups, extensions …: shown with every task.
     Global,
@@ -23,7 +23,7 @@ pub(crate) enum Owner {
 /// The owner of a workbench panel: a terminal panel belongs to the task that
 /// lists its terminal (else the terminal's own task), an editor or review
 /// panel to the task in its saved state; everything else is global.
-pub(crate) fn panel_owner(
+pub(super) fn panel_owner(
     panel_name: &str,
     terminal: Option<&str>,
     task: Option<&str>,
@@ -60,7 +60,7 @@ pub(crate) fn panel_owner(
 /// Panels of the `current` task (terminals first, in the given order) and the
 /// global ones after the task's other panels. Without a current task only the
 /// global panels, as "others". `panels`: (id, owner, is a terminal panel).
-pub(crate) fn task_panels<'a, P: Copy + 'a>(
+pub(super) fn task_panels<'a, P: Copy + 'a>(
     panels: impl Iterator<Item = (P, &'a Owner, bool)> + Clone,
     current: Option<&str>,
 ) -> (Vec<P>, Vec<P>) {
@@ -88,7 +88,7 @@ pub(crate) fn task_panels<'a, P: Copy + 'a>(
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub(crate) enum Drawer {
+pub(super) enum Drawer {
     /// The repository/task/terminal tree (the workbench sidebar).
     Workspace,
     /// 작업 전환: every task.
@@ -99,7 +99,7 @@ pub(crate) enum Drawer {
 
 /// A dock arrangement in panel ids (the rail remembers one per task).
 #[derive(Clone, Debug, PartialEq)]
-pub(crate) enum Shape<P> {
+pub(super) enum Shape<P> {
     Split {
         horizontal: bool,
         children: Vec<(Shape<P>, Option<f32>)>,
@@ -191,7 +191,7 @@ impl<P: Copy + Eq + Hash> Shape<P> {
 /// The first view of a task (gallery 02): its first terminal with the task's
 /// other panels as tabs, wide on the left, and the other terminals stacked on
 /// the right.
-pub(crate) fn default_shape<P: Copy>(
+pub(super) fn default_shape<P: Copy>(
     terminals: &[P],
     others: &[P],
     main_width: Option<f32>,
@@ -240,7 +240,7 @@ pub(crate) fn default_shape<P: Copy>(
 
 /// The arrangement for a task: the remembered one minus closed panels plus new
 /// ones (shown), or the default when nothing is remembered.
-pub(crate) fn plan<P: Copy + Eq + Hash>(
+pub(super) fn plan<P: Copy + Eq + Hash>(
     prev: Option<Shape<P>>,
     terminals: &[P],
     others: &[P],
@@ -262,7 +262,7 @@ pub(crate) fn plan<P: Copy + Eq + Hash>(
 
 /// One task as the rail shows it (tabs, 작업 전환, 응답 대기).
 #[derive(Clone, Debug, Default)]
-pub(crate) struct TaskRow {
+pub(super) struct TaskRow {
     pub id: String,
     pub title: String,
     pub branch: Option<String>,
@@ -279,7 +279,7 @@ pub(crate) struct TaskRow {
 
 /// The count badge of a task tab.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub(crate) enum Badge {
+pub(super) enum Badge {
     /// Only failures: their count, danger colours.
     Failed(usize),
     /// Requests (blocked agents and gates): their count, warning colours.
@@ -288,7 +288,7 @@ pub(crate) enum Badge {
 
 /// The leading icon of a drawer row.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub(crate) enum RowMark {
+pub(super) enum RowMark {
     /// A request waits (blocked agent or gate).
     Waiting,
     Failed,
@@ -299,7 +299,7 @@ pub(crate) enum RowMark {
 
 /// Where Enter on a 응답 대기 row goes after switching to the task.
 #[derive(Clone, Debug, PartialEq, Eq)]
-pub(crate) enum AttentionTarget {
+pub(super) enum AttentionTarget {
     /// Open (or focus) the waiting terminal.
     Terminal(String),
     /// No waiting terminal but gates: the gates inbox.
@@ -379,7 +379,7 @@ impl TaskRow {
     }
 }
 
-pub(crate) fn task_rows(
+pub(super) fn task_rows(
     tasks: &[TaskVm],
     terminals: &[TerminalVm],
     pending_gates: &[podd::protocol::GateInfo],
@@ -426,7 +426,7 @@ pub(crate) fn task_rows(
 /// The current task after the rows changed: kept while it still exists, else
 /// the focused one (`focused`, read only then), the first task with panels,
 /// or the first task.
-pub(crate) fn keep_or_pick(
+pub(super) fn keep_or_pick(
     current: Option<String>,
     rows: &[TaskRow],
     focused: impl FnOnce() -> Option<String>,
@@ -446,14 +446,14 @@ pub(crate) fn keep_or_pick(
 
 /// The task the rail just left goes first in the recent list (at most
 /// [`RECENT_MAX`], no duplicates).
-pub(crate) fn push_recent(recent: &mut Vec<String>, prev: String) {
+pub(super) fn push_recent(recent: &mut Vec<String>, prev: String) {
     recent.retain(|x| x != &prev);
     recent.insert(0, prev);
     recent.truncate(RECENT_MAX);
 }
 
 /// 응답 대기: other tasks that wait for the user, requests (blocked/gates) before failures.
-pub(crate) fn attention(rows: &[TaskRow], current: Option<&str>) -> Vec<usize> {
+pub(super) fn attention(rows: &[TaskRow], current: Option<&str>) -> Vec<usize> {
     let mut out: Vec<usize> = rows
         .iter()
         .enumerate()
@@ -465,7 +465,7 @@ pub(crate) fn attention(rows: &[TaskRow], current: Option<&str>) -> Vec<usize> {
 }
 
 /// Tasks with a tab: open panels, recently used, and the current one (task order).
-pub(crate) fn tab_tasks(rows: &[TaskRow], recent: &[String], current: Option<&str>) -> Vec<usize> {
+pub(super) fn tab_tasks(rows: &[TaskRow], recent: &[String], current: Option<&str>) -> Vec<usize> {
     rows.iter()
         .enumerate()
         .filter(|(_, r)| r.open || recent.contains(&r.id) || Some(r.id.as_str()) == current)
@@ -474,7 +474,7 @@ pub(crate) fn tab_tasks(rows: &[TaskRow], recent: &[String], current: Option<&st
 }
 
 /// The task `delta` tabs away from `current`, wrapping.
-pub(crate) fn step(ids: &[String], current: Option<&str>, delta: isize) -> Option<String> {
+pub(super) fn step(ids: &[String], current: Option<&str>, delta: isize) -> Option<String> {
     if ids.is_empty() {
         return None;
     }
@@ -488,7 +488,7 @@ pub(crate) fn step(ids: &[String], current: Option<&str>, delta: isize) -> Optio
 
 /// Row the 작업 전환 / 응답 대기 list starts on: the current task in 작업 전환,
 /// else the first row.
-pub(crate) fn drawer_cursor(which: Drawer, rows: &[TaskRow], current: Option<&str>) -> usize {
+pub(super) fn drawer_cursor(which: Drawer, rows: &[TaskRow], current: Option<&str>) -> usize {
     match which {
         Drawer::Tasks => current
             .and_then(|c| rows.iter().position(|r| r.id == c))
@@ -499,7 +499,7 @@ pub(crate) fn drawer_cursor(which: Drawer, rows: &[TaskRow], current: Option<&st
 
 /// A key on the tab strip or a drawer list.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub(crate) enum KeyStep {
+pub(super) enum KeyStep {
     /// Move the cursor to this index.
     To(usize),
     /// Enter / Space on the cursor.
@@ -508,7 +508,7 @@ pub(crate) enum KeyStep {
 
 /// The step for `key` from `at` in `len` items: `back`/`forward` move by one
 /// (stopping at the ends), Home/End jump, Enter/Space activate.
-pub(crate) fn key_step(
+pub(super) fn key_step(
     key: &str,
     at: usize,
     len: usize,
@@ -532,7 +532,7 @@ fn is_wide(c: char) -> bool {
 
 /// Conservative width estimate for a single-line label (no text system needed:
 /// Hangul is one em wide in Malgun Gothic/Segoe UI, Latin at most 0.6 em).
-pub(crate) fn text_width(text: &str, font: f32) -> f32 {
+pub(super) fn text_width(text: &str, font: f32) -> f32 {
     text.chars()
         .map(|c| {
             if is_wide(c) {
@@ -548,7 +548,7 @@ pub(crate) fn text_width(text: &str, font: f32) -> f32 {
 
 /// A task tab: padding 12+12, status dot + gap, title (at most [`TAB_TEXT_MAX`]), badge,
 /// agent marks (12px each, 2px apart, at most 3 + `+N`).
-pub(crate) fn tab_width(title: &str, font: f32, badge: bool, agents: usize) -> f32 {
+pub(super) fn tab_width(title: &str, font: f32, badge: bool, agents: usize) -> f32 {
     let marks = if agents == 0 {
         0.
     } else {
@@ -563,14 +563,14 @@ pub(crate) fn tab_width(title: &str, font: f32, badge: bool, agents: usize) -> f
 
 /// Room for the task tabs in a `viewport`-wide window: minus the rail, the
 /// island gaps, "+", "+N" and 작업 전환. May be negative.
-pub(crate) fn strip_room(viewport: f32, gap: f32, font: f32) -> f32 {
+pub(super) fn strip_room(viewport: f32, gap: f32, font: f32) -> f32 {
     let switcher_w = text_width(copy::SWITCHER, font) + 48.;
     viewport - RAIL_WIDTH - 3. * gap - 36. - 56. - switcher_w - 16.
 }
 
 /// Tabs that fit in `avail`, in order; the current tab is always shown (last,
 /// in place of the ones that no longer fit).
-pub(crate) fn fit_tabs(widths: &[f32], current: Option<usize>, avail: f32) -> Vec<usize> {
+pub(super) fn fit_tabs(widths: &[f32], current: Option<usize>, avail: f32) -> Vec<usize> {
     let mut out = Vec::new();
     let mut used = 0.;
     for (i, w) in widths.iter().enumerate() {

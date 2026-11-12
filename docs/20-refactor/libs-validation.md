@@ -23,8 +23,8 @@
 ## 1. 의존 경계 (단계 1·5)
 
 - `crates/pod-editor`의 소스·bin·시험에 `pod_forge` 참조 0 → manifest에서 `pod-forge` 제거. `Cargo.lock` 변화는 pod-editor의 `pod-forge` 한 줄뿐(`cargo update -w --offline`).
-- `tools/test-support/require_tools.rs`: `#[path]` include 소비자 0 → 삭제. 제품 API 재수출(`pod-forge::bounded`, `pod-diff::model::git_command` 등)은 유지.
-- `tools/check-boundaries.ps1`: 제거한 간선(pod-editor → pod-forge)이 어느 의존 표에서든 다시 생기면 실패. selftest 6 cases ok, 실제 workspace `crate boundaries ok (21 members …, removed edges absent)`. baseline 트리에 돌리면 editor 간선을 FAIL로 잡는 것을 확인.
+- `tools/test-support/require_tools.rs`: `#[path]` include 소비자 0 → 삭제. 제품 API 재수출(`pod-forge::bounded`, `pod-diff::model::git_command` 등)은 유지. 후속: `pod-forge::bounded`는 소비자 0이라 rf2-bounds에서 제거.
+- `tools/check-boundaries.ps1`: 제거한 간선(pod-editor → pod-forge)이 어느 의존 표에서든 다시 생기면 실패. selftest 6 cases ok, 실제 workspace `crate boundaries ok (21 members …, removed edges absent)`. baseline 트리에 돌리면 editor 간선을 FAIL로 잡는 것을 확인. 후속(rf2-bounds): app/cli/remote→podd, protocol/client→podd·GPUI·alacritty·tokio 서버 기능 금지 추가, selftest 10 cases.
 - `check-docs.ps1` ok(중첩 문서 링크 53), `check-workspace.ps1` ok(21 members, 19 default).
 - 프로토콜 `PROTOCOL_VERSION = 19`, orch `RUN_VERSION = 1`: 새 wire 시험이 단언.
 
@@ -72,4 +72,4 @@
 | 전체 시험(CI와 같은 인자) | `POD_REQUIRE_TOOLS=1 cargo test --workspace --exclude pod-spike --exclude diff-spike --locked --no-fail-fast -- --skip codex_hooks_trusted_via_app_server_in_temp_home` | 시험 바이너리 90개, **1109 passed, 0 failed**, 4 ignored(rust-analyzer 실서버 2, protocol golden 작성기, doctest 1), 1 filtered |
 | cargo deny | `cargo deny --locked check` | `advisories ok, bans ok, licenses ok, sources ok`. 경고 1(`deny.toml:24` ISC 허용 미사용)은 이번 변경 전부터 있음 |
 
-**남은 것:** `docs/13-editor-and-lsp.md:156`은 편집기 프로브가 `pod_forge::bounded`로 돈다고 적혀 있으나 L-L1 이후 `pod_process::bounded`다(이 카드 OWNED 밖이라 고치지 않음). spike 2개는 기본 시험 범위 밖이라 실행하지 않았다.
+**남은 것:** `docs/13-editor-and-lsp.md:156`은 편집기 프로브가 `pod_forge::bounded`로 돈다고 적혀 있으나 L-L1 이후 `pod_process::bounded`다(이 카드 OWNED 밖이라 고치지 않음; 후속: docs/13은 이미 고쳐졌고 `pod_forge::bounded` 재수출은 rf2-bounds에서 제거). spike 2개는 기본 시험 범위 밖이라 실행하지 않았다.

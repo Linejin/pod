@@ -10,21 +10,27 @@ use std::rc::Rc;
 use std::sync::Arc;
 
 use ::gpui::{TestAppContext, VisualTestContext};
+use gpui_kit::component::dock::DockArea;
 use gpui_kit::prelude::FluentBuilder as _;
 use gpui_kit::{
-    AnyElement, App, AppContext as _, Bounds, Context, Div, EntityId, FocusHandle, IntoElement,
-    ParentElement, Pixels, Render, Styled, Window, div, px, rgb, size,
+    AnyElement, AnyView, App, AppContext as _, Bounds, Context, Div, Entity, EntityId, FocusHandle,
+    IntoElement, ParentElement, Pixels, Render, Styled, Subscription, Window, div, px, rgb, size,
 };
 use pod_ui::themes::{Active, Metrics, Shadow, Surface, ThemeChoice};
+use podd::protocol::GateResolveParams;
 
 use super::metrics::DEFAULT_FONT_SIZE;
 use super::model::connection_warning;
 use super::{
-    ActionSink, AppOnce, BodyFlow, Clock, ConnectionShell, FrameToasts, Island, LayoutActions,
-    LayoutFrame, LayoutMetrics, OpenPanels, PanelDetail, Slot, ToastAnchor, UiIntent, WindowKey,
-    color, panel_header, warning_banner,
+    AppOnce, BodyFlow, Clock, ConnectionShell, FrameToasts, GateDone, HostChange, HostCommands,
+    HostHandles, HostUpdate, Island, LayoutActions, LayoutFrame, LayoutMetrics, OnChange,
+    OnChangeIn, OpenPanels, PanelDetail, Slot, ToastAnchor, UiIntent, WindowKey, color,
+    panel_header, warning_banner,
 };
+use crate::panel::TerminalPanel;
 use crate::qa_marks::QaId as _;
+use crate::review::ReviewPanel;
+use crate::source::PoddSource;
 use crate::source::TestBackend;
 use crate::vm::{ConnState, TaskVm, TerminalVm};
 
@@ -289,6 +295,9 @@ fn dock_is_empty_only_without_any_panel() {
 // ───────────────────────────── actions ─────────────────────────────
 
 /// Host side of the actions handle: a fixed window state and an intent log.
+/// Only what the kit's own tests read does something; every other method is
+/// an explicit no-op here (the trait has no defaults, rf2-kit), and the real
+/// host is tested in `workspace::layout_host::tests`.
 struct Sink {
     tasks: Vec<TaskVm>,
     terminals: Vec<TerminalVm>,
@@ -315,28 +324,83 @@ impl Sink {
     }
 }
 
-impl ActionSink for Sink {
-    fn with_frame(&self, _: &App, f: &mut dyn FnMut(&LayoutFrame<'_>)) {
-        if !self.gone {
-            f(&frame(&self.tasks, &self.terminals, &self.conn));
-        }
+impl HostHandles for Sink {
+    fn window_key(&self) -> WindowKey {
+        WindowKey(EntityId::from(7u64))
     }
     fn focus_handle(&self, slot: Slot, _: &App) -> Option<FocusHandle> {
         (slot == Slot::Sidebar)
             .then(|| self.focus.clone())
             .flatten()
     }
-    fn dispatch(&self, intent: UiIntent, _: &mut Window, _: &mut App) {
-        self.log.borrow_mut().push(intent);
-    }
-    fn window_key(&self) -> WindowKey {
-        WindowKey(EntityId::from(7u64))
-    }
     fn on_release(&self, _: &mut App, f: AppOnce) -> bool {
         if !self.gone {
             self.released.borrow_mut().push(f);
         }
         !self.gone
+    }
+    fn observe(&self, _: HostChange, _: &mut App, _: OnChange) -> Option<Subscription> {
+        None
+    }
+    fn observe_in(
+        &self,
+        _: HostChange,
+        _: &mut Window,
+        _: &mut App,
+        _: OnChangeIn,
+    ) -> Option<Subscription> {
+        None
+    }
+    fn dock(&self, _: &App) -> Option<Entity<DockArea>> {
+        None
+    }
+    fn view(&self, _: Slot, _: &App) -> Option<AnyView> {
+        None
+    }
+    fn source(&self, _: &App) -> Option<PoddSource> {
+        None
+    }
+}
+
+impl HostCommands for Sink {
+    fn with_frame(&self, _: &App, f: &mut dyn FnMut(&LayoutFrame<'_>)) {
+        if !self.gone {
+            f(&frame(&self.tasks, &self.terminals, &self.conn));
+        }
+    }
+    fn dispatch(&self, intent: UiIntent, _: &mut Window, _: &mut App) {
+        self.log.borrow_mut().push(intent);
+    }
+    fn current_task(&self, _: &Window, _: &App) -> Option<String> {
+        None
+    }
+    fn terminal_panels(&self, _: &App) -> Vec<Entity<TerminalPanel>> {
+        Vec::new()
+    }
+    fn review_panels(&self, _: &App) -> Vec<Entity<ReviewPanel>> {
+        Vec::new()
+    }
+    fn new_terminal_panel(
+        &self,
+        _: &str,
+        _: &mut Window,
+        _: &mut App,
+    ) -> Option<Entity<TerminalPanel>> {
+        None
+    }
+    fn new_review_panel(
+        &self,
+        _: &str,
+        _: &mut Window,
+        _: &mut App,
+    ) -> Option<Entity<ReviewPanel>> {
+        None
+    }
+    fn post(&self, _: Vec<HostUpdate>, _: &mut App) -> bool {
+        false
+    }
+    fn resolve_gate(&self, _: GateResolveParams, _: &mut App, _: GateDone) -> bool {
+        false
     }
 }
 

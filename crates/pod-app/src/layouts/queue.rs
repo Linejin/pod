@@ -76,15 +76,15 @@ pub struct QueueColumn {
     /// The host: reads (frame), change observation, the gate decision path
     /// and UI intents.
     actions: LayoutActions,
-    pub(crate) focus: FocusHandle,
+    focus: FocusHandle,
     filter: Entity<InputState>,
-    pub(crate) selected: Option<String>,
+    selected: Option<String>,
     /// Index of the selection, so the next card is selected when one is decided.
     sel_index: usize,
-    pub(crate) all_working: bool,
-    pub(crate) all_done: bool,
+    all_working: bool,
+    all_done: bool,
     /// 06: queue column hidden by the activity bar.
-    pub(crate) hidden: bool,
+    hidden: bool,
     /// 06: the search field is shown.
     filter_open: bool,
     busy: HashMap<String, GateDecision>,
@@ -98,11 +98,7 @@ pub struct QueueColumn {
 
 /// The window's queue column (the kit's state slot), made on first use: by
 /// the body, or by a title-bar pill before the body showed it.
-pub(crate) fn column(
-    actions: &LayoutActions,
-    window: &mut Window,
-    cx: &mut App,
-) -> Entity<QueueColumn> {
+fn column(actions: &LayoutActions, window: &mut Window, cx: &mut App) -> Entity<QueueColumn> {
     actions.state_or_insert_with(window, cx, |window, cx| {
         let actions = actions.clone();
         cx.new(|cx| QueueColumn::new(actions, window, cx))
@@ -181,7 +177,7 @@ impl QueueColumn {
     }
 
     /// Keyboard focus to the list (selecting the first item when nothing is).
-    pub(crate) fn focus_list(&mut self, window: &mut Window, cx: &mut Context<Self>) {
+    fn focus_list(&mut self, window: &mut Window, cx: &mut Context<Self>) {
         self.hidden = false;
         if self.selected.is_none() {
             self.selected = self
@@ -195,12 +191,7 @@ impl QueueColumn {
     }
 
     /// Title-bar pill: show the section, select its first item, focus the list.
-    pub(crate) fn focus_section(
-        &mut self,
-        s: Section,
-        window: &mut Window,
-        cx: &mut Context<Self>,
-    ) {
+    fn focus_section(&mut self, s: Section, window: &mut Window, cx: &mut Context<Self>) {
         if let Some(k) = self.model(cx).first_of(s) {
             self.selected = Some(k);
         }

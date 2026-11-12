@@ -22,6 +22,7 @@ use serde_json::json;
 
 use crate::groups::error_text;
 use crate::orch::{gate_origin, gate_state_label, mode, now_ms, tc, tokens};
+use crate::qa_marks::QaId;
 use crate::source::PoddSource;
 use crate::workspace::{ToastKind, Workspace};
 
@@ -476,6 +477,7 @@ impl Render for GatesPanel {
             .collect();
         div()
             .id("gates-panel")
+            .qa_id(|| "gates-panel".into())
             .track_focus(&self.focus)
             .size_full()
             .flex()

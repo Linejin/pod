@@ -1206,10 +1206,21 @@ pub fn panels_rose(last: usize, now: usize) -> bool {
 /// Width of the panel drawer at the right, in logical px: about 42 % of the
 /// window, 360–720 px, but the task list and at least 360 px of feed stay
 /// beside it (280 px of drawer at the very least).
-pub fn drawer_width(window: f32, sidebar: f32) -> f32 {
+///
+/// `side` is what the dock's open side docks keep for themselves, plus the
+/// drawer's border (the gates inbox: 380 px at the right). The dock gives
+/// them that width and its centre only the rest, so a narrower drawer cut
+/// them off on the right; the drawer grows to hold them while the feed keeps
+/// [`FEED_BESIDE_DOCKS`]. A window too narrow even for that scrolls the dock
+/// sideways in the drawer.
+pub fn drawer_width(window: f32, sidebar: f32, side: f32) -> f32 {
     let room = (window - sidebar - 360.).max(280.);
-    (window * 0.42).clamp(360., 720.).min(room)
+    let base = (window * 0.42).clamp(360., 720.).min(room);
+    base.max(side.min(window - sidebar - FEED_BESIDE_DOCKS))
 }
+
+/// Feed width kept beside a drawer that grew for the dock's side docks.
+pub const FEED_BESIDE_DOCKS: f32 = 280.;
 
 #[cfg(test)]
 mod tests {

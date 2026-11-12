@@ -1,0 +1,1203 @@
+﻿App=pod-app (pid 65520)
+Window: "Pod", App: pod-app.
+
+0 영역 Pod
+	1 title bar Pod
+		2 menu bar 시스템 메뉴 모음
+			3 menu item 시스템
+		4 button 최소화
+		5 button 최대화
+		6 button 닫기
+	7 단추 명령·터미널 검색
+	8 단추 설정
+	9 탐색 작업
+		10 LIST 작업, 100개
+			11 목록 항목 Task 000 - 한글 작업과 레이아웃 🔎, 승인 대기 1개, Secondary Actions: Select
+			12 목록 항목 Task 001 - 한글 작업과 레이아웃 🔎, Secondary Actions: Select
+			13 목록 항목 Task 002 - 한글 작업과 레이아웃 🔎, Secondary Actions: Select
+			14 목록 항목 Task 003 - 한글 작업과 레이아웃 🔎, Secondary Actions: Select
+			15 목록 항목 Task 004 - 한글 작업과 레이아웃 🔎, Secondary Actions: Select
+			16 목록 항목 Task 005 - 한글 작업과 레이아웃 🔎, Secondary Actions: Select
+			17 목록 항목 Task 006 - 한글 작업과 레이아웃 🔎, Secondary Actions: Select
+			18 목록 항목 Task 007 - 한글 작업과 레이아웃 🔎, Secondary Actions: Select
+			19 목록 항목 Task 008 - 한글 작업과 레이아웃 🔎, Secondary Actions: Select
+			20 목록 항목 Task 009 - 한글 작업과 레이아웃 🔎, Secondary Actions: Select
+			21 목록 항목 Task 010 - 한글 작업과 레이아웃 🔎, Secondary Actions: Select
+			22 목록 항목 Task 011 - 한글 작업과 레이아웃 🔎, Secondary Actions: Select
+			23 목록 항목 Task 012 - 한글 작업과 레이아웃 🔎, Secondary Actions: Select
+			24 목록 항목 Task 013 - 한글 작업과 레이아웃 🔎, Secondary Actions: Select
+			25 목록 항목 Task 014 - 한글 작업과 레이아웃 🔎, Secondary Actions: Select
+			26 목록 항목 Task 015 - 한글 작업과 레이아웃 🔎, Secondary Actions: Select
+			27 목록 항목 Task 016 - 한글 작업과 레이아웃 🔎, Secondary Actions: Select
+		28 단추 모든 에이전트 3, 선택됨
+		29 단추 Claude · Worker 0
+		30 단추 Codex · Worker 1
+		31 단추 셸 · Worker 2
+	32 단추 원본 터미널 보기
+	33 단추 패널 서랍 닫기 (Esc)
+	34 LIST 블록 피드, 블록 4개
+		35 목록 항목 Claude · Worker 0, cargo test -p pod-ui wide_glyph, 3.1초 · 종료 0, 접힘, Secondary Actions: Select
+			36 이미지 Claude 에이전트
+			37 단추 복사
+		38 목록 항목 Claude · Worker 0, cargo build -p pod-ui, 실행 중, 펼쳐짐, Secondary Actions: Select
+			39 이미지 Claude 에이전트
+			40 단추 복사
+		41 목록 항목 Codex · Worker 1, cargo clippy -p pod-ui -- -D warnings, 승인 대기, 승인 요청: cargo clippy 실행 승인이 필요합니다., 펼쳐짐, Secondary Actions: Select
+			42 이미지 Codex 에이전트
+			43 단추 복사
+			44 단추 이번만 허용 (Y)
+			45 단추 항상 허용 (A)
+			46 단추 거부 (N)
+		47 목록 항목 셸 · Worker 2, git status --short, 0.4초 · 종료 0, 펼쳐짐, Secondary Actions: Select
+			48 이미지 셸 터미널
+			49 단추 복사
+	50 그룹 입력: Claude · Worker 0 · Tab 대상 변경 · Esc 블록으로 · F6 영역 이동
+		51 편집 Claude · Worker 0에게 입력 · Tab으로 대상 변경, Secondary Actions: SetValue
+	52 영역 패널 서랍 · Esc 닫기 · F6 영역 이동
+		53 단추 패널 서랍 닫기 (Esc)
+		54 탭 항목 에이전트, Secondary Actions: Select
+		55 단추 패널 메뉴
+		56 트리 에이전트 트리
+			57 단추 작업 sample/task-000 · Claude 에이전트, Codex 에이전트 · powershell.exe · pod/task-000 · 작업 중 1 · 응답 1 · 완료 1 접기
+			58 콘솔 트리 작업 sample/task-000 · Claude 에이전트, Codex 에이전트 · powershell.exe · pod/task-000 · 작업 중 1 · 응답 1 · 완료 1, Secondary Actions: Select
+				59 이미지 에이전트: Claude, Codex
+				60 상태 확인 필요 · 출처: unknown · 신뢰도: 100% · 상위: 확인 필요 · 마지막: —
+			61 콘솔 트리 터미널 Worker 0 · Claude 에이전트 · powershell · fixture-0, Secondary Actions: Select
+				62 이미지 Claude 에이전트
+				63 상태 작업 중 · 출처: osc · 신뢰도: 100% · 상위: 작업 중 · 마지막: —
+			64 콘솔 트리 터미널 Worker 1 · Codex 에이전트 · powershell · fixture-1, Secondary Actions: Select
+				65 이미지 Codex 에이전트
+				66 상태 승인 필요 · 출처: osc · 신뢰도: 100% · 상위: 승인 필요 · 마지막: —
+			67 콘솔 트리 터미널 Worker 2 · 셸 터미널 · powershell · fixture-2, Secondary Actions: Select
+				68 이미지 셸 터미널
+				69 상태 완료 · 출처: osc · 신뢰도: 100% · 상위: 완료 · 마지막: —
+			70 단추 작업 sample/task-001 · Claude 에이전트, Codex 에이전트 · powershell.exe · pod/task-001 · 응답 1 · 대기 1 · 완료 1 접기
+			71 콘솔 트리 작업 sample/task-001 · Claude 에이전트, Codex 에이전트 · powershell.exe · pod/task-001 · 응답 1 · 대기 1 · 완료 1, Secondary Actions: Select
+				72 이미지 에이전트: Claude, Codex
+				73 상태 확인 필요 · 출처: unknown · 신뢰도: 100% · 상위: 확인 필요 · 마지막: —
+			74 콘솔 트리 터미널 Worker 3 · Claude 에이전트 · powershell · fixture-3, Secondary Actions: Select
+				75 이미지 Claude 에이전트
+				76 상태 승인 필요 · 출처: osc · 신뢰도: 100% · 상위: 승인 필요 · 마지막: —
+			77 콘솔 트리 터미널 Worker 4 · Codex 에이전트 · powershell · fixture-4, Secondary Actions: Select
+				78 이미지 Codex 에이전트
+				79 상태 완료 · 출처: osc · 신뢰도: 100% · 상위: 완료 · 마지막: —
+			80 콘솔 트리 터미널 Worker 5 · 셸 터미널 · powershell · fixture-5, Secondary Actions: Select
+				81 이미지 셸 터미널
+				82 상태 대기 · 출처: osc · 신뢰도: 100% · 상위: 대기 · 마지막: —
+			83 단추 작업 sample/task-002 · Claude 에이전트, Codex 에이전트 · powershell.exe · pod/task-002 · 미확인 1 · 대기 1 · 완료 1 접기
+			84 콘솔 트리 작업 sample/task-002 · Claude 에이전트, Codex 에이전트 · powershell.exe · pod/task-002 · 미확인 1 · 대기 1 · 완료 1, Secondary Actions: Select
+				85 이미지 에이전트: Claude, Codex
+				86 상태 상태 미확인 · 출처: unknown · 신뢰도: 100% · 상위: 상태 미확인 · 마지막: —
+			87 콘솔 트리 터미널 Worker 6 · Claude 에이전트 · powershell · fixture-6, Secondary Actions: Select
+				88 이미지 Claude 에이전트
+				89 상태 완료 · 출처: osc · 신뢰도: 100% · 상위: 완료 · 마지막: —
+			90 콘솔 트리 터미널 Worker 7 · Codex 에이전트 · powershell · fixture-7, Secondary Actions: Select
+				91 이미지 Codex 에이전트
+				92 상태 대기 · 출처: osc · 신뢰도: 100% · 상위: 대기 · 마지막: —
+			93 콘솔 트리 터미널 Worker 8 · 셸 터미널 · powershell · fixture-8, Secondary Actions: Select
+				94 이미지 셸 터미널
+				95 상태 상태 미확인 · 추정 · 출처: heuristic · 신뢰도: 40% · 상위: 상태 미확인 · 마지막: —
+			96 단추 작업 sample/task-003 · Claude 에이전트, Codex 에이전트 · powershell.exe · pod/task-003 · 오류 1 · 미확인 1 · 대기 1 접기
+			97 콘솔 트리 작업 sample/task-003 · Claude 에이전트, Codex 에이전트 · powershell.exe · pod/task-003 · 오류 1 · 미확인 1 · 대기 1, Secondary Actions: Select
+				98 이미지 에이전트: Claude, Codex
+				99 상태 오류 · 출처: unknown · 신뢰도: 100% · 상위: 오류 · 마지막: —
+			100 콘솔 트리 터미널 Worker 9 · Claude 에이전트 · powershell · fixture-9, Secondary Actions: Select
+				101 이미지 Claude 에이전트
+				102 상태 대기 · 출처: osc · 신뢰도: 100% · 상위: 대기 · 마지막: —
+			103 콘솔 트리 터미널 Worker 10 · Codex 에이전트 · powershell · fixture-10, Secondary Actions: Select
+				104 이미지 Codex 에이전트
+				105 상태 상태 미확인 · 추정 · 출처: heuristic · 신뢰도: 40% · 상위: 상태 미확인 · 마지막: —
+			106 콘솔 트리 터미널 Worker 11 · 셸 터미널 · powershell · fixture-11, Secondary Actions: Select
+				107 이미지 셸 터미널
+				108 상태 오류 · 출처: osc · 신뢰도: 100% · 상위: 오류 · 마지막: —
+			109 단추 작업 sample/task-004 · Claude 에이전트, Codex 에이전트 · powershell.exe · pod/task-004 · 작업 중 1 · 오류 1 · 미확인 1 접기
+			110 콘솔 트리 작업 sample/task-004 · Claude 에이전트, Codex 에이전트 · powershell.exe · pod/task-004 · 작업 중 1 · 오류 1 · 미확인 1, Secondary Actions: Select
+				111 이미지 에이전트: Claude, Codex
+				112 상태 오류 · 출처: unknown · 신뢰도: 100% · 상위: 오류 · 마지막: —
+			113 콘솔 트리 터미널 Worker 12 · Claude 에이전트 · powershell · fixture-12, Secondary Actions: Select
+				114 이미지 Claude 에이전트
+				115 상태 상태 미확인 · 추정 · 출처: heuristic · 신뢰도: 40% · 상위: 상태 미확인 · 마지막: —
+			116 콘솔 트리 터미널 Worker 13 · Codex 에이전트 · powershell · fixture-13, Secondary Actions: Select
+				117 이미지 Codex 에이전트
+				118 상태 오류 · 출처: osc · 신뢰도: 100% · 상위: 오류 · 마지막: —
+			119 콘솔 트리 터미널 Worker 14 · 셸 터미널 · powershell · fixture-14, Secondary Actions: Select
+				120 이미지 셸 터미널
+				121 상태 작업 중 · 출처: osc · 신뢰도: 100% · 상위: 작업 중 · 마지막: —
+			122 단추 작업 sample/task-005 · Claude 에이전트, Codex 에이전트 · powershell.exe · pod/task-005 · 작업 중 1 · 응답 1 · 오류 1 접기
+			123 콘솔 트리 작업 sample/task-005 · Claude 에이전트, Codex 에이전트 · powershell.exe · pod/task-005 · 작업 중 1 · 응답 1 · 오류 1, Secondary Actions: Select
+				124 이미지 에이전트: Claude, Codex
+				125 상태 오류 · 출처: unknown · 신뢰도: 100% · 상위: 오류 · 마지막: —
+			126 콘솔 트리 터미널 Worker 15 · Claude 에이전트 · powershell · fixture-15, Secondary Actions: Select
+				127 이미지 Claude 에이전트
+				128 상태 오류 · 출처: osc · 신뢰도: 100% · 상위: 오류 · 마지막: —
+			129 콘솔 트리 터미널 Worker 16 · Codex 에이전트 · powershell · fixture-16, Secondary Actions: Select
+				130 이미지 Codex 에이전트
+				131 상태 작업 중 · 출처: osc · 신뢰도: 100% · 상위: 작업 중 · 마지막: —
+			132 콘솔 트리 터미널 Worker 17 · 셸 터미널 · powershell · fixture-17, Secondary Actions: Select
+				133 이미지 셸 터미널
+				134 상태 승인 필요 · 출처: osc · 신뢰도: 100% · 상위: 승인 필요 · 마지막: —
+			135 단추 작업 sample/task-006 · Claude 에이전트, Codex 에이전트 · powershell.exe · pod/task-006 · 작업 중 1 · 응답 1 · 완료 1 접기
+			136 콘솔 트리 작업 sample/task-006 · Claude 에이전트, Codex 에이전트 · powershell.exe · pod/task-006 · 작업 중 1 · 응답 1 · 완료 1, Secondary Actions: Select
+				137 이미지 에이전트: Claude, Codex
+				138 상태 확인 필요 · 출처: unknown · 신뢰도: 100% · 상위: 확인 필요 · 마지막: —
+			139 콘솔 트리 터미널 Worker 18 · Claude 에이전트 · powershell · fixture-18, Secondary Actions: Select
+				140 이미지 Claude 에이전트
+				141 상태 작업 중 · 출처: osc · 신뢰도: 100% · 상위: 작업 중 · 마지막: —
+			142 콘솔 트리 터미널 Worker 19 · Codex 에이전트 · powershell · fixture-19, Secondary Actions: Select
+				143 이미지 Codex 에이전트
+				144 상태 승인 필요 · 출처: osc · 신뢰도: 100% · 상위: 승인 필요 · 마지막: —
+			145 콘솔 트리 터미널 Worker 20 · 셸 터미널 · powershell · fixture-20, Secondary Actions: Select
+				146 이미지 셸 터미널
+				147 상태 완료 · 출처: osc · 신뢰도: 100% · 상위: 완료 · 마지막: —
+			148 단추 작업 sample/task-007 · Claude 에이전트, Codex 에이전트 · powershell.exe · pod/task-007 · 응답 1 · 대기 1 · 완료 1 접기
+			149 콘솔 트리 작업 sample/task-007 · Claude 에이전트, Codex 에이전트 · powershell.exe · pod/task-007 · 응답 1 · 대기 1 · 완료 1, Secondary Actions: Select
+				150 이미지 에이전트: Claude, Codex
+				151 상태 확인 필요 · 출처: unknown · 신뢰도: 100% · 상위: 확인 필요 · 마지막: —
+			152 콘솔 트리 터미널 Worker 21 · Claude 에이전트 · powershell · fixture-21, Secondary Actions: Select
+				153 이미지 Claude 에이전트
+				154 상태 승인 필요 · 출처: osc · 신뢰도: 100% · 상위: 승인 필요 · 마지막: —
+			155 콘솔 트리 터미널 Worker 22 · Codex 에이전트 · powershell · fixture-22, Secondary Actions: Select
+				156 이미지 Codex 에이전트
+				157 상태 완료 · 출처: osc · 신뢰도: 100% · 상위: 완료 · 마지막: —
+			158 콘솔 트리 터미널 Worker 23 · 셸 터미널 · powershell · fixture-23, Secondary Actions: Select
+				159 이미지 셸 터미널
+				160 상태 대기 · 출처: osc · 신뢰도: 100% · 상위: 대기 · 마지막: —
+			161 단추 작업 sample/task-008 · Claude 에이전트, Codex 에이전트 · powershell.exe · pod/task-008 · 미확인 1 · 대기 1 · 완료 1 접기
+			162 콘솔 트리 작업 sample/task-008 · Claude 에이전트, Codex 에이전트 · powershell.exe · pod/task-008 · 미확인 1 · 대기 1 · 완료 1, Secondary Actions: Select
+				163 이미지 에이전트: Claude, Codex
+				164 상태 상태 미확인 · 출처: unknown · 신뢰도: 100% · 상위: 상태 미확인 · 마지막: —
+			165 콘솔 트리 터미널 Worker 24 · Claude 에이전트 · powershell · fixture-24, Secondary Actions: Select
+				166 이미지 Claude 에이전트
+				167 상태 완료 · 출처: osc · 신뢰도: 100% · 상위: 완료 · 마지막: —
+			168 콘솔 트리 터미널 Worker 25 · Codex 에이전트 · powershell · fixture-25, Secondary Actions: Select
+				169 이미지 Codex 에이전트
+				170 상태 대기 · 출처: osc · 신뢰도: 100% · 상위: 대기 · 마지막: —
+			171 콘솔 트리 터미널 Worker 26 · 셸 터미널 · powershell · fixture-26, Secondary Actions: Select
+				172 이미지 셸 터미널
+				173 상태 상태 미확인 · 추정 · 출처: heuristic · 신뢰도: 40% · 상위: 상태 미확인 · 마지막: —
+			174 단추 작업 sample/task-009 · Claude 에이전트, Codex 에이전트 · powershell.exe · pod/task-009 · 오류 1 · 미확인 1 · 대기 1 접기
+			175 콘솔 트리 작업 sample/task-009 · Claude 에이전트, Codex 에이전트 · powershell.exe · pod/task-009 · 오류 1 · 미확인 1 · 대기 1, Secondary Actions: Select
+				176 이미지 에이전트: Claude, Codex
+				177 상태 오류 · 출처: unknown · 신뢰도: 100% · 상위: 오류 · 마지막: —
+			178 콘솔 트리 터미널 Worker 27 · Claude 에이전트 · powershell · fixture-27, Secondary Actions: Select
+				179 이미지 Claude 에이전트
+				180 상태 대기 · 출처: osc · 신뢰도: 100% · 상위: 대기 · 마지막: —
+			181 콘솔 트리 터미널 Worker 28 · Codex 에이전트 · powershell · fixture-28, Secondary Actions: Select
+				182 이미지 Codex 에이전트
+				183 상태 상태 미확인 · 추정 · 출처: heuristic · 신뢰도: 40% · 상위: 상태 미확인 · 마지막: —
+			184 콘솔 트리 터미널 Worker 29 · 셸 터미널 · powershell · fixture-29, Secondary Actions: Select
+				185 이미지 셸 터미널
+				186 상태 오류 · 출처: osc · 신뢰도: 100% · 상위: 오류 · 마지막: —
+			187 단추 작업 sample/task-010 · Claude 에이전트, Codex 에이전트 · powershell.exe · pod/task-010 · 작업 중 1 · 오류 1 · 미확인 1 접기
+			188 콘솔 트리 작업 sample/task-010 · Claude 에이전트, Codex 에이전트 · powershell.exe · pod/task-010 · 작업 중 1 · 오류 1 · 미확인 1, Secondary Actions: Select
+				189 이미지 에이전트: Claude, Codex
+				190 상태 오류 · 출처: unknown · 신뢰도: 100% · 상위: 오류 · 마지막: —
+			191 콘솔 트리 터미널 Worker 30 · Claude 에이전트 · powershell · fixture-30, Secondary Actions: Select
+				192 이미지 Claude 에이전트
+				193 상태 상태 미확인 · 추정 · 출처: heuristic · 신뢰도: 40% · 상위: 상태 미확인 · 마지막: —
+			194 콘솔 트리 터미널 Worker 31 · Codex 에이전트 · powershell · fixture-31, Secondary Actions: Select
+				195 이미지 Codex 에이전트
+				196 상태 오류 · 출처: osc · 신뢰도: 100% · 상위: 오류 · 마지막: —
+			197 콘솔 트리 터미널 Worker 32 · 셸 터미널 · powershell · fixture-32, Secondary Actions: Select
+				198 이미지 셸 터미널
+				199 상태 작업 중 · 출처: osc · 신뢰도: 100% · 상위: 작업 중 · 마지막: —
+			200 단추 작업 sample/task-011 · Claude 에이전트, Codex 에이전트 · powershell.exe · pod/task-011 · 작업 중 1 · 응답 1 · 오류 1 접기
+			201 콘솔 트리 작업 sample/task-011 · Claude 에이전트, Codex 에이전트 · powershell.exe · pod/task-011 · 작업 중 1 · 응답 1 · 오류 1, Secondary Actions: Select
+				202 이미지 에이전트: Claude, Codex
+				203 상태 오류 · 출처: unknown · 신뢰도: 100% · 상위: 오류 · 마지막: —
+			204 콘솔 트리 터미널 Worker 33 · Claude 에이전트 · powershell · fixture-33, Secondary Actions: Select
+				205 이미지 Claude 에이전트
+				206 상태 오류 · 출처: osc · 신뢰도: 100% · 상위: 오류 · 마지막: —
+			207 콘솔 트리 터미널 Worker 34 · Codex 에이전트 · powershell · fixture-34, Secondary Actions: Select
+				208 이미지 Codex 에이전트
+				209 상태 작업 중 · 출처: osc · 신뢰도: 100% · 상위: 작업 중 · 마지막: —
+			210 콘솔 트리 터미널 Worker 35 · 셸 터미널 · powershell · fixture-35, Secondary Actions: Select
+				211 이미지 셸 터미널
+				212 상태 승인 필요 · 출처: osc · 신뢰도: 100% · 상위: 승인 필요 · 마지막: —
+			213 단추 작업 sample/task-012 · Claude 에이전트, Codex 에이전트 · powershell.exe · pod/task-012 · 작업 중 1 · 응답 1 · 완료 1 접기
+			214 콘솔 트리 작업 sample/task-012 · Claude 에이전트, Codex 에이전트 · powershell.exe · pod/task-012 · 작업 중 1 · 응답 1 · 완료 1, Secondary Actions: Select
+				215 이미지 에이전트: Claude, Codex
+				216 상태 확인 필요 · 출처: unknown · 신뢰도: 100% · 상위: 확인 필요 · 마지막: —
+			217 콘솔 트리 터미널 Worker 36 · Claude 에이전트 · powershell · fixture-36, Secondary Actions: Select
+				218 이미지 Claude 에이전트
+				219 상태 작업 중 · 출처: osc · 신뢰도: 100% · 상위: 작업 중 · 마지막: —
+			220 콘솔 트리 터미널 Worker 37 · Codex 에이전트 · powershell · fixture-37, Secondary Actions: Select
+				221 이미지 Codex 에이전트
+				222 상태 승인 필요 · 출처: osc · 신뢰도: 100% · 상위: 승인 필요 · 마지막: —
+			223 콘솔 트리 터미널 Worker 38 · 셸 터미널 · powershell · fixture-38, Secondary Actions: Select
+				224 이미지 셸 터미널
+				225 상태 완료 · 출처: osc · 신뢰도: 100% · 상위: 완료 · 마지막: —
+			226 단추 작업 sample/task-013 · Claude 에이전트, Codex 에이전트 · powershell.exe · pod/task-013 · 응답 1 · 대기 1 · 완료 1 접기
+			227 콘솔 트리 작업 sample/task-013 · Claude 에이전트, Codex 에이전트 · powershell.exe · pod/task-013 · 응답 1 · 대기 1 · 완료 1, Secondary Actions: Select
+				228 이미지 에이전트: Claude, Codex
+				229 상태 확인 필요 · 출처: unknown · 신뢰도: 100% · 상위: 확인 필요 · 마지막: —
+			230 콘솔 트리 터미널 Worker 39 · Claude 에이전트 · powershell · fixture-39, Secondary Actions: Select
+				231 이미지 Claude 에이전트
+				232 상태 승인 필요 · 출처: osc · 신뢰도: 100% · 상위: 승인 필요 · 마지막: —
+			233 콘솔 트리 터미널 Worker 40 · Codex 에이전트 · powershell · fixture-40, Secondary Actions: Select
+				234 이미지 Codex 에이전트
+				235 상태 완료 · 출처: osc · 신뢰도: 100% · 상위: 완료 · 마지막: —
+			236 콘솔 트리 터미널 Worker 41 · 셸 터미널 · powershell · fixture-41, Secondary Actions: Select
+				237 이미지 셸 터미널
+				238 상태 대기 · 출처: osc · 신뢰도: 100% · 상위: 대기 · 마지막: —
+			239 단추 작업 sample/task-014 · Claude 에이전트, Codex 에이전트 · powershell.exe · pod/task-014 · 미확인 1 · 대기 1 · 완료 1 접기
+			240 콘솔 트리 작업 sample/task-014 · Claude 에이전트, Codex 에이전트 · powershell.exe · pod/task-014 · 미확인 1 · 대기 1 · 완료 1, Secondary Actions: Select
+				241 이미지 에이전트: Claude, Codex
+				242 상태 상태 미확인 · 출처: unknown · 신뢰도: 100% · 상위: 상태 미확인 · 마지막: —
+			243 콘솔 트리 터미널 Worker 42 · Claude 에이전트 · powershell · fixture-42, Secondary Actions: Select
+				244 이미지 Claude 에이전트
+				245 상태 완료 · 출처: osc · 신뢰도: 100% · 상위: 완료 · 마지막: —
+			246 콘솔 트리 터미널 Worker 43 · Codex 에이전트 · powershell · fixture-43, Secondary Actions: Select
+				247 이미지 Codex 에이전트
+				248 상태 대기 · 출처: osc · 신뢰도: 100% · 상위: 대기 · 마지막: —
+			249 콘솔 트리 터미널 Worker 44 · 셸 터미널 · powershell · fixture-44, Secondary Actions: Select
+				250 이미지 셸 터미널
+				251 상태 상태 미확인 · 추정 · 출처: heuristic · 신뢰도: 40% · 상위: 상태 미확인 · 마지막: —
+			252 단추 작업 sample/task-015 · Claude 에이전트, Codex 에이전트 · powershell.exe · pod/task-015 · 오류 1 · 미확인 1 · 대기 1 접기
+			253 콘솔 트리 작업 sample/task-015 · Claude 에이전트, Codex 에이전트 · powershell.exe · pod/task-015 · 오류 1 · 미확인 1 · 대기 1, Secondary Actions: Select
+				254 이미지 에이전트: Claude, Codex
+				255 상태 오류 · 출처: unknown · 신뢰도: 100% · 상위: 오류 · 마지막: —
+			256 콘솔 트리 터미널 Worker 45 · Claude 에이전트 · powershell · fixture-45, Secondary Actions: Select
+				257 이미지 Claude 에이전트
+				258 상태 대기 · 출처: osc · 신뢰도: 100% · 상위: 대기 · 마지막: —
+			259 콘솔 트리 터미널 Worker 46 · Codex 에이전트 · powershell · fixture-46, Secondary Actions: Select
+				260 이미지 Codex 에이전트
+				261 상태 상태 미확인 · 추정 · 출처: heuristic · 신뢰도: 40% · 상위: 상태 미확인 · 마지막: —
+			262 콘솔 트리 터미널 Worker 47 · 셸 터미널 · powershell · fixture-47, Secondary Actions: Select
+				263 이미지 셸 터미널
+				264 상태 오류 · 출처: osc · 신뢰도: 100% · 상위: 오류 · 마지막: —
+			265 단추 작업 sample/task-016 · Claude 에이전트, Codex 에이전트 · powershell.exe · pod/task-016 · 작업 중 1 · 오류 1 · 미확인 1 접기
+			266 콘솔 트리 작업 sample/task-016 · Claude 에이전트, Codex 에이전트 · powershell.exe · pod/task-016 · 작업 중 1 · 오류 1 · 미확인 1, Secondary Actions: Select
+				267 이미지 에이전트: Claude, Codex
+				268 상태 오류 · 출처: unknown · 신뢰도: 100% · 상위: 오류 · 마지막: —
+			269 콘솔 트리 터미널 Worker 48 · Claude 에이전트 · powershell · fixture-48, Secondary Actions: Select
+				270 이미지 Claude 에이전트
+				271 상태 상태 미확인 · 추정 · 출처: heuristic · 신뢰도: 40% · 상위: 상태 미확인 · 마지막: —
+			272 콘솔 트리 터미널 Worker 49 · Codex 에이전트 · powershell · fixture-49, Secondary Actions: Select
+				273 이미지 Codex 에이전트
+				274 상태 오류 · 출처: osc · 신뢰도: 100% · 상위: 오류 · 마지막: —
+			275 콘솔 트리 터미널 Worker 50 · 셸 터미널 · powershell · fixture-50, Secondary Actions: Select
+				276 이미지 셸 터미널
+				277 상태 작업 중 · 출처: osc · 신뢰도: 100% · 상위: 작업 중 · 마지막: —
+			278 단추 작업 sample/task-017 · Claude 에이전트, Codex 에이전트 · powershell.exe · pod/task-017 · 작업 중 1 · 응답 1 · 오류 1 접기
+			279 콘솔 트리 작업 sample/task-017 · Claude 에이전트, Codex 에이전트 · powershell.exe · pod/task-017 · 작업 중 1 · 응답 1 · 오류 1, Secondary Actions: Select
+				280 이미지 에이전트: Claude, Codex
+				281 상태 오류 · 출처: unknown · 신뢰도: 100% · 상위: 오류 · 마지막: —
+			282 콘솔 트리 터미널 Worker 51 · Claude 에이전트 · powershell · fixture-51, Secondary Actions: Select
+				283 이미지 Claude 에이전트
+				284 상태 오류 · 출처: osc · 신뢰도: 100% · 상위: 오류 · 마지막: —
+			285 콘솔 트리 터미널 Worker 52 · Codex 에이전트 · powershell · fixture-52, Secondary Actions: Select
+				286 이미지 Codex 에이전트
+				287 상태 작업 중 · 출처: osc · 신뢰도: 100% · 상위: 작업 중 · 마지막: —
+			288 콘솔 트리 터미널 Worker 53 · 셸 터미널 · powershell · fixture-53, Secondary Actions: Select
+				289 이미지 셸 터미널
+				290 상태 승인 필요 · 출처: osc · 신뢰도: 100% · 상위: 승인 필요 · 마지막: —
+			291 단추 작업 sample/task-018 · Claude 에이전트, Codex 에이전트 · powershell.exe · pod/task-018 · 작업 중 1 · 응답 1 · 완료 1 접기
+			292 콘솔 트리 작업 sample/task-018 · Claude 에이전트, Codex 에이전트 · powershell.exe · pod/task-018 · 작업 중 1 · 응답 1 · 완료 1, Secondary Actions: Select
+				293 이미지 에이전트: Claude, Codex
+				294 상태 확인 필요 · 출처: unknown · 신뢰도: 100% · 상위: 확인 필요 · 마지막: —
+			295 콘솔 트리 터미널 Worker 54 · Claude 에이전트 · powershell · fixture-54, Secondary Actions: Select
+				296 이미지 Claude 에이전트
+				297 상태 작업 중 · 출처: osc · 신뢰도: 100% · 상위: 작업 중 · 마지막: —
+			298 콘솔 트리 터미널 Worker 55 · Codex 에이전트 · powershell · fixture-55, Secondary Actions: Select
+				299 이미지 Codex 에이전트
+				300 상태 승인 필요 · 출처: osc · 신뢰도: 100% · 상위: 승인 필요 · 마지막: —
+			301 콘솔 트리 터미널 Worker 56 · 셸 터미널 · powershell · fixture-56, Secondary Actions: Select
+				302 이미지 셸 터미널
+				303 상태 완료 · 출처: osc · 신뢰도: 100% · 상위: 완료 · 마지막: —
+			304 단추 작업 sample/task-019 · Claude 에이전트, Codex 에이전트 · powershell.exe · pod/task-019 · 응답 1 · 대기 1 · 완료 1 접기
+			305 콘솔 트리 작업 sample/task-019 · Claude 에이전트, Codex 에이전트 · powershell.exe · pod/task-019 · 응답 1 · 대기 1 · 완료 1, Secondary Actions: Select
+				306 이미지 에이전트: Claude, Codex
+				307 상태 확인 필요 · 출처: unknown · 신뢰도: 100% · 상위: 확인 필요 · 마지막: —
+			308 콘솔 트리 터미널 Worker 57 · Claude 에이전트 · powershell · fixture-57, Secondary Actions: Select
+				309 이미지 Claude 에이전트
+				310 상태 승인 필요 · 출처: osc · 신뢰도: 100% · 상위: 승인 필요 · 마지막: —
+			311 콘솔 트리 터미널 Worker 58 · Codex 에이전트 · powershell · fixture-58, Secondary Actions: Select
+				312 이미지 Codex 에이전트
+				313 상태 완료 · 출처: osc · 신뢰도: 100% · 상위: 완료 · 마지막: —
+			314 콘솔 트리 터미널 Worker 59 · 셸 터미널 · powershell · fixture-59, Secondary Actions: Select
+				315 이미지 셸 터미널
+				316 상태 대기 · 출처: osc · 신뢰도: 100% · 상위: 대기 · 마지막: —
+			317 단추 작업 sample/task-020 · Claude 에이전트, Codex 에이전트 · powershell.exe · pod/task-020 · 미확인 1 · 대기 1 · 완료 1 접기
+			318 콘솔 트리 작업 sample/task-020 · Claude 에이전트, Codex 에이전트 · powershell.exe · pod/task-020 · 미확인 1 · 대기 1 · 완료 1, Secondary Actions: Select
+				319 이미지 에이전트: Claude, Codex
+				320 상태 상태 미확인 · 출처: unknown · 신뢰도: 100% · 상위: 상태 미확인 · 마지막: —
+			321 콘솔 트리 터미널 Worker 60 · Claude 에이전트 · powershell · fixture-60, Secondary Actions: Select
+				322 이미지 Claude 에이전트
+				323 상태 완료 · 출처: osc · 신뢰도: 100% · 상위: 완료 · 마지막: —
+			324 콘솔 트리 터미널 Worker 61 · Codex 에이전트 · powershell · fixture-61, Secondary Actions: Select
+				325 이미지 Codex 에이전트
+				326 상태 대기 · 출처: osc · 신뢰도: 100% · 상위: 대기 · 마지막: —
+			327 콘솔 트리 터미널 Worker 62 · 셸 터미널 · powershell · fixture-62, Secondary Actions: Select
+				328 이미지 셸 터미널
+				329 상태 상태 미확인 · 추정 · 출처: heuristic · 신뢰도: 40% · 상위: 상태 미확인 · 마지막: —
+			330 단추 작업 sample/task-021 · Claude 에이전트, Codex 에이전트 · powershell.exe · pod/task-021 · 오류 1 · 미확인 1 · 대기 1 접기
+			331 콘솔 트리 작업 sample/task-021 · Claude 에이전트, Codex 에이전트 · powershell.exe · pod/task-021 · 오류 1 · 미확인 1 · 대기 1, Secondary Actions: Select
+				332 이미지 에이전트: Claude, Codex
+				333 상태 오류 · 출처: unknown · 신뢰도: 100% · 상위: 오류 · 마지막: —
+			334 콘솔 트리 터미널 Worker 63 · Claude 에이전트 · powershell · fixture-63, Secondary Actions: Select
+				335 이미지 Claude 에이전트
+				336 상태 대기 · 출처: osc · 신뢰도: 100% · 상위: 대기 · 마지막: —
+			337 콘솔 트리 터미널 Worker 64 · Codex 에이전트 · powershell · fixture-64, Secondary Actions: Select
+				338 이미지 Codex 에이전트
+				339 상태 상태 미확인 · 추정 · 출처: heuristic · 신뢰도: 40% · 상위: 상태 미확인 · 마지막: —
+			340 콘솔 트리 터미널 Worker 65 · 셸 터미널 · powershell · fixture-65, Secondary Actions: Select
+				341 이미지 셸 터미널
+				342 상태 오류 · 출처: osc · 신뢰도: 100% · 상위: 오류 · 마지막: —
+			343 단추 작업 sample/task-022 · Claude 에이전트, Codex 에이전트 · powershell.exe · pod/task-022 · 작업 중 1 · 오류 1 · 미확인 1 접기
+			344 콘솔 트리 작업 sample/task-022 · Claude 에이전트, Codex 에이전트 · powershell.exe · pod/task-022 · 작업 중 1 · 오류 1 · 미확인 1, Secondary Actions: Select
+				345 이미지 에이전트: Claude, Codex
+				346 상태 오류 · 출처: unknown · 신뢰도: 100% · 상위: 오류 · 마지막: —
+			347 콘솔 트리 터미널 Worker 66 · Claude 에이전트 · powershell · fixture-66, Secondary Actions: Select
+				348 이미지 Claude 에이전트
+				349 상태 상태 미확인 · 추정 · 출처: heuristic · 신뢰도: 40% · 상위: 상태 미확인 · 마지막: —
+			350 콘솔 트리 터미널 Worker 67 · Codex 에이전트 · powershell · fixture-67, Secondary Actions: Select
+				351 이미지 Codex 에이전트
+				352 상태 오류 · 출처: osc · 신뢰도: 100% · 상위: 오류 · 마지막: —
+			353 콘솔 트리 터미널 Worker 68 · 셸 터미널 · powershell · fixture-68, Secondary Actions: Select
+				354 이미지 셸 터미널
+				355 상태 작업 중 · 출처: osc · 신뢰도: 100% · 상위: 작업 중 · 마지막: —
+			356 단추 작업 sample/task-023 · Claude 에이전트, Codex 에이전트 · powershell.exe · pod/task-023 · 작업 중 1 · 응답 1 · 오류 1 접기
+			357 콘솔 트리 작업 sample/task-023 · Claude 에이전트, Codex 에이전트 · powershell.exe · pod/task-023 · 작업 중 1 · 응답 1 · 오류 1, Secondary Actions: Select
+				358 이미지 에이전트: Claude, Codex
+				359 상태 오류 · 출처: unknown · 신뢰도: 100% · 상위: 오류 · 마지막: —
+			360 콘솔 트리 터미널 Worker 69 · Claude 에이전트 · powershell · fixture-69, Secondary Actions: Select
+				361 이미지 Claude 에이전트
+				362 상태 오류 · 출처: osc · 신뢰도: 100% · 상위: 오류 · 마지막: —
+			363 콘솔 트리 터미널 Worker 70 · Codex 에이전트 · powershell · fixture-70, Secondary Actions: Select
+				364 이미지 Codex 에이전트
+				365 상태 작업 중 · 출처: osc · 신뢰도: 100% · 상위: 작업 중 · 마지막: —
+			366 콘솔 트리 터미널 Worker 71 · 셸 터미널 · powershell · fixture-71, Secondary Actions: Select
+				367 이미지 셸 터미널
+				368 상태 승인 필요 · 출처: osc · 신뢰도: 100% · 상위: 승인 필요 · 마지막: —
+			369 단추 작업 sample/task-024 · Claude 에이전트, Codex 에이전트 · powershell.exe · pod/task-024 · 작업 중 1 · 응답 1 · 완료 1 접기
+			370 콘솔 트리 작업 sample/task-024 · Claude 에이전트, Codex 에이전트 · powershell.exe · pod/task-024 · 작업 중 1 · 응답 1 · 완료 1, Secondary Actions: Select
+				371 이미지 에이전트: Claude, Codex
+				372 상태 확인 필요 · 출처: unknown · 신뢰도: 100% · 상위: 확인 필요 · 마지막: —
+			373 콘솔 트리 터미널 Worker 72 · Claude 에이전트 · powershell · fixture-72, Secondary Actions: Select
+				374 이미지 Claude 에이전트
+				375 상태 작업 중 · 출처: osc · 신뢰도: 100% · 상위: 작업 중 · 마지막: —
+			376 콘솔 트리 터미널 Worker 73 · Codex 에이전트 · powershell · fixture-73, Secondary Actions: Select
+				377 이미지 Codex 에이전트
+				378 상태 승인 필요 · 출처: osc · 신뢰도: 100% · 상위: 승인 필요 · 마지막: —
+			379 콘솔 트리 터미널 Worker 74 · 셸 터미널 · powershell · fixture-74, Secondary Actions: Select
+				380 이미지 셸 터미널
+				381 상태 완료 · 출처: osc · 신뢰도: 100% · 상위: 완료 · 마지막: —
+			382 단추 작업 sample/task-025 · Claude 에이전트, Codex 에이전트 · powershell.exe · pod/task-025 · 응답 1 · 대기 1 · 완료 1 접기
+			383 콘솔 트리 작업 sample/task-025 · Claude 에이전트, Codex 에이전트 · powershell.exe · pod/task-025 · 응답 1 · 대기 1 · 완료 1, Secondary Actions: Select
+				384 이미지 에이전트: Claude, Codex
+				385 상태 확인 필요 · 출처: unknown · 신뢰도: 100% · 상위: 확인 필요 · 마지막: —
+			386 콘솔 트리 터미널 Worker 75 · Claude 에이전트 · powershell · fixture-75, Secondary Actions: Select
+				387 이미지 Claude 에이전트
+				388 상태 승인 필요 · 출처: osc · 신뢰도: 100% · 상위: 승인 필요 · 마지막: —
+			389 콘솔 트리 터미널 Worker 76 · Codex 에이전트 · powershell · fixture-76, Secondary Actions: Select
+				390 이미지 Codex 에이전트
+				391 상태 완료 · 출처: osc · 신뢰도: 100% · 상위: 완료 · 마지막: —
+			392 콘솔 트리 터미널 Worker 77 · 셸 터미널 · powershell · fixture-77, Secondary Actions: Select
+				393 이미지 셸 터미널
+				394 상태 대기 · 출처: osc · 신뢰도: 100% · 상위: 대기 · 마지막: —
+			395 단추 작업 sample/task-026 · Claude 에이전트, Codex 에이전트 · powershell.exe · pod/task-026 · 미확인 1 · 대기 1 · 완료 1 접기
+			396 콘솔 트리 작업 sample/task-026 · Claude 에이전트, Codex 에이전트 · powershell.exe · pod/task-026 · 미확인 1 · 대기 1 · 완료 1, Secondary Actions: Select
+				397 이미지 에이전트: Claude, Codex
+				398 상태 상태 미확인 · 출처: unknown · 신뢰도: 100% · 상위: 상태 미확인 · 마지막: —
+			399 콘솔 트리 터미널 Worker 78 · Claude 에이전트 · powershell · fixture-78, Secondary Actions: Select
+				400 이미지 Claude 에이전트
+				401 상태 완료 · 출처: osc · 신뢰도: 100% · 상위: 완료 · 마지막: —
+			402 콘솔 트리 터미널 Worker 79 · Codex 에이전트 · powershell · fixture-79, Secondary Actions: Select
+				403 이미지 Codex 에이전트
+				404 상태 대기 · 출처: osc · 신뢰도: 100% · 상위: 대기 · 마지막: —
+			405 콘솔 트리 터미널 Worker 80 · 셸 터미널 · powershell · fixture-80, Secondary Actions: Select
+				406 이미지 셸 터미널
+				407 상태 상태 미확인 · 추정 · 출처: heuristic · 신뢰도: 40% · 상위: 상태 미확인 · 마지막: —
+			408 단추 작업 sample/task-027 · Claude 에이전트, Codex 에이전트 · powershell.exe · pod/task-027 · 오류 1 · 미확인 1 · 대기 1 접기
+			409 콘솔 트리 작업 sample/task-027 · Claude 에이전트, Codex 에이전트 · powershell.exe · pod/task-027 · 오류 1 · 미확인 1 · 대기 1, Secondary Actions: Select
+				410 이미지 에이전트: Claude, Codex
+				411 상태 오류 · 출처: unknown · 신뢰도: 100% · 상위: 오류 · 마지막: —
+			412 콘솔 트리 터미널 Worker 81 · Claude 에이전트 · powershell · fixture-81, Secondary Actions: Select
+				413 이미지 Claude 에이전트
+				414 상태 대기 · 출처: osc · 신뢰도: 100% · 상위: 대기 · 마지막: —
+			415 콘솔 트리 터미널 Worker 82 · Codex 에이전트 · powershell · fixture-82, Secondary Actions: Select
+				416 이미지 Codex 에이전트
+				417 상태 상태 미확인 · 추정 · 출처: heuristic · 신뢰도: 40% · 상위: 상태 미확인 · 마지막: —
+			418 콘솔 트리 터미널 Worker 83 · 셸 터미널 · powershell · fixture-83, Secondary Actions: Select
+				419 이미지 셸 터미널
+				420 상태 오류 · 출처: osc · 신뢰도: 100% · 상위: 오류 · 마지막: —
+			421 단추 작업 sample/task-028 · Claude 에이전트, Codex 에이전트 · powershell.exe · pod/task-028 · 작업 중 1 · 오류 1 · 미확인 1 접기
+			422 콘솔 트리 작업 sample/task-028 · Claude 에이전트, Codex 에이전트 · powershell.exe · pod/task-028 · 작업 중 1 · 오류 1 · 미확인 1, Secondary Actions: Select
+				423 이미지 에이전트: Claude, Codex
+				424 상태 오류 · 출처: unknown · 신뢰도: 100% · 상위: 오류 · 마지막: —
+			425 콘솔 트리 터미널 Worker 84 · Claude 에이전트 · powershell · fixture-84, Secondary Actions: Select
+				426 이미지 Claude 에이전트
+				427 상태 상태 미확인 · 추정 · 출처: heuristic · 신뢰도: 40% · 상위: 상태 미확인 · 마지막: —
+			428 콘솔 트리 터미널 Worker 85 · Codex 에이전트 · powershell · fixture-85, Secondary Actions: Select
+				429 이미지 Codex 에이전트
+				430 상태 오류 · 출처: osc · 신뢰도: 100% · 상위: 오류 · 마지막: —
+			431 콘솔 트리 터미널 Worker 86 · 셸 터미널 · powershell · fixture-86, Secondary Actions: Select
+				432 이미지 셸 터미널
+				433 상태 작업 중 · 출처: osc · 신뢰도: 100% · 상위: 작업 중 · 마지막: —
+			434 단추 작업 sample/task-029 · Claude 에이전트, Codex 에이전트 · powershell.exe · pod/task-029 · 작업 중 1 · 응답 1 · 오류 1 접기
+			435 콘솔 트리 작업 sample/task-029 · Claude 에이전트, Codex 에이전트 · powershell.exe · pod/task-029 · 작업 중 1 · 응답 1 · 오류 1, Secondary Actions: Select
+				436 이미지 에이전트: Claude, Codex
+				437 상태 오류 · 출처: unknown · 신뢰도: 100% · 상위: 오류 · 마지막: —
+			438 콘솔 트리 터미널 Worker 87 · Claude 에이전트 · powershell · fixture-87, Secondary Actions: Select
+				439 이미지 Claude 에이전트
+				440 상태 오류 · 출처: osc · 신뢰도: 100% · 상위: 오류 · 마지막: —
+			441 콘솔 트리 터미널 Worker 88 · Codex 에이전트 · powershell · fixture-88, Secondary Actions: Select
+				442 이미지 Codex 에이전트
+				443 상태 작업 중 · 출처: osc · 신뢰도: 100% · 상위: 작업 중 · 마지막: —
+			444 콘솔 트리 터미널 Worker 89 · 셸 터미널 · powershell · fixture-89, Secondary Actions: Select
+				445 이미지 셸 터미널
+				446 상태 승인 필요 · 출처: osc · 신뢰도: 100% · 상위: 승인 필요 · 마지막: —
+			447 단추 작업 sample/task-030 · Claude 에이전트, Codex 에이전트 · powershell.exe · pod/task-030 · 작업 중 1 · 응답 1 · 완료 1 접기
+			448 콘솔 트리 작업 sample/task-030 · Claude 에이전트, Codex 에이전트 · powershell.exe · pod/task-030 · 작업 중 1 · 응답 1 · 완료 1, Secondary Actions: Select
+				449 이미지 에이전트: Claude, Codex
+				450 상태 확인 필요 · 출처: unknown · 신뢰도: 100% · 상위: 확인 필요 · 마지막: —
+			451 콘솔 트리 터미널 Worker 90 · Claude 에이전트 · powershell · fixture-90, Secondary Actions: Select
+				452 이미지 Claude 에이전트
+				453 상태 작업 중 · 출처: osc · 신뢰도: 100% · 상위: 작업 중 · 마지막: —
+			454 콘솔 트리 터미널 Worker 91 · Codex 에이전트 · powershell · fixture-91, Secondary Actions: Select
+				455 이미지 Codex 에이전트
+				456 상태 승인 필요 · 출처: osc · 신뢰도: 100% · 상위: 승인 필요 · 마지막: —
+			457 콘솔 트리 터미널 Worker 92 · 셸 터미널 · powershell · fixture-92, Secondary Actions: Select
+				458 이미지 셸 터미널
+				459 상태 완료 · 출처: osc · 신뢰도: 100% · 상위: 완료 · 마지막: —
+			460 단추 작업 sample/task-031 · Claude 에이전트, Codex 에이전트 · powershell.exe · pod/task-031 · 응답 1 · 대기 1 · 완료 1 접기
+			461 콘솔 트리 작업 sample/task-031 · Claude 에이전트, Codex 에이전트 · powershell.exe · pod/task-031 · 응답 1 · 대기 1 · 완료 1, Secondary Actions: Select
+				462 이미지 에이전트: Claude, Codex
+				463 상태 확인 필요 · 출처: unknown · 신뢰도: 100% · 상위: 확인 필요 · 마지막: —
+			464 콘솔 트리 터미널 Worker 93 · Claude 에이전트 · powershell · fixture-93, Secondary Actions: Select
+				465 이미지 Claude 에이전트
+				466 상태 승인 필요 · 출처: osc · 신뢰도: 100% · 상위: 승인 필요 · 마지막: —
+			467 콘솔 트리 터미널 Worker 94 · Codex 에이전트 · powershell · fixture-94, Secondary Actions: Select
+				468 이미지 Codex 에이전트
+				469 상태 완료 · 출처: osc · 신뢰도: 100% · 상위: 완료 · 마지막: —
+			470 콘솔 트리 터미널 Worker 95 · 셸 터미널 · powershell · fixture-95, Secondary Actions: Select
+				471 이미지 셸 터미널
+				472 상태 대기 · 출처: osc · 신뢰도: 100% · 상위: 대기 · 마지막: —
+			473 단추 작업 sample/task-032 · Claude 에이전트, Codex 에이전트 · powershell.exe · pod/task-032 · 미확인 1 · 대기 1 · 완료 1 접기
+			474 콘솔 트리 작업 sample/task-032 · Claude 에이전트, Codex 에이전트 · powershell.exe · pod/task-032 · 미확인 1 · 대기 1 · 완료 1, Secondary Actions: Select
+				475 이미지 에이전트: Claude, Codex
+				476 상태 상태 미확인 · 출처: unknown · 신뢰도: 100% · 상위: 상태 미확인 · 마지막: —
+			477 콘솔 트리 터미널 Worker 96 · Claude 에이전트 · powershell · fixture-96, Secondary Actions: Select
+				478 이미지 Claude 에이전트
+				479 상태 완료 · 출처: osc · 신뢰도: 100% · 상위: 완료 · 마지막: —
+			480 콘솔 트리 터미널 Worker 97 · Codex 에이전트 · powershell · fixture-97, Secondary Actions: Select
+				481 이미지 Codex 에이전트
+				482 상태 대기 · 출처: osc · 신뢰도: 100% · 상위: 대기 · 마지막: —
+			483 콘솔 트리 터미널 Worker 98 · 셸 터미널 · powershell · fixture-98, Secondary Actions: Select
+				484 이미지 셸 터미널
+				485 상태 상태 미확인 · 추정 · 출처: heuristic · 신뢰도: 40% · 상위: 상태 미확인 · 마지막: —
+			486 단추 작업 sample/task-033 · Claude 에이전트, Codex 에이전트 · powershell.exe · pod/task-033 · 오류 1 · 미확인 1 · 대기 1 접기
+			487 콘솔 트리 작업 sample/task-033 · Claude 에이전트, Codex 에이전트 · powershell.exe · pod/task-033 · 오류 1 · 미확인 1 · 대기 1, Secondary Actions: Select
+				488 이미지 에이전트: Claude, Codex
+				489 상태 오류 · 출처: unknown · 신뢰도: 100% · 상위: 오류 · 마지막: —
+			490 콘솔 트리 터미널 Worker 99 · Claude 에이전트 · powershell · fixture-99, Secondary Actions: Select
+				491 이미지 Claude 에이전트
+				492 상태 대기 · 출처: osc · 신뢰도: 100% · 상위: 대기 · 마지막: —
+			493 콘솔 트리 터미널 Worker 100 · Codex 에이전트 · powershell · fixture-100, Secondary Actions: Select
+				494 이미지 Codex 에이전트
+				495 상태 상태 미확인 · 추정 · 출처: heuristic · 신뢰도: 40% · 상위: 상태 미확인 · 마지막: —
+			496 콘솔 트리 터미널 Worker 101 · 셸 터미널 · powershell · fixture-101, Secondary Actions: Select
+				497 이미지 셸 터미널
+				498 상태 오류 · 출처: osc · 신뢰도: 100% · 상위: 오류 · 마지막: —
+			499 단추 작업 sample/task-034 · Claude 에이전트, Codex 에이전트 · powershell.exe · pod/task-034 · 작업 중 1 · 오류 1 · 미확인 1 접기
+			500 콘솔 트리 작업 sample/task-034 · Claude 에이전트, Codex 에이전트 · powershell.exe · pod/task-034 · 작업 중 1 · 오류 1 · 미확인 1, Secondary Actions: Select
+				501 이미지 에이전트: Claude, Codex
+				502 상태 오류 · 출처: unknown · 신뢰도: 100% · 상위: 오류 · 마지막: —
+			503 콘솔 트리 터미널 Worker 102 · Claude 에이전트 · powershell · fixture-102, Secondary Actions: Select
+				504 이미지 Claude 에이전트
+				505 상태 상태 미확인 · 추정 · 출처: heuristic · 신뢰도: 40% · 상위: 상태 미확인 · 마지막: —
+			506 콘솔 트리 터미널 Worker 103 · Codex 에이전트 · powershell · fixture-103, Secondary Actions: Select
+				507 이미지 Codex 에이전트
+				508 상태 오류 · 출처: osc · 신뢰도: 100% · 상위: 오류 · 마지막: —
+			509 콘솔 트리 터미널 Worker 104 · 셸 터미널 · powershell · fixture-104, Secondary Actions: Select
+				510 이미지 셸 터미널
+				511 상태 작업 중 · 출처: osc · 신뢰도: 100% · 상위: 작업 중 · 마지막: —
+			512 단추 작업 sample/task-035 · Claude 에이전트, Codex 에이전트 · powershell.exe · pod/task-035 · 작업 중 1 · 응답 1 · 오류 1 접기
+			513 콘솔 트리 작업 sample/task-035 · Claude 에이전트, Codex 에이전트 · powershell.exe · pod/task-035 · 작업 중 1 · 응답 1 · 오류 1, Secondary Actions: Select
+				514 이미지 에이전트: Claude, Codex
+				515 상태 오류 · 출처: unknown · 신뢰도: 100% · 상위: 오류 · 마지막: —
+			516 콘솔 트리 터미널 Worker 105 · Claude 에이전트 · powershell · fixture-105, Secondary Actions: Select
+				517 이미지 Claude 에이전트
+				518 상태 오류 · 출처: osc · 신뢰도: 100% · 상위: 오류 · 마지막: —
+			519 콘솔 트리 터미널 Worker 106 · Codex 에이전트 · powershell · fixture-106, Secondary Actions: Select
+				520 이미지 Codex 에이전트
+				521 상태 작업 중 · 출처: osc · 신뢰도: 100% · 상위: 작업 중 · 마지막: —
+			522 콘솔 트리 터미널 Worker 107 · 셸 터미널 · powershell · fixture-107, Secondary Actions: Select
+				523 이미지 셸 터미널
+				524 상태 승인 필요 · 출처: osc · 신뢰도: 100% · 상위: 승인 필요 · 마지막: —
+			525 단추 작업 sample/task-036 · Claude 에이전트, Codex 에이전트 · powershell.exe · pod/task-036 · 작업 중 1 · 응답 1 · 완료 1 접기
+			526 콘솔 트리 작업 sample/task-036 · Claude 에이전트, Codex 에이전트 · powershell.exe · pod/task-036 · 작업 중 1 · 응답 1 · 완료 1, Secondary Actions: Select
+				527 이미지 에이전트: Claude, Codex
+				528 상태 확인 필요 · 출처: unknown · 신뢰도: 100% · 상위: 확인 필요 · 마지막: —
+			529 콘솔 트리 터미널 Worker 108 · Claude 에이전트 · powershell · fixture-108, Secondary Actions: Select
+				530 이미지 Claude 에이전트
+				531 상태 작업 중 · 출처: osc · 신뢰도: 100% · 상위: 작업 중 · 마지막: —
+			532 콘솔 트리 터미널 Worker 109 · Codex 에이전트 · powershell · fixture-109, Secondary Actions: Select
+				533 이미지 Codex 에이전트
+				534 상태 승인 필요 · 출처: osc · 신뢰도: 100% · 상위: 승인 필요 · 마지막: —
+			535 콘솔 트리 터미널 Worker 110 · 셸 터미널 · powershell · fixture-110, Secondary Actions: Select
+				536 이미지 셸 터미널
+				537 상태 완료 · 출처: osc · 신뢰도: 100% · 상위: 완료 · 마지막: —
+			538 단추 작업 sample/task-037 · Claude 에이전트, Codex 에이전트 · powershell.exe · pod/task-037 · 응답 1 · 대기 1 · 완료 1 접기
+			539 콘솔 트리 작업 sample/task-037 · Claude 에이전트, Codex 에이전트 · powershell.exe · pod/task-037 · 응답 1 · 대기 1 · 완료 1, Secondary Actions: Select
+				540 이미지 에이전트: Claude, Codex
+				541 상태 확인 필요 · 출처: unknown · 신뢰도: 100% · 상위: 확인 필요 · 마지막: —
+			542 콘솔 트리 터미널 Worker 111 · Claude 에이전트 · powershell · fixture-111, Secondary Actions: Select
+				543 이미지 Claude 에이전트
+				544 상태 승인 필요 · 출처: osc · 신뢰도: 100% · 상위: 승인 필요 · 마지막: —
+			545 콘솔 트리 터미널 Worker 112 · Codex 에이전트 · powershell · fixture-112, Secondary Actions: Select
+				546 이미지 Codex 에이전트
+				547 상태 완료 · 출처: osc · 신뢰도: 100% · 상위: 완료 · 마지막: —
+			548 콘솔 트리 터미널 Worker 113 · 셸 터미널 · powershell · fixture-113, Secondary Actions: Select
+				549 이미지 셸 터미널
+				550 상태 대기 · 출처: osc · 신뢰도: 100% · 상위: 대기 · 마지막: —
+			551 단추 작업 sample/task-038 · Claude 에이전트, Codex 에이전트 · powershell.exe · pod/task-038 · 미확인 1 · 대기 1 · 완료 1 접기
+			552 콘솔 트리 작업 sample/task-038 · Claude 에이전트, Codex 에이전트 · powershell.exe · pod/task-038 · 미확인 1 · 대기 1 · 완료 1, Secondary Actions: Select
+				553 이미지 에이전트: Claude, Codex
+				554 상태 상태 미확인 · 출처: unknown · 신뢰도: 100% · 상위: 상태 미확인 · 마지막: —
+			555 콘솔 트리 터미널 Worker 114 · Claude 에이전트 · powershell · fixture-114, Secondary Actions: Select
+				556 이미지 Claude 에이전트
+				557 상태 완료 · 출처: osc · 신뢰도: 100% · 상위: 완료 · 마지막: —
+			558 콘솔 트리 터미널 Worker 115 · Codex 에이전트 · powershell · fixture-115, Secondary Actions: Select
+				559 이미지 Codex 에이전트
+				560 상태 대기 · 출처: osc · 신뢰도: 100% · 상위: 대기 · 마지막: —
+			561 콘솔 트리 터미널 Worker 116 · 셸 터미널 · powershell · fixture-116, Secondary Actions: Select
+				562 이미지 셸 터미널
+				563 상태 상태 미확인 · 추정 · 출처: heuristic · 신뢰도: 40% · 상위: 상태 미확인 · 마지막: —
+			564 단추 작업 sample/task-039 · Claude 에이전트, Codex 에이전트 · powershell.exe · pod/task-039 · 오류 1 · 미확인 1 · 대기 1 접기
+			565 콘솔 트리 작업 sample/task-039 · Claude 에이전트, Codex 에이전트 · powershell.exe · pod/task-039 · 오류 1 · 미확인 1 · 대기 1, Secondary Actions: Select
+				566 이미지 에이전트: Claude, Codex
+				567 상태 오류 · 출처: unknown · 신뢰도: 100% · 상위: 오류 · 마지막: —
+			568 콘솔 트리 터미널 Worker 117 · Claude 에이전트 · powershell · fixture-117, Secondary Actions: Select
+				569 이미지 Claude 에이전트
+				570 상태 대기 · 출처: osc · 신뢰도: 100% · 상위: 대기 · 마지막: —
+			571 콘솔 트리 터미널 Worker 118 · Codex 에이전트 · powershell · fixture-118, Secondary Actions: Select
+				572 이미지 Codex 에이전트
+				573 상태 상태 미확인 · 추정 · 출처: heuristic · 신뢰도: 40% · 상위: 상태 미확인 · 마지막: —
+			574 콘솔 트리 터미널 Worker 119 · 셸 터미널 · powershell · fixture-119, Secondary Actions: Select
+				575 이미지 셸 터미널
+				576 상태 오류 · 출처: osc · 신뢰도: 100% · 상위: 오류 · 마지막: —
+			577 단추 작업 sample/task-040 · Claude 에이전트, Codex 에이전트 · powershell.exe · pod/task-040 · 작업 중 1 · 오류 1 · 미확인 1 접기
+			578 콘솔 트리 작업 sample/task-040 · Claude 에이전트, Codex 에이전트 · powershell.exe · pod/task-040 · 작업 중 1 · 오류 1 · 미확인 1, Secondary Actions: Select
+				579 이미지 에이전트: Claude, Codex
+				580 상태 오류 · 출처: unknown · 신뢰도: 100% · 상위: 오류 · 마지막: —
+			581 콘솔 트리 터미널 Worker 120 · Claude 에이전트 · powershell · fixture-120, Secondary Actions: Select
+				582 이미지 Claude 에이전트
+				583 상태 상태 미확인 · 추정 · 출처: heuristic · 신뢰도: 40% · 상위: 상태 미확인 · 마지막: —
+			584 콘솔 트리 터미널 Worker 121 · Codex 에이전트 · powershell · fixture-121, Secondary Actions: Select
+				585 이미지 Codex 에이전트
+				586 상태 오류 · 출처: osc · 신뢰도: 100% · 상위: 오류 · 마지막: —
+			587 콘솔 트리 터미널 Worker 122 · 셸 터미널 · powershell · fixture-122, Secondary Actions: Select
+				588 이미지 셸 터미널
+				589 상태 작업 중 · 출처: osc · 신뢰도: 100% · 상위: 작업 중 · 마지막: —
+			590 단추 작업 sample/task-041 · Claude 에이전트, Codex 에이전트 · powershell.exe · pod/task-041 · 작업 중 1 · 응답 1 · 오류 1 접기
+			591 콘솔 트리 작업 sample/task-041 · Claude 에이전트, Codex 에이전트 · powershell.exe · pod/task-041 · 작업 중 1 · 응답 1 · 오류 1, Secondary Actions: Select
+				592 이미지 에이전트: Claude, Codex
+				593 상태 오류 · 출처: unknown · 신뢰도: 100% · 상위: 오류 · 마지막: —
+			594 콘솔 트리 터미널 Worker 123 · Claude 에이전트 · powershell · fixture-123, Secondary Actions: Select
+				595 이미지 Claude 에이전트
+				596 상태 오류 · 출처: osc · 신뢰도: 100% · 상위: 오류 · 마지막: —
+			597 콘솔 트리 터미널 Worker 124 · Codex 에이전트 · powershell · fixture-124, Secondary Actions: Select
+				598 이미지 Codex 에이전트
+				599 상태 작업 중 · 출처: osc · 신뢰도: 100% · 상위: 작업 중 · 마지막: —
+			600 콘솔 트리 터미널 Worker 125 · 셸 터미널 · powershell · fixture-125, Secondary Actions: Select
+				601 이미지 셸 터미널
+				602 상태 승인 필요 · 출처: osc · 신뢰도: 100% · 상위: 승인 필요 · 마지막: —
+			603 단추 작업 sample/task-042 · Claude 에이전트, Codex 에이전트 · powershell.exe · pod/task-042 · 작업 중 1 · 응답 1 · 완료 1 접기
+			604 콘솔 트리 작업 sample/task-042 · Claude 에이전트, Codex 에이전트 · powershell.exe · pod/task-042 · 작업 중 1 · 응답 1 · 완료 1, Secondary Actions: Select
+				605 이미지 에이전트: Claude, Codex
+				606 상태 확인 필요 · 출처: unknown · 신뢰도: 100% · 상위: 확인 필요 · 마지막: —
+			607 콘솔 트리 터미널 Worker 126 · Claude 에이전트 · powershell · fixture-126, Secondary Actions: Select
+				608 이미지 Claude 에이전트
+				609 상태 작업 중 · 출처: osc · 신뢰도: 100% · 상위: 작업 중 · 마지막: —
+			610 콘솔 트리 터미널 Worker 127 · Codex 에이전트 · powershell · fixture-127, Secondary Actions: Select
+				611 이미지 Codex 에이전트
+				612 상태 승인 필요 · 출처: osc · 신뢰도: 100% · 상위: 승인 필요 · 마지막: —
+			613 콘솔 트리 터미널 Worker 128 · 셸 터미널 · powershell · fixture-128, Secondary Actions: Select
+				614 이미지 셸 터미널
+				615 상태 완료 · 출처: osc · 신뢰도: 100% · 상위: 완료 · 마지막: —
+			616 단추 작업 sample/task-043 · Claude 에이전트, Codex 에이전트 · powershell.exe · pod/task-043 · 응답 1 · 대기 1 · 완료 1 접기
+			617 콘솔 트리 작업 sample/task-043 · Claude 에이전트, Codex 에이전트 · powershell.exe · pod/task-043 · 응답 1 · 대기 1 · 완료 1, Secondary Actions: Select
+				618 이미지 에이전트: Claude, Codex
+				619 상태 확인 필요 · 출처: unknown · 신뢰도: 100% · 상위: 확인 필요 · 마지막: —
+			620 콘솔 트리 터미널 Worker 129 · Claude 에이전트 · powershell · fixture-129, Secondary Actions: Select
+				621 이미지 Claude 에이전트
+				622 상태 승인 필요 · 출처: osc · 신뢰도: 100% · 상위: 승인 필요 · 마지막: —
+			623 콘솔 트리 터미널 Worker 130 · Codex 에이전트 · powershell · fixture-130, Secondary Actions: Select
+				624 이미지 Codex 에이전트
+				625 상태 완료 · 출처: osc · 신뢰도: 100% · 상위: 완료 · 마지막: —
+			626 콘솔 트리 터미널 Worker 131 · 셸 터미널 · powershell · fixture-131, Secondary Actions: Select
+				627 이미지 셸 터미널
+				628 상태 대기 · 출처: osc · 신뢰도: 100% · 상위: 대기 · 마지막: —
+			629 단추 작업 sample/task-044 · Claude 에이전트, Codex 에이전트 · powershell.exe · pod/task-044 · 미확인 1 · 대기 1 · 완료 1 접기
+			630 콘솔 트리 작업 sample/task-044 · Claude 에이전트, Codex 에이전트 · powershell.exe · pod/task-044 · 미확인 1 · 대기 1 · 완료 1, Secondary Actions: Select
+				631 이미지 에이전트: Claude, Codex
+				632 상태 상태 미확인 · 출처: unknown · 신뢰도: 100% · 상위: 상태 미확인 · 마지막: —
+			633 콘솔 트리 터미널 Worker 132 · Claude 에이전트 · powershell · fixture-132, Secondary Actions: Select
+				634 이미지 Claude 에이전트
+				635 상태 완료 · 출처: osc · 신뢰도: 100% · 상위: 완료 · 마지막: —
+			636 콘솔 트리 터미널 Worker 133 · Codex 에이전트 · powershell · fixture-133, Secondary Actions: Select
+				637 이미지 Codex 에이전트
+				638 상태 대기 · 출처: osc · 신뢰도: 100% · 상위: 대기 · 마지막: —
+			639 콘솔 트리 터미널 Worker 134 · 셸 터미널 · powershell · fixture-134, Secondary Actions: Select
+				640 이미지 셸 터미널
+				641 상태 상태 미확인 · 추정 · 출처: heuristic · 신뢰도: 40% · 상위: 상태 미확인 · 마지막: —
+			642 단추 작업 sample/task-045 · Claude 에이전트, Codex 에이전트 · powershell.exe · pod/task-045 · 오류 1 · 미확인 1 · 대기 1 접기
+			643 콘솔 트리 작업 sample/task-045 · Claude 에이전트, Codex 에이전트 · powershell.exe · pod/task-045 · 오류 1 · 미확인 1 · 대기 1, Secondary Actions: Select
+				644 이미지 에이전트: Claude, Codex
+				645 상태 오류 · 출처: unknown · 신뢰도: 100% · 상위: 오류 · 마지막: —
+			646 콘솔 트리 터미널 Worker 135 · Claude 에이전트 · powershell · fixture-135, Secondary Actions: Select
+				647 이미지 Claude 에이전트
+				648 상태 대기 · 출처: osc · 신뢰도: 100% · 상위: 대기 · 마지막: —
+			649 콘솔 트리 터미널 Worker 136 · Codex 에이전트 · powershell · fixture-136, Secondary Actions: Select
+				650 이미지 Codex 에이전트
+				651 상태 상태 미확인 · 추정 · 출처: heuristic · 신뢰도: 40% · 상위: 상태 미확인 · 마지막: —
+			652 콘솔 트리 터미널 Worker 137 · 셸 터미널 · powershell · fixture-137, Secondary Actions: Select
+				653 이미지 셸 터미널
+				654 상태 오류 · 출처: osc · 신뢰도: 100% · 상위: 오류 · 마지막: —
+			655 단추 작업 sample/task-046 · Claude 에이전트, Codex 에이전트 · powershell.exe · pod/task-046 · 작업 중 1 · 오류 1 · 미확인 1 접기
+			656 콘솔 트리 작업 sample/task-046 · Claude 에이전트, Codex 에이전트 · powershell.exe · pod/task-046 · 작업 중 1 · 오류 1 · 미확인 1, Secondary Actions: Select
+				657 이미지 에이전트: Claude, Codex
+				658 상태 오류 · 출처: unknown · 신뢰도: 100% · 상위: 오류 · 마지막: —
+			659 콘솔 트리 터미널 Worker 138 · Claude 에이전트 · powershell · fixture-138, Secondary Actions: Select
+				660 이미지 Claude 에이전트
+				661 상태 상태 미확인 · 추정 · 출처: heuristic · 신뢰도: 40% · 상위: 상태 미확인 · 마지막: —
+			662 콘솔 트리 터미널 Worker 139 · Codex 에이전트 · powershell · fixture-139, Secondary Actions: Select
+				663 이미지 Codex 에이전트
+				664 상태 오류 · 출처: osc · 신뢰도: 100% · 상위: 오류 · 마지막: —
+			665 콘솔 트리 터미널 Worker 140 · 셸 터미널 · powershell · fixture-140, Secondary Actions: Select
+				666 이미지 셸 터미널
+				667 상태 작업 중 · 출처: osc · 신뢰도: 100% · 상위: 작업 중 · 마지막: —
+			668 단추 작업 sample/task-047 · Claude 에이전트, Codex 에이전트 · powershell.exe · pod/task-047 · 작업 중 1 · 응답 1 · 오류 1 접기
+			669 콘솔 트리 작업 sample/task-047 · Claude 에이전트, Codex 에이전트 · powershell.exe · pod/task-047 · 작업 중 1 · 응답 1 · 오류 1, Secondary Actions: Select
+				670 이미지 에이전트: Claude, Codex
+				671 상태 오류 · 출처: unknown · 신뢰도: 100% · 상위: 오류 · 마지막: —
+			672 콘솔 트리 터미널 Worker 141 · Claude 에이전트 · powershell · fixture-141, Secondary Actions: Select
+				673 이미지 Claude 에이전트
+				674 상태 오류 · 출처: osc · 신뢰도: 100% · 상위: 오류 · 마지막: —
+			675 콘솔 트리 터미널 Worker 142 · Codex 에이전트 · powershell · fixture-142, Secondary Actions: Select
+				676 이미지 Codex 에이전트
+				677 상태 작업 중 · 출처: osc · 신뢰도: 100% · 상위: 작업 중 · 마지막: —
+			678 콘솔 트리 터미널 Worker 143 · 셸 터미널 · powershell · fixture-143, Secondary Actions: Select
+				679 이미지 셸 터미널
+				680 상태 승인 필요 · 출처: osc · 신뢰도: 100% · 상위: 승인 필요 · 마지막: —
+			681 단추 작업 sample/task-048 · Claude 에이전트, Codex 에이전트 · powershell.exe · pod/task-048 · 작업 중 1 · 응답 1 · 완료 1 접기
+			682 콘솔 트리 작업 sample/task-048 · Claude 에이전트, Codex 에이전트 · powershell.exe · pod/task-048 · 작업 중 1 · 응답 1 · 완료 1, Secondary Actions: Select
+				683 이미지 에이전트: Claude, Codex
+				684 상태 확인 필요 · 출처: unknown · 신뢰도: 100% · 상위: 확인 필요 · 마지막: —
+			685 콘솔 트리 터미널 Worker 144 · Claude 에이전트 · powershell · fixture-144, Secondary Actions: Select
+				686 이미지 Claude 에이전트
+				687 상태 작업 중 · 출처: osc · 신뢰도: 100% · 상위: 작업 중 · 마지막: —
+			688 콘솔 트리 터미널 Worker 145 · Codex 에이전트 · powershell · fixture-145, Secondary Actions: Select
+				689 이미지 Codex 에이전트
+				690 상태 승인 필요 · 출처: osc · 신뢰도: 100% · 상위: 승인 필요 · 마지막: —
+			691 콘솔 트리 터미널 Worker 146 · 셸 터미널 · powershell · fixture-146, Secondary Actions: Select
+				692 이미지 셸 터미널
+				693 상태 완료 · 출처: osc · 신뢰도: 100% · 상위: 완료 · 마지막: —
+			694 단추 작업 sample/task-049 · Claude 에이전트, Codex 에이전트 · powershell.exe · pod/task-049 · 응답 1 · 대기 1 · 완료 1 접기
+			695 콘솔 트리 작업 sample/task-049 · Claude 에이전트, Codex 에이전트 · powershell.exe · pod/task-049 · 응답 1 · 대기 1 · 완료 1, Secondary Actions: Select
+				696 이미지 에이전트: Claude, Codex
+				697 상태 확인 필요 · 출처: unknown · 신뢰도: 100% · 상위: 확인 필요 · 마지막: —
+			698 콘솔 트리 터미널 Worker 147 · Claude 에이전트 · powershell · fixture-147, Secondary Actions: Select
+				699 이미지 Claude 에이전트
+				700 상태 승인 필요 · 출처: osc · 신뢰도: 100% · 상위: 승인 필요 · 마지막: —
+			701 콘솔 트리 터미널 Worker 148 · Codex 에이전트 · powershell · fixture-148, Secondary Actions: Select
+				702 이미지 Codex 에이전트
+				703 상태 완료 · 출처: osc · 신뢰도: 100% · 상위: 완료 · 마지막: —
+			704 콘솔 트리 터미널 Worker 149 · 셸 터미널 · powershell · fixture-149, Secondary Actions: Select
+				705 이미지 셸 터미널
+				706 상태 대기 · 출처: osc · 신뢰도: 100% · 상위: 대기 · 마지막: —
+			707 단추 작업 sample/task-050 · Claude 에이전트, Codex 에이전트 · powershell.exe · pod/task-050 · 미확인 1 · 대기 1 · 완료 1 접기
+			708 콘솔 트리 작업 sample/task-050 · Claude 에이전트, Codex 에이전트 · powershell.exe · pod/task-050 · 미확인 1 · 대기 1 · 완료 1, Secondary Actions: Select
+				709 이미지 에이전트: Claude, Codex
+				710 상태 상태 미확인 · 출처: unknown · 신뢰도: 100% · 상위: 상태 미확인 · 마지막: —
+			711 콘솔 트리 터미널 Worker 150 · Claude 에이전트 · powershell · fixture-150, Secondary Actions: Select
+				712 이미지 Claude 에이전트
+				713 상태 완료 · 출처: osc · 신뢰도: 100% · 상위: 완료 · 마지막: —
+			714 콘솔 트리 터미널 Worker 151 · Codex 에이전트 · powershell · fixture-151, Secondary Actions: Select
+				715 이미지 Codex 에이전트
+				716 상태 대기 · 출처: osc · 신뢰도: 100% · 상위: 대기 · 마지막: —
+			717 콘솔 트리 터미널 Worker 152 · 셸 터미널 · powershell · fixture-152, Secondary Actions: Select
+				718 이미지 셸 터미널
+				719 상태 상태 미확인 · 추정 · 출처: heuristic · 신뢰도: 40% · 상위: 상태 미확인 · 마지막: —
+			720 단추 작업 sample/task-051 · Claude 에이전트, Codex 에이전트 · powershell.exe · pod/task-051 · 오류 1 · 미확인 1 · 대기 1 접기
+			721 콘솔 트리 작업 sample/task-051 · Claude 에이전트, Codex 에이전트 · powershell.exe · pod/task-051 · 오류 1 · 미확인 1 · 대기 1, Secondary Actions: Select
+				722 이미지 에이전트: Claude, Codex
+				723 상태 오류 · 출처: unknown · 신뢰도: 100% · 상위: 오류 · 마지막: —
+			724 콘솔 트리 터미널 Worker 153 · Claude 에이전트 · powershell · fixture-153, Secondary Actions: Select
+				725 이미지 Claude 에이전트
+				726 상태 대기 · 출처: osc · 신뢰도: 100% · 상위: 대기 · 마지막: —
+			727 콘솔 트리 터미널 Worker 154 · Codex 에이전트 · powershell · fixture-154, Secondary Actions: Select
+				728 이미지 Codex 에이전트
+				729 상태 상태 미확인 · 추정 · 출처: heuristic · 신뢰도: 40% · 상위: 상태 미확인 · 마지막: —
+			730 콘솔 트리 터미널 Worker 155 · 셸 터미널 · powershell · fixture-155, Secondary Actions: Select
+				731 이미지 셸 터미널
+				732 상태 오류 · 출처: osc · 신뢰도: 100% · 상위: 오류 · 마지막: —
+			733 단추 작업 sample/task-052 · Claude 에이전트, Codex 에이전트 · powershell.exe · pod/task-052 · 작업 중 1 · 오류 1 · 미확인 1 접기
+			734 콘솔 트리 작업 sample/task-052 · Claude 에이전트, Codex 에이전트 · powershell.exe · pod/task-052 · 작업 중 1 · 오류 1 · 미확인 1, Secondary Actions: Select
+				735 이미지 에이전트: Claude, Codex
+				736 상태 오류 · 출처: unknown · 신뢰도: 100% · 상위: 오류 · 마지막: —
+			737 콘솔 트리 터미널 Worker 156 · Claude 에이전트 · powershell · fixture-156, Secondary Actions: Select
+				738 이미지 Claude 에이전트
+				739 상태 상태 미확인 · 추정 · 출처: heuristic · 신뢰도: 40% · 상위: 상태 미확인 · 마지막: —
+			740 콘솔 트리 터미널 Worker 157 · Codex 에이전트 · powershell · fixture-157, Secondary Actions: Select
+				741 이미지 Codex 에이전트
+				742 상태 오류 · 출처: osc · 신뢰도: 100% · 상위: 오류 · 마지막: —
+			743 콘솔 트리 터미널 Worker 158 · 셸 터미널 · powershell · fixture-158, Secondary Actions: Select
+				744 이미지 셸 터미널
+				745 상태 작업 중 · 출처: osc · 신뢰도: 100% · 상위: 작업 중 · 마지막: —
+			746 단추 작업 sample/task-053 · Claude 에이전트, Codex 에이전트 · powershell.exe · pod/task-053 · 작업 중 1 · 응답 1 · 오류 1 접기
+			747 콘솔 트리 작업 sample/task-053 · Claude 에이전트, Codex 에이전트 · powershell.exe · pod/task-053 · 작업 중 1 · 응답 1 · 오류 1, Secondary Actions: Select
+				748 이미지 에이전트: Claude, Codex
+				749 상태 오류 · 출처: unknown · 신뢰도: 100% · 상위: 오류 · 마지막: —
+			750 콘솔 트리 터미널 Worker 159 · Claude 에이전트 · powershell · fixture-159, Secondary Actions: Select
+				751 이미지 Claude 에이전트
+				752 상태 오류 · 출처: osc · 신뢰도: 100% · 상위: 오류 · 마지막: —
+			753 콘솔 트리 터미널 Worker 160 · Codex 에이전트 · powershell · fixture-160, Secondary Actions: Select
+				754 이미지 Codex 에이전트
+				755 상태 작업 중 · 출처: osc · 신뢰도: 100% · 상위: 작업 중 · 마지막: —
+			756 콘솔 트리 터미널 Worker 161 · 셸 터미널 · powershell · fixture-161, Secondary Actions: Select
+				757 이미지 셸 터미널
+				758 상태 승인 필요 · 출처: osc · 신뢰도: 100% · 상위: 승인 필요 · 마지막: —
+			759 단추 작업 sample/task-054 · Claude 에이전트, Codex 에이전트 · powershell.exe · pod/task-054 · 작업 중 1 · 응답 1 · 완료 1 접기
+			760 콘솔 트리 작업 sample/task-054 · Claude 에이전트, Codex 에이전트 · powershell.exe · pod/task-054 · 작업 중 1 · 응답 1 · 완료 1, Secondary Actions: Select
+				761 이미지 에이전트: Claude, Codex
+				762 상태 확인 필요 · 출처: unknown · 신뢰도: 100% · 상위: 확인 필요 · 마지막: —
+			763 콘솔 트리 터미널 Worker 162 · Claude 에이전트 · powershell · fixture-162, Secondary Actions: Select
+				764 이미지 Claude 에이전트
+				765 상태 작업 중 · 출처: osc · 신뢰도: 100% · 상위: 작업 중 · 마지막: —
+			766 콘솔 트리 터미널 Worker 163 · Codex 에이전트 · powershell · fixture-163, Secondary Actions: Select
+				767 이미지 Codex 에이전트
+				768 상태 승인 필요 · 출처: osc · 신뢰도: 100% · 상위: 승인 필요 · 마지막: —
+			769 콘솔 트리 터미널 Worker 164 · 셸 터미널 · powershell · fixture-164, Secondary Actions: Select
+				770 이미지 셸 터미널
+				771 상태 완료 · 출처: osc · 신뢰도: 100% · 상위: 완료 · 마지막: —
+			772 단추 작업 sample/task-055 · Claude 에이전트, Codex 에이전트 · powershell.exe · pod/task-055 · 응답 1 · 대기 1 · 완료 1 접기
+			773 콘솔 트리 작업 sample/task-055 · Claude 에이전트, Codex 에이전트 · powershell.exe · pod/task-055 · 응답 1 · 대기 1 · 완료 1, Secondary Actions: Select
+				774 이미지 에이전트: Claude, Codex
+				775 상태 확인 필요 · 출처: unknown · 신뢰도: 100% · 상위: 확인 필요 · 마지막: —
+			776 콘솔 트리 터미널 Worker 165 · Claude 에이전트 · powershell · fixture-165, Secondary Actions: Select
+				777 이미지 Claude 에이전트
+				778 상태 승인 필요 · 출처: osc · 신뢰도: 100% · 상위: 승인 필요 · 마지막: —
+			779 콘솔 트리 터미널 Worker 166 · Codex 에이전트 · powershell · fixture-166, Secondary Actions: Select
+				780 이미지 Codex 에이전트
+				781 상태 완료 · 출처: osc · 신뢰도: 100% · 상위: 완료 · 마지막: —
+			782 콘솔 트리 터미널 Worker 167 · 셸 터미널 · powershell · fixture-167, Secondary Actions: Select
+				783 이미지 셸 터미널
+				784 상태 대기 · 출처: osc · 신뢰도: 100% · 상위: 대기 · 마지막: —
+			785 단추 작업 sample/task-056 · Claude 에이전트, Codex 에이전트 · powershell.exe · pod/task-056 · 미확인 1 · 대기 1 · 완료 1 접기
+			786 콘솔 트리 작업 sample/task-056 · Claude 에이전트, Codex 에이전트 · powershell.exe · pod/task-056 · 미확인 1 · 대기 1 · 완료 1, Secondary Actions: Select
+				787 이미지 에이전트: Claude, Codex
+				788 상태 상태 미확인 · 출처: unknown · 신뢰도: 100% · 상위: 상태 미확인 · 마지막: —
+			789 콘솔 트리 터미널 Worker 168 · Claude 에이전트 · powershell · fixture-168, Secondary Actions: Select
+				790 이미지 Claude 에이전트
+				791 상태 완료 · 출처: osc · 신뢰도: 100% · 상위: 완료 · 마지막: —
+			792 콘솔 트리 터미널 Worker 169 · Codex 에이전트 · powershell · fixture-169, Secondary Actions: Select
+				793 이미지 Codex 에이전트
+				794 상태 대기 · 출처: osc · 신뢰도: 100% · 상위: 대기 · 마지막: —
+			795 콘솔 트리 터미널 Worker 170 · 셸 터미널 · powershell · fixture-170, Secondary Actions: Select
+				796 이미지 셸 터미널
+				797 상태 상태 미확인 · 추정 · 출처: heuristic · 신뢰도: 40% · 상위: 상태 미확인 · 마지막: —
+			798 단추 작업 sample/task-057 · Claude 에이전트, Codex 에이전트 · powershell.exe · pod/task-057 · 오류 1 · 미확인 1 · 대기 1 접기
+			799 콘솔 트리 작업 sample/task-057 · Claude 에이전트, Codex 에이전트 · powershell.exe · pod/task-057 · 오류 1 · 미확인 1 · 대기 1, Secondary Actions: Select
+				800 이미지 에이전트: Claude, Codex
+				801 상태 오류 · 출처: unknown · 신뢰도: 100% · 상위: 오류 · 마지막: —
+			802 콘솔 트리 터미널 Worker 171 · Claude 에이전트 · powershell · fixture-171, Secondary Actions: Select
+				803 이미지 Claude 에이전트
+				804 상태 대기 · 출처: osc · 신뢰도: 100% · 상위: 대기 · 마지막: —
+			805 콘솔 트리 터미널 Worker 172 · Codex 에이전트 · powershell · fixture-172, Secondary Actions: Select
+				806 이미지 Codex 에이전트
+				807 상태 상태 미확인 · 추정 · 출처: heuristic · 신뢰도: 40% · 상위: 상태 미확인 · 마지막: —
+			808 콘솔 트리 터미널 Worker 173 · 셸 터미널 · powershell · fixture-173, Secondary Actions: Select
+				809 이미지 셸 터미널
+				810 상태 오류 · 출처: osc · 신뢰도: 100% · 상위: 오류 · 마지막: —
+			811 단추 작업 sample/task-058 · Claude 에이전트, Codex 에이전트 · powershell.exe · pod/task-058 · 작업 중 1 · 오류 1 · 미확인 1 접기
+			812 콘솔 트리 작업 sample/task-058 · Claude 에이전트, Codex 에이전트 · powershell.exe · pod/task-058 · 작업 중 1 · 오류 1 · 미확인 1, Secondary Actions: Select
+				813 이미지 에이전트: Claude, Codex
+				814 상태 오류 · 출처: unknown · 신뢰도: 100% · 상위: 오류 · 마지막: —
+			815 콘솔 트리 터미널 Worker 174 · Claude 에이전트 · powershell · fixture-174, Secondary Actions: Select
+				816 이미지 Claude 에이전트
+				817 상태 상태 미확인 · 추정 · 출처: heuristic · 신뢰도: 40% · 상위: 상태 미확인 · 마지막: —
+			818 콘솔 트리 터미널 Worker 175 · Codex 에이전트 · powershell · fixture-175, Secondary Actions: Select
+				819 이미지 Codex 에이전트
+				820 상태 오류 · 출처: osc · 신뢰도: 100% · 상위: 오류 · 마지막: —
+			821 콘솔 트리 터미널 Worker 176 · 셸 터미널 · powershell · fixture-176, Secondary Actions: Select
+				822 이미지 셸 터미널
+				823 상태 작업 중 · 출처: osc · 신뢰도: 100% · 상위: 작업 중 · 마지막: —
+			824 단추 작업 sample/task-059 · Claude 에이전트, Codex 에이전트 · powershell.exe · pod/task-059 · 작업 중 1 · 응답 1 · 오류 1 접기
+			825 콘솔 트리 작업 sample/task-059 · Claude 에이전트, Codex 에이전트 · powershell.exe · pod/task-059 · 작업 중 1 · 응답 1 · 오류 1, Secondary Actions: Select
+				826 이미지 에이전트: Claude, Codex
+				827 상태 오류 · 출처: unknown · 신뢰도: 100% · 상위: 오류 · 마지막: —
+			828 콘솔 트리 터미널 Worker 177 · Claude 에이전트 · powershell · fixture-177, Secondary Actions: Select
+				829 이미지 Claude 에이전트
+				830 상태 오류 · 출처: osc · 신뢰도: 100% · 상위: 오류 · 마지막: —
+			831 콘솔 트리 터미널 Worker 178 · Codex 에이전트 · powershell · fixture-178, Secondary Actions: Select
+				832 이미지 Codex 에이전트
+				833 상태 작업 중 · 출처: osc · 신뢰도: 100% · 상위: 작업 중 · 마지막: —
+			834 콘솔 트리 터미널 Worker 179 · 셸 터미널 · powershell · fixture-179, Secondary Actions: Select
+				835 이미지 셸 터미널
+				836 상태 승인 필요 · 출처: osc · 신뢰도: 100% · 상위: 승인 필요 · 마지막: —
+			837 단추 작업 sample/task-060 · Claude 에이전트, Codex 에이전트 · powershell.exe · pod/task-060 · 작업 중 1 · 응답 1 · 완료 1 접기
+			838 콘솔 트리 작업 sample/task-060 · Claude 에이전트, Codex 에이전트 · powershell.exe · pod/task-060 · 작업 중 1 · 응답 1 · 완료 1, Secondary Actions: Select
+				839 이미지 에이전트: Claude, Codex
+				840 상태 확인 필요 · 출처: unknown · 신뢰도: 100% · 상위: 확인 필요 · 마지막: —
+			841 콘솔 트리 터미널 Worker 180 · Claude 에이전트 · powershell · fixture-180, Secondary Actions: Select
+				842 이미지 Claude 에이전트
+				843 상태 작업 중 · 출처: osc · 신뢰도: 100% · 상위: 작업 중 · 마지막: —
+			844 콘솔 트리 터미널 Worker 181 · Codex 에이전트 · powershell · fixture-181, Secondary Actions: Select
+				845 이미지 Codex 에이전트
+				846 상태 승인 필요 · 출처: osc · 신뢰도: 100% · 상위: 승인 필요 · 마지막: —
+			847 콘솔 트리 터미널 Worker 182 · 셸 터미널 · powershell · fixture-182, Secondary Actions: Select
+				848 이미지 셸 터미널
+				849 상태 완료 · 출처: osc · 신뢰도: 100% · 상위: 완료 · 마지막: —
+			850 단추 작업 sample/task-061 · Claude 에이전트, Codex 에이전트 · powershell.exe · pod/task-061 · 응답 1 · 대기 1 · 완료 1 접기
+			851 콘솔 트리 작업 sample/task-061 · Claude 에이전트, Codex 에이전트 · powershell.exe · pod/task-061 · 응답 1 · 대기 1 · 완료 1, Secondary Actions: Select
+				852 이미지 에이전트: Claude, Codex
+				853 상태 확인 필요 · 출처: unknown · 신뢰도: 100% · 상위: 확인 필요 · 마지막: —
+			854 콘솔 트리 터미널 Worker 183 · Claude 에이전트 · powershell · fixture-183, Secondary Actions: Select
+				855 이미지 Claude 에이전트
+				856 상태 승인 필요 · 출처: osc · 신뢰도: 100% · 상위: 승인 필요 · 마지막: —
+			857 콘솔 트리 터미널 Worker 184 · Codex 에이전트 · powershell · fixture-184, Secondary Actions: Select
+				858 이미지 Codex 에이전트
+				859 상태 완료 · 출처: osc · 신뢰도: 100% · 상위: 완료 · 마지막: —
+			860 콘솔 트리 터미널 Worker 185 · 셸 터미널 · powershell · fixture-185, Secondary Actions: Select
+				861 이미지 셸 터미널
+				862 상태 대기 · 출처: osc · 신뢰도: 100% · 상위: 대기 · 마지막: —
+			863 단추 작업 sample/task-062 · Claude 에이전트, Codex 에이전트 · powershell.exe · pod/task-062 · 미확인 1 · 대기 1 · 완료 1 접기
+			864 콘솔 트리 작업 sample/task-062 · Claude 에이전트, Codex 에이전트 · powershell.exe · pod/task-062 · 미확인 1 · 대기 1 · 완료 1, Secondary Actions: Select
+				865 이미지 에이전트: Claude, Codex
+				866 상태 상태 미확인 · 출처: unknown · 신뢰도: 100% · 상위: 상태 미확인 · 마지막: —
+			867 콘솔 트리 터미널 Worker 186 · Claude 에이전트 · powershell · fixture-186, Secondary Actions: Select
+				868 이미지 Claude 에이전트
+				869 상태 완료 · 출처: osc · 신뢰도: 100% · 상위: 완료 · 마지막: —
+			870 콘솔 트리 터미널 Worker 187 · Codex 에이전트 · powershell · fixture-187, Secondary Actions: Select
+				871 이미지 Codex 에이전트
+				872 상태 대기 · 출처: osc · 신뢰도: 100% · 상위: 대기 · 마지막: —
+			873 콘솔 트리 터미널 Worker 188 · 셸 터미널 · powershell · fixture-188, Secondary Actions: Select
+				874 이미지 셸 터미널
+				875 상태 상태 미확인 · 추정 · 출처: heuristic · 신뢰도: 40% · 상위: 상태 미확인 · 마지막: —
+			876 단추 작업 sample/task-063 · Claude 에이전트, Codex 에이전트 · powershell.exe · pod/task-063 · 오류 1 · 미확인 1 · 대기 1 접기
+			877 콘솔 트리 작업 sample/task-063 · Claude 에이전트, Codex 에이전트 · powershell.exe · pod/task-063 · 오류 1 · 미확인 1 · 대기 1, Secondary Actions: Select
+				878 이미지 에이전트: Claude, Codex
+				879 상태 오류 · 출처: unknown · 신뢰도: 100% · 상위: 오류 · 마지막: —
+			880 콘솔 트리 터미널 Worker 189 · Claude 에이전트 · powershell · fixture-189, Secondary Actions: Select
+				881 이미지 Claude 에이전트
+				882 상태 대기 · 출처: osc · 신뢰도: 100% · 상위: 대기 · 마지막: —
+			883 콘솔 트리 터미널 Worker 190 · Codex 에이전트 · powershell · fixture-190, Secondary Actions: Select
+				884 이미지 Codex 에이전트
+				885 상태 상태 미확인 · 추정 · 출처: heuristic · 신뢰도: 40% · 상위: 상태 미확인 · 마지막: —
+			886 콘솔 트리 터미널 Worker 191 · 셸 터미널 · powershell · fixture-191, Secondary Actions: Select
+				887 이미지 셸 터미널
+				888 상태 오류 · 출처: osc · 신뢰도: 100% · 상위: 오류 · 마지막: —
+			889 단추 작업 sample/task-064 · Claude 에이전트, Codex 에이전트 · powershell.exe · pod/task-064 · 작업 중 1 · 오류 1 · 미확인 1 접기
+			890 콘솔 트리 작업 sample/task-064 · Claude 에이전트, Codex 에이전트 · powershell.exe · pod/task-064 · 작업 중 1 · 오류 1 · 미확인 1, Secondary Actions: Select
+				891 이미지 에이전트: Claude, Codex
+				892 상태 오류 · 출처: unknown · 신뢰도: 100% · 상위: 오류 · 마지막: —
+			893 콘솔 트리 터미널 Worker 192 · Claude 에이전트 · powershell · fixture-192, Secondary Actions: Select
+				894 이미지 Claude 에이전트
+				895 상태 상태 미확인 · 추정 · 출처: heuristic · 신뢰도: 40% · 상위: 상태 미확인 · 마지막: —
+			896 콘솔 트리 터미널 Worker 193 · Codex 에이전트 · powershell · fixture-193, Secondary Actions: Select
+				897 이미지 Codex 에이전트
+				898 상태 오류 · 출처: osc · 신뢰도: 100% · 상위: 오류 · 마지막: —
+			899 콘솔 트리 터미널 Worker 194 · 셸 터미널 · powershell · fixture-194, Secondary Actions: Select
+				900 이미지 셸 터미널
+				901 상태 작업 중 · 출처: osc · 신뢰도: 100% · 상위: 작업 중 · 마지막: —
+			902 단추 작업 sample/task-065 · Claude 에이전트, Codex 에이전트 · powershell.exe · pod/task-065 · 작업 중 1 · 응답 1 · 오류 1 접기
+			903 콘솔 트리 작업 sample/task-065 · Claude 에이전트, Codex 에이전트 · powershell.exe · pod/task-065 · 작업 중 1 · 응답 1 · 오류 1, Secondary Actions: Select
+				904 이미지 에이전트: Claude, Codex
+				905 상태 오류 · 출처: unknown · 신뢰도: 100% · 상위: 오류 · 마지막: —
+			906 콘솔 트리 터미널 Worker 195 · Claude 에이전트 · powershell · fixture-195, Secondary Actions: Select
+				907 이미지 Claude 에이전트
+				908 상태 오류 · 출처: osc · 신뢰도: 100% · 상위: 오류 · 마지막: —
+			909 콘솔 트리 터미널 Worker 196 · Codex 에이전트 · powershell · fixture-196, Secondary Actions: Select
+				910 이미지 Codex 에이전트
+				911 상태 작업 중 · 출처: osc · 신뢰도: 100% · 상위: 작업 중 · 마지막: —
+			912 콘솔 트리 터미널 Worker 197 · 셸 터미널 · powershell · fixture-197, Secondary Actions: Select
+				913 이미지 셸 터미널
+				914 상태 승인 필요 · 출처: osc · 신뢰도: 100% · 상위: 승인 필요 · 마지막: —
+			915 단추 작업 sample/task-066 · Claude 에이전트, Codex 에이전트 · powershell.exe · pod/task-066 · 작업 중 1 · 응답 1 · 완료 1 접기
+			916 콘솔 트리 작업 sample/task-066 · Claude 에이전트, Codex 에이전트 · powershell.exe · pod/task-066 · 작업 중 1 · 응답 1 · 완료 1, Secondary Actions: Select
+				917 이미지 에이전트: Claude, Codex
+				918 상태 확인 필요 · 출처: unknown · 신뢰도: 100% · 상위: 확인 필요 · 마지막: —
+			919 콘솔 트리 터미널 Worker 198 · Claude 에이전트 · powershell · fixture-198, Secondary Actions: Select
+				920 이미지 Claude 에이전트
+				921 상태 작업 중 · 출처: osc · 신뢰도: 100% · 상위: 작업 중 · 마지막: —
+			922 콘솔 트리 터미널 Worker 199 · Codex 에이전트 · powershell · fixture-199, Secondary Actions: Select
+				923 이미지 Codex 에이전트
+				924 상태 승인 필요 · 출처: osc · 신뢰도: 100% · 상위: 승인 필요 · 마지막: —
+			925 콘솔 트리 터미널 Worker 200 · 셸 터미널 · powershell · fixture-200, Secondary Actions: Select
+				926 이미지 셸 터미널
+				927 상태 완료 · 출처: osc · 신뢰도: 100% · 상위: 완료 · 마지막: —
+			928 단추 작업 sample/task-067 · Claude 에이전트, Codex 에이전트 · powershell.exe · pod/task-067 · 응답 1 · 대기 1 · 완료 1 접기
+			929 콘솔 트리 작업 sample/task-067 · Claude 에이전트, Codex 에이전트 · powershell.exe · pod/task-067 · 응답 1 · 대기 1 · 완료 1, Secondary Actions: Select
+				930 이미지 에이전트: Claude, Codex
+				931 상태 확인 필요 · 출처: unknown · 신뢰도: 100% · 상위: 확인 필요 · 마지막: —
+			932 콘솔 트리 터미널 Worker 201 · Claude 에이전트 · powershell · fixture-201, Secondary Actions: Select
+				933 이미지 Claude 에이전트
+				934 상태 승인 필요 · 출처: osc · 신뢰도: 100% · 상위: 승인 필요 · 마지막: —
+			935 콘솔 트리 터미널 Worker 202 · Codex 에이전트 · powershell · fixture-202, Secondary Actions: Select
+				936 이미지 Codex 에이전트
+				937 상태 완료 · 출처: osc · 신뢰도: 100% · 상위: 완료 · 마지막: —
+			938 콘솔 트리 터미널 Worker 203 · 셸 터미널 · powershell · fixture-203, Secondary Actions: Select
+				939 이미지 셸 터미널
+				940 상태 대기 · 출처: osc · 신뢰도: 100% · 상위: 대기 · 마지막: —
+			941 단추 작업 sample/task-068 · Claude 에이전트, Codex 에이전트 · powershell.exe · pod/task-068 · 미확인 1 · 대기 1 · 완료 1 접기
+			942 콘솔 트리 작업 sample/task-068 · Claude 에이전트, Codex 에이전트 · powershell.exe · pod/task-068 · 미확인 1 · 대기 1 · 완료 1, Secondary Actions: Select
+				943 이미지 에이전트: Claude, Codex
+				944 상태 상태 미확인 · 출처: unknown · 신뢰도: 100% · 상위: 상태 미확인 · 마지막: —
+			945 콘솔 트리 터미널 Worker 204 · Claude 에이전트 · powershell · fixture-204, Secondary Actions: Select
+				946 이미지 Claude 에이전트
+				947 상태 완료 · 출처: osc · 신뢰도: 100% · 상위: 완료 · 마지막: —
+			948 콘솔 트리 터미널 Worker 205 · Codex 에이전트 · powershell · fixture-205, Secondary Actions: Select
+				949 이미지 Codex 에이전트
+				950 상태 대기 · 출처: osc · 신뢰도: 100% · 상위: 대기 · 마지막: —
+			951 콘솔 트리 터미널 Worker 206 · 셸 터미널 · powershell · fixture-206, Secondary Actions: Select
+				952 이미지 셸 터미널
+				953 상태 상태 미확인 · 추정 · 출처: heuristic · 신뢰도: 40% · 상위: 상태 미확인 · 마지막: —
+			954 단추 작업 sample/task-069 · Claude 에이전트, Codex 에이전트 · powershell.exe · pod/task-069 · 오류 1 · 미확인 1 · 대기 1 접기
+			955 콘솔 트리 작업 sample/task-069 · Claude 에이전트, Codex 에이전트 · powershell.exe · pod/task-069 · 오류 1 · 미확인 1 · 대기 1, Secondary Actions: Select
+				956 이미지 에이전트: Claude, Codex
+				957 상태 오류 · 출처: unknown · 신뢰도: 100% · 상위: 오류 · 마지막: —
+			958 콘솔 트리 터미널 Worker 207 · Claude 에이전트 · powershell · fixture-207, Secondary Actions: Select
+				959 이미지 Claude 에이전트
+				960 상태 대기 · 출처: osc · 신뢰도: 100% · 상위: 대기 · 마지막: —
+			961 콘솔 트리 터미널 Worker 208 · Codex 에이전트 · powershell · fixture-208, Secondary Actions: Select
+				962 이미지 Codex 에이전트
+				963 상태 상태 미확인 · 추정 · 출처: heuristic · 신뢰도: 40% · 상위: 상태 미확인 · 마지막: —
+			964 콘솔 트리 터미널 Worker 209 · 셸 터미널 · powershell · fixture-209, Secondary Actions: Select
+				965 이미지 셸 터미널
+				966 상태 오류 · 출처: osc · 신뢰도: 100% · 상위: 오류 · 마지막: —
+			967 단추 작업 sample/task-070 · Claude 에이전트, Codex 에이전트 · powershell.exe · pod/task-070 · 작업 중 1 · 오류 1 · 미확인 1 접기
+			968 콘솔 트리 작업 sample/task-070 · Claude 에이전트, Codex 에이전트 · powershell.exe · pod/task-070 · 작업 중 1 · 오류 1 · 미확인 1, Secondary Actions: Select
+				969 이미지 에이전트: Claude, Codex
+				970 상태 오류 · 출처: unknown · 신뢰도: 100% · 상위: 오류 · 마지막: —
+			971 콘솔 트리 터미널 Worker 210 · Claude 에이전트 · powershell · fixture-210, Secondary Actions: Select
+				972 이미지 Claude 에이전트
+				973 상태 상태 미확인 · 추정 · 출처: heuristic · 신뢰도: 40% · 상위: 상태 미확인 · 마지막: —
+			974 콘솔 트리 터미널 Worker 211 · Codex 에이전트 · powershell · fixture-211, Secondary Actions: Select
+				975 이미지 Codex 에이전트
+				976 상태 오류 · 출처: osc · 신뢰도: 100% · 상위: 오류 · 마지막: —
+			977 콘솔 트리 터미널 Worker 212 · 셸 터미널 · powershell · fixture-212, Secondary Actions: Select
+				978 이미지 셸 터미널
+				979 상태 작업 중 · 출처: osc · 신뢰도: 100% · 상위: 작업 중 · 마지막: —
+			980 단추 작업 sample/task-071 · Claude 에이전트, Codex 에이전트 · powershell.exe · pod/task-071 · 작업 중 1 · 응답 1 · 오류 1 접기
+			981 콘솔 트리 작업 sample/task-071 · Claude 에이전트, Codex 에이전트 · powershell.exe · pod/task-071 · 작업 중 1 · 응답 1 · 오류 1, Secondary Actions: Select
+				982 이미지 에이전트: Claude, Codex
+				983 상태 오류 · 출처: unknown · 신뢰도: 100% · 상위: 오류 · 마지막: —
+			984 콘솔 트리 터미널 Worker 213 · Claude 에이전트 · powershell · fixture-213, Secondary Actions: Select
+				985 이미지 Claude 에이전트
+				986 상태 오류 · 출처: osc · 신뢰도: 100% · 상위: 오류 · 마지막: —
+			987 콘솔 트리 터미널 Worker 214 · Codex 에이전트 · powershell · fixture-214, Secondary Actions: Select
+				988 이미지 Codex 에이전트
+				989 상태 작업 중 · 출처: osc · 신뢰도: 100% · 상위: 작업 중 · 마지막: —
+			990 콘솔 트리 터미널 Worker 215 · 셸 터미널 · powershell · fixture-215, Secondary Actions: Select
+				991 이미지 셸 터미널
+				992 상태 승인 필요 · 출처: osc · 신뢰도: 100% · 상위: 승인 필요 · 마지막: —
+			993 단추 작업 sample/task-072 · Claude 에이전트, Codex 에이전트 · powershell.exe · pod/task-072 · 작업 중 1 · 응답 1 · 완료 1 접기
+			994 콘솔 트리 작업 sample/task-072 · Claude 에이전트, Codex 에이전트 · powershell.exe · pod/task-072 · 작업 중 1 · 응답 1 · 완료 1, Secondary Actions: Select
+				995 이미지 에이전트: Claude, Codex
+				996 상태 확인 필요 · 출처: unknown · 신뢰도: 100% · 상위: 확인 필요 · 마지막: —
+			997 콘솔 트리 터미널 Worker 216 · Claude 에이전트 · powershell · fixture-216, Secondary Actions: Select
+				998 이미지 Claude 에이전트
+				999 상태 작업 중 · 출처: osc · 신뢰도: 100% · 상위: 작업 중 · 마지막: —
+			1000 콘솔 트리 터미널 Worker 217 · Codex 에이전트 · powershell · fixture-217, Secondary Actions: Select
+				1001 이미지 Codex 에이전트
+				1002 상태 승인 필요 · 출처: osc · 신뢰도: 100% · 상위: 승인 필요 · 마지막: —
+			1003 콘솔 트리 터미널 Worker 218 · 셸 터미널 · powershell · fixture-218, Secondary Actions: Select
+				1004 이미지 셸 터미널
+				1005 상태 완료 · 출처: osc · 신뢰도: 100% · 상위: 완료 · 마지막: —
+			1006 단추 작업 sample/task-073 · Claude 에이전트, Codex 에이전트 · powershell.exe · pod/task-073 · 응답 1 · 대기 1 · 완료 1 접기
+			1007 콘솔 트리 작업 sample/task-073 · Claude 에이전트, Codex 에이전트 · powershell.exe · pod/task-073 · 응답 1 · 대기 1 · 완료 1, Secondary Actions: Select
+				1008 이미지 에이전트: Claude, Codex
+				1009 상태 확인 필요 · 출처: unknown · 신뢰도: 100% · 상위: 확인 필요 · 마지막: —
+			1010 콘솔 트리 터미널 Worker 219 · Claude 에이전트 · powershell · fixture-219, Secondary Actions: Select
+				1011 이미지 Claude 에이전트
+				1012 상태 승인 필요 · 출처: osc · 신뢰도: 100% · 상위: 승인 필요 · 마지막: —
+			1013 콘솔 트리 터미널 Worker 220 · Codex 에이전트 · powershell · fixture-220, Secondary Actions: Select
+				1014 이미지 Codex 에이전트
+				1015 상태 완료 · 출처: osc · 신뢰도: 100% · 상위: 완료 · 마지막: —
+			1016 콘솔 트리 터미널 Worker 221 · 셸 터미널 · powershell · fixture-221, Secondary Actions: Select
+				1017 이미지 셸 터미널
+				1018 상태 대기 · 출처: osc · 신뢰도: 100% · 상위: 대기 · 마지막: —
+			1019 단추 작업 sample/task-074 · Claude 에이전트, Codex 에이전트 · powershell.exe · pod/task-074 · 미확인 1 · 대기 1 · 완료 1 접기
+			1020 콘솔 트리 작업 sample/task-074 · Claude 에이전트, Codex 에이전트 · powershell.exe · pod/task-074 · 미확인 1 · 대기 1 · 완료 1, Secondary Actions: Select
+				1021 이미지 에이전트: Claude, Codex
+				1022 상태 상태 미확인 · 출처: unknown · 신뢰도: 100% · 상위: 상태 미확인 · 마지막: —
+			1023 콘솔 트리 터미널 Worker 222 · Claude 에이전트 · powershell · fixture-222, Secondary Actions: Select
+				1024 이미지 Claude 에이전트
+				1025 상태 완료 · 출처: osc · 신뢰도: 100% · 상위: 완료 · 마지막: —
+			1026 콘솔 트리 터미널 Worker 223 · Codex 에이전트 · powershell · fixture-223, Secondary Actions: Select
+				1027 이미지 Codex 에이전트
+				1028 상태 대기 · 출처: osc · 신뢰도: 100% · 상위: 대기 · 마지막: —
+			1029 콘솔 트리 터미널 Worker 224 · 셸 터미널 · powershell · fixture-224, Secondary Actions: Select
+				1030 이미지 셸 터미널
+				1031 상태 상태 미확인 · 추정 · 출처: heuristic · 신뢰도: 40% · 상위: 상태 미확인 · 마지막: —
+			1032 단추 작업 sample/task-075 · Claude 에이전트, Codex 에이전트 · powershell.exe · pod/task-075 · 오류 1 · 미확인 1 · 대기 1 접기
+			1033 콘솔 트리 작업 sample/task-075 · Claude 에이전트, Codex 에이전트 · powershell.exe · pod/task-075 · 오류 1 · 미확인 1 · 대기 1, Secondary Actions: Select
+				1034 이미지 에이전트: Claude, Codex
+				1035 상태 오류 · 출처: unknown · 신뢰도: 100% · 상위: 오류 · 마지막: —
+			1036 콘솔 트리 터미널 Worker 225 · Claude 에이전트 · powershell · fixture-225, Secondary Actions: Select
+				1037 이미지 Claude 에이전트
+				1038 상태 대기 · 출처: osc · 신뢰도: 100% · 상위: 대기 · 마지막: —
+			1039 콘솔 트리 터미널 Worker 226 · Codex 에이전트 · powershell · fixture-226, Secondary Actions: Select
+				1040 이미지 Codex 에이전트
+				1041 상태 상태 미확인 · 추정 · 출처: heuristic · 신뢰도: 40% · 상위: 상태 미확인 · 마지막: —
+			1042 콘솔 트리 터미널 Worker 227 · 셸 터미널 · powershell · fixture-227, Secondary Actions: Select
+				1043 이미지 셸 터미널
+				1044 상태 오류 · 출처: osc · 신뢰도: 100% · 상위: 오류 · 마지막: —
+			1045 단추 작업 sample/task-076 · Claude 에이전트, Codex 에이전트 · powershell.exe · pod/task-076 · 작업 중 1 · 오류 1 · 미확인 1 접기
+			1046 콘솔 트리 작업 sample/task-076 · Claude 에이전트, Codex 에이전트 · powershell.exe · pod/task-076 · 작업 중 1 · 오류 1 · 미확인 1, Secondary Actions: Select
+				1047 이미지 에이전트: Claude, Codex
+				1048 상태 오류 · 출처: unknown · 신뢰도: 100% · 상위: 오류 · 마지막: —
+			1049 콘솔 트리 터미널 Worker 228 · Claude 에이전트 · powershell · fixture-228, Secondary Actions: Select
+				1050 이미지 Claude 에이전트
+				1051 상태 상태 미확인 · 추정 · 출처: heuristic · 신뢰도: 40% · 상위: 상태 미확인 · 마지막: —
+			1052 콘솔 트리 터미널 Worker 229 · Codex 에이전트 · powershell · fixture-229, Secondary Actions: Select
+				1053 이미지 Codex 에이전트
+				1054 상태 오류 · 출처: osc · 신뢰도: 100% · 상위: 오류 · 마지막: —
+			1055 콘솔 트리 터미널 Worker 230 · 셸 터미널 · powershell · fixture-230, Secondary Actions: Select
+				1056 이미지 셸 터미널
+				1057 상태 작업 중 · 출처: osc · 신뢰도: 100% · 상위: 작업 중 · 마지막: —
+			1058 단추 작업 sample/task-077 · Claude 에이전트, Codex 에이전트 · powershell.exe · pod/task-077 · 작업 중 1 · 응답 1 · 오류 1 접기
+			1059 콘솔 트리 작업 sample/task-077 · Claude 에이전트, Codex 에이전트 · powershell.exe · pod/task-077 · 작업 중 1 · 응답 1 · 오류 1, Secondary Actions: Select
+				1060 이미지 에이전트: Claude, Codex
+				1061 상태 오류 · 출처: unknown · 신뢰도: 100% · 상위: 오류 · 마지막: —
+			1062 콘솔 트리 터미널 Worker 231 · Claude 에이전트 · powershell · fixture-231, Secondary Actions: Select
+				1063 이미지 Claude 에이전트
+				1064 상태 오류 · 출처: osc · 신뢰도: 100% · 상위: 오류 · 마지막: —
+			1065 콘솔 트리 터미널 Worker 232 · Codex 에이전트 · powershell · fixture-232, Secondary Actions: Select
+				1066 이미지 Codex 에이전트
+				1067 상태 작업 중 · 출처: osc · 신뢰도: 100% · 상위: 작업 중 · 마지막: —
+			1068 콘솔 트리 터미널 Worker 233 · 셸 터미널 · powershell · fixture-233, Secondary Actions: Select
+				1069 이미지 셸 터미널
+				1070 상태 승인 필요 · 출처: osc · 신뢰도: 100% · 상위: 승인 필요 · 마지막: —
+			1071 단추 작업 sample/task-078 · Claude 에이전트, Codex 에이전트 · powershell.exe · pod/task-078 · 작업 중 1 · 응답 1 · 완료 1 접기
+			1072 콘솔 트리 작업 sample/task-078 · Claude 에이전트, Codex 에이전트 · powershell.exe · pod/task-078 · 작업 중 1 · 응답 1 · 완료 1, Secondary Actions: Select
+				1073 이미지 에이전트: Claude, Codex
+				1074 상태 확인 필요 · 출처: unknown · 신뢰도: 100% · 상위: 확인 필요 · 마지막: —
+			1075 콘솔 트리 터미널 Worker 234 · Claude 에이전트 · powershell · fixture-234, Secondary Actions: Select
+				1076 이미지 Claude 에이전트
+				1077 상태 작업 중 · 출처: osc · 신뢰도: 100% · 상위: 작업 중 · 마지막: —
+			1078 콘솔 트리 터미널 Worker 235 · Codex 에이전트 · powershell · fixture-235, Secondary Actions: Select
+				1079 이미지 Codex 에이전트
+				1080 상태 승인 필요 · 출처: osc · 신뢰도: 100% · 상위: 승인 필요 · 마지막: —
+			1081 콘솔 트리 터미널 Worker 236 · 셸 터미널 · powershell · fixture-236, Secondary Actions: Select
+				1082 이미지 셸 터미널
+				1083 상태 완료 · 출처: osc · 신뢰도: 100% · 상위: 완료 · 마지막: —
+			1084 단추 작업 sample/task-079 · Claude 에이전트, Codex 에이전트 · powershell.exe · pod/task-079 · 응답 1 · 대기 1 · 완료 1 접기
+			1085 콘솔 트리 작업 sample/task-079 · Claude 에이전트, Codex 에이전트 · powershell.exe · pod/task-079 · 응답 1 · 대기 1 · 완료 1, Secondary Actions: Select
+				1086 이미지 에이전트: Claude, Codex
+				1087 상태 확인 필요 · 출처: unknown · 신뢰도: 100% · 상위: 확인 필요 · 마지막: —
+			1088 콘솔 트리 터미널 Worker 237 · Claude 에이전트 · powershell · fixture-237, Secondary Actions: Select
+				1089 이미지 Claude 에이전트
+				1090 상태 승인 필요 · 출처: osc · 신뢰도: 100% · 상위: 승인 필요 · 마지막: —
+			1091 콘솔 트리 터미널 Worker 238 · Codex 에이전트 · powershell · fixture-238, Secondary Actions: Select
+				1092 이미지 Codex 에이전트
+				1093 상태 완료 · 출처: osc · 신뢰도: 100% · 상위: 완료 · 마지막: —
+			1094 콘솔 트리 터미널 Worker 239 · 셸 터미널 · powershell · fixture-239, Secondary Actions: Select
+				1095 이미지 셸 터미널
+				1096 상태 대기 · 출처: osc · 신뢰도: 100% · 상위: 대기 · 마지막: —
+			1097 단추 작업 sample/task-080 · Claude 에이전트, Codex 에이전트 · powershell.exe · pod/task-080 · 미확인 1 · 대기 1 · 완료 1 접기
+			1098 콘솔 트리 작업 sample/task-080 · Claude 에이전트, Codex 에이전트 · powershell.exe · pod/task-080 · 미확인 1 · 대기 1 · 완료 1, Secondary Actions: Select
+				1099 이미지 에이전트: Claude, Codex
+				1100 상태 상태 미확인 · 출처: unknown · 신뢰도: 100% · 상위: 상태 미확인 · 마지막: —
+			1101 콘솔 트리 터미널 Worker 240 · Claude 에이전트 · powershell · fixture-240, Secondary Actions: Select
+				1102 이미지 Claude 에이전트
+				1103 상태 완료 · 출처: osc · 신뢰도: 100% · 상위: 완료 · 마지막: —
+			1104 콘솔 트리 터미널 Worker 241 · Codex 에이전트 · powershell · fixture-241, Secondary Actions: Select
+				1105 이미지 Codex 에이전트
+				1106 상태 대기 · 출처: osc · 신뢰도: 100% · 상위: 대기 · 마지막: —
+			1107 콘솔 트리 터미널 Worker 242 · 셸 터미널 · powershell · fixture-242, Secondary Actions: Select
+				1108 이미지 셸 터미널
+				1109 상태 상태 미확인 · 추정 · 출처: heuristic · 신뢰도: 40% · 상위: 상태 미확인 · 마지막: —
+			1110 단추 작업 sample/task-081 · Claude 에이전트, Codex 에이전트 · powershell.exe · pod/task-081 · 오류 1 · 미확인 1 · 대기 1 접기
+			1111 콘솔 트리 작업 sample/task-081 · Claude 에이전트, Codex 에이전트 · powershell.exe · pod/task-081 · 오류 1 · 미확인 1 · 대기 1, Secondary Actions: Select
+				1112 이미지 에이전트: Claude, Codex
+				1113 상태 오류 · 출처: unknown · 신뢰도: 100% · 상위: 오류 · 마지막: —
+			1114 콘솔 트리 터미널 Worker 243 · Claude 에이전트 · powershell · fixture-243, Secondary Actions: Select
+				1115 이미지 Claude 에이전트
+				1116 상태 대기 · 출처: osc · 신뢰도: 100% · 상위: 대기 · 마지막: —
+			1117 콘솔 트리 터미널 Worker 244 · Codex 에이전트 · powershell · fixture-244, Secondary Actions: Select
+				1118 이미지 Codex 에이전트
+				1119 상태 상태 미확인 · 추정 · 출처: heuristic · 신뢰도: 40% · 상위: 상태 미확인 · 마지막: —
+			1120 콘솔 트리 터미널 Worker 245 · 셸 터미널 · powershell · fixture-245, Secondary Actions: Select
+				1121 이미지 셸 터미널
+				1122 상태 오류 · 출처: osc · 신뢰도: 100% · 상위: 오류 · 마지막: —
+			1123 단추 작업 sample/task-082 · Claude 에이전트, Codex 에이전트 · powershell.exe · pod/task-082 · 작업 중 1 · 오류 1 · 미확인 1 접기
+			1124 콘솔 트리 작업 sample/task-082 · Claude 에이전트, Codex 에이전트 · powershell.exe · pod/task-082 · 작업 중 1 · 오류 1 · 미확인 1, Secondary Actions: Select
+				1125 이미지 에이전트: Claude, Codex
+				1126 상태 오류 · 출처: unknown · 신뢰도: 100% · 상위: 오류 · 마지막: —
+			1127 콘솔 트리 터미널 Worker 246 · Claude 에이전트 · powershell · fixture-246, Secondary Actions: Select
+				1128 이미지 Claude 에이전트
+				1129 상태 상태 미확인 · 추정 · 출처: heuristic · 신뢰도: 40% · 상위: 상태 미확인 · 마지막: —
+			1130 콘솔 트리 터미널 Worker 247 · Codex 에이전트 · powershell · fixture-247, Secondary Actions: Select
+				1131 이미지 Codex 에이전트
+				1132 상태 오류 · 출처: osc · 신뢰도: 100% · 상위: 오류 · 마지막: —
+			1133 콘솔 트리 터미널 Worker 248 · 셸 터미널 · powershell · fixture-248, Secondary Actions: Select
+				1134 이미지 셸 터미널
+				1135 상태 작업 중 · 출처: osc · 신뢰도: 100% · 상위: 작업 중 · 마지막: —
+			1136 단추 작업 sample/task-083 · Claude 에이전트, Codex 에이전트 · powershell.exe · pod/task-083 · 작업 중 1 · 응답 1 · 오류 1 접기
+			1137 콘솔 트리 작업 sample/task-083 · Claude 에이전트, Codex 에이전트 · powershell.exe · pod/task-083 · 작업 중 1 · 응답 1 · 오류 1, Secondary Actions: Select
+				1138 이미지 에이전트: Claude, Codex
+				1139 상태 오류 · 출처: unknown · 신뢰도: 100% · 상위: 오류 · 마지막: —
+			1140 콘솔 트리 터미널 Worker 249 · Claude 에이전트 · powershell · fixture-249, Secondary Actions: Select
+				1141 이미지 Claude 에이전트
+				1142 상태 오류 · 출처: osc · 신뢰도: 100% · 상위: 오류 · 마지막: —
+			1143 콘솔 트리 터미널 Worker 250 · Codex 에이전트 · powershell · fixture-250, Secondary Actions: Select
+				1144 이미지 Codex 에이전트
+				1145 상태 작업 중 · 출처: osc · 신뢰도: 100% · 상위: 작업 중 · 마지막: —
+			1146 콘솔 트리 터미널 Worker 251 · 셸 터미널 · powershell · fixture-251, Secondary Actions: Select
+				1147 이미지 셸 터미널
+				1148 상태 승인 필요 · 출처: osc · 신뢰도: 100% · 상위: 승인 필요 · 마지막: —
+			1149 단추 작업 sample/task-084 · Claude 에이전트, Codex 에이전트 · powershell.exe · pod/task-084 · 작업 중 1 · 응답 1 · 완료 1 접기
+			1150 콘솔 트리 작업 sample/task-084 · Claude 에이전트, Codex 에이전트 · powershell.exe · pod/task-084 · 작업 중 1 · 응답 1 · 완료 1, Secondary Actions: Select
+				1151 이미지 에이전트: Claude, Codex
+				1152 상태 확인 필요 · 출처: unknown · 신뢰도: 100% · 상위: 확인 필요 · 마지막: —
+			1153 콘솔 트리 터미널 Worker 252 · Claude 에이전트 · powershell · fixture-252, Secondary Actions: Select
+				1154 이미지 Claude 에이전트
+				1155 상태 작업 중 · 출처: osc · 신뢰도: 100% · 상위: 작업 중 · 마지막: —
+			1156 콘솔 트리 터미널 Worker 253 · Codex 에이전트 · powershell · fixture-253, Secondary Actions: Select
+				1157 이미지 Codex 에이전트
+				1158 상태 승인 필요 · 출처: osc · 신뢰도: 100% · 상위: 승인 필요 · 마지막: —
+			1159 콘솔 트리 터미널 Worker 254 · 셸 터미널 · powershell · fixture-254, Secondary Actions: Select
+				1160 이미지 셸 터미널
+				1161 상태 완료 · 출처: osc · 신뢰도: 100% · 상위: 완료 · 마지막: —
+			1162 단추 작업 sample/task-085 · Claude 에이전트, Codex 에이전트 · powershell.exe · pod/task-085 · 응답 1 · 대기 1 · 완료 1 접기
+			1163 콘솔 트리 작업 sample/task-085 · Claude 에이전트, Codex 에이전트 · powershell.exe · pod/task-085 · 응답 1 · 대기 1 · 완료 1, Secondary Actions: Select
+				1164 이미지 에이전트: Claude, Codex
+				1165 상태 확인 필요 · 출처: unknown · 신뢰도: 100% · 상위: 확인 필요 · 마지막: —
+			1166 콘솔 트리 터미널 Worker 255 · Claude 에이전트 · powershell · fixture-255, Secondary Actions: Select
+				1167 이미지 Claude 에이전트
+				1168 상태 승인 필요 · 출처: osc · 신뢰도: 100% · 상위: 승인 필요 · 마지막: —
+			1169 콘솔 트리 터미널 Worker 256 · Codex 에이전트 · powershell · fixture-256, Secondary Actions: Select
+				1170 이미지 Codex 에이전트
+				1171 상태 완료 · 출처: osc · 신뢰도: 100% · 상위: 완료 · 마지막: —
+			1172 콘솔 트리 터미널 Worker 257 · 셸 터미널 · powershell · fixture-257, Secondary Actions: Select
+				1173 이미지 셸 터미널
+				1174 상태 대기 · 출처: osc · 신뢰도: 100% · 상위: 대기 · 마지막: —
+			1175 단추 작업 sample/task-086 · Claude 에이전트, Codex 에이전트 · powershell.exe · pod/task-086 · 미확인 1 · 대기 1 · 완료 1 접기
+			1176 콘솔 트리 작업 sample/task-086 · Claude 에이전트, Codex 에이전트 · powershell.exe · pod/task-086 · 미확인 1 · 대기 1 · 완료 1, Secondary Actions: Select
+				1177 이미지 에이전트: Claude, Codex
+				1178 상태 상태 미확인 · 출처: unknown · 신뢰도: 100% · 상위: 상태 미확인 · 마지막: —
+			1179 콘솔 트리 터미널 Worker 258 · Claude 에이전트 · powershell · fixture-258, Secondary Actions: Select
+				1180 이미지 Claude 에이전트
+				1181 상태 완료 · 출처: osc · 신뢰도: 100% · 상위: 완료 · 마지막: —
+			1182 콘솔 트리 터미널 Worker 259 · Codex 에이전트 · powershell · fixture-259, Secondary Actions: Select
+				1183 이미지 Codex 에이전트
+				1184 상태 대기 · 출처: osc · 신뢰도: 100% · 상위: 대기 · 마지막: —
+			1185 콘솔 트리 터미널 Worker 260 · 셸 터미널 · powershell · fixture-260, Secondary Actions: Select
+				1186 이미지 셸 터미널
+				1187 상태 상태 미확인 · 추정 · 출처: heuristic · 신뢰도: 40% · 상위: 상태 미확인 · 마지막: —
+			1188 단추 작업 sample/task-087 · Claude 에이전트, Codex 에이전트 · powershell.exe · pod/task-087 · 오류 1 · 미확인 1 · 대기 1 접기
+			1189 콘솔 트리 작업 sample/task-087 · Claude 에이전트, Codex 에이전트 · powershell.exe · pod/task-087 · 오류 1 · 미확인 1 · 대기 1, Secondary Actions: Select
+				1190 이미지 에이전트: Claude, Codex
+				1191 상태 오류 · 출처: unknown · 신뢰도: 100% · 상위: 오류 · 마지막: —
+			1192 콘솔 트리 터미널 Worker 261 · Claude 에이전트 · powershell · fixture-261, Secondary Actions: Select
+				1193 이미지 Claude 에이전트
+				1194 상태 대기 · 출처: osc · 신뢰도: 100% · 상위: 대기 · 마지막: —
+			1195 콘솔 트리 터미널 Worker 262 · Codex 에이전트 · powershell · fixture-262, Secondary Actions: Select
+				1196 이미지 Codex 에이전트
+				1197 상태 상태 미확인 · 추정 · 출처: heuristic · 신뢰도: 40% · 상위: 상태 미확인 · 마지막: —
+			1198 콘솔 트리 터미널 Worker 263 · 셸 터미널 · powershell · fixture-263, Secondary Actions: Select
+				1199 이미지 셸 터미널

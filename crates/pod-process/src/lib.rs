@@ -4,7 +4,8 @@
 //!
 //! - [`bounded`] runs one-shot child processes (forge's git and gh, podd's
 //!   guarded git, group scripts and repo config commands, the editor's LSP
-//!   probe); `pod_forge::bounded` re-exports it under its old path.
+//!   probe). Consumers name it `pod_process::bounded`; the old
+//!   `pod_forge::bounded` re-export is gone (rf2-bounds).
 //! - [`git`] clears the `GIT_*` variables that would point git at another
 //!   repository, the one environment rule podd and pod-forge share.
 

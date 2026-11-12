@@ -8,12 +8,7 @@ use core::prelude::v1::test;
 use podd::protocol::{GateDecision, GateInfo, GateState};
 use std::collections::HashMap;
 
-pub(crate) fn gate(
-    id: &str,
-    terminal: Option<&str>,
-    task: Option<&str>,
-    options: &[&str],
-) -> GateInfo {
+fn gate(id: &str, terminal: Option<&str>, task: Option<&str>, options: &[&str]) -> GateInfo {
     GateInfo {
         id: id.into(),
         title: "명령 실행".into(),
@@ -436,8 +431,34 @@ fn the_panel_drawer_opens_on_a_rise_and_is_in_f6_only_while_open() {
     assert_eq!(next_region(Drawer, false, false), Tasks);
 
     // 960 px window (1440 physical at 150 %): the feed keeps 360 px.
-    assert_eq!(drawer_width(960., 240.), 360.);
-    assert!((drawer_width(1440., 260.) - 604.8).abs() < 0.01);
-    assert_eq!(drawer_width(1920., 280.), 720., "at most 720");
-    assert_eq!(drawer_width(800., 240.), 280., "at least 280");
+    assert_eq!(drawer_width(960., 240., 0.), 360.);
+    assert!((drawer_width(1440., 260., 0.) - 604.8).abs() < 0.01);
+    assert_eq!(drawer_width(1920., 280., 0.), 720., "at most 720");
+    assert_eq!(drawer_width(800., 240., 0.), 280., "at least 280");
+}
+
+/// A right-docked panel keeps its own width in the dock (the gates inbox
+/// 380 px + the drawer's border): the drawer grows to hold it while the feed
+/// keeps 280 px; a wider drawer stays as it was; a window too narrow for both
+/// keeps the feed (the dock scrolls sideways in the drawer).
+#[test]
+fn the_drawer_holds_the_side_docks_and_keeps_280_px_of_feed() {
+    use crate::layouts::blocks_model::{FEED_BESIDE_DOCKS, drawer_width};
+    assert_eq!(drawer_width(960., 240., 381.), 381.);
+    assert_eq!(drawer_width(960., 240., 421.), 421., "the 420 px inbox");
+    assert_eq!(
+        drawer_width(960., 320., 421.),
+        960. - 320. - FEED_BESIDE_DOCKS
+    );
+    assert!(
+        (drawer_width(1440., 260., 381.) - 604.8).abs() < 0.01,
+        "as before"
+    );
+    assert_eq!(
+        drawer_width(1920., 280., 900.),
+        900.,
+        "past 720 for a wide dock"
+    );
+    assert_eq!(drawer_width(800., 240., 381.), 280., "the feed keeps 280");
+    assert_eq!(drawer_width(960., 240., 200.), 360., "never narrower");
 }

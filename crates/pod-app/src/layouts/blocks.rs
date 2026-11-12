@@ -51,8 +51,8 @@ actions!(
 );
 
 /// Key context of the layout (F6) and of its input (Tab changes the target).
-pub const KEY_CONTEXT: &str = "PodBlocks";
-pub const INPUT_CONTEXT: &str = "PodBlocksInput";
+const KEY_CONTEXT: &str = "PodBlocks";
+const INPUT_CONTEXT: &str = "PodBlocksInput";
 
 /// The layout module (registered in [`crate::layout_mode::LayoutRegistry::new`]).
 pub struct Blocks;
@@ -71,7 +71,7 @@ impl Global for BlocksKeys {}
 
 #[cfg(test)]
 /// The feed of the window that showed the layout (tests run one window).
-pub fn feed(cx: &App) -> Option<Entity<Feed>> {
+pub(super) fn feed(cx: &App) -> Option<Entity<Feed>> {
     crate::layouts::kit::states::<Feed>(cx).into_iter().next()
 }
 

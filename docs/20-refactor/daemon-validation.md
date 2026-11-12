@@ -89,12 +89,21 @@ baseline 트리(`target/b0`)에서 실행한 것: `test-daemon-refactor.ps1 -Tes
 ## 비실행 항목과 주의
 
 - **workspace 전체 시험**: 실행하지 않음(코디네이터가 실행).
-- **live 알림 스트림 순서**: 이 카드의 시험은 이벤트 순서를 영속 mail log(`mail.jsonl`의 mail·read 순서)와 결과로 비교하고, 구독 스트림(`status.subscribe`, `terminal.attach`)의 알림 순서는 baseline과 직접 대조하지 않았다. 알림 타입·downgrade는 `protocol_wire`, 스트림 동작은 기존 `status`·`orchestration` 시험이 맡는다.
+- **live 알림 스트림 순서**: 이 카드의 시험은 이벤트 순서를 영속 mail log(`mail.jsonl`의 mail·read 순서)와 결과로 비교하고, 구독 스트림(`status.subscribe`, `terminal.attach`)의 알림 순서는 baseline과 직접 대조하지 않았다. 알림 타입·downgrade는 `protocol_wire`, 스트림 동작은 기존 `status`·`orchestration` 시험이 맡는다. 터미널 하나의 수명은 후속 rf2-verify에서 고정했다(아래 "후속 검증").
 - 실제 SSH·실제 모델·네트워크 쓰기 없음(fake-agent만).
-- **runner 주의:** `tools/test-daemon-refactor.ps1 -SkipBuild`는 `target/debug/deps`에서 이름이 같은 가장 최근 `refactor_acceptance-*.exe`를 고르므로 pod-cli의 같은 이름 시험을 집을 수 있다. podd의 `refactor_acceptance`는 `-SkipBuild` 없이 돌린다(빌드 단계가 cargo 출력에서 정확한 exe를 받는다). runner는 이 카드 OWNED가 아니어서 고치지 않았다.
+- **runner 주의(D-T3 당시, 지금은 해결):** 당시 `tools/test-daemon-refactor.ps1 -SkipBuild`는 `target/debug/deps`에서 이름이 같은 가장 최근 `refactor_acceptance-*.exe`를 골라 pod-cli의 같은 이름 시험을 집을 수 있었다. 지금 runner는 빌드 단계가 cargo 출력에서 받은 podd 시험 exe 경로를 `target/<profile>/podd-test-exes.json`에 적고, `-SkipBuild`는 그 색인만 쓴다(파일 이름으로 고르지 않음, runner의 `$exeIndex`). 색인에 없는 대상은 `missing`으로 멈추므로 처음 한 번은 `-SkipBuild` 없이 돌린다.
 
 ## artifact
 
 - golden: 두 `refactor_acceptance.rs` 끝의 `*_GOLDEN` 상수(baseline 기록 그대로).
 - 기록 파일: `target/d-t3-validation/{baseline-64e9530,head}/*.txt`(worktree의 추적되지 않는 target, 임시).
 - 다시 기록하려면 baseline 트리에서만: `POD_ACCEPTANCE_OUT=<dir>`로 시험 exe를 돌리면 `<dir>/{podd-contract,podd-flow,cli-help,cli-flow}.txt`를 쓴다.
+- **공용 helper 예외:** 두 `refactor_acceptance.rs`는 `until`(podd는 `git`도)을 공용 `tests/common/fixtures.rs`·`pod-test-support`에서 가져오지 않고 자체로 둔다. 같은 파일이 baseline `64e9530`(두 공용 helper가 없음)에서도 컴파일되어야 golden을 거기서 기록할 수 있기 때문이다. podd의 `git`은 작성·커밋 날짜를 고정해 fixture commit id가 golden과 같다. 공용 helper를 고칠 때 이 둘은 따로 고친다(각 함수 위 주석).
+
+## 후속 검증 (rf2-verify, 2026-11-12)
+
+[rescore.md](rescore.md) §5-4의 daemon 쪽 검증 공백.
+
+- **live 알림 순서:** 새 시험 `crates/podd/tests/stream_order.rs`. 격리 daemon에서 `status.subscribe`(lifecycle)와 `terminal.attach` 두 스트림으로 fake-agent 터미널 하나의 수명(run → attach snapshot → working → blocked → done → `terminal.ack` → exit 3 → `terminal.rm`)을 따라가며, 단계마다 두 스트림이 받은 알림(OSC 7501 보고, 새 출력 marker, `status.changed`, `terminal.changed`, `terminal.exited`, 스트림 끝)을 받은 순서대로 golden(30줄)과 비교한다. agent는 시험이 만드는 `go-<n>` 파일을 기다리고, 각 단계는 두 스트림에서 그 단계의 마지막 알림을 받은 뒤 끝나므로 고정 sleep이 없다.
+- **가린 값:** 시각·pid·byte offset(대신 출력 연속성을 assert), 생성 경쟁(agent의 첫 보고와 `terminal.changed created`의 순서, 앞선 `unknown`: 둘 다 기다린 뒤 `created`를 먼저 기록), `terminal.changed exited`의 `attached`(attach 스트림이 `terminal.exited` 직후 닫혀 1 또는 0). 알림 사이에서 잘린 escape sequence는 이어 붙인다(`tokens_survive_any_split`).
+- **결과:** `tools/test-daemon-refactor.ps1 -Test stream_order` 9회 통과(그중 1회는 `test-shortpath.ps1`의 8.3 TEMP). **baseline `64e9530`에서도 같은 golden으로 2회 통과**(시험 파일과 현재 `tests/common`을 baseline 트리에 복사하고, 없는 `pod-test-support`의 대기 한 곳만 같은 loop로 바꿈). 즉 이 수명의 live 알림 순서는 리팩터 전후 같다. 변이: rm에서 `terminal.changed removed`를 status 제거보다 먼저 보내면 28줄에서 실패.

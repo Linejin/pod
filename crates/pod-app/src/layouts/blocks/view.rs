@@ -234,9 +234,13 @@ fn render_block(f: &FeedBlock, expanded: bool, ctx: &BlockCtx, focus: FocusHandl
             &f.kind,
             14.,
         ))
+        // Beside an open drawer the feed can be 280 px: the command goes
+        // first, then the agent's name and the status give way with an
+        // ellipsis, so the copy button stays in the block.
         .child(
             div()
-                .flex_shrink_0()
+                .min_w_0()
+                .truncate()
                 .font_weight(FontWeight::SEMIBOLD)
                 .text_color(color(t.text_primary))
                 .child(f.who.clone()),
@@ -259,7 +263,8 @@ fn render_block(f: &FeedBlock, expanded: bool, ctx: &BlockCtx, focus: FocusHandl
                     let dom = dom.clone();
                     move || format!("blocks-status-{dom}")
                 })
-                .flex_shrink_0()
+                .min_w_0()
+                .truncate()
                 .text_sm()
                 .text_color(color(if f.block.failed() {
                     t.danger_fg
@@ -290,7 +295,11 @@ fn render_block(f: &FeedBlock, expanded: bool, ctx: &BlockCtx, focus: FocusHandl
                 s::COPY,
             )
             .tooltip(s::COPY_TIP)
-            .render(mode, act(|me, fb, window, cx| me.copy(&fb.key, window, cx)));
+            .render(mode, act(|me, fb, window, cx| me.copy(&fb.key, window, cx)))
+            .qa_id({
+                let dom = dom.clone();
+                move || format!("blocks-copy-{dom}")
+            });
             if selected { b } else { b.tab_stop(false) }
         });
 
@@ -519,6 +528,7 @@ impl Render for Feed {
             target_name,
             panels,
             dock,
+            side,
         }) = self.sync_frame(window, cx)
         else {
             return div().into_any_element();
@@ -975,6 +985,7 @@ impl Render for Feed {
             let width = drawer_width(
                 f32::from(window.viewport_size().width),
                 m.density.sidebar.clamp(220., 320.),
+                if side > 0. { side + m.border_width } else { 0. },
             );
             let (esc_me, close_me) = (me.clone(), me.clone());
             div()
@@ -1027,11 +1038,19 @@ impl Render for Feed {
                             }),
                         ),
                 )
+                // The dock keeps its side docks at their own width; in a
+                // window too narrow to give the drawer that much it scrolls
+                // sideways here (horizontal wheel only) instead of being cut.
                 .child(
                     div()
+                        .id("blocks-drawer-dock")
                         .flex_1()
                         .min_h_0()
-                        .when_some(dock.clone(), |d, dock| d.child(dock)),
+                        .overflow_x_scroll()
+                        .restrict_scroll_to_axis()
+                        .when_some(dock.clone(), |d, dock| {
+                            d.child(div().size_full().min_w(px(side)).child(dock))
+                        }),
                 )
         });
 

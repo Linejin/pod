@@ -11,7 +11,9 @@
 //! - the one gate decision path and the podd source.
 //!
 //! Everything goes through [`LayoutActions`]; only `workspace/layout_host.rs`
-//! implements the host side.
+//! implements the host side. Its methods are grouped by phase below
+//! (rf2-kit): the render-safe handles first, then the update-phase calls
+//! (`kit/model.rs` "Two phases").
 use std::any::TypeId;
 use std::cell::RefCell;
 use std::collections::HashMap;
@@ -19,12 +21,12 @@ use std::rc::Rc;
 
 use gpui_kit::component::dock::DockArea;
 use gpui_kit::{
-    AnyEntity, AnyView, AnyWindowHandle, App, Entity, EntityId, Global, SharedString, Subscription,
-    Window,
+    AnyEntity, AnyView, AnyWindowHandle, App, Entity, EntityId, FocusHandle, Global, SharedString,
+    Subscription, Window,
 };
 use podd::protocol::{GateInfo, GateResolveParams};
 
-use super::model::{LayoutActions, Slot, UiIntent};
+use super::model::{LayoutActions, LayoutFrame, Slot, UiIntent};
 use crate::gates::ResolveError;
 use crate::panel::TerminalPanel;
 use crate::review::ReviewPanel;
@@ -176,12 +178,22 @@ pub(crate) fn release_window(key: WindowKey, cx: &mut App) {
     }
 }
 
-// ───────────────────────────── the handle ─────────────────────────────
+// ─────────────────────── the handle: render-safe ───────────────────────
+//
+// Handles the host captured when it made the actions (`HostHandles`): they
+// never read or update the host, so a renderer may call them inside the
+// host's render, and anything else may call them anywhere.
 
 impl LayoutActions {
     /// Key of the window this handle reaches.
     pub(crate) fn window_key(&self) -> WindowKey {
         self.0.window_key()
+    }
+
+    /// Focus handle of a slot: the dock area, the sidebar tree and the toast
+    /// stack; the hook banner has none.
+    pub(crate) fn focus_handle(&self, slot: Slot, cx: &App) -> Option<FocusHandle> {
+        self.0.focus_handle(slot, cx)
     }
 
     /// This window's `T` state, if one was made.
@@ -229,7 +241,9 @@ impl LayoutActions {
 
     /// Calls `f` on the entity after each of `changes` — instead of
     /// `cx.observe(workspace)` and a dock subscription. One subscription for
-    /// all; `None` when the host is gone or `changes` is empty.
+    /// all; `None` when the host is gone or `changes` is empty. The calls
+    /// come when the effects of a host update are flushed, after the update
+    /// itself returned, in the order of [`Self::dispatch_then`].
     pub(crate) fn observe<T: 'static>(
         &self,
         changes: &[HostChange],
@@ -302,7 +316,7 @@ impl LayoutActions {
     /// so a layout that draws the dock in a drawer or a tab reads "a panel
     /// was asked for" here even while the dock is hidden: the panel's own
     /// focus matches before it was ever drawn. `None` when the focus is
-    /// elsewhere or the host is gone.
+    /// elsewhere or the host is gone. Reads the dock only.
     pub(crate) fn focused_dock_panel(
         &self,
         window: &Window,
@@ -325,6 +339,73 @@ impl LayoutActions {
             .filter_map(|id| area.panel(id).cloned())
             .find(|p| p.focus_handle(cx).contains_focused(window, cx))
             .map(|p| (p.view().entity_id(), p.panel_name(cx)))
+    }
+
+    /// The window's podd source, for the requests a layout's controller makes
+    /// itself (`terminal.read`, `terminal.run`, attach, its own gate path).
+    /// Its answers come later: hand them back with [`Self::post`].
+    pub(crate) fn source(&self, cx: &App) -> Option<PoddSource> {
+        self.0.source(cx)
+    }
+
+    /// Carries the intent out after the current effects (`Window::defer`):
+    /// the dispatch itself runs later, in the update phase, so this may be
+    /// called from a render. Only for paths that defer today.
+    pub(crate) fn defer(&self, intent: UiIntent, window: &mut Window, cx: &mut App) {
+        let sink = self.0.clone();
+        window.defer(cx, move |window, cx| sink.dispatch(intent, window, cx));
+    }
+}
+
+// ─────────────────────── the handle: update phase ───────────────────────
+//
+// These read or update the host (`HostCommands`), so they run outside any
+// host render or update: event handlers, observers, deferred closures, async
+// completions, a layout's own view's render. Never inside `render_body` or
+// `title_bar_extra`, where the host is leased: read the frame there.
+
+impl LayoutActions {
+    /// Reads the window state through a fresh frame; `None` when it is gone.
+    pub(crate) fn read<R>(&self, cx: &App, f: impl FnOnce(&LayoutFrame<'_>) -> R) -> Option<R> {
+        let mut f = Some(f);
+        let mut out = None;
+        self.0.with_frame(cx, &mut |frame| {
+            if let Some(f) = f.take() {
+                out = Some(f(frame));
+            }
+        });
+        out
+    }
+
+    /// Carries the intent out now, in the caller's order: for paths that call
+    /// the workspace synchronously today (e.g. focus that must move at once).
+    /// The host update is over when this returns; its dock events and notify
+    /// are delivered afterwards (see [`Self::dispatch_then`]).
+    pub(crate) fn dispatch(&self, intent: UiIntent, window: &mut Window, cx: &mut App) {
+        self.0.dispatch(intent, window, cx);
+    }
+
+    /// Carries the intent out now, then `then` **after the dispatch
+    /// returned, not after its notify / dock events**. The host update is
+    /// over and its state is readable (new panels are in
+    /// [`Self::terminal_panels`], the window focus has moved), but no
+    /// observer has run yet. When the effects are flushed the order is
+    /// (pinned by `workspace::layout_host::tests`): the dock's
+    /// [`HostChange::DockLayout`]; a `window.defer` queued in `then`; the
+    /// host's notify ([`HostChange::Data`]), which the host raises in answer
+    /// to the dock change; after the next draw the frame's focused terminal
+    /// and one more `Data`. So a defer from `then` (the rail's rearrange and
+    /// focus) is behind the dock events but ahead of the host's notify: what
+    /// needs the host's data observes `Data` instead.
+    pub(crate) fn dispatch_then(
+        &self,
+        intent: UiIntent,
+        window: &mut Window,
+        cx: &mut App,
+        then: impl FnOnce(&mut Window, &mut App),
+    ) {
+        self.0.dispatch(intent, window, cx);
+        then(window, cx);
     }
 
     /// The task the user works in (`Workspace::current_task`): it reads
@@ -374,37 +455,21 @@ impl LayoutActions {
         self.0.new_review_panel(task, window, cx)
     }
 
-    /// The window's podd source, for the requests a layout's controller makes
-    /// itself (`terminal.read`, `terminal.run`, attach, its own gate path).
-    pub(crate) fn source(&self, cx: &App) -> Option<PoddSource> {
-        self.0.source(cx)
-    }
-
     /// Applies window-less updates in order inside one host update (async
-    /// completions have no window for [`Self::dispatch`]). `false` when the
-    /// host is gone. Not from inside a host update.
+    /// completions have no window for [`Self::dispatch`]): the observers run
+    /// once afterwards and see the whole list applied. `false` when the host
+    /// is gone (the window closed before a late answer): nothing applied.
     pub(crate) fn post(&self, updates: Vec<HostUpdate>, cx: &mut App) -> bool {
         self.0.post(updates, cx)
     }
 
-    /// Carries the intent out now, then `then` once the host update is over
-    /// (e.g. the rail lays its dock out after `OpenTaskTerminals`).
-    pub(crate) fn dispatch_then(
-        &self,
-        intent: UiIntent,
-        window: &mut Window,
-        cx: &mut App,
-        then: impl FnOnce(&mut Window, &mut App),
-    ) {
-        self.0.dispatch(intent, window, cx);
-        then(window, cx);
-    }
-
     /// 이번만 허용 / 거부 through the one gate decision path
     /// (`gates::resolve_gate`): sends `gate.resolve`, merges the answer and
-    /// touches the host, or toasts the failure; `done` follows for the
-    /// caller's busy/error state. `false` (nothing sent, `done` dropped)
-    /// when the host is gone.
+    /// touches the host, or toasts the failure; `done` follows right after
+    /// in the same update, before the observers run, for the caller's
+    /// busy/error state. `false` (nothing sent, `done` dropped) when the host
+    /// is gone. An answer that arrives after the host went still calls
+    /// `done` and reaches nothing else.
     pub(crate) fn resolve_gate(
         &self,
         params: GateResolveParams,
