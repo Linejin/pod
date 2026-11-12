@@ -483,6 +483,9 @@ fn terminal_flow_matches_the_baseline() {
 // Protocol v20 (docs/17 R4) changed exactly three lines, re-recorded and
 // reviewed: `guide` (it prints the protocol number), `server schema` (two
 // methods' worth of schema more) and the `server status` protocol.
+// Protocol v21 (rm-o2, docs/19 §20) changed the same kinds of lines:
+// `guide`, `server schema` (hello `worker`, status `endpoint`, decide
+// `person`) and `server status` (protocol 21, `endpoint: full`).
 
 const HELP_GOLDEN: &str = r##"
 version -> exit 0 stdout "pod <VERSION>\n" stderr ""
@@ -607,14 +610,14 @@ help [machine test] -> exit 0 stdout b036010d9a8e4ee7 (12 lines) stderr cbf29ce4
 help [guide] -> exit 0 stdout 62db4f75842bdc90 (14 lines) stderr cbf29ce484222325
 help [guide orchestration] -> exit 0 stdout a2fcba0bcb8181d2 (10 lines) stderr cbf29ce484222325
 help [guide install] -> exit 0 stdout 907ba8bb94101b30 (27 lines) stderr cbf29ce484222325
-guide -> exit 0 stdout ad759891e535aba7 (8 lines) stderr ""
---pipe <RUN> server schema -> exit 0 stdout 59f5854f239f4aaf (37406 lines) stderr ""
+guide -> exit 0 stdout 368db73fd42a9d94 (8 lines) stderr ""
+--pipe <RUN> server schema -> exit 0 stdout 1aa96b087ba11afd (37467 lines) stderr ""
 "##;
 
 const FLOW_GOLDEN: &str = r##"
 pod server status -> exit 3 stdout "podd is not running (<PIPE>)\n" stderr ""
 pod server status -> exit 0 stdout "podd <VERSION> running: pid <n>, pipe <PIPE>, up <n>s, terminals 0 (0 running)\n" stderr ""
-pod --json server status -> exit 0 stdout {"pid":"<n>","pipe":"<PIPE>","protocol":20,"running":0,"started_ms":"<n>","state_dir":"<ROOT>\\state","terminals":0,"uptime_ms":"<n>","version":"<VERSION>"} stderr ""
+pod --json server status -> exit 0 stdout {"endpoint":"full","pid":"<n>","pipe":"<PIPE>","protocol":21,"running":0,"started_ms":"<n>","state_dir":"<ROOT>\\state","terminals":0,"uptime_ms":"<n>","version":"<VERSION>"} stderr ""
 pod --json ls -> exit 0 stdout {"retention_ms":"<n>","terminals":[]} stderr ""
 pod run --name agent --cols 80 --rows 24 -- <BIN>\examples/fake-agent.exe paste-loop:<ROOT>\agents\pastes.log -> exit 0 stdout "t1\n" stderr ""
 pod wait agent --status idle --timeout 30 -> exit 0 stdout "t1 idle (turn 0)\n" stderr ""

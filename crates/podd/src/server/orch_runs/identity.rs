@@ -1,6 +1,12 @@
 //! Who is calling: a worker (attempt id + token, always verified), a
-//! coordinator terminal or a person; the run a caller means; and the
-//! attempt token (made here, never shown).
+//! coordinator terminal or **outside** (docs/19 §20, TM-20): any other
+//! caller of the full pipe, which is the OS user and authenticates nobody.
+//! An outside caller is not a person: for a gate decision it must also say
+//! so (`person`, the `pod gate approve|reject` and app paths), and that
+//! statement is still only same-user. The run a caller means; and the
+//! attempt token (made here, never shown). On the worker endpoint the
+//! caller is the connection's worker, derived from its token
+//! (`server/rpc/worker.rs`).
 
 use pod_orch::engine::Orch;
 use pod_orch::model::{attempt_mailbox, run_mailbox};
@@ -12,7 +18,9 @@ use crate::server::{Daemon, status};
 /// Who is calling.
 #[derive(Debug, Clone)]
 pub(super) struct Who {
-    /// Sender address: `attempt:<id>`, `run:<id>` or `human`.
+    /// Sender address: `attempt:<id>`, `run:<id>` or `human`. `human` is
+    /// the address of an [`Who::is_outside`] caller (mail keeps the name);
+    /// it says nothing about a person.
     pub(super) from: String,
     pub(super) attempt: Option<String>,
     pub(super) terminal: Option<String>,
@@ -71,6 +79,13 @@ pub(super) fn who(o: &Orch, c: &OrchCaller) -> Result<Who, RpcError> {
 }
 
 impl Who {
+    /// Neither a worker (attempt) nor a coordinator: a caller of the full
+    /// pipe outside Pod's agents (O1 author `outside`). Never a person by
+    /// itself (docs/19 §20).
+    pub(super) fn is_outside(&self) -> bool {
+        self.attempt.is_none() && self.coordinates.is_none()
+    }
+
     /// The mailboxes this caller reads.
     pub(super) fn mailboxes(&self, o: &Orch, run: Option<&str>) -> Vec<String> {
         if let Some(r) = run {

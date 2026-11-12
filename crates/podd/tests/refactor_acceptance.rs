@@ -923,10 +923,13 @@ fn daemon_flow_matches_the_baseline() {
 // rm-o4 (TM-22): a terminal's hook token dies with its process, so after the
 // final `server.stop kill` the state dir no longer lists `t1.token` and
 // `t2.token`; nothing else in the flow changed.
+// Protocol v21 (rm-o2, docs/19 §20) changed exactly three contract lines:
+// the numbers and schema fingerprint lines and `server.status` (protocol
+// 21, `endpoint: full`). The flow golden is unchanged.
 
 const CONTRACT_GOLDEN: &str = r##"
-numbers protocol=20 min=11 holder=3 holder_min=1 hook=1
-schema fnv64=33517c21c7cc6f33 methods=105 notifications=19 protocol=20 min_protocol=11
+numbers protocol=21 min=11 holder=3 holder_min=1 hook=1
+schema fnv64=a0e0890873ec118b methods=105 notifications=19 protocol=21 min_protocol=11
 notification terminal.output
 notification terminal.resized
 notification terminal.exited
@@ -1073,7 +1076,7 @@ method review.deliveries probe: -32602 invalid params: invalid type: string "rou
 method review.deliveries {}: ok {"deliveries":[]}
 method review.send probe: -32602 invalid params: invalid type: string "route-probe", expected struct ReviewSendParams
 method server.status probe: -32602 invalid params: invalid type: string "route-probe", expected struct Empty
-method server.status {}: ok {"pid":"<n>","pipe":"<PIPE>","protocol":20,"running":0,"started_ms":"<n>","state_dir":"<ROOT>\\state","terminals":0,"uptime_ms":"<n>","version":"<VERSION>"}
+method server.status {}: ok {"endpoint":"full","pid":"<n>","pipe":"<PIPE>","protocol":21,"running":0,"started_ms":"<n>","state_dir":"<ROOT>\\state","terminals":0,"uptime_ms":"<n>","version":"<VERSION>"}
 method server.stop probe: -32602 invalid params: invalid type: string "route-probe", expected struct StopParams
 method sessions.hide probe: -32042 session discovery is off (turn it on with `pod sessions scan --enable`)
 method sessions.hide {}: -32042 session discovery is off (turn it on with `pod sessions scan --enable`)

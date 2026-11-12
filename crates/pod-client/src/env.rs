@@ -82,6 +82,54 @@ pub fn sanitize(env: impl IntoIterator<Item = (String, String)>) -> BTreeMap<Str
         .collect()
 }
 
+/// A Pod worker's attempt (docs/19 §3.4), set only in worker terminals.
+pub const ENV_ATTEMPT_ID: &str = "POD_ATTEMPT_ID";
+/// The worker's attempt token (256 random bits; the daemon keeps a hash).
+pub const ENV_ATTEMPT_TOKEN: &str = "POD_ATTEMPT_TOKEN";
+
+/// Variables a Pod terminal or worker carries that a daemon must never
+/// inherit from the shell that auto-starts it (docs/19 §20): the
+/// terminal's and the worker's identity, the hook token, and the program
+/// overrides an agent could set (`POD_DAEMON` is the client's own).
+/// Other `POD_*` daemon settings (`POD_HOLDER`, `POD_WORKTREES_ROOT`, ...)
+/// pass; every `GIT_*` goes ([`is_daemon_env_leak`]).
+const NOT_FOR_DAEMON: &[&str] = &[
+    "POD_SOCKET",
+    "POD_TERMINAL_ID",
+    "POD_TASK_ID",
+    "POD_BRIEF",
+    "POD_RUN_ID",
+    "POD_ITEM_ID",
+    ENV_ATTEMPT_ID,
+    ENV_ATTEMPT_TOKEN,
+    "POD_HOOK_TOKEN",
+    "POD_DAEMON",
+    "POD_GIT",
+    "POD_GH",
+];
+
+/// True for a variable `pod` must not pass to a daemon it starts: worker
+/// and terminal identity ([`NOT_FOR_DAEMON`]) and any `GIT_*` (a worker's
+/// git guard, `GIT_DIR`, `GIT_CONFIG_*`...).
+pub fn is_daemon_env_leak(name: &str) -> bool {
+    name.to_ascii_uppercase().starts_with("GIT_")
+        || NOT_FOR_DAEMON.iter().any(|n| n.eq_ignore_ascii_case(name))
+}
+
+/// This process runs in a Pod worker's environment (`POD_ATTEMPT_ID` or
+/// `POD_ATTEMPT_TOKEN` set): it never starts a daemon (docs/19 §20).
+pub fn in_worker_env() -> bool {
+    [ENV_ATTEMPT_ID, ENV_ATTEMPT_TOKEN]
+        .iter()
+        .any(|k| std::env::var_os(k).is_some_and(|v| !v.is_empty()))
+}
+
+/// The worker identity in this process's environment, when complete.
+pub fn worker_identity() -> Option<(String, String)> {
+    let get = |k: &str| std::env::var(k).ok().filter(|v| !v.trim().is_empty());
+    Some((get(ENV_ATTEMPT_ID)?, get(ENV_ATTEMPT_TOKEN)?))
+}
+
 /// Insert or replace `key`, matching existing keys case-insensitively (Windows semantics).
 pub fn set_var(env: &mut BTreeMap<String, String>, key: &str, value: impl Into<String>) {
     if let Some(existing) = env.keys().find(|k| k.eq_ignore_ascii_case(key)).cloned() {
@@ -433,6 +481,36 @@ mod tests {
                 "USERPROFILE"
             ]
         );
+    }
+
+    /// docs/19 §20: what a daemon started by `pod` never inherits.
+    #[test]
+    fn daemon_env_leaks() {
+        for n in [
+            "POD_ATTEMPT_ID",
+            "pod_attempt_token",
+            "POD_SOCKET",
+            "POD_TERMINAL_ID",
+            "POD_HOOK_TOKEN",
+            "POD_RUN_ID",
+            "POD_GIT",
+            "POD_DAEMON",
+            "GIT_CONFIG_COUNT",
+            "GIT_CONFIG_KEY_0",
+            "git_dir",
+            "GIT_CONFIG_PARAMETERS",
+        ] {
+            assert!(is_daemon_env_leak(n), "{n}");
+        }
+        for n in [
+            "POD_HOLDER",
+            "POD_WORKTREES_ROOT",
+            "PATH",
+            "USERPROFILE",
+            "GITHUB_TOKEN",
+        ] {
+            assert!(!is_daemon_env_leak(n), "{n}");
+        }
     }
 
     #[test]

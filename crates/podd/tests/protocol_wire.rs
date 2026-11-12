@@ -3,10 +3,12 @@
 //! types move to their own crate; later cards keep these tests green
 //! without touching the golden files. Rewritten for v20 (docs/17 R4:
 //! `terminal.input_once`, `terminal.snapshot`, the `AttachResult` chunk
-//! fields, `attach.chunks` and the remote framing constants).
+//! fields, `attach.chunks` and the remote framing constants) and v21
+//! (docs/19 §20: `connection.hello` `worker`, `server.status` `endpoint`,
+//! `orch.gate.decide` `person`, `worker_codes`, the v20 downgrade).
 //!
-//! - `fixtures/schema-v20.json`: the whole `podd schema` output.
-//! - `fixtures/wire-v20.json`: the params and result type of each of the
+//! - `fixtures/schema-v21.json`: the whole `podd schema` output.
+//! - `fixtures/wire-v21.json`: the params and result type of each of the
 //!   105 methods, the event type of each of the 19 notifications, and
 //!   samples of every such type: one per enum variant position (`full#k`,
 //!   every optional field set, the k-th variant of every enum), only the
@@ -14,7 +16,7 @@
 //!   sample's `in` goes through the real Rust type of the method
 //!   (deserialize, then serialize) and must give `out` (`in` when absent).
 //!   Also: error codes and error data, `connection.hello` negotiation,
-//!   the v18 and v19 downgrades of every result and event sample, envelopes,
+//!   the v18, v19 and v20 downgrades of every result and event sample, envelopes,
 //!   base64 and the protocol constants.
 //!
 //! Objects compare without key order; everything else (absent vs null,
@@ -34,12 +36,14 @@ use serde::Serialize;
 use serde::de::DeserializeOwned;
 use serde_json::{Map, Value, json};
 
-const WIRE: &str = "wire-v20.json";
-const SCHEMA: &str = "schema-v20.json";
+const WIRE: &str = "wire-v21.json";
+const SCHEMA: &str = "schema-v21.json";
 /// The newest protocol without the v19 `unreachable` terminal state.
 const DOWNGRADE_TO: u32 = 18;
 /// The newest protocol without the v20 attach chunk fields.
 const DOWNGRADE_TO_V19: u32 = 19;
+/// The newest protocol without the v21 worker endpoint fields.
+const DOWNGRADE_TO_V20: u32 = 20;
 
 // ───────────────────────────── the Rust types ─────────────────────────────
 
@@ -267,6 +271,10 @@ fn error_codes() -> Value {
         run_codes::DEPS_NOT_DONE,
         run_codes::WORKER_LIMIT,
         run_codes::MAIL_NOT_FOUND,
+        worker_codes::NOT_ALLOWED,
+        worker_codes::NO_WORKER,
+        worker_codes::OUT_OF_SCOPE,
+        worker_codes::CALLER_MISMATCH,
     )
 }
 
@@ -279,6 +287,7 @@ fn constants() -> Value {
         "HELLO_PROTOCOL": HELLO_PROTOCOL,
         "UNREACHABLE_PROTOCOL": UNREACHABLE_PROTOCOL,
         "CHUNKED_ATTACH_PROTOCOL": CHUNKED_ATTACH_PROTOCOL,
+        "WORKER_ENDPOINT_PROTOCOL": WORKER_ENDPOINT_PROTOCOL,
         "remote_framing": {
             "REMOTE_OUTPUT_CHUNK": REMOTE_OUTPUT_CHUNK,
             "REMOTE_ATTACH_QUEUE": REMOTE_ATTACH_QUEUE,
@@ -607,6 +616,26 @@ fn v19_downgrade_matches_golden() {
     }
 }
 
+/// Every result and event sample, rewritten for a v20 client: only the
+/// v21 `server.status` `endpoint` goes (docs/19 §20).
+#[test]
+fn v20_downgrade_matches_golden() {
+    let golden = load(WIRE);
+    let now = downgrades_to(&golden, DOWNGRADE_TO_V20, "v20");
+    let want = golden["downgrade_v20"].as_array().unwrap();
+    assert!(!want.is_empty());
+    let mut d = Diffs::default();
+    d.check("downgrade_v20 count", &json!(now.len()), &json!(want.len()));
+    for (i, (got, want)) in now.iter().zip(want).enumerate() {
+        d.check(format!("downgrade_v20[{i}]"), got, want);
+    }
+    d.assert_none();
+    for case in want {
+        assert_eq!(case["type"], "ServerStatusResult", "{case}");
+        assert!(case["v20"].get("endpoint").is_none(), "{case}");
+    }
+}
+
 // ───────────────────────────── shared by tests and writer ─────────────────────────────
 
 fn negotiate_json(p: &HelloParams) -> Value {
@@ -723,7 +752,7 @@ fn write_golden() {
     );
 
     let mut golden = json!({
-        "about": "Wire golden of protocol v20 (refactor card D-F0, rewritten for docs/17 R4); see crates/podd/tests/protocol_wire.rs",
+        "about": "Wire golden of protocol v21 (refactor card D-F0, rewritten for docs/17 R4 and the docs/19 §20 worker endpoint); see crates/podd/tests/protocol_wire.rs",
         "constants": constants(),
         "methods": methods,
         "notifications": notifications,
@@ -767,6 +796,7 @@ fn write_golden() {
     }
     golden["downgrade_v18"] = Value::Array(downgrades(&golden));
     golden["downgrade_v19"] = Value::Array(downgrades_to(&golden, DOWNGRADE_TO_V19, "v19"));
+    golden["downgrade_v20"] = Value::Array(downgrades_to(&golden, DOWNGRADE_TO_V20, "v20"));
 
     for (name, v, levels) in [(WIRE, &golden, 3), (SCHEMA, &schema, 2)] {
         let mut text = String::new();
@@ -846,6 +876,10 @@ fn negotiate_cases() -> Vec<Value> {
         json!({ "min_protocol": 21, "max_protocol": 30 }),
         json!({ "min_protocol": 12, "max_protocol": 19, "client": "pod 0.19" }),
         json!({ "min_protocol": 12, "max_protocol": 20, "require": ["attach.chunks"] }),
+        // v21 (docs/19 §20): a worker endpoint hello (the token plays no
+        // part in negotiation), and a v20 client next to a v21 podd.
+        json!({ "min_protocol": 12, "max_protocol": 21, "worker": { "attempt": "a1", "token": "t" } }),
+        json!({ "min_protocol": 12, "max_protocol": 20 }),
     ];
     cases
         .into_iter()

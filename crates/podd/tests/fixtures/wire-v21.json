@@ -1,5 +1,5 @@
 {
-  "about": "Wire golden of protocol v20 (refactor card D-F0, rewritten for docs/17 R4); see crates/podd/tests/protocol_wire.rs",
+  "about": "Wire golden of protocol v21 (refactor card D-F0, rewritten for docs/17 R4 and the docs/19 §20 worker endpoint); see crates/podd/tests/protocol_wire.rs",
   "base64": [
     {
       "bytes": [],
@@ -33,8 +33,9 @@
     "HOOK_MESSAGE_VERSION": 1,
     "JSONRPC_VERSION": "2.0",
     "PROTOCOL_MIN": 11,
-    "PROTOCOL_VERSION": 20,
+    "PROTOCOL_VERSION": 21,
     "UNREACHABLE_PROTOCOL": 19,
+    "WORKER_ENDPOINT_PROTOCOL": 21,
     "capability": [
       "remote.files",
       "remote.diff",
@@ -91,7 +92,11 @@
       "sessions_codes::DISCOVERY_OFF": -32042,
       "sessions_codes::PERSIST_FAILED": -32043,
       "sessions_codes::SESSION_NOT_FOUND": -32040,
-      "sessions_codes::SESSION_RUNNING": -32041
+      "sessions_codes::SESSION_RUNNING": -32041,
+      "worker_codes::CALLER_MISMATCH": -32118,
+      "worker_codes::NOT_ALLOWED": -32115,
+      "worker_codes::NO_WORKER": -32116,
+      "worker_codes::OUT_OF_SCOPE": -32117
     },
     "method_lists": {
       "METHODS": ["server.status","server.stop","terminal.run","terminal.list","terminal.send","terminal.keys","terminal.input","terminal.read","terminal.wait","terminal.resize","terminal.kill","terminal.rm","terminal.keep","terminal.attach","repo.add","repo.list","repo.remove","task.create","task.list","task.show","task.diff","task.remove","task.touch"],
@@ -141,7 +146,7 @@
     },
     "server_range": [
       11,
-      20
+      21
     ]
   },
   "downgrade_v18": [
@@ -179,6 +184,16 @@
       "case": "full#2",
       "type": "ReadResult",
       "v18": {"cursor":[7,7],"id":"x","lines":["x"],"mode":"screen","state":"exited","suggestion":"x"}
+    },
+    {
+      "case": "full#0",
+      "type": "ServerStatusResult",
+      "v18": {"pid":7,"pipe":"x","protocol":7,"running":7,"started_ms":7,"state_dir":"x","terminals":7,"uptime_ms":7,"version":"x"}
+    },
+    {
+      "case": "full#1",
+      "type": "ServerStatusResult",
+      "v18": {"pid":7,"pipe":"x","protocol":7,"running":7,"started_ms":7,"state_dir":"x","terminals":7,"uptime_ms":7,"version":"x"}
     },
     {
       "case": "full#2",
@@ -236,6 +251,28 @@
       "case": "full#2",
       "type": "AttachResult",
       "v19": {"seq":7,"snapshot":"x","terminal":{"argv":["x"],"attached":7,"cols":7,"conpty":"x","created_ms":7,"cwd":"x","exit_code":7,"exited_ms":7,"holder_pid":7,"id":"x","incompatible_holder":"x","killed":true,"lost":true,"name":"x","parent_task":"x","parent_terminal":"x","pid":7,"rows":7,"state":"unreachable","status":{"agent":"x","app":"x","badge":"x","blocked_children":7,"confidence":1.5,"final_state":"x","hooks_accepted":7,"hooks_rejected":7,"kind":"x","msg":"x","outcome":"x","progress":7,"records":7,"running_children":7,"since":7,"source":"x","state":"x","title":"x","turn":7},"unreachable":"x"}}
+    },
+    {
+      "case": "full#0",
+      "type": "ServerStatusResult",
+      "v19": {"pid":7,"pipe":"x","protocol":7,"running":7,"started_ms":7,"state_dir":"x","terminals":7,"uptime_ms":7,"version":"x"}
+    },
+    {
+      "case": "full#1",
+      "type": "ServerStatusResult",
+      "v19": {"pid":7,"pipe":"x","protocol":7,"running":7,"started_ms":7,"state_dir":"x","terminals":7,"uptime_ms":7,"version":"x"}
+    }
+  ],
+  "downgrade_v20": [
+    {
+      "case": "full#0",
+      "type": "ServerStatusResult",
+      "v20": {"pid":7,"pipe":"x","protocol":7,"running":7,"started_ms":7,"state_dir":"x","terminals":7,"uptime_ms":7,"version":"x"}
+    },
+    {
+      "case": "full#1",
+      "type": "ServerStatusResult",
+      "v20": {"pid":7,"pipe":"x","protocol":7,"running":7,"started_ms":7,"state_dir":"x","terminals":7,"uptime_ms":7,"version":"x"}
     }
   ],
   "errors": [
@@ -274,7 +311,7 @@
       "in": {"code":-32071,"data":{"exit_code":1,"output":"boom"},"message":"archive script failed"}
     },
     {
-      "in": {"code":-32051,"data":{"capabilities":["attach.chunks"],"max_protocol":20,"min_protocol":11,"missing":[]},"message":"no common protocol: client speaks 1..=10, this podd 11..=20; install matching Pod versions"}
+      "in": {"code":-32051,"data":{"capabilities":["attach.chunks"],"max_protocol":21,"min_protocol":11,"missing":[]},"message":"no common protocol: client speaks 1..=10, this podd 11..=21; install matching Pod versions"}
     }
   ],
   "methods": {
@@ -705,7 +742,7 @@
       "params": {"max_protocol":19,"min_protocol":11}
     },
     {
-      "outcome": {"ok":20},
+      "outcome": {"ok":21},
       "params": {"max_protocol":25,"min_protocol":12}
     },
     {
@@ -713,15 +750,15 @@
       "params": {"max_protocol":11,"min_protocol":1}
     },
     {
-      "outcome": {"error":{"code":-32051,"data":{"capabilities":["attach.chunks"],"max_protocol":20,"min_protocol":11,"missing":[]},"message":"no common protocol: client speaks 1..=10, this podd 11..=20; install matching Pod versions"}},
+      "outcome": {"error":{"code":-32051,"data":{"capabilities":["attach.chunks"],"max_protocol":21,"min_protocol":11,"missing":[]},"message":"no common protocol: client speaks 1..=10, this podd 11..=21; install matching Pod versions"}},
       "params": {"max_protocol":10,"min_protocol":1}
     },
     {
-      "outcome": {"ok":20},
+      "outcome": {"ok":21},
       "params": {"max_protocol":30,"min_protocol":20}
     },
     {
-      "outcome": {"error":{"code":-32051,"data":{"capabilities":["attach.chunks"],"max_protocol":20,"min_protocol":11,"missing":["remote.files"]},"message":"this podd lacks required capabilities: remote.files"}},
+      "outcome": {"error":{"code":-32051,"data":{"capabilities":["attach.chunks"],"max_protocol":21,"min_protocol":11,"missing":["remote.files"]},"message":"this podd lacks required capabilities: remote.files"}},
       "params": {"max_protocol":19,"min_protocol":12,"require":["remote.files"]}
     },
     {
@@ -733,7 +770,7 @@
       "params": {"client":"pod-app 1.0","max_protocol":19,"min_protocol":12}
     },
     {
-      "outcome": {"error":{"code":-32051,"data":{"capabilities":["attach.chunks"],"max_protocol":20,"min_protocol":11,"missing":[]},"message":"no common protocol: client speaks 21..=30, this podd 11..=20; install matching Pod versions"}},
+      "outcome": {"ok":21},
       "params": {"max_protocol":30,"min_protocol":21}
     },
     {
@@ -743,6 +780,14 @@
     {
       "outcome": {"ok":20},
       "params": {"max_protocol":20,"min_protocol":12,"require":["attach.chunks"]}
+    },
+    {
+      "outcome": {"ok":21},
+      "params": {"max_protocol":21,"min_protocol":12,"worker":{"attempt":"a1","token":"t"}}
+    },
+    {
+      "outcome": {"ok":20},
+      "params": {"max_protocol":20,"min_protocol":12}
     }
   ],
   "notification_envelopes": [
@@ -983,9 +1028,9 @@
       {"case":"full#0","in":{"id":"x"}}
     ],
     "HelloParams": [
-      {"case":"full#0","in":{"client":"x","max_protocol":7,"min_protocol":7,"require":["x"]}},
+      {"case":"full#0","in":{"client":"x","max_protocol":7,"min_protocol":7,"require":["x"],"worker":{"attempt":"x","token":"x"}}},
       {"case":"min","in":{"max_protocol":7,"min_protocol":7}},
-      {"case":"null","in":{"client":null,"max_protocol":7,"min_protocol":7},"out":{"max_protocol":7,"min_protocol":7}}
+      {"case":"null","in":{"client":null,"max_protocol":7,"min_protocol":7,"worker":null},"out":{"max_protocol":7,"min_protocol":7}}
     ],
     "HelloResult": [
       {"case":"full#0","in":{"boot_id":"x","capabilities":["x"],"limits":{"attach_queue_bytes":7,"max_line_bytes":7,"max_output_chunk_bytes":7,"max_request_bytes":7},"machine_id":"x","max_protocol":7,"min_protocol":7,"os":"x","protocol":7,"version":"x"}},
@@ -1210,7 +1255,7 @@
       {"case":"null","in":{"accepted":false,"attempt":{"agent":"x","body":null,"brief_path":null,"created_ms":7,"depth":7,"ended_ms":null,"error":null,"escalated_turn":null,"generation":7,"id":"x","item":"x","log_path":null,"place":"x","queue":null,"ready_ms":null,"release_at_ms":null,"released_ms":null,"report":null,"retry_of":null,"run":"x","stalled_at_output_ms":null,"state":"starting","task":null,"terminal":null,"worker":"active"},"mail":{"body_text":null,"created_ms":7,"from":"x","id":"x","read_ms":null,"recipients":[],"reply_to":null,"run":"x","subject":"x","text":null,"thread":null,"to":"x","type":"question"},"next":"x"},"out":{"accepted":false,"attempt":{"agent":"x","created_ms":7,"depth":7,"generation":7,"id":"x","item":"x","place":"x","reopens":0,"run":"x","seen_turn":0,"state":"starting","worker":"active"},"mail":{"body":"","created_ms":7,"from":"x","id":"x","priority":"normal","recipients":[],"run":"x","subject":"x","to":"x","type":"question"},"next":"x"}}
     ],
     "OrchGateDecideParams": [
-      {"case":"full#0","in":{"caller":{"attempt":"x","terminal":"x","token":"x"},"choice":"x","id":"x","note":"x","reject":true,"request_id":"x"}},
+      {"case":"full#0","in":{"caller":{"attempt":"x","terminal":"x","token":"x"},"choice":"x","id":"x","note":"x","person":true,"reject":true,"request_id":"x"}},
       {"case":"min","in":{"id":"x"},"out":{"id":"x","reject":false}},
       {"case":"null","in":{"choice":null,"id":"x","note":null,"request_id":null},"out":{"id":"x","reject":false}}
     ],
@@ -1586,7 +1631,10 @@
       {"case":"null","in":{"bytes":7,"dropped_replies":null,"id":"x","submit":null},"out":{"bytes":7,"id":"x"}}
     ],
     "ServerStatusResult": [
-      {"case":"full#0","in":{"pid":7,"pipe":"x","protocol":7,"running":7,"started_ms":7,"state_dir":"x","terminals":7,"uptime_ms":7,"version":"x"}}
+      {"case":"full#0","in":{"endpoint":"full","pid":7,"pipe":"x","protocol":7,"running":7,"started_ms":7,"state_dir":"x","terminals":7,"uptime_ms":7,"version":"x"}},
+      {"case":"full#1","in":{"endpoint":"worker","pid":7,"pipe":"x","protocol":7,"running":7,"started_ms":7,"state_dir":"x","terminals":7,"uptime_ms":7,"version":"x"}},
+      {"case":"min","in":{"pid":7,"pipe":"x","protocol":7,"running":7,"started_ms":7,"state_dir":"x","terminals":7,"uptime_ms":7,"version":"x"}},
+      {"case":"null","in":{"endpoint":null,"pid":7,"pipe":"x","protocol":7,"running":7,"started_ms":7,"state_dir":"x","terminals":7,"uptime_ms":7,"version":"x"},"out":{"pid":7,"pipe":"x","protocol":7,"running":7,"started_ms":7,"state_dir":"x","terminals":7,"uptime_ms":7,"version":"x"}}
     ],
     "ServerStopResult": [
       {"case":"full#0","in":{"detached":7,"killed":7,"stopping":true}},

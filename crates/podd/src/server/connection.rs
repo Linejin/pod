@@ -28,21 +28,45 @@ tokio::task_local! {
     /// send no hello). [`write_json`] downgrades every message it writes
     /// there, so responses and stream notifications alike match it.
     static CONN_PROTOCOL: std::cell::Cell<Option<u32>>;
+    /// The endpoint the connection this task serves reached (docs/19 §20).
+    static CONN_ENDPOINT: Endpoint;
 }
 
+/// The endpoint of the connection this task serves; the full pipe outside
+/// a connection.
+pub(in crate::server) fn current_endpoint() -> Endpoint {
+    CONN_ENDPOINT.try_with(|e| *e).unwrap_or(Endpoint::Full)
+}
+
+/// Serve one connection of `endpoint`: the full pipe (the OS user, every
+/// method) or the restricted worker endpoint (docs/19 §20).
 pub(in crate::server) async fn serve_connection(
     daemon: Arc<Daemon>,
     conn: NamedPipeServer,
+    endpoint: Endpoint,
 ) -> anyhow::Result<()> {
-    CONN_PROTOCOL
-        .scope(std::cell::Cell::new(None), handle_connection(daemon, conn))
+    CONN_ENDPOINT
+        .scope(
+            endpoint,
+            CONN_PROTOCOL.scope(
+                std::cell::Cell::new(None),
+                handle_connection(daemon, conn, endpoint),
+            ),
+        )
         .await
 }
 
-async fn handle_connection(daemon: Arc<Daemon>, conn: NamedPipeServer) -> anyhow::Result<()> {
+async fn handle_connection(
+    daemon: Arc<Daemon>,
+    conn: NamedPipeServer,
+    endpoint: Endpoint,
+) -> anyhow::Result<()> {
     let (read, mut write) = tokio::io::split(conn);
     let mut reader = BufReader::new(read);
     let mut line = String::new();
+    // Worker endpoint: the worker this connection speaks for, once its
+    // `connection.hello` token checked out.
+    let mut worker: Option<rpc::WorkerConn> = None;
     loop {
         let n = read_line_limited(&mut reader, &mut line, MAX_LINE).await?;
         if n == 0 {
@@ -74,6 +98,18 @@ async fn handle_connection(daemon: Arc<Daemon>, conn: NamedPipeServer) -> anyhow
             }
             continue;
         }
+        if endpoint == Endpoint::Worker {
+            // No streams here: the allowlist refuses them like any other
+            // method it does not name.
+            let method = req.method.clone();
+            let resp = daemon.clone().handle_worker_request(&mut worker, req).await;
+            if let Some(resp) = resp {
+                remember_hello(&method, &resp);
+                write_json(&mut write, &resp).await?;
+            }
+            drop(guard);
+            continue;
+        }
         // Streams switch before the JSON-RPC version check, and only for a
         // request with an id (a notification goes to the dispatch).
         let mode = rpc::mode(&req.method);
@@ -94,17 +130,23 @@ async fn handle_connection(daemon: Arc<Daemon>, conn: NamedPipeServer) -> anyhow
         let Some(resp) = daemon.clone().handle_request(req).await else {
             continue;
         };
-        if method == ConnectionHello::NAME
-            && let Some(v) = resp
-                .result
-                .as_ref()
-                .and_then(|r| r.get("protocol"))
-                .and_then(Value::as_u64)
-        {
-            let _ = CONN_PROTOCOL.try_with(|c| c.set(Some(v as u32)));
-        }
+        remember_hello(&method, &resp);
         write_json(&mut write, &resp).await?;
         drop(guard);
+    }
+}
+
+/// After a successful `connection.hello`, every later message of this
+/// connection follows the protocol it chose.
+fn remember_hello(method: &str, resp: &Response) {
+    if method == ConnectionHello::NAME
+        && let Some(v) = resp
+            .result
+            .as_ref()
+            .and_then(|r| r.get("protocol"))
+            .and_then(Value::as_u64)
+    {
+        let _ = CONN_PROTOCOL.try_with(|c| c.set(Some(v as u32)));
     }
 }
 

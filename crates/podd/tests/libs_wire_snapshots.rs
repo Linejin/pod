@@ -1203,8 +1203,10 @@ fn fnv64(s: &str) -> String {
 #[test]
 fn library_wire_schema_matches_the_baseline() {
     // v20 (docs/17 R4) changed no library-crate type: only the schema's
-    // protocol number in GOLDEN_SCHEMA moved (19 -> 20).
-    assert_eq!(PROTOCOL_VERSION, 20, "protocol version");
+    // protocol number in GOLDEN_SCHEMA moved (19 -> 20). v21 (docs/19
+    // §20): the number again (20 -> 21) and `orch.gate.decide` params
+    // (`person`).
+    assert_eq!(PROTOCOL_VERSION, 21, "protocol version");
     assert_eq!(pod_orch::engine::RUN_VERSION, 1, "orch run.json version");
     let sch = schema();
     let lib = |name: &str| {
@@ -4374,7 +4376,7 @@ const GOLDEN_SCHEMA: &str = r##"{
     "orch.config.set": "1caea688c733aff8",
     "orch.queue": "97d9d72b35526215",
     "orch.gate.request": "cd89208010e6be64",
-    "orch.gate.decide": "4fd9adaa11e964a7",
+    "orch.gate.decide": "30a7fa67d96399b9",
     "orch.limits.get": "b519846ea67f759f",
     "orch.limits.set": "430b2164a22fe8e6",
     "orch.wait": "0b918337e39e23c4",
@@ -4394,5 +4396,5 @@ const GOLDEN_SCHEMA: &str = r##"{
     "orch.mail": "aa20f9654e8dccd6",
     "sessions.changed": "6607bb4076acf9c3"
   },
-  "protocol": 20
+  "protocol": 21
 }"##;

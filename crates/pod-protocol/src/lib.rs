@@ -51,12 +51,14 @@ mod wire_golden {
 
     use crate::protocol::*;
 
-    const WIRE: &str = include_str!("../../podd/tests/fixtures/wire-v20.json");
-    const SCHEMA: &str = include_str!("../../podd/tests/fixtures/schema-v20.json");
+    const WIRE: &str = include_str!("../../podd/tests/fixtures/wire-v21.json");
+    const SCHEMA: &str = include_str!("../../podd/tests/fixtures/schema-v21.json");
     /// The newest protocol without the v19 `unreachable` terminal state.
     const DOWNGRADE_TO: u32 = 18;
     /// The newest protocol without the v20 attach chunk fields.
     const DOWNGRADE_TO_V19: u32 = 19;
+    /// The newest protocol without the v21 worker endpoint fields.
+    const DOWNGRADE_TO_V20: u32 = 20;
     /// Golden constants owned by other crates (holder binary, hook relay).
     const NOT_OURS: [&str; 3] = [
         "HOLDER_PROTOCOL",
@@ -288,6 +290,10 @@ mod wire_golden {
             run_codes::DEPS_NOT_DONE,
             run_codes::WORKER_LIMIT,
             run_codes::MAIL_NOT_FOUND,
+            worker_codes::NOT_ALLOWED,
+            worker_codes::NO_WORKER,
+            worker_codes::OUT_OF_SCOPE,
+            worker_codes::CALLER_MISMATCH,
         )
     }
 
@@ -300,6 +306,7 @@ mod wire_golden {
             "HELLO_PROTOCOL": HELLO_PROTOCOL,
             "UNREACHABLE_PROTOCOL": UNREACHABLE_PROTOCOL,
             "CHUNKED_ATTACH_PROTOCOL": CHUNKED_ATTACH_PROTOCOL,
+            "WORKER_ENDPOINT_PROTOCOL": WORKER_ENDPOINT_PROTOCOL,
             "remote_framing": {
                 "REMOTE_OUTPUT_CHUNK": REMOTE_OUTPUT_CHUNK,
                 "REMOTE_ATTACH_QUEUE": REMOTE_ATTACH_QUEUE,
@@ -582,6 +589,17 @@ mod wire_golden {
     /// v20 attach chunk fields go).
     #[test]
     fn v19_downgrade_matches_golden() {
+        downgrade_matches(DOWNGRADE_TO_V19, "v19");
+    }
+
+    /// Every result and event sample, rewritten for a v20 client (only the
+    /// v21 `server.status` `endpoint` goes).
+    #[test]
+    fn v20_downgrade_matches_golden() {
+        downgrade_matches(DOWNGRADE_TO_V20, "v20");
+    }
+
+    fn downgrade_matches(protocol: u32, label: &str) {
         let golden = load(WIRE);
         let mut outgoing: BTreeSet<String> = golden["methods"]
             .as_object()
@@ -601,18 +619,23 @@ mod wire_golden {
             for s in golden["types"][&key].as_array().unwrap() {
                 let v = sample_out(s);
                 let mut down = v.clone();
-                downgrade_json(&mut down, DOWNGRADE_TO_V19);
+                downgrade_json(&mut down, protocol);
                 if &down != v {
-                    now.push(json!({ "type": key, "case": s["case"], "v19": down }));
+                    now.push(json!({ "type": key, "case": s["case"], label: down }));
                 }
             }
         }
-        let want = golden["downgrade_v19"].as_array().unwrap();
+        let section = format!("downgrade_{label}");
+        let want = golden[&section].as_array().unwrap();
         assert!(!want.is_empty());
         let mut d = Diffs::default();
-        d.check("downgrade_v19 count", &json!(now.len()), &json!(want.len()));
+        d.check(
+            format!("{section} count"),
+            &json!(now.len()),
+            &json!(want.len()),
+        );
         for (i, (got, want)) in now.iter().zip(want).enumerate() {
-            d.check(format!("downgrade_v19[{i}]"), got, want);
+            d.check(format!("{section}[{i}]"), got, want);
         }
         d.assert_none();
     }

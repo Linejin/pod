@@ -427,6 +427,18 @@ impl TermStatus {
         g.published.clone().unwrap_or_else(|| make_info(&g))
     }
 
+    /// For the wake rule (docs/19 §21.1): the state name of the program's
+    /// newest own report in this run (hook or OSC 7501, `unknown` once taken
+    /// back; [`TerminalStatus::self_report`]), and whether the program is
+    /// Claude or Codex, agents that report through hooks or OSC.
+    pub fn self_report(&self) -> (Option<&'static str>, bool) {
+        let g = self.inner.lock().unwrap();
+        (
+            g.engine.self_report().map(AgentState::name),
+            matches!(g.engine.agent(), Some(AgentKind::Claude | AgentKind::Codex)),
+        )
+    }
+
     fn entry(&self) -> StatusEntry {
         let g = self.inner.lock().unwrap();
         StatusEntry {

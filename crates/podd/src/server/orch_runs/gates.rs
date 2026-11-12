@@ -313,12 +313,28 @@ impl Daemon {
 
     /// `orch.gate.decide`: a person, or the coordinator of the gate's run
     /// (never for a gate it asked itself). Through the single decision path.
+    /// A caller outside Pod's agents decides as a person only when it says
+    /// so (`person`, docs/19 §20); that is a same-user statement.
     pub(super) fn orch_gate_decide(&self, p: OrchGateDecideParams) -> Result<GateInfo, RpcError> {
         let g = self.gate_show(GateRef { id: p.id.clone() })?;
         let actor = {
             let o = self.orch();
             let w = who(&o, &p.caller)?;
-            if w.from == "human" {
+            if w.is_outside() {
+                if !p.person {
+                    log(&format!(
+                        "orch: gate {} not decided: the caller is outside Pod's agents and did not say a person decides",
+                        g.id
+                    ));
+                    return Err(RpcError::new(
+                        NEEDS_PERSON,
+                        format!(
+                            "gate {}: a person decides it (Gates panel, `pod gate approve|reject`); \
+                             this caller is outside Pod's agents and is not taken for a person",
+                            g.id
+                        ),
+                    ));
+                }
                 GateActor::Local
             } else {
                 let run = g.run.clone().ok_or_else(|| {

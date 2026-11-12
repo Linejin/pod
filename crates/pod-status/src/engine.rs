@@ -253,6 +253,22 @@ impl TerminalStatus {
         self.agent.as_ref()
     }
 
+    /// What the program said about itself in this run: the state of its
+    /// newest root report (a hook, or an OSC 7501 change; event order, not
+    /// time), `Unknown` when it took its report back (OSC `clear`, a hook
+    /// session end) and nothing replaced it, `None` when it never reported.
+    /// Unlike [`Self::state`] a quiet screen does not change it: the wake
+    /// rule trusts it over heuristics (docs/19 §21.1, TM-22).
+    pub fn self_report(&self) -> Option<AgentState> {
+        let newest = match (&self.hook, &self.osc) {
+            (Some(h), Some(o)) if self.hook_set_at >= self.osc_changed_at => Some(h.state),
+            (_, Some(o)) => Some(o.state),
+            (Some(h), None) => Some(h.state),
+            (None, None) => None,
+        };
+        newest.or((self.order > 0).then_some(AgentState::Unknown))
+    }
+
     // ─────────────────────────── output ───────────────────────────
 
     pub fn snapshot(&self) -> Snapshot {

@@ -124,6 +124,8 @@ impl Daemon {
         for (k, v) in overrides {
             crate::env::set_var(&mut env, &k, v);
         }
+        // docs/19 §20: a worker talks to the restricted worker endpoint.
+        super::agent_launch::worker_endpoint_env(&mut env, &self.config.pipe);
         env
     }
 

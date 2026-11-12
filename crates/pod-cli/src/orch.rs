@@ -890,6 +890,9 @@ fn decide_here(
         note: note.clone(),
         caller,
         request_id: None,
+        // `pod gate approve|reject` is a person's command (docs/19 §20).
+        // The daemon still treats a coordinator or worker terminal as one.
+        person: true,
     });
     let g = match r {
         Err(podd::client::ClientError::Rpc(e)) if e.code == codes::METHOD_NOT_FOUND => {

@@ -142,6 +142,7 @@ fn hello(c: &mut Client, max: u32) {
             max_protocol: max,
             require: Vec::new(),
             client: Some("unreachable test".into()),
+            ..Default::default()
         })
         .unwrap();
     assert_eq!(h.protocol, max);

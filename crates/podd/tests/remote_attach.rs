@@ -22,6 +22,7 @@ fn hello(c: &mut Client, max: u32) -> HelloResult {
         max_protocol: max,
         require: vec![],
         client: Some("remote_attach test".into()),
+        ..Default::default()
     })
     .expect("hello")
 }
@@ -91,7 +92,7 @@ fn v20_hello_gets_chunked_snapshots_and_small_output_pieces() {
     print_lines(&mut c, &t.id, 1500, "pre");
 
     let mut h = d.client();
-    let hr = hello(&mut h, PROTOCOL_VERSION);
+    let hr = hello(&mut h, CHUNKED_ATTACH_PROTOCOL);
     assert_eq!(hr.protocol, CHUNKED_ATTACH_PROTOCOL);
     assert_eq!(hr.capabilities, [capability::ATTACH_CHUNKS]);
     assert_eq!(hr.limits.max_output_chunk_bytes, REMOTE_OUTPUT_CHUNK as u64);
@@ -230,7 +231,7 @@ fn four_flooded_remote_attaches_stay_within_their_queue() {
             .unwrap();
         wait_output(&mut c, &t.id, "agent-ready");
         let mut h = d.client();
-        let hr = hello(&mut h, PROTOCOL_VERSION);
+        let hr = hello(&mut h, CHUNKED_ATTACH_PROTOCOL);
         assert_eq!(hr.limits.attach_queue_bytes, LIMIT as u64);
         let (mut r, mut w) = h.into_transport().into_parts();
         send_raw(&mut w, 1, "terminal.attach", json!({"id": t.id}));

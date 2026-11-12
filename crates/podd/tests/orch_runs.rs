@@ -1369,6 +1369,9 @@ fn gate_options_block_items_and_one_decision_path() {
         .call::<OrchGateDecide>(&OrchGateDecideParams {
             id: g3id.clone(),
             reject: true,
+            // docs/19 §20: an outside caller decides only when it says a
+            // person does (the `pod gate` and app paths).
+            person: true,
             ..Default::default()
         })
         .unwrap();
@@ -1522,7 +1525,9 @@ fn limits_settings_apply_at_once_and_survive_restart() {
         out["stderr"]
             .as_str()
             .unwrap()
-            .contains("워커는 자원 한도를 바꿀 수 없어요"),
+            // docs/19 §20: the worker's `pod` reaches its worker
+            // endpoint, which never serves limits.
+            .contains("not available on the worker endpoint"),
         "{out}"
     );
     assert_eq!(get(&e).limits.max_workers, 1);
@@ -2057,6 +2062,115 @@ fn codex_worker_gets_the_narrow_allowance() {
     assert!(
         screen.contains("unknown step projects={'"),
         "existing-task Codex workers get the trust too: {screen}"
+    );
+}
+
+/// docs/19 §21.3 (TM-21 follow-up): Pod's folder trust makes Codex load the
+/// worktree's own `.codex` (config, hooks, exec policies), allowance on or
+/// off. Next to `.codex` files Pod did not write, a Codex worker does not
+/// start (new task or existing task: the files named, no terminal), and a
+/// person's Codex task starts with `trust_level='untrusted'`. A worktree
+/// without them keeps the trust. Fake `codex` (debug-only
+/// `POD_TEST_CODEX_ARGV`); the real binary's behaviour is checked by
+/// `tools/e2e/codex-allowance-probe.ps1` section 5.
+#[test]
+fn codex_gets_no_trust_next_to_codex_files_pod_did_not_write() {
+    let fake_codex =
+        serde_json::to_string(&[fake_agent(), "print:fake-codex".into(), "hold".into()]).unwrap();
+    let e = Env::new("orch-codex-trust", &[("POD_TEST_CODEX_ARGV", &fake_codex)]);
+    std::fs::create_dir_all(e.repo.join(".codex")).unwrap();
+    std::fs::write(
+        e.repo.join(".codex").join("config.toml"),
+        "approval_policy = \"never\"\n",
+    )
+    .unwrap();
+    git_ok(&e.repo, &["add", "-A"]);
+    git_ok(
+        &e.repo,
+        &["commit", "-q", "-m", "the repository's Codex config"],
+    );
+    let start = |place: &str| {
+        e.c()
+            .call::<OrchWorkerStart>(&OrchWorkerStartParams {
+                spec: Some("codex work".into()),
+                agent: Some(AgentSpec::Kind(AgentKind::Codex)),
+                place: Some(place.into()),
+                caller: e.coord_caller(),
+                cols: Some(400),
+                ..Default::default()
+            })
+            .unwrap()
+    };
+    let terminals = || {
+        e.c()
+            .call::<TerminalList>(&Empty {})
+            .unwrap()
+            .terminals
+            .len()
+    };
+    let before = terminals();
+    let refused = |r: &OrchWorkerStartResult, stage: &str| {
+        let err = r.error.clone().unwrap_or_default();
+        assert_eq!(r.stage, stage, "{r:?}");
+        assert!(
+            err.contains(".codex/config.toml") && err.contains("does not start a Codex worker"),
+            "{r:?}"
+        );
+        assert!(r.terminal.is_none(), "{r:?}");
+    };
+    refused(&start("new"), "task");
+    assert_eq!(terminals(), before, "no Codex terminal started");
+
+    // A person's Codex task in the same repository: Codex without trust.
+    let t = e
+        .c()
+        .call::<TaskCreate>(&TaskCreateParams {
+            repo: "demo".into(),
+            name: "mine".into(),
+            agent: Some(AgentSpec::Kind(AgentKind::Codex)),
+            cols: Some(400),
+            ..Default::default()
+        })
+        .unwrap();
+    let term = t.agent_terminal.clone().unwrap();
+    wait_output(&mut e.c(), &term, "fake-codex");
+    let trust = |id: &str| {
+        let argv = e
+            .c()
+            .call::<TerminalShow>(&TerminalRef::id(id))
+            .unwrap()
+            .argv;
+        let v: Vec<String> = argv
+            .into_iter()
+            .filter(|a| a.starts_with("projects="))
+            .collect();
+        assert_eq!(v.len(), 1, "{v:?}");
+        v[0].clone()
+    };
+    let wt = PathBuf::from(&t.worktree);
+    assert_eq!(
+        trust(&term),
+        format!(
+            "projects={{'{}'={{trust_level='untrusted'}}}}",
+            wt.display()
+        )
+    );
+
+    // A worker in that existing task: refused too.
+    let n = terminals();
+    refused(&start(&t.id), "terminal");
+    assert_eq!(terminals(), n);
+
+    // Control: the coordinator's task predates the commit (no `.codex`):
+    // a Codex worker there starts, trusted.
+    let r = start("demo/coord");
+    assert_eq!(r.stage, "started", "{r:?}");
+    let t2 = r.terminal.clone().unwrap();
+    wait_output(&mut e.c(), &t2, "fake-codex");
+    assert!(
+        trust(&t2).ends_with("={trust_level='trusted'}}"),
+        "{}",
+        trust(&t2)
     );
 }
 

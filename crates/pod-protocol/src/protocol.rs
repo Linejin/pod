@@ -80,7 +80,11 @@ pub const JSONRPC_VERSION: &str = "2.0";
 /// `terminal.input_once` (input applied at most once per `(stream, seq)`)
 /// and the `attach.chunks` capability. Nothing changes for connections
 /// without hello or with an older one (see [`downgrade_json`]).
-pub const PROTOCOL_VERSION: u32 = 20;
+/// v21 = v20 + the restricted worker endpoint (docs/19 §20, docs/22
+/// TM-20): `connection.hello` `worker` (attempt + token), `server.status`
+/// `endpoint`, `orch.gate.decide` `person` and [`worker_codes`]
+/// -32115..-32118. An older hello does not get `endpoint`.
+pub const PROTOCOL_VERSION: u32 = 21;
 
 // ---------------------------------------------------------------------------
 // Envelope
@@ -336,6 +340,45 @@ pub struct ServerStatusResult {
     pub running: usize,
     /// Directory holding this daemon's holder records.
     pub state_dir: String,
+    /// v21 (docs/19 §20, docs/22 TM-20): the endpoint this connection
+    /// reached. Absent from older daemons and for older hellos.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub endpoint: Option<Endpoint>,
+}
+
+/// Which daemon endpoint a connection reached (v21, docs/19 §20).
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, JsonSchema, PartialEq, Eq)]
+#[serde(rename_all = "snake_case")]
+pub enum Endpoint {
+    /// The full pipe: every method, for any process of this OS user. A
+    /// process that can open it is **not** isolated by attempt tokens or
+    /// caller fields.
+    Full,
+    /// The restricted worker pipe: one Pod worker (its attempt token, said
+    /// in `connection.hello`), its own run and terminal, a method allowlist.
+    Worker,
+}
+
+/// The first protocol with the worker endpoint (`connection.hello`
+/// `worker`, `server.status` `endpoint`, `orch.gate.decide` `person`,
+/// [`worker_codes`]).
+pub const WORKER_ENDPOINT_PROTOCOL: u32 = 21;
+
+/// Error codes of the restricted worker endpoint (v21, docs/19 §20). The
+/// message of each is fixed; `data.method` names the refused method.
+pub mod worker_codes {
+    /// The method is not on the worker endpoint's allowlist (gate
+    /// decisions, merge, input, limits, config, other terminals...).
+    pub const NOT_ALLOWED: i64 = -32115;
+    /// No worker identity: the connection did not say `connection.hello`
+    /// with this worker's attempt and token, or the token is not the
+    /// attempt's.
+    pub const NO_WORKER: i64 = -32116;
+    /// The target belongs to another run, attempt, item, mail or terminal.
+    pub const OUT_OF_SCOPE: i64 = -32117;
+    /// `caller` names another attempt or terminal than the connection's
+    /// worker (a caller field never raises authority there).
+    pub const CALLER_MISMATCH: i64 = -32118;
 }
 
 #[derive(Debug, Clone, Default, Serialize, Deserialize, JsonSchema, PartialEq)]
@@ -467,7 +510,8 @@ pub struct TerminalInfo {
 /// [`TerminalInfo::for_protocol`]; any other `state: "unreachable"` (e.g.
 /// `terminal.read`) becomes `exited`. Before v20 an [`AttachResult`] loses
 /// its chunk fields (the daemon never chunks for such a connection; this is
-/// the safety net). No-op for the current version.
+/// the safety net). Before v21 a [`ServerStatusResult`] loses `endpoint`.
+/// No-op for the current version.
 pub fn downgrade_json(v: &mut Value, protocol: u32) {
     if protocol >= PROTOCOL_VERSION {
         return;
@@ -475,6 +519,13 @@ pub fn downgrade_json(v: &mut Value, protocol: u32) {
     match v {
         Value::Array(items) => items.iter_mut().for_each(|x| downgrade_json(x, protocol)),
         Value::Object(map) => {
+            if protocol < WORKER_ENDPOINT_PROTOCOL
+                && map.contains_key("state_dir")
+                && map.contains_key("uptime_ms")
+                && map.contains_key("pipe")
+            {
+                map.remove("endpoint");
+            }
             if protocol < CHUNKED_ATTACH_PROTOCOL
                 && map.contains_key("snapshot")
                 && map.contains_key("terminal")
@@ -1423,6 +1474,44 @@ mod tests {
         assert!(v18["result"].get("snapshot_chunks").is_none());
         // Other objects with the same key names are left alone.
         let other = json!({"snapshot_chunks": 1, "seq": 2});
+        let mut o = other.clone();
+        downgrade_json(&mut o, PROTOCOL_MIN);
+        assert_eq!(o, other);
+    }
+
+    /// v21 (docs/19 §20): `server.status` `endpoint` is not sent to a
+    /// connection whose hello chose 20 or older; v21 keeps it.
+    #[test]
+    fn v21_endpoint_is_dropped_for_older_clients() {
+        let status = ServerStatusResult {
+            version: "x".into(),
+            protocol: PROTOCOL_VERSION,
+            pid: 1,
+            pipe: r"\\.\pipe\podd-x".into(),
+            started_ms: 1,
+            uptime_ms: 2,
+            terminals: 0,
+            running: 0,
+            state_dir: "s".into(),
+            endpoint: Some(Endpoint::Worker),
+        };
+        let v = json!({"jsonrpc": "2.0", "id": 1, "result": status});
+        assert_eq!(v["result"]["endpoint"], "worker");
+        let mut same = v.clone();
+        downgrade_json(&mut same, WORKER_ENDPOINT_PROTOCOL);
+        assert_eq!(same, v);
+        for p in [
+            WORKER_ENDPOINT_PROTOCOL - 1,
+            UNREACHABLE_PROTOCOL,
+            PROTOCOL_MIN,
+        ] {
+            let mut old = v.clone();
+            downgrade_json(&mut old, p);
+            assert!(old["result"].get("endpoint").is_none(), "v{p}: {old}");
+            assert_eq!(old["result"]["state_dir"], "s");
+        }
+        // Another object with an `endpoint` key is left alone.
+        let other = json!({"endpoint": "x", "pipe": "p"});
         let mut o = other.clone();
         downgrade_json(&mut o, PROTOCOL_MIN);
         assert_eq!(o, other);

@@ -3,10 +3,12 @@
 # scripted Responses API (codex-mock-responses.py) that makes it run fixed
 # shell commands through its own exec policy and sandbox.
 #
-#   tools\e2e\codex-allowance-probe.ps1 [-NoBuild] [-PolicyOnly]
+#   tools\e2e\codex-allowance-probe.ps1 [-NoBuild] [-PolicyOnly] [-TrustOnly]
 #
 # -PolicyOnly: only section 0, the offline exec-policy matrix (`codex
 # execpolicy check`: no model, no podd, no build; needs target\debug\pod.exe).
+# -TrustOnly: sections 0 and 5 (Pod's folder trust next to a repository's
+# own .codex, docs/19 §21.3).
 #
 # Isolation: a temp repository + linked worktree, its own podd (pipe, state,
 # worktrees), `codex exec --ephemeral` (no session files). The user's Codex
@@ -14,9 +16,12 @@
 # the ones podd writes (taken from crates/podd/src/server/codex_allowance.rs:
 # RULES plus the PIN of this build's pod.exe, docs/19 §18.6).
 # Section 4 starts a real Pod worker (an idle PowerShell as its agent) for
-# the repository-filter check (docs/19 §18.5).
+# the repository-filter check (docs/19 §18.5). In section 5 podd's Codex
+# agent is the debug-only fake (`POD_TEST_CODEX_ARGV` = fake-agent `hold`):
+# podd's arguments are read back from the terminal and given to the real
+# `codex exec` (mock model).
 # Evidence: target/e2e/codex-allowance/ (probe.log, mock logs, exec output).
-param([switch]$NoBuild, [switch]$PolicyOnly, [int]$Port = 18431)
+param([switch]$NoBuild, [switch]$PolicyOnly, [switch]$TrustOnly, [int]$Port = 18431)
 $ErrorActionPreference = 'Stop'
 $Repo = Resolve-Path (Join-Path $PSScriptRoot '..\..')
 $Bin = Join-Path $Repo 'target\debug'
@@ -27,7 +32,7 @@ Set-Content $Log "codex-allowance probe $(Get-Date -Format s)"
 function Note($s) { Write-Host $s; Add-Content $Log $s }
 
 if (-not $NoBuild -and -not $PolicyOnly) {
-  & cargo build -p podd --bins -p pod-cli --bin pod
+  & cargo build -p podd --bins --example fake-agent -p pod-cli --bin pod
   if ($LASTEXITCODE) { throw 'build failed' }
 }
 if (-not $PolicyOnly) { $python = (Get-Command python -ErrorAction Stop).Source }
@@ -113,14 +118,21 @@ if ($PolicyOnly) {
   exit [int]($fails0 -gt 0)
 }
 
-# Isolated podd; `pod` from this build first on PATH.
+# Isolated podd; `pod` from this build first on PATH. Its Codex agent is
+# the fake (section 5; a debug build reads POD_TEST_CODEX_ARGV): no real
+# Codex session starts in a Pod terminal.
 $Pipe = $Name
+$env:POD_TEST_CODEX_ARGV = ConvertTo-Json -Compress @((Join-Path $Bin 'examples\fake-agent.exe'), 'hold')
 $podd = Start-Process -FilePath (Join-Path $Bin 'podd.exe') -NoNewWindow -PassThru -ArgumentList @('--pipe', "\\.\pipe\$Pipe", '--holder', (Join-Path $Bin 'pod-holder.exe'), '--state-dir', (Join-Path $Root 'state'), '--worktrees-root', (Join-Path $Root 'worktrees')) -RedirectStandardOutput (Join-Path $Root 'podd.out') -RedirectStandardError (Join-Path $Root 'podd.err')
 for ($i = 0; $i -lt 100 -and -not (Test-Path "\\.\pipe\$Pipe"); $i++) { Start-Sleep -Milliseconds 100 }
+Remove-Item Env:POD_TEST_CODEX_ARGV
 $env:POD_SOCKET = $Pipe
 $env:PATH = "$Bin;$env:PATH"
 
-function Probe([string]$tag, [object[]]$commands) {
+# `codex exec` in $Wt with the mock model running `$commands`; `$trust` is
+# the `projects=` override (default: $Wt trusted, as podd passes it).
+function Probe([string]$tag, [object[]]$commands, [string]$trust = '') {
+  if (-not $trust) { $trust = "projects={'$Wt'={trust_level='trusted'}}" }
   $cmds = Join-Path $Out "$tag.cmds.json"; $mlog = Join-Path $Out "$tag.mock.jsonl"
   [IO.File]::WriteAllText($cmds, (ConvertTo-Json @($commands)))
   Remove-Item $mlog -ErrorAction SilentlyContinue
@@ -130,7 +142,7 @@ function Probe([string]$tag, [object[]]$commands) {
   try {
     $a = @('exec', '--ephemeral', '-m', 'mock-model', '-c', 'model_provider=mock',
       '-c', "model_providers.mock={name='mock',base_url='http://127.0.0.1:$Port/v1',wire_api='responses'}",
-      '-c', "projects={'$Wt'={trust_level='trusted'}}", 'probe')
+      '-c', $trust, 'probe')
     $ErrorActionPreference = 'Continue'
     & codex @a 2>&1 | Out-File -Encoding utf8 (Join-Path $Out "$tag.exec.txt")
   } finally { Pop-Location; Stop-Process $mock.Id -Force -ErrorAction SilentlyContinue }
@@ -149,7 +161,22 @@ function Probe([string]$tag, [object[]]$commands) {
 # and .NET delete it); the worker's git guard has empty filter values.
 Add-Type -Namespace PodProbe -Name Env -MemberDefinition '[DllImport("kernel32.dll", CharSet = CharSet.Unicode)] public static extern bool SetEnvironmentVariable(string name, string value);'
 function Set-RawEnv($k, $v) { [void][PodProbe.Env]::SetEnvironmentVariable($k, [string]$v) }
+# A worker identity for the commands Codex runs. Since protocol v21 a
+# worker's `pod` talks only to the worker endpoint named by POD_SOCKET
+# (docs/19 §20), as in a real worker's environment.
+function Set-Worker($id, $token, $term, $sock) {
+  if (-not $sock) { $sock = "$Pipe-worker" }
+  $env:POD_ATTEMPT_ID = $id; $env:POD_ATTEMPT_TOKEN = $token; $env:POD_TERMINAL_ID = $term; $env:POD_SOCKET = $sock
+}
+function Clear-Worker {
+  Remove-Item Env:POD_ATTEMPT_ID, Env:POD_ATTEMPT_TOKEN, Env:POD_TERMINAL_ID -ErrorAction SilentlyContinue
+  $env:POD_SOCKET = $Pipe
+}
 function Code($o) { if ($o -match 'Process exited with code (\d+)') { [int]$Matches[1] } else { -1 } }
+# podd answered: the command ran outside the sandbox (inside it opening the
+# pipe fails with os error 5). The made-up worker of sections 2/2b is refused
+# by the worker endpoint itself (no such attempt), which is podd's answer.
+function Reached($o) { ((Code $o) -eq 0) -or ($o -notmatch 'os error 5' -and $o -match 'the worker endpoint serves Pod workers only') }
 
 $fails = $fails0
 function Check($what, $ok, $detail) {
@@ -160,6 +187,7 @@ function Check($what, $ok, $detail) {
 
 $outside = Join-Path $env:USERPROFILE "pod-codex-probe-$PID.txt"
 try {
+ if (-not $TrustOnly) {
   # 1. Control: no rules -> pod cannot reach the pipe, git cannot commit.
   Set-Content (Join-Path $Wt 'b.txt') 'b'
   $r = Probe 'control' @('pod ls', 'git add b.txt')
@@ -172,16 +200,16 @@ try {
   # A made-up worker identity: `pod orch commit` then gets podd's own
   # "not found" answer, which proves it reached the pipe (the sandbox would
   # fail with os error 5 first).
-  $env:POD_ATTEMPT_ID = 'a99'; $env:POD_ATTEMPT_TOKEN = 'probe'; $env:POD_TERMINAL_ID = 't1'
+  Set-Worker 'a99' 'probe' 't1'
   try {
     $r = Probe 'allowed' @('"id=$env:POD_ATTEMPT_ID token=$env:POD_ATTEMPT_TOKEN"', 'pod --version', 'pod orch queue', 'pod orch commit -m probe --all', 'pod ls', 'pod read t1', 'git status --short', 'git add b.txt', 'git commit -m probe', 'git log --oneline -1', 'git diff HEAD --stat', "Set-Content -Path '$outside' -Value x", 'pod orch limits --set max_workers=2')
-  } finally { Remove-Item Env:POD_ATTEMPT_ID, Env:POD_ATTEMPT_TOKEN, Env:POD_TERMINAL_ID -ErrorAction SilentlyContinue }
+  } finally { Clear-Worker }
   $envl = $r['"id=$env:POD_ATTEMPT_ID token=$env:POD_ATTEMPT_TOKEN"']
   Check 'the worker identity reaches commands Codex runs' ($envl -match 'id=a99 token=probe') $envl
   Check 'pod --version runs' ((Code $r['pod --version']) -eq 0) $r['pod --version']
-  Check 'pod orch queue reaches the pipe' ((Code $r['pod orch queue']) -eq 0) $r['pod orch queue']
+  Check 'pod orch queue reaches podd (worker endpoint)' (Reached $r['pod orch queue']) $r['pod orch queue']
   $pc = $r['pod orch commit -m probe --all']
-  Check 'pod orch commit reaches podd (allowed)' ($pc -notmatch 'os error 5' -and $pc -match 'a99') $pc
+  Check 'pod orch commit reaches podd (allowed)' (Reached $pc) $pc
   Check 'pod ls stays in the sandbox (no terminal listing)' ((Code $r['pod ls']) -ne 0 -and $r['pod ls'] -match 'os error 5') $r['pod ls']
   Check 'pod read stays in the sandbox (no terminal reading)' ((Code $r['pod read t1']) -ne 0 -and $r['pod read t1'] -match 'os error 5') $r['pod read t1']
   Check 'git status runs (sandbox)' ((Code $r['git status --short']) -eq 0) $r['git status --short']
@@ -201,7 +229,7 @@ try {
   Copy-Item C:\Windows\System32\cmd.exe (Join-Path $Wt 'pod.exe')
   $fake = ".\pod.exe orch check /c `"echo fake > $fk`""
   $fakeAbs = "$(Join-Path $Wt 'pod.exe') orch check /c `"echo fake-abs > $fk`""
-  $env:POD_ATTEMPT_ID = 'a99'; $env:POD_ATTEMPT_TOKEN = 'probe'; $env:POD_TERMINAL_ID = 't1'
+  Set-Worker 'a99' 'probe' 't1'
   try {
     Install-Rules -Unpinned
     $r = Probe 'fakepod-unpinned' @($fake)
@@ -210,9 +238,9 @@ try {
     Install-Rules
     $r = Probe 'fakepod-pinned' @($fake, $fakeAbs, 'pod orch queue')
     Check 'pinned: a fake pod.exe in the worktree (relative or absolute) stays in the sandbox' (-not (Test-Path $fk)) (($r.Values | ForEach-Object { $_ -replace "`n", ' ' }) -join ' | ')
-    Check 'pinned: Pod''s own pod still reaches the pipe' ((Code $r['pod orch queue']) -eq 0) $r['pod orch queue']
+    Check 'pinned: Pod''s own pod still reaches podd' (Reached $r['pod orch queue']) $r['pod orch queue']
   } finally {
-    Remove-Item Env:POD_ATTEMPT_ID, Env:POD_ATTEMPT_TOKEN, Env:POD_TERMINAL_ID -ErrorAction SilentlyContinue
+    Clear-Worker
     Remove-Item (Join-Path $Wt 'pod.exe'), $fk -ErrorAction SilentlyContinue
   }
   # 3. Escape attempts (docs/19 §18.1): a command that runs outside the
@@ -332,7 +360,7 @@ foreach (`$n in '$($names -join "','")') {
   Remove-Item $fm -ErrorAction SilentlyContinue
   $aBytes = [IO.File]::ReadAllBytes((Join-Path $W2 'a.dat'))
   $Wt0 = $Wt; $Wt = $W2; Install-Rules
-  foreach ($k in 'POD_ATTEMPT_ID', 'POD_ATTEMPT_TOKEN', 'POD_TERMINAL_ID') { Set-Item "env:$k" $we[$k] }
+  Set-Worker $we['POD_ATTEMPT_ID'] $we['POD_ATTEMPT_TOKEN'] $we['POD_TERMINAL_ID'] $we['POD_SOCKET']
   # The worker's git guard (docs/19 §18.5, r2-orch): Codex gets it the way a
   # Pod-started Codex would, from the worker's environment.
   $gk = @($we.Keys | Where-Object { $_ -like 'GIT_CONFIG*' })
@@ -350,7 +378,7 @@ foreach (`$n in '$($names -join "','")') {
   try {
     $r = Probe 'filter' @($evil, 'pod orch commit -m filter-script clean.sh', 'Set-Content -Path a.dat -Value changed', 'pod orch commit -m data --all')
   } finally {
-    Remove-Item Env:POD_ATTEMPT_ID, Env:POD_ATTEMPT_TOKEN, Env:POD_TERMINAL_ID -ErrorAction SilentlyContinue
+    Clear-Worker
     $Wt = $Wt0
   }
   $c1 = $r['pod orch commit -m filter-script clean.sh']; $c2 = $r['pod orch commit -m data --all']
@@ -368,11 +396,11 @@ foreach (`$n in '$($names -join "','")') {
   # content, which a worker can arrange too)
   [IO.File]::WriteAllBytes((Join-Path $W2 'a.dat'), $aBytes)
   # (Codex again with the worker's identity and guard.)
-  foreach ($k in 'POD_ATTEMPT_ID', 'POD_ATTEMPT_TOKEN', 'POD_TERMINAL_ID') { Set-Item "env:$k" $we[$k] }
+  Set-Worker $we['POD_ATTEMPT_ID'] $we['POD_ATTEMPT_TOKEN'] $we['POD_TERMINAL_ID'] $we['POD_SOCKET']
   $Wt = $W2
   try { $null = Probe 'filter-codex-next' @('echo hi') } catch { Note "codex-next probe: $_" }
   finally {
-    Remove-Item Env:POD_ATTEMPT_ID, Env:POD_ATTEMPT_TOKEN, Env:POD_TERMINAL_ID -ErrorAction SilentlyContinue
+    Clear-Worker
     $Wt = $Wt0
   }
   $next = (Get-Content $fm -ErrorAction SilentlyContinue) -join ','
@@ -382,11 +410,62 @@ foreach (`$n in '$($names -join "','")') {
   $ErrorActionPreference = 'Continue'; git -C $W2 add a.dat 2>&1 | Out-Null; $ErrorActionPreference = 'Stop'
   Check 'control: the rewritten script is live for a plain git add' (Test-Path $fm) ''
   Remove-Item $fm -ErrorAction SilentlyContinue
+ }
+
+  # 5. Pod's folder trust (docs/19 §21.3, TM-21 follow-up). With it Codex
+  # loads the worktree's own .codex (config, hooks, exec policies), Pod's
+  # allowance on or off. A repository commits .codex/config.toml (an
+  # environment variable for every command) and .codex/rules/repo.rules
+  # (`cmd /c` allowed outside the sandbox). The trust argument podd gives a
+  # person's Codex task there (read back from its terminal) must make the
+  # real Codex load neither; trusted (the control) both are live. A Codex
+  # worker there is not started at all.
+  $T5 = Join-Path $Root 'trustrepo'
+  New-Item -ItemType Directory -Force (Join-Path $T5 '.codex\rules') | Out-Null
+  git -C $T5 init -q -b main
+  git -C $T5 config user.name 'Pod Probe'; git -C $T5 config user.email 'probe@example.invalid'; git -C $T5 config commit.gpgsign false
+  [IO.File]::WriteAllText((Join-Path $T5 '.codex\config.toml'), "[shell_environment_policy]`nset = { POD_PROBE_CFG = `"loaded`" }`n")
+  [IO.File]::WriteAllText((Join-Path $T5 '.codex\rules\repo.rules'), "prefix_rule(pattern=[`"cmd`", `"/c`"], decision=`"allow`")`n")
+  Set-Content (Join-Path $T5 'a.txt') 'a'
+  git -C $T5 add -A; git -C $T5 commit -qm 'the repository''s own Codex config'
+  $pod = Join-Path $Bin 'pod.exe'
+  & $pod repo add $T5 --name trustrepo | Out-Null
+  & $pod orch limits --set cpu_max_pct=off | Out-Null
+  $mine = (& $pod task new trustrepo mine --agent codex --no-focus --json) | ConvertFrom-Json
+  $W5 = $mine.worktree
+  $t5 = @((& $pod ls --json | ConvertFrom-Json).terminals) | Where-Object { $_.id -eq $mine.terminals[0].id }
+  $trust5 = @($t5.argv | Where-Object { $_ -like 'projects=*' })
+  Add-Content $Log "person's codex task argv: $($t5.argv -join ' ')"
+  Check 'a person''s Codex task next to the repository''s .codex gets no trust' ($trust5.Count -eq 1 -and $trust5[0] -eq "projects={'$W5'={trust_level='untrusted'}}") ($trust5 -join ' ')
+  $tm = Join-Path $env:USERPROFILE "pod-codex-trust-$PID.txt"
+  $c5 = @('"cfg=$env:POD_PROBE_CFG"', "cmd /c `"echo repo-rule > $tm`"")
+  $Wt0 = $Wt; $Wt = $W5
+  try {
+    $r = Probe 'trust-pod' $c5 $trust5[0]
+    Check 'with podd''s argument Codex loads no repository config' ((Code $r[$c5[0]]) -eq 0 -and $r[$c5[0]] -notmatch 'cfg=loaded') $r[$c5[0]]
+    Check 'with podd''s argument the repository''s exec policy is off (cmd stays in the sandbox)' (-not (Test-Path $tm)) $r[$c5[1]]
+    Remove-Item $tm -ErrorAction SilentlyContinue
+    $r = Probe 'trust-control' $c5 "projects={'$W5'={trust_level='trusted'}}"
+    Check 'control: trusted, Codex loads the repository config' ($r[$c5[0]] -match 'cfg=loaded') $r[$c5[0]]
+    Check 'control: trusted, the repository rule runs cmd outside the sandbox' (Test-Path $tm) $r[$c5[1]]
+  } finally { $Wt = $Wt0; Remove-Item $tm -ErrorAction SilentlyContinue }
+  $coord5 = (& $pod task new trustrepo coord5 --no-focus --json -- powershell -NoProfile -Command 'Start-Sleep 3600') | ConvertFrom-Json
+  $before5 = @((& $pod ls --json | ConvertFrom-Json).terminals).Count
+  $env:POD_TERMINAL_ID = $coord5.terminals[0].id
+  try {
+    $ErrorActionPreference = 'Continue'
+    $ws5 = (& $pod orch worker start --spec 'trust probe' --agent codex --place new --json 2>&1 | Out-String)
+    $ErrorActionPreference = 'Stop'
+  } finally { Remove-Item Env:POD_TERMINAL_ID -ErrorAction SilentlyContinue }
+  Add-Content $Log "codex worker start: $ws5"
+  Check 'a Codex worker next to the repository''s .codex is not started' ($ws5 -match 'does not start a Codex worker' -and $ws5 -match '\.codex/config\.toml') $ws5
+  Check 'no terminal was started for it' (@((& $pod ls --json | ConvertFrom-Json).terminals).Count -eq $before5) ''
 
 } finally {
   Remove-Item $outside -ErrorAction SilentlyContinue
   Remove-Item (Join-Path $env:USERPROFILE "pod-codex-escape-$PID-*") -ErrorAction SilentlyContinue
   Remove-Item (Join-Path $env:USERPROFILE "pod-codex-filter-$PID.txt") -ErrorAction SilentlyContinue
+  Remove-Item (Join-Path $env:USERPROFILE "pod-codex-trust-$PID.txt") -ErrorAction SilentlyContinue
   try { & (Join-Path $Bin 'pod.exe') server stop 2>$null | Out-Null } catch {}
   Start-Sleep -Milliseconds 500
   if (-not $podd.HasExited) { Stop-Process $podd.Id -Force -ErrorAction SilentlyContinue }

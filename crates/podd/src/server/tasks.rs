@@ -706,7 +706,13 @@ impl Daemon {
                 worktree.clone(),
                 eff.codex_allowance,
             );
-            blocking(move || super::codex_allowance::for_worker(&i, &a, &w, on)).await?;
+            // docs/19 §21.3: a Codex worker does not start next to `.codex`
+            // files Pod did not write.
+            if let Err(e) =
+                blocking(move || super::codex_allowance::for_worker(&i, &a, &w, on)).await?
+            {
+                return Err(rollback(RpcError::new(codes::INVALID_PARAMS, e)).await);
+            }
         }
         let argv = super::agent_launch::task_agent_argv(&agent, argv, &worktree);
         let run = self

@@ -722,3 +722,202 @@ fn forged_hooks_decide_no_gate_approve_nothing_and_wake_no_busy_terminal() {
     files.extend(files_without_tokens(&o.base));
     assert_no_secret("orchestration", &files, &[&tw, &tc]);
 }
+
+/// Start a worker of `o`'s run with `argv` as its agent (a new task).
+fn start_argv_worker(o: &Orch, spec: &str, argv: Vec<String>) -> OrchWorkerStartResult {
+    let w = o
+        .c()
+        .call::<OrchWorkerStart>(&OrchWorkerStartParams {
+            spec: Some(spec.into()),
+            agent: Some(AgentSpec::Argv { argv }),
+            place: Some("new".into()),
+            caller: OrchCaller {
+                terminal: Some(o.coord.clone()),
+                ..Default::default()
+            },
+            ..Default::default()
+        })
+        .unwrap();
+    assert_eq!(w.stage, "started", "{w:?}");
+    w
+}
+
+fn status_of(o: &Orch, id: &str) -> StatusInfo {
+    o.c()
+        .call::<TerminalShow>(&TerminalRef::id(id))
+        .unwrap()
+        .status
+        .unwrap()
+}
+
+/// docs/19 §21.1 (TM-22 wake rule), both kinds of agent:
+/// - with a status source (hooks/OSC; or Claude/Codex by its command
+///   line): `unknown` and a stale or contradicted state wait, and its own
+///   turn end wakes it;
+/// - without one (a program that never reports): `unknown` is woken as
+///   before.
+///
+/// `@idle` follows the same rule.
+#[test]
+fn wake_follows_the_agents_own_report_and_keeps_the_rule_without_one() {
+    let o = Orch::new("hook-trust-wake");
+    let w1 = start_argv_worker(&o, "Report", Orch::agent_argv(&o.base));
+    let a1 = w1.attempt.id.clone();
+    appear(&o.dir(&a1));
+    wait_status(&mut o.c(), w1.terminal.as_deref().unwrap(), "idle");
+    let send = |subject: &str| {
+        let out = &o.run(&a1, &[&["orch", "send", "--subject", subject, "--json"]])[0];
+        assert_eq!(out["code"], 0, "{out}");
+    };
+    let check = || {
+        let out = &o.run("coord", &[&["orch", "check", "--json"]])[0];
+        assert_eq!(out["code"], 0, "{out}");
+    };
+    o.passes();
+    check();
+    o.passes();
+
+    // 1. The coordinator reports through OSC, then takes the report back:
+    // `unknown` from an agent with a status source does not wake.
+    o.osc("coord", "state=clear");
+    wait_status(&mut o.c(), &o.coord, "unknown");
+    let wakes = o.wakes("coord");
+    send("while unknown");
+    o.passes();
+    o.passes();
+    assert_eq!(o.wakes("coord"), wakes, "woken while unknown");
+    // Control: its own idle wakes it (the wake-up was armed all along).
+    o.osc("coord", "state=idle");
+    until_true("woken on its own idle", 30, || o.wakes("coord") > wakes);
+    o.passes();
+    check();
+    o.passes();
+
+    // 2. A hook Stop, then the agent's own OSC says `working`: the fresh
+    // hook still shows `done`, but the agent's newest word is a turn in
+    // progress (the same as a hook gone stale under a quiet screen).
+    let tc = std::fs::read_to_string(o.d.state_dir.join(format!("{}.token", o.coord))).unwrap();
+    let s = ingest(
+        &o.d.pipe,
+        &[hook(
+            &o.coord,
+            Some(&tc),
+            "Stop",
+            json!({"hook_event_name": "Stop"}),
+        )],
+        &o.coord,
+    );
+    assert_eq!(
+        (s.state.as_str(), s.source.as_deref()),
+        ("done", Some("hook"))
+    );
+    o.osc("coord", "state=working");
+    wait_output(&mut o.c(), &o.coord, "osc state=working");
+    let s = status_of(&o, &o.coord);
+    assert_eq!(
+        (s.state.as_str(), s.source.as_deref()),
+        ("done", Some("hook")),
+        "{s:?}"
+    );
+    let wakes = o.wakes("coord");
+    send("while stale");
+    o.passes();
+    o.passes();
+    assert_eq!(o.wakes("coord"), wakes, "woken on a contradicted done");
+    o.osc("coord", "state=idle");
+    until_true("woken on its own turn end", 30, || o.wakes("coord") > wakes);
+    o.passes();
+    check();
+    o.passes();
+
+    // 3. Without a status source: a program that never reports (not an
+    // agent Pod knows) is `unknown` and is woken as before.
+    let silent_log = o.root.join("silent.log");
+    let w2 = start_argv_worker(
+        &o,
+        "Silent",
+        vec![
+            fake_agent_exe().display().to_string(),
+            format!("paste-loop-silent:{}", silent_log.display()),
+        ],
+    );
+    let (a2, t2) = (w2.attempt.id.clone(), w2.terminal.clone().unwrap());
+    // 4. Claude by its command line that has not reported (starting up, or
+    // no Pod hooks): `unknown` waits.
+    let bin = o.root.join("bin");
+    std::fs::create_dir_all(&bin).unwrap();
+    let claude = bin.join("claude.exe");
+    std::fs::copy(fake_agent_exe(), &claude).unwrap();
+    let claude_log = o.root.join("claude.log");
+    let w3 = start_argv_worker(
+        &o,
+        "Quiet Claude",
+        vec![
+            claude.display().to_string(),
+            format!("paste-loop-silent:{}", claude_log.display()),
+        ],
+    );
+    let (a3, t3) = (w3.attempt.id.clone(), w3.terminal.clone().unwrap());
+    let typed = |p: &Path| std::fs::read_to_string(p).unwrap_or_default();
+    // Both took the typed brief line and say nothing about themselves.
+    until_true("the briefs were typed", 30, || {
+        typed(&silent_log).contains("<<<END") && typed(&claude_log).contains("<<<END")
+    });
+    let (s2, s3) = (status_of(&o, &t2), status_of(&o, &t3));
+    assert_eq!(
+        (s2.state.as_str(), s2.agent.as_deref()),
+        ("unknown", None),
+        "{s2:?}"
+    );
+    assert_eq!(
+        (s3.state.as_str(), s3.agent.as_deref()),
+        ("unknown", Some("claude")),
+        "{s3:?}"
+    );
+    // `@idle`: the reporting idle worker and the silent one, not the quiet
+    // Claude.
+    let out = &o.run(
+        "coord",
+        &[&[
+            "orch",
+            "send",
+            "--to",
+            "@idle",
+            "--subject",
+            "all idle",
+            "--json",
+        ]],
+    )[0];
+    assert_eq!(out["code"], 0, "{out}");
+    let mut to: Vec<String> = serde_json::from_str::<Value>(out["stdout"].as_str().unwrap())
+        .unwrap()["recipients"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .map(|v| v.as_str().unwrap().to_string())
+        .collect();
+    to.sort();
+    let mut want = vec![format!("attempt:{a1}"), format!("attempt:{a2}")];
+    want.sort();
+    assert_eq!(to, want, "@idle");
+    // Mail to both: the silent program is woken, the quiet Claude is not.
+    for a in [&a2, &a3] {
+        let to = format!("attempt:{a}");
+        let out = &o.run(
+            "coord",
+            &[&["orch", "send", "--to", &to, "--subject", "hello", "--json"]],
+        )[0];
+        assert_eq!(out["code"], 0, "{out}");
+    }
+    until_true("the silent program is woken", 30, || {
+        typed(&silent_log).contains("pod mail: ")
+    });
+    o.passes();
+    o.passes();
+    assert!(
+        !typed(&claude_log).contains("pod mail: "),
+        "a Claude that never reported was woken: {}",
+        typed(&claude_log)
+    );
+    assert_eq!(status_of(&o, &t3).state, "unknown");
+}

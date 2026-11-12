@@ -5,7 +5,7 @@
   "changes": [
     "fx-app (2026-11-11), intended bug fix, edited by hand: a control/input result that does not decode fails only that request and keeps the connection. Cases: control 'poll repo.list with a bad shape keeps the connection', 'run bad result fails the request and keeps the connection', 'kill with a bad result fails the request and keeps the connection', 'task create bad result fails the request and keeps the connection'; input 'bad result keeps the connection' (a second send shows the kept connection). Everything else is the 84bdf9e capture."
   ],
-  "protocol_version": 20,
+  "protocol_version": 21,
   "daemon_defaults": {
     "terminal.list": {
       "result": {

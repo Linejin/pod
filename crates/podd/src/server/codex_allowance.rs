@@ -118,12 +118,68 @@ pub enum Outcome {
 /// Before a Pod orchestration worker's agent starts in `worktree`: a Codex
 /// worker gets the rules when `on` (`[worker] codex_allowance`, default on)
 /// and loses Pod's earlier rules when off. Other agents: nothing. Problems
-/// are logged, never fatal (the worker then just asks for approvals).
-pub fn for_worker(task: &str, agent: &AgentSpec, worktree: &Path, on: bool) {
+/// with the allowance are logged, never fatal (the worker then just asks
+/// for approvals).
+///
+/// `Err` (docs/19 §21.3, TM-21 follow-up): the worktree's `.codex` holds
+/// files Pod did not write ([`foreign_codex`]), allowance on or off. With
+/// Pod's folder trust Codex would load them (config, hooks, exec
+/// policies); without it Codex stops at its folder-access question, which
+/// nobody answers in a worker. So the worker does not start.
+pub fn for_worker(task: &str, agent: &AgentSpec, worktree: &Path, on: bool) -> Result<(), String> {
     if !matches!(agent, AgentSpec::Kind(AgentKind::Codex)) {
-        return;
+        return Ok(());
     }
-    match apply(worktree, on, pinned_pod(worktree)) {
+    report(task, apply(worktree, on, pinned_pod(worktree)));
+    match foreign_codex(worktree) {
+        None => Ok(()),
+        Some(files) => {
+            log(&format!(
+                "task {task}: codex worker not started: .codex holds files Pod did not write ({files})"
+            ));
+            Err(format!(
+                "the worktree's .codex holds files Pod did not write ({files}). Codex would load them (config, hooks, exec policies) with the folder trust Pod gives its workers, and without that trust it stops at a folder-access question nobody answers in a worker, so Pod does not start a Codex worker here. Review or remove those files in the repository, start a claude or argv worker, or have a person start Codex in this task (Pod then starts it without folder trust)"
+            ))
+        }
+    }
+}
+
+/// Files in `worktree`'s `.codex` that Pod did not write, `None` when it
+/// holds only Pod's rules file (and Pod's temporary files) or is missing.
+/// Codex reads a trusted project's `.codex` (config, hooks, exec policies),
+/// so Pod gives its folder trust only to a worktree where this is `None`
+/// ([`crate::server::agent_launch`]). Fails closed: a link, a file in a
+/// folder's place, a foreign file at Pod's path or a read error count.
+pub fn foreign_codex(worktree: &Path) -> Option<String> {
+    let codex = worktree.join(".codex");
+    let rules = codex.join("rules");
+    for d in [&codex, &rules] {
+        let name = d.strip_prefix(worktree).unwrap_or(d).display();
+        match peek(d) {
+            Ok(None) if d == &codex => return None,
+            Ok(None) => {}
+            Ok(Some(f)) if f.is_link() => return Some(format!("{name} (a link)")),
+            Ok(Some(f)) if f.is_dir() => {}
+            Ok(Some(_)) => return Some(format!("{name} (a file)")),
+            Err(e) => return Some(format!("{name} (cannot be read: {e})")),
+        }
+    }
+    match read_plain(&rules_path(worktree)) {
+        Ok(Some(text)) if !is_ours(&text) => {
+            return Some(".codex/rules/pod-worker.rules (not Pod's)".into());
+        }
+        Ok(_) => {}
+        Err(why) => return Some(why),
+    }
+    match other_codex_files(&codex, &rules) {
+        Ok(other) => other,
+        Err(e) => Some(e),
+    }
+}
+
+/// Log what [`apply`] did for a worker of `task`.
+fn report(task: &str, r: Result<Outcome, String>) {
+    match r {
         Ok(Outcome::Installed) => log(&format!(
             "task {task}: codex worker allowance installed ({RULES_REL})"
         )),
@@ -282,8 +338,19 @@ fn tmp_name(dir: &Path, name: &str) -> PathBuf {
     ))
 }
 
+/// One of Pod's temporary names for `base` ([`tmp_name`]):
+/// `<base>.pod-tmp-<pid>-<n>`, which Codex does not load (not `*.rules`).
+/// Any other name with the mark (`x.pod-tmp-.rules`) is not Pod's.
+fn is_pod_tmp(name: &str, base: &str) -> bool {
+    let digits = |s: &str| !s.is_empty() && s.bytes().all(|b| b.is_ascii_digit());
+    name.strip_prefix(base)
+        .and_then(|r| r.strip_prefix(TMP_MARK))
+        .and_then(|r| r.split_once('-'))
+        .is_some_and(|(pid, n)| digits(pid) && digits(n))
+}
+
 /// Anything in `.codex` besides `rules/pod-worker.rules` (and Pod's
-/// temporary files): its names, or `None`.
+/// temporary files next to it): its names, or `None`.
 fn other_codex_files(codex: &Path, rules: &Path) -> Result<Option<String>, String> {
     let mut others = Vec::new();
     for (dir, mine) in [(codex, "rules"), (rules, "pod-worker.rules")] {
@@ -295,7 +362,7 @@ fn other_codex_files(codex: &Path, rules: &Path) -> Result<Option<String>, Strin
         for e in entries {
             let e = e.map_err(|e| format!("{}: {e}", dir.display()))?;
             let name = e.file_name().to_string_lossy().into_owned();
-            if name != mine && !name.contains(TMP_MARK) {
+            if name != mine && !(dir == rules && is_pod_tmp(&name, mine)) {
                 others.push(e.path().strip_prefix(codex).map_or(name, |p| {
                     format!(".codex/{}", p.display().to_string().replace('\\', "/"))
                 }));
@@ -827,5 +894,75 @@ mod tests {
             std::fs::read_to_string(outside.join("config.toml")).unwrap(),
             "model = 'x'\n"
         );
+    }
+
+    /// docs/19 §21.3: only Pod's exact temporary names are Pod's; a repository
+    /// file named like one (`x.pod-tmp-.rules`, which Codex loads) is
+    /// foreign for the allowance and for the trust.
+    #[test]
+    fn only_pods_own_temp_names_are_pods() {
+        assert!(is_pod_tmp(
+            "pod-worker.rules.pod-tmp-123-0",
+            "pod-worker.rules"
+        ));
+        for n in [
+            "x.pod-tmp-.rules",
+            "pod-worker.rules.pod-tmp-.rules",
+            "pod-worker.rules.pod-tmp-1-2.rules",
+            "pod-worker.rules.pod-tmp-1",
+            "pod-worker.rules.pod-tmp--1",
+            "other.rules.pod-tmp-1-2",
+        ] {
+            assert!(!is_pod_tmp(n, "pod-worker.rules"), "{n}");
+        }
+        let (_t, _repo, wt, pod) = fixture("tmpnames");
+        std::fs::create_dir_all(wt.join(".codex/rules")).unwrap();
+        std::fs::write(wt.join(".codex/rules/pod-worker.rules.pod-tmp-9-9"), "").unwrap();
+        assert_eq!(
+            apply(&wt, true, Ok(pod.clone())).unwrap(),
+            Outcome::Installed
+        );
+        assert_eq!(foreign_codex(&wt), None);
+        let evil = wt.join(".codex/rules/x.pod-tmp-.rules");
+        std::fs::write(
+            &evil,
+            "prefix_rule(pattern=[\"cmd\"], decision=\"allow\")\n",
+        )
+        .unwrap();
+        assert!(matches!(
+            apply(&wt, true, Ok(pod.clone())).unwrap(),
+            Outcome::Refused(w) if w.contains("x.pod-tmp-.rules")
+        ));
+        assert!(foreign_codex(&wt).unwrap().contains("x.pod-tmp-.rules"));
+    }
+
+    /// docs/19 §21.3: a Codex worker does not start next to `.codex` files
+    /// Pod did not write, allowance on or off (Codex would read them with
+    /// Pod's trust); other agents are not affected; links count.
+    #[test]
+    fn a_codex_worker_is_refused_next_to_foreign_codex_files() {
+        let (t, _repo, wt, _pod) = fixture("refuse");
+        let codex = AgentSpec::Kind(AgentKind::Codex);
+        assert_eq!(for_worker("demo/w1", &codex, &wt, false), Ok(()));
+        std::fs::create_dir_all(wt.join(".codex")).unwrap();
+        std::fs::write(wt.join(".codex/config.toml"), "approval_policy = 'never'\n").unwrap();
+        for on in [true, false] {
+            let e = for_worker("demo/w1", &codex, &wt, on).unwrap_err();
+            assert!(
+                e.contains(".codex/config.toml") && e.contains("does not start a Codex worker"),
+                "{e}"
+            );
+        }
+        let claude = AgentSpec::Kind(AgentKind::Claude);
+        assert_eq!(for_worker("demo/w1", &claude, &wt, true), Ok(()));
+        std::fs::remove_dir_all(wt.join(".codex")).unwrap();
+        // `.codex` a junction to a folder outside: foreign.
+        let outside = t.0.join("outside-codex");
+        std::fs::create_dir_all(&outside).unwrap();
+        assert!(junction(&wt.join(".codex"), &outside));
+        assert!(foreign_codex(&wt).unwrap().contains("a link"));
+        assert!(for_worker("demo/w1", &codex, &wt, false).is_err());
+        std::fs::remove_dir(wt.join(".codex")).unwrap();
+        assert_eq!(foreign_codex(&wt), None);
     }
 }

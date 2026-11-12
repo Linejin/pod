@@ -19,6 +19,26 @@ pub fn default_pipe() -> String {
     pipe_path(&format!("podd-{}", sanitize(&user)))
 }
 
+/// Suffix of the restricted worker endpoint's pipe (docs/19 §20).
+pub const WORKER_PIPE_SUFFIX: &str = "-worker";
+
+/// The restricted worker endpoint of the daemon on `pipe`:
+/// `\\.\pipe\podd-alice-worker`. Same-user DACL like the full pipe, but a
+/// connection there acts for one Pod worker only (its attempt token, said
+/// in `connection.hello`) and reaches a method allowlist. The full pipe is
+/// the OS user: whoever can open it can do everything.
+pub fn worker_pipe(pipe: &str) -> String {
+    format!("{}{WORKER_PIPE_SUFFIX}", pipe_path(pipe))
+}
+
+/// Is `pipe` a worker endpoint (never a daemon's own pipe)?
+pub fn is_worker_pipe(pipe: &str) -> bool {
+    let p = pipe_path(pipe);
+    p.len() > PIPE_PREFIX.len() + WORKER_PIPE_SUFFIX.len()
+        && p.to_ascii_lowercase()
+            .ends_with(&WORKER_PIPE_SUFFIX.to_ascii_lowercase())
+}
+
 /// Accepts a bare name (`podd-test`) or a full path (`\\.\pipe\podd-test`).
 pub fn pipe_path(name_or_path: &str) -> String {
     if name_or_path.starts_with(r"\\") {
@@ -67,5 +87,20 @@ mod tests {
         assert_eq!(pipe_path("podd-x"), r"\\.\pipe\podd-x");
         assert_eq!(pipe_path(r"\\.\pipe\podd-x"), r"\\.\pipe\podd-x");
         assert_eq!(sanitize("a b\\c"), "a_b_c");
+    }
+
+    #[test]
+    fn worker_pipes() {
+        assert_eq!(worker_pipe("podd-x"), r"\\.\pipe\podd-x-worker");
+        assert_eq!(worker_pipe(r"\\.\pipe\podd-x"), r"\\.\pipe\podd-x-worker");
+        assert!(is_worker_pipe(r"\\.\pipe\podd-x-worker"));
+        assert!(is_worker_pipe("podd-x-WORKER"));
+        assert!(!is_worker_pipe(r"\\.\pipe\podd-x"));
+        assert!(!is_worker_pipe("-worker"));
+        // Its own holder pipes stay apart.
+        assert_ne!(
+            pipe_key(&worker_pipe("podd-x")),
+            pipe_key(&holder_pipe("podd-x", "t1"))
+        );
     }
 }

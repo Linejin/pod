@@ -552,6 +552,9 @@ fn gate(cmd: OrchGateCmd, c: &mut Client, who: OrchCaller, json: bool) -> anyhow
                 note,
                 caller: who,
                 request_id: Some(request_id()),
+                // The agents' command: outside Pod terminals it is not a
+                // person's decision (that is `pod gate approve`, docs/19 §20).
+                person: false,
             })?;
             if json {
                 print_json(&g);

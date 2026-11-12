@@ -45,6 +45,27 @@ pub fn bind(config: &ServerConfig) -> anyhow::Result<(NamedPipeServer, UserOnly)
     }
 }
 
+/// One instance of the restricted worker endpoint (docs/19 §20):
+/// `<pipe>-worker`, the same current-user DACL, no remote clients. The
+/// first instance must be ours: a process holding that name before the
+/// daemon would receive the workers' tokens, so the start fails then.
+fn worker_instance(pipe: &str, sa: &UserOnly, first: bool) -> anyhow::Result<NamedPipeServer> {
+    // SAFETY: `sa` outlives the call.
+    let res = unsafe {
+        ServerOptions::new()
+            .first_pipe_instance(first)
+            .reject_remote_clients(true)
+            .create_with_security_attributes_raw(pipe, sa.as_ptr())
+    };
+    res.map_err(|e| {
+        if e.raw_os_error() == Some(ERROR_ACCESS_DENIED) {
+            anyhow::anyhow!("another process already owns the worker endpoint {pipe}")
+        } else {
+            anyhow::anyhow!("cannot create the worker endpoint {pipe}: {e}")
+        }
+    })
+}
+
 /// Serve until `server.stop`.
 pub async fn serve(
     config: ServerConfig,
@@ -52,6 +73,8 @@ pub async fn serve(
     sa: UserOnly,
 ) -> anyhow::Result<()> {
     std::fs::create_dir_all(&config.state_dir)?;
+    let worker_pipe = crate::endpoint::worker_pipe(&config.pipe);
+    let mut worker_server = worker_instance(&worker_pipe, &sa, true)?;
     terminal::set_attach_queue_limit(config.attach_queue_limit);
     query_dedup::set_reply_window_ms(config.reply_window_ms);
     let (shutdown, mut shutdown_rx) = watch::channel(None);
@@ -89,7 +112,7 @@ pub async fn serve(
         mobile,
     });
     log(&format!(
-        "listening on {} (pid {}, state {})",
+        "listening on {} (pid {}, state {}); workers on {worker_pipe}",
         daemon.config.pipe,
         std::process::id(),
         daemon.config.state_dir.display()
@@ -138,14 +161,40 @@ pub async fn serve(
                 let conn = std::mem::replace(&mut server, next);
                 let daemon = daemon.clone();
                 tokio::spawn(async move {
-                    if let Err(e) = serve_connection(daemon, conn).await {
+                    if let Err(e) = serve_connection(daemon, conn, Endpoint::Full).await {
                         log(&format!("connection error: {e}"));
+                    }
+                });
+            }
+            res = worker_server.connect() => {
+                // A failed accept costs this instance only; the full pipe
+                // and the daemon go on.
+                let next = match worker_instance(&worker_pipe, &daemon.sa, false) {
+                    Ok(n) => n,
+                    Err(e) => {
+                        log(&format!("worker endpoint: {e}"));
+                        tokio::time::sleep(Duration::from_millis(200)).await;
+                        continue;
+                    }
+                };
+                let conn = std::mem::replace(&mut worker_server, next);
+                if let Err(e) = res {
+                    log(&format!("worker endpoint accept: {e}"));
+                    continue;
+                }
+                let daemon = daemon.clone();
+                tokio::spawn(async move {
+                    if let Err(e) = serve_connection(daemon, conn, Endpoint::Worker).await {
+                        log(&format!("worker connection error: {e}"));
                     }
                 });
             }
             _ = shutdown_rx.changed() => break,
         }
     }
+    // Workers reach no new connection while stopping (they never start a
+    // daemon themselves, and reconnect to the next one).
+    drop(worker_server);
 
     // Stop taking connections, but keep the pipe name until this process
     // exits: a client connecting now waits (all instances busy) and then
@@ -234,7 +283,7 @@ async fn plug_listener(
                 let conn = std::mem::replace(&mut server, next);
                 let daemon = daemon.clone();
                 tokio::spawn(async move {
-                    let _ = serve_connection(daemon, conn).await;
+                    let _ = serve_connection(daemon, conn, Endpoint::Full).await;
                 });
             }
         }
@@ -300,6 +349,7 @@ impl Daemon {
             terminals: terms.len(),
             running: terms.iter().filter(|t| t.is_running()).count(),
             state_dir: self.config.state_dir.display().to_string(),
+            endpoint: Some(super::connection::current_endpoint()),
         }
     }
 

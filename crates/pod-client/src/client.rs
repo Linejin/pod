@@ -92,7 +92,22 @@ impl Client {
     ///
     /// While every instance is taken (normally a few ms between accepts; a
     /// stopping daemon until it exits) it waits up to 15 s.
+    ///
+    /// On a worker endpoint (docs/19 §20) a worker environment's attempt
+    /// and token are said first ([`Client::worker_hello`]); without them
+    /// the endpoint refuses every request.
     pub fn connect(pipe: &str) -> Result<Self, ClientError> {
+        let mut c = Self::connect_raw(pipe)?;
+        if crate::endpoint::is_worker_pipe(pipe)
+            && let Some((attempt, token)) = crate::env::worker_identity()
+        {
+            c.worker_hello(&attempt, &token)?;
+        }
+        Ok(c)
+    }
+
+    /// [`Client::connect`] without the worker hello.
+    pub fn connect_raw(pipe: &str) -> Result<Self, ClientError> {
         let deadline = Instant::now() + BUSY_WAIT;
         loop {
             match Transport::open_pipe(pipe) {
@@ -147,6 +162,18 @@ impl Client {
         match Self::connect(pipe) {
             Err(ClientError::NotRunning) => {}
             other => return other,
+        }
+        // docs/19 §20: a worker (its env, or its endpoint) never starts a
+        // daemon: the daemon that started it is gone, and one started from
+        // here would run outside the worker's sandbox with its env.
+        if crate::env::in_worker_env() || crate::endpoint::is_worker_pipe(pipe) {
+            return Err(ClientError::Io(std::io::Error::new(
+                ErrorKind::NotFound,
+                format!(
+                    "podd is not running on {pipe}; a Pod worker does not start a daemon \
+                     (POD_ATTEMPT_ID or the worker endpoint): ask a person to start Pod"
+                ),
+            )));
         }
         let exe = match daemon_exe {
             Some(p) => p.to_path_buf(),
@@ -208,6 +235,7 @@ impl Client {
             max_protocol: PROTOCOL_VERSION,
             require: require.iter().map(|c| c.to_string()).collect(),
             client: Some(format!("pod {}", env!("CARGO_PKG_VERSION"))),
+            worker: None,
         };
         let hello = match self.call::<ConnectionHello>(&params) {
             Err(ClientError::Rpc(e)) if e.code == codes::METHOD_NOT_FOUND => {
@@ -235,6 +263,25 @@ impl Client {
                 missing.join(", ")
             )));
         }
+        self.protocol = Some(hello.protocol);
+        Ok(hello)
+    }
+
+    /// The worker endpoint's hello (v21, docs/19 §20): say which Pod worker
+    /// this connection speaks for. The daemon checks the token and from
+    /// then on derives every request's caller from it. Fails with
+    /// `worker_codes::NO_WORKER` for a wrong token.
+    pub fn worker_hello(&mut self, attempt: &str, token: &str) -> Result<HelloResult, ClientError> {
+        let hello = self.call::<ConnectionHello>(&HelloParams {
+            min_protocol: WORKER_ENDPOINT_PROTOCOL,
+            max_protocol: PROTOCOL_VERSION,
+            require: Vec::new(),
+            client: Some(format!("pod {} (worker)", env!("CARGO_PKG_VERSION"))),
+            worker: Some(WorkerAuth {
+                attempt: attempt.to_string(),
+                token: token.to_string(),
+            }),
+        })?;
         self.protocol = Some(hello.protocol);
         Ok(hello)
     }
@@ -448,14 +495,32 @@ pub fn spawn_daemon(exe: &Path, pipe: &str) -> Result<(), ClientError> {
     if let Some(dir) = log.parent() {
         let _ = std::fs::create_dir_all(dir);
     }
-    let mut cmd = Command::new(exe);
-    cmd.arg("--pipe").arg(pipe).arg("--log").arg(&log);
+    let mut cmd = daemon_command(exe, pipe, &log, std::env::vars_os());
     // Start the daemon somewhere that never blocks a directory from being removed.
     if let Some(home) = std::env::var_os("USERPROFILE") {
         cmd.current_dir(home);
     }
     spawn_detached(&mut cmd)?;
     Ok(())
+}
+
+/// The daemon's command line, with every variable of `env` (the starting
+/// shell's) that must not reach it removed (docs/19 §20): no terminal or
+/// worker identity, hook token, program override or git setting.
+fn daemon_command(
+    exe: &Path,
+    pipe: &str,
+    log: &Path,
+    env: impl IntoIterator<Item = (std::ffi::OsString, std::ffi::OsString)>,
+) -> Command {
+    let mut cmd = Command::new(exe);
+    cmd.arg("--pipe").arg(pipe).arg("--log").arg(log);
+    for (k, _) in env {
+        if k.to_str().is_some_and(crate::env::is_daemon_env_leak) {
+            cmd.env_remove(k);
+        }
+    }
+    cmd
 }
 
 /// Spawn with no console, no window, `NUL` stdio and **no other inherited
@@ -758,6 +823,48 @@ impl Client {
 mod tests {
     use super::*;
     use std::io::Cursor;
+
+    /// docs/19 §20 (rm-o3 follow-up): a daemon `pod` starts gets none of
+    /// the starting shell's worker/terminal identity or git settings; its
+    /// other settings pass.
+    #[test]
+    fn a_started_daemon_gets_no_worker_or_git_env() {
+        let env = [
+            ("POD_ATTEMPT_ID", "a1"),
+            ("POD_ATTEMPT_TOKEN", "secret"),
+            ("POD_SOCKET", r"\\.\pipe\x-worker"),
+            ("pod_terminal_id", "t3"),
+            ("POD_HOOK_TOKEN", "h"),
+            ("POD_GIT", r"C:\wt\git.exe"),
+            ("GIT_CONFIG_COUNT", "1"),
+            ("GIT_CONFIG_PARAMETERS", "'core.hookspath'='x'"),
+            ("Git_Dir", r"C:\wt\.git"),
+            ("POD_HOLDER", r"C:\pod\pod-holder.exe"),
+            ("PATH", r"C:\bin"),
+        ]
+        .map(|(k, v)| (std::ffi::OsString::from(k), std::ffi::OsString::from(v)));
+        let cmd = daemon_command(Path::new("podd.exe"), r"\\.\pipe\x", Path::new("l"), env);
+        let removed: Vec<String> = cmd
+            .get_envs()
+            .filter(|(_, v)| v.is_none())
+            .map(|(k, _)| k.to_string_lossy().to_ascii_uppercase())
+            .collect();
+        for k in [
+            "POD_ATTEMPT_ID",
+            "POD_ATTEMPT_TOKEN",
+            "POD_SOCKET",
+            "POD_TERMINAL_ID",
+            "POD_HOOK_TOKEN",
+            "POD_GIT",
+            "GIT_CONFIG_COUNT",
+            "GIT_CONFIG_PARAMETERS",
+            "GIT_DIR",
+        ] {
+            assert!(removed.contains(&k.to_string()), "{k}: {removed:?}");
+        }
+        assert!(!removed.iter().any(|k| k == "POD_HOLDER" || k == "PATH"));
+        assert!(cmd.get_envs().all(|(_, v)| v.is_none()), "nothing added");
+    }
 
     fn reply(chunks: u32, bytes: u64) -> AttachResult {
         AttachResult {

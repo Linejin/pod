@@ -491,7 +491,11 @@ impl Daemon {
                 .map(|t| PathBuf::from(t.worktree)),
         };
         if let Some(dir) = git_dir {
-            env.extend(self.worker_git_guard(dir).await);
+            env.extend(
+                self.worker_git_guard(dir)
+                    .await
+                    .map_err(fail("git_guard"))?,
+            );
         }
         match place {
             "new" => {
@@ -619,7 +623,9 @@ impl Daemon {
                         crate::server::codex_allowance::for_worker(&id, &a, &w, on)
                     })
                     .await
-                    .map_err(fail("terminal"))?;
+                    .map_err(fail("terminal"))?
+                    // docs/19 §21.3: not next to `.codex` files Pod did not write.
+                    .map_err(|e| fail("terminal")(RpcError::new(codes::INVALID_PARAMS, e)))?;
                     argv = crate::server::agent_launch::task_agent_argv(agent, argv, &wt);
                 }
                 let info = self
@@ -658,13 +664,16 @@ impl Daemon {
     /// docs/19 §18.5: environment overrides that keep a worker's git (and
     /// git its agent program runs) from starting repository programs:
     /// [`crate::env::worker_git_guard`] with the filter drivers configured
-    /// for `dir`, appended to the user's own command-line git config.
-    async fn worker_git_guard(&self, dir: PathBuf) -> BTreeMap<String, String> {
+    /// for `dir`, appended to the user's own command-line git config. `Err`
+    /// when Pod's empty hooks folder is not one it can vouch for
+    /// ([`no_hooks_dir`]): the worker does not start.
+    async fn worker_git_guard(&self, dir: PathBuf) -> Result<BTreeMap<String, String>, RpcError> {
         let base = self.terminal_env("t0", BTreeMap::new());
-        let no_hooks = self.config.state_dir.join("orch").join("no-hooks");
-        let nh = no_hooks.clone();
+        let state = self.config.state_dir.clone();
+        let no_hooks = crate::server::tasks::blocking(move || no_hooks_dir(&state))
+            .await?
+            .map_err(|e| RpcError::new(codes::INTERNAL_ERROR, e))?;
         let read = crate::server::tasks::blocking(move || {
-            std::fs::create_dir_all(&nh).map_err(|e| format!("{}: {e}", nh.display()))?;
             crate::git::output(
                 &dir,
                 &[
@@ -687,7 +696,95 @@ impl Daemon {
                 Vec::new()
             }
         };
-        crate::env::worker_git_guard(&base, &drivers, &no_hooks.display().to_string())
+        Ok(crate::env::worker_git_guard(
+            &base,
+            &drivers,
+            &no_hooks.display().to_string(),
+        ))
+    }
+}
+
+/// Pod's empty hooks folder `<state>\orch\no-hooks`, the `core.hooksPath` of
+/// every worker git and of podd's commits for workers (docs/19 §21.2, TM-21,
+/// rm-o3 report). Only a folder this podd created is used: it is created
+/// without following links (`CreateDirectoryW` on the last name), checked
+/// by handle (a plain folder, not a link or other reparse point, reached by
+/// its own name, empty) and remembered by its file id. A link, a file, or a
+/// folder with anything in it that is already there is refused and left
+/// alone. An empty plain folder this podd did not create (an earlier podd's,
+/// or one made by someone else) is removed and created again, so the folder
+/// in use, its owner and permissions are Pod's own.
+pub(crate) fn no_hooks_dir(state_dir: &std::path::Path) -> Result<PathBuf, String> {
+    use crate::git::pin::{facts, final_key, open_no_follow, peek};
+    use std::sync::Mutex;
+    /// Path key -> file id of the folder this podd created.
+    static MADE: Mutex<BTreeMap<String, (u32, u64)>> = Mutex::new(BTreeMap::new());
+
+    let parent = state_dir.join("orch");
+    let dir = parent.join("no-hooks");
+    let refuse = |why: &str| {
+        Err(format!(
+            "Pod's empty hooks folder {} {why}; Pod does not use a hooks folder it did not create (no worker git, no commit for workers) until it is removed",
+            dir.display()
+        ))
+    };
+    std::fs::create_dir_all(&parent).map_err(|e| format!("{}: {e}", parent.display()))?;
+    let key = crate::git::path_key(&dir);
+    let mut made = MADE.lock().unwrap_or_else(|p| p.into_inner());
+    match peek(&dir) {
+        Ok(None) => {}
+        Ok(Some(f)) if f.is_link() => {
+            return refuse("is a symbolic link, junction or other reparse point");
+        }
+        Ok(Some(f)) if !f.is_dir() => return refuse("is a file"),
+        Ok(Some(f)) => {
+            let empty = std::fs::read_dir(&dir)
+                .map_err(|e| format!("{}: {e}", dir.display()))?
+                .next()
+                .is_none();
+            if !empty {
+                return refuse("is not empty");
+            }
+            if made.get(&key) == Some(&f.id) {
+                return Ok(dir);
+            }
+            // Empty, plain, not this podd's: replace it (a junction swapped
+            // in meanwhile is removed as a link, never followed).
+            std::fs::remove_dir(&dir).map_err(|e| {
+                format!(
+                    "{} was not created by this podd and could not be replaced: {e}",
+                    dir.display()
+                )
+            })?;
+        }
+        Err(e) => return refuse(&format!("cannot be read ({e})")),
+    }
+    match std::fs::create_dir(&dir) {
+        Ok(()) => {}
+        Err(e) if e.kind() == std::io::ErrorKind::AlreadyExists => {
+            return refuse("appeared while Pod was creating it");
+        }
+        Err(e) => return Err(format!("{}: {e}", dir.display())),
+    }
+    let check = || -> std::io::Result<Result<(u32, u64), &'static str>> {
+        let h = open_no_follow(&dir, true)?;
+        let p = open_no_follow(&parent, true)?;
+        let x = facts(&h)?;
+        Ok(if x.is_link() || !x.is_dir() {
+            Err("is not a plain folder")
+        } else if final_key(&h)? != format!("{}\\no-hooks", final_key(&p)?) {
+            Err("is reached through another name")
+        } else {
+            Ok(x.id)
+        })
+    };
+    match check() {
+        Ok(Ok(id)) => {
+            made.insert(key, id);
+            Ok(dir)
+        }
+        Ok(Err(why)) => refuse(why),
+        Err(e) => refuse(&format!("cannot be read ({e})")),
     }
 }
 
@@ -926,5 +1023,98 @@ mod tests {
             "{b}"
         );
         assert!(!b.chars().any(pod_orch::trust::is_hidden));
+    }
+
+    struct Tmp(PathBuf);
+    impl Drop for Tmp {
+        fn drop(&mut self) {
+            // A junction is removed as a link (its target stays).
+            let _ = std::fs::remove_dir(self.0.join("orch").join("no-hooks"));
+            let _ = std::fs::remove_dir_all(&self.0);
+        }
+    }
+
+    fn state(tag: &str) -> Tmp {
+        let t = std::env::temp_dir().join(format!("podd-nohooks-{tag}-{}", std::process::id()));
+        let _ = std::fs::remove_dir(t.join("orch").join("no-hooks"));
+        let _ = std::fs::remove_dir_all(&t);
+        std::fs::create_dir_all(&t).unwrap();
+        Tmp(t)
+    }
+
+    fn id(p: &std::path::Path) -> (u32, u64) {
+        crate::git::pin::peek(p).unwrap().unwrap().id
+    }
+
+    /// docs/19 §21.2 (rm-o3 report): Pod creates its hooks folder itself and
+    /// uses only that one: missing -> created; again -> the same folder.
+    #[test]
+    fn no_hooks_dir_is_created_and_kept_by_this_podd() {
+        let s = state("fresh");
+        let d = no_hooks_dir(&s.0).unwrap();
+        assert_eq!(d, s.0.join("orch").join("no-hooks"));
+        let f = crate::git::pin::peek(&d).unwrap().unwrap();
+        assert!(f.is_dir() && !f.is_link());
+        assert_eq!(std::fs::read_dir(&d).unwrap().count(), 0);
+        assert_eq!(no_hooks_dir(&s.0).unwrap(), d);
+        assert_eq!(id(&d), f.id, "the same folder, not a new one");
+    }
+
+    /// A link (junction) or a folder with something in it that is already
+    /// there is refused and left alone; an empty plain folder this podd
+    /// did not create is replaced by a new one.
+    #[test]
+    fn no_hooks_dir_refuses_links_and_folders_pod_did_not_create() {
+        // A junction to a folder holding a hook: refused, nothing changed.
+        let s = state("junction");
+        let hooks = s.0.join("evil-hooks");
+        std::fs::create_dir_all(&hooks).unwrap();
+        std::fs::write(hooks.join("pre-commit"), "#!/bin/sh\n").unwrap();
+        std::fs::create_dir_all(s.0.join("orch")).unwrap();
+        let nh = s.0.join("orch").join("no-hooks");
+        assert!(crate::git::pin::junction(&nh, &hooks), "mklink /J");
+        let e = no_hooks_dir(&s.0).unwrap_err();
+        assert!(e.contains("junction"), "{e}");
+        assert!(crate::git::pin::peek(&nh).unwrap().unwrap().is_link());
+        assert!(hooks.join("pre-commit").exists());
+
+        // A plain folder with a hook in it: refused, the file stays.
+        let s = state("full");
+        let nh = s.0.join("orch").join("no-hooks");
+        std::fs::create_dir_all(&nh).unwrap();
+        std::fs::write(nh.join("pre-commit"), "#!/bin/sh\n").unwrap();
+        let e = no_hooks_dir(&s.0).unwrap_err();
+        assert!(e.contains("not empty"), "{e}");
+        assert!(nh.join("pre-commit").exists());
+
+        // A file in its place: refused.
+        let s = state("file");
+        std::fs::create_dir_all(s.0.join("orch")).unwrap();
+        std::fs::write(s.0.join("orch").join("no-hooks"), "x").unwrap();
+        assert!(no_hooks_dir(&s.0).unwrap_err().contains("is a file"));
+
+        // An empty plain folder Pod did not create (an earlier podd's, or
+        // someone else's): removed and created again.
+        let s = state("foreign");
+        let nh = s.0.join("orch").join("no-hooks");
+        std::fs::create_dir_all(&nh).unwrap();
+        let before = id(&nh);
+        assert_eq!(no_hooks_dir(&s.0).unwrap(), nh);
+        let mine = id(&nh);
+        assert_ne!(mine, before, "a new folder, not the one found");
+        assert_eq!(no_hooks_dir(&s.0).unwrap(), nh);
+        assert_eq!(id(&nh), mine);
+
+        // Swapped for a junction after Pod made it: refused at the next use.
+        std::fs::remove_dir(&nh).unwrap();
+        let other = s.0.join("other");
+        std::fs::create_dir_all(&other).unwrap();
+        assert!(crate::git::pin::junction(&nh, &other), "mklink /J");
+        assert!(no_hooks_dir(&s.0).unwrap_err().contains("junction"));
+        // A hook dropped into Pod's own folder: refused.
+        std::fs::remove_dir(&nh).unwrap();
+        no_hooks_dir(&s.0).unwrap();
+        std::fs::write(nh.join("post-checkout"), "x").unwrap();
+        assert!(no_hooks_dir(&s.0).unwrap_err().contains("not empty"));
     }
 }

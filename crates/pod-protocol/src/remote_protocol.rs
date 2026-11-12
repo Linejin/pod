@@ -180,6 +180,19 @@ pub struct HelloParams {
     /// Free-form client name/version, for the daemon log only.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub client: Option<String>,
+    /// v21, worker endpoint only (docs/19 §20): the Pod worker this
+    /// connection speaks for. The daemon checks the token and derives the
+    /// connection's identity from it; the full pipe ignores it.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub worker: Option<WorkerAuth>,
+}
+
+/// A worker's attempt and its token (`POD_ATTEMPT_ID`,
+/// `POD_ATTEMPT_TOKEN`), said once per worker endpoint connection.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonSchema, PartialEq)]
+pub struct WorkerAuth {
+    pub attempt: String,
+    pub token: String,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq)]
@@ -287,6 +300,7 @@ mod tests {
             max_protocol: max,
             require: require.iter().map(|s| s.to_string()).collect(),
             client: None,
+            worker: None,
         }
     }
 

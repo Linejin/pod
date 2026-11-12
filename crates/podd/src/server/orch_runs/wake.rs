@@ -71,7 +71,9 @@ impl Daemon {
             }
             let s = t.status.info();
             let quiet = crate::now_ms().saturating_sub(t.last_output_ms());
-            if wake::may_wake(&s.state, t.human_draft(), quiet).is_err() {
+            // docs/19 §21.1 (TM-22): an agent's own reports decide, not a
+            // quiet screen; `unknown` waits for an agent with a status source.
+            if wake::may_wake(&s.state, reports_of(&t), t.human_draft(), quiet).is_err() {
                 continue;
             }
             let (count, mark) = {
@@ -123,6 +125,13 @@ impl Daemon {
             });
         }
     }
+}
+
+/// What the program in `t` says about itself, for [`wake::may_wake`] and
+/// `@idle` (docs/19 §21.1).
+pub(super) fn reports_of(t: &crate::server::terminal::Terminal) -> wake::Reports {
+    let (last, known_agent) = t.status.self_report();
+    wake::Reports::of(last, known_agent)
 }
 
 /// orch-quality-04: how a typed wake-up ended.

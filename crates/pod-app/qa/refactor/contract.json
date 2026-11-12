@@ -111,7 +111,7 @@
     ]
   },
   "J": {
-    "protocol_version": 20,
+    "protocol_version": 21,
     "where": "crates/podd/src/protocol.rs PROTOCOL_VERSION",
     "a_f0": "wire 변경 없음: podd·protocol·source·vm 파일을 고치지 않음",
     "owners": "UI 쪽 wire 고정 JSON은 A-P2(crates/pod-app/qa/refactor/wire.json), 데몬 쪽 golden은 D-F0"

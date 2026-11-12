@@ -32,12 +32,15 @@ impl Daemon {
         ctx_run: Option<&str>,
         m: NewMail,
     ) -> Result<Mail, RpcError> {
+        // `@idle` is the wake rule's idle (docs/19 §21.1): an agent with a
+        // status source is not idle while `unknown` or stale.
         let idle = |a: &Attempt| {
             a.terminal
                 .as_deref()
                 .and_then(|t| self.terminal_by_id(t))
                 .is_some_and(|t| {
-                    matches!(t.status.info().state.as_str(), "idle" | "done" | "unknown")
+                    let reports = super::wake::reports_of(&t);
+                    pod_orch::wake::idle(&t.status.info().state, reports).is_ok()
                 })
         };
         let mail = o.send(ctx_run, m, idle, crate::now_ms()).map_err(oe)?;

@@ -30,7 +30,7 @@ fn name_via_old<M: podd::protocol::Method>() -> &'static str {
 }
 
 fn golden() -> Value {
-    let path = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures/wire-v20.json");
+    let path = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures/wire-v21.json");
     let text = std::fs::read_to_string(&path).unwrap_or_else(|e| panic!("{path:?}: {e}"));
     serde_json::from_str(&text).unwrap()
 }
@@ -172,7 +172,11 @@ fn shared_items_and_reexports_are_the_same() {
     same::<podd::protocol::DiscoveredAgent, pod_discover::Agent>();
 
     // v20 (docs/17 R4): chunked attach and `terminal.input_once`.
-    assert_eq!(podd::protocol::PROTOCOL_VERSION, 20);
+    // v21 (docs/19 §20): the worker endpoint's hello and `server.status`
+    // `endpoint`.
+    assert_eq!(podd::protocol::PROTOCOL_VERSION, 21);
+    same::<podd::protocol::WorkerAuth, pod_protocol::remote_protocol::WorkerAuth>();
+    same::<podd::protocol::Endpoint, pod_protocol::protocol::Endpoint>();
     same::<podd::protocol::InputOnceParams, pod_protocol::remote_protocol::InputOnceParams>();
     same::<podd::protocol::SnapshotChunkEvent, pod_protocol::remote_protocol::SnapshotChunkEvent>();
     same::<podd::protocol::TerminalInputOnce, pod_protocol::protocol::TerminalInputOnce>();

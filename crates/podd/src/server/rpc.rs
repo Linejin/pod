@@ -2,10 +2,12 @@
 //! a stream ([`Daemon::handle_request`]), the params/result helpers, and
 //! [`mode`], which tells the connection which methods turn it into a stream.
 //! Both look a method up in the registry: `registry` holds the types and
-//! the lookup index, `domains` the registrations of each domain.
+//! the lookup index, `domains` the registrations of each domain. The
+//! restricted worker endpoint checks its allowlist first (`worker`).
 
 mod domains;
 mod registry;
+mod worker;
 
 use std::sync::{Arc, LazyLock};
 
@@ -18,6 +20,7 @@ use super::connection::{err_response, ok_response};
 use crate::protocol::*;
 pub(in crate::server) use registry::Mode;
 use registry::{RpcRegistry, unknown_method};
+pub(in crate::server) use worker::WorkerConn;
 
 /// Built on first use from the constant tables, read-only afterwards.
 static REGISTRY: LazyLock<RpcRegistry> =

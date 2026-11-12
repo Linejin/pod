@@ -77,7 +77,8 @@ pod / pod attach / (P2) pod-app ──┐  \\.\pipe\podd-<USER>  (NDJSON JSON-RP
   - 자식이 끝난 뒤에도 holder는 남아 최종 화면과 종료 코드를 보관하므로, 끝난 터미널도 데몬 재시작 뒤에 그대로 보인다.
   - holder가 죽으면 Job Object(`KILL_ON_JOB_CLOSE`)가 프로세스 트리를 정리한다. 데몬은 이 터미널을 `lost`로 표시한다.
 - **단일 데몬 락**: 첫 파이프 인스턴스를 `FILE_FLAG_FIRST_PIPE_INSTANCE`로 만든다. 이미 있으면 "lock held"를 남기고 종료 코드 3으로 끝난다. holder 파이프도 같은 방식이다.
-- **보안**: 데몬·holder 파이프 모두 SDDL `D:P(A;;GA;;;<현재 사용자 SID>)`로 만든다. 보호된 DACL이라 Everyone/Anonymous 읽기 권한이 없다. `reject_remote_clients`도 켠다.
+- **보안**: 데몬·holder 파이프 모두 SDDL `D:P(A;;GA;;;<현재 사용자 SID>)`로 만든다. 보호된 DACL이라 Everyone/Anonymous 읽기 권한이 없다. `reject_remote_clients`도 켠다. 데몬 파이프(**full pipe**)의 경계는 OS 사용자다: 열 수 있는 같은 사용자 프로세스는 모든 메서드를 부르며 격리되지 않는다.
+- **워커 끝점(v21)**: 데몬은 `\\.\pipe\podd-<USER>-worker`도 연다(같은 DACL, 첫 인스턴스를 못 만들면 시작 실패). Pod가 띄운 워커의 `POD_SOCKET`이 이것이고, `connection.hello`의 attempt 토큰으로 신원을 정한 뒤 허용 목록만 받는다(자기 실행·터미널). 자세한 계약은 [19 §20](19-worktree-sessions-orchestration.md).
 - **Kill = 프로세스 트리 전체**: 자식을 `CREATE_SUSPENDED`로 만들고, Job Object에 넣은 뒤에 `ResumeThread`한다. 따라서 자식이 만드는 모든 손자도 잡에 속한다. kill은 `TerminateJobObject`다. 콘솔에 붙지 않은 손자(숨은 별도 콘솔의 `ping`)도 함께 끝나는 것을 테스트로 확인했다.
 
 ### 2.1 터미널 환경 정리 (`env.rs`)
@@ -125,7 +126,7 @@ holder는 연결이 오면 `Hello → Snapshot(seq) → (종료됐으면 Exited)
 
 > v3(P3)에서 `repo.*`·`task.*` 메서드와 `terminal.run`의 `task` 파라미터, 오류 코드 -32006..-32013이 추가됐다. 자세한 내용은 [08-tasks.md](08-tasks.md).
 >
-> **현재 프로토콜 번호는 20**이다(`PROTOCOL_VERSION`, `server.status.protocol`). v12 = v11 + `connection.hello`(§7.4). v13 = v12 + `mobile.*`(§7.5). v14 = v13 + 작업 세션(`task.resume` 등, [19](19-worktree-sessions-orchestration.md)). v15 = v14 + `sessions.*`(세션 찾기, [18](18-session-discovery.md)). v16 = v15 + 오케스트레이션 `orch.*`(run·item·worker·mail·done, `orch.changed`/`orch.mail` 이벤트, 오류 코드 -32080..-32088, [19 §13](19-worktree-sessions-orchestration.md)). v17 = v16 + 자원 대기열 `orch.queue`, 게이트 선택지 `orch.gate.request`/`orch.gate.decide`와 `gate.*`·`mobile.gate.*`의 추가 필드([19 §14](19-worktree-sessions-orchestration.md)). v18 = v17 + 자원 한도 설정 `orch.limits.get`/`orch.limits.set`([19 §14.4](19-worktree-sessions-orchestration.md)). v19 = v18 + `TerminalState::Unreachable`와 `TerminalInfo.unreachable`(§2 시작·재발견). v20 = v19 + 원격 attach 복원력(`terminal.input_once`, `terminal.snapshot`, hello가 20 이상을 고른 연결의 조각 snapshot·32 KiB 출력·2 MiB 큐, [17](17-remote.md) R4). v11 클라이언트는 그대로 동작한다(`PROTOCOL_MIN = 11`). 아래 v9 설명은 기록으로 둔다.
+> **현재 프로토콜 번호는 21**이다(`PROTOCOL_VERSION`, `server.status.protocol`). v21 = v20 + 제한 워커 끝점(`connection.hello`의 `worker`, `server.status`의 `endpoint`, `orch.gate.decide`의 `person`, 오류 -32115..-32118, [19 §20](19-worktree-sessions-orchestration.md)); hello가 21 미만인 연결에는 `endpoint`를 빼고 보낸다. v12 = v11 + `connection.hello`(§7.4). v13 = v12 + `mobile.*`(§7.5). v14 = v13 + 작업 세션(`task.resume` 등, [19](19-worktree-sessions-orchestration.md)). v15 = v14 + `sessions.*`(세션 찾기, [18](18-session-discovery.md)). v16 = v15 + 오케스트레이션 `orch.*`(run·item·worker·mail·done, `orch.changed`/`orch.mail` 이벤트, 오류 코드 -32080..-32088, [19 §13](19-worktree-sessions-orchestration.md)). v17 = v16 + 자원 대기열 `orch.queue`, 게이트 선택지 `orch.gate.request`/`orch.gate.decide`와 `gate.*`·`mobile.gate.*`의 추가 필드([19 §14](19-worktree-sessions-orchestration.md)). v18 = v17 + 자원 한도 설정 `orch.limits.get`/`orch.limits.set`([19 §14.4](19-worktree-sessions-orchestration.md)). v19 = v18 + `TerminalState::Unreachable`와 `TerminalInfo.unreachable`(§2 시작·재발견). v20 = v19 + 원격 attach 복원력(`terminal.input_once`, `terminal.snapshot`, hello가 20 이상을 고른 연결의 조각 snapshot·32 KiB 출력·2 MiB 큐, [17](17-remote.md) R4). v11 클라이언트는 그대로 동작한다(`PROTOCOL_MIN = 11`). 아래 v9 설명은 기록으로 둔다.
 >
 > v9 기록: v9 = v8 + 수명 이벤트(`status.subscribe`의 `lifecycle`, `terminal.changed`·`task.changed`·`task.removing`), `task.touch`, 색 질의 응답 중복 제거와 늦은 응답 차단(`SendResult.dropped_replies`). 모두 추가형(§4.1-6, §4.3, §7.3).
 
@@ -133,7 +134,7 @@ holder는 연결이 오면 `Hello → Snapshot(seq) → (종료됐으면 Exited)
 
 | 메서드 | params | result |
 |---|---|---|
-| `server.status` | `{}` | `{version, protocol, pid, pipe, started_ms, uptime_ms, terminals, running, state_dir}` |
+| `server.status` | `{}` | `{version, protocol, pid, pipe, started_ms, uptime_ms, terminals, running, state_dir, endpoint? (v21: full\|worker)}` |
 | `server.stop` | `{kill?: bool}` | `{stopping, killed, detached}`. 기본은 터미널을 holder에 남긴다. 이후 요청은 `SERVER_STOPPING`(-32050) |
 | `terminal.run` | `{argv, cwd?, name?, env?, cols?, rows?, task?, parent_terminal? (v7)}` | `TerminalInfo` |
 | `terminal.list` | `{}` | `{terminals: TerminalInfo[]}` |
@@ -147,7 +148,7 @@ holder는 연결이 오면 `Hello → Snapshot(seq) → (종료됐으면 Exited)
 | `terminal.rm` | `ref + {force?}` | `{id}`. 종료된 터미널만 지운다(`force`면 kill 후 지움). holder가 끝난다 |
 | `terminal.keep` (v6) | `ref + {keep?: bool = true}` | `{id, kept, expires_ms?}`. 종료 터미널 보존 정책에서 제외(`false`면 다시 포함). `<state dir>\<id>.keep`에 저장 |
 | `terminal.attach` | `ref + {scrollback?, cols?, rows?}` | `{terminal, seq, snapshot: base64}`. 이후 연결은 스트림이 된다 |
-| `connection.hello` (v12) | `{min_protocol, max_protocol, require?: string[], client?}` | `{protocol, min_protocol, max_protocol, capabilities, machine_id, boot_id, version, os, limits}`. 공통 버전이 없거나 `require`가 없으면 `PROTOCOL_MISMATCH`(-32051, `data`에 데몬 범위·`missing`). 원격 연결 전용(§7.4), 로컬 클라이언트는 보내지 않는다 |
+| `connection.hello` (v12) | `{min_protocol, max_protocol, require?: string[], client?, worker? (v21, 워커 끝점: {attempt, token})}` | `{protocol, min_protocol, max_protocol, capabilities, machine_id, boot_id, version, os, limits}`. 공통 버전이 없거나 `require`가 없으면 `PROTOCOL_MISMATCH`(-32051, `data`에 데몬 범위·`missing`). 원격 연결 전용(§7.4), 로컬 클라이언트는 보내지 않는다 |
 
 `TerminalInfo = {id, name?, argv, cwd, state, exit_code?, pid?, holder_pid?, cols, rows, created_ms, exited_ms?, killed, lost, attached, conpty?, status?, parent_terminal? (v7), parent_task? (v7), incompatible_holder? (v7)}`
 

@@ -409,11 +409,11 @@ impl Daemon {
             .iter()
             .find(|r| r.name == rec.repo)
             .map(|r| PathBuf::from(&r.path));
-        let no_hooks = self.config.state_dir.join("orch").join("no-hooks");
+        let state = self.config.state_dir.clone();
         let (msg, all, paths) = (p.message.clone(), p.all, p.paths.clone());
         let r = crate::server::tasks::blocking(move || {
-            std::fs::create_dir_all(&no_hooks)
-                .map_err(|e| format!("{}: {e}", no_hooks.display()))?;
+            // Only a hooks folder this podd created (docs/19 §21.2).
+            let no_hooks = super::launch::no_hooks_dir(&state)?;
             match &repo {
                 Some(repo) => {
                     crate::git::commit_for_task_worker(&wt, repo, &no_hooks, &msg, all, &paths)

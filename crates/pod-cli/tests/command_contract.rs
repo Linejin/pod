@@ -7,7 +7,7 @@
 //! process ids, uptime and waited milliseconds become placeholders; JSON
 //! output compares without key order, and its `*pid` and `*_ms` numbers
 //! become placeholders. `pod server schema` must print podd's wire golden
-//! (`crates/podd/tests/fixtures/schema-v20.json`).
+//! (`crates/podd/tests/fixtures/schema-v21.json`).
 //!
 //! The connection policy is checked on a temp-only pipe: help, guide,
 //! schema, machine, usage errors and `server status|stop` never start a
@@ -35,7 +35,7 @@ const POD: &str = env!("CARGO_BIN_EXE_pod");
 const VERSION: &str = env!("CARGO_PKG_VERSION");
 const BLESS: &str = "POD_CONTRACT_BLESS";
 /// `pod server schema` prints this (compared with podd's golden instead).
-const SCHEMA_MARK: &str = "<podd/tests/fixtures/schema-v20.json>";
+const SCHEMA_MARK: &str = "<podd/tests/fixtures/schema-v21.json>";
 
 fn manifest_dir() -> &'static Path {
     Path::new(env!("CARGO_MANIFEST_DIR"))
@@ -266,7 +266,7 @@ impl Env {
         let (stdout, stdout_json) = if name == "server schema" && out.status.success() {
             let printed: Value = serde_json::from_str(&stdout).expect("schema JSON");
             let golden: Value = serde_json::from_slice(
-                &std::fs::read(manifest_dir().join("../podd/tests/fixtures/schema-v20.json"))
+                &std::fs::read(manifest_dir().join("../podd/tests/fixtures/schema-v21.json"))
                     .unwrap(),
             )
             .unwrap();

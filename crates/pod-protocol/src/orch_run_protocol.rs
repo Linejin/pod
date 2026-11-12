@@ -863,6 +863,13 @@ pub struct OrchGateDecideParams {
     pub caller: OrchCaller,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub request_id: Option<String>,
+    /// v21 (docs/19 §20): the client states that a person decides (`pod
+    /// gate approve|reject`). Without it a caller outside Pod's agents
+    /// (`outside`) cannot decide. Any process of the OS user on the full
+    /// pipe can state it: it is not authentication. It never changes how a
+    /// worker or a coordinator is treated.
+    #[serde(default, skip_serializing_if = "std::ops::Not::not")]
+    pub person: bool,
 }
 
 // ───────────────────────────── v18 ─────────────────────────────

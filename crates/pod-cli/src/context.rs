@@ -49,6 +49,10 @@ impl CliContext {
                 .map(endpoint::pipe_path)
                 .unwrap_or_else(endpoint::default_pipe),
         };
+        if let Some(why) = worker_refusal(podd::env::in_worker_env(), remote.is_some(), &pipe, cmd)
+        {
+            bail!("{why}");
+        }
         Ok(Self { pipe, remote, json })
     }
 
@@ -94,10 +98,71 @@ fn remote_unsupported(cmd: &Cmd) -> Option<&'static str> {
     }
 }
 
+/// docs/19 §20: in a Pod worker's environment (`POD_ATTEMPT_ID` or
+/// `POD_ATTEMPT_TOKEN`) `pod` talks to a worker endpoint only, so `--pipe`
+/// to the full pipe or `--machine` cannot widen what the worker reaches
+/// through commands its sandbox lets run outside (the Codex allowance).
+/// Commands that never connect are not refused. Same-user code that also
+/// drops the worker variables is outside this check (docs/22 TM-20).
+fn worker_refusal(worker: bool, remote: bool, pipe: &str, cmd: &Cmd) -> Option<String> {
+    if !worker
+        || matches!(
+            cmd,
+            Cmd::Guide { .. } | Cmd::Machine { .. } | Cmd::Hooks { .. }
+        )
+    {
+        return None;
+    }
+    if remote {
+        return Some(
+            "--machine is refused in a Pod worker's environment (POD_ATTEMPT_ID): a worker reaches its own run through its worker endpoint only".into(),
+        );
+    }
+    (!endpoint::is_worker_pipe(pipe)).then(|| {
+        format!(
+            "{pipe} is not a worker endpoint: in a Pod worker's environment (POD_ATTEMPT_ID) pod talks to the worker endpoint in POD_SOCKET only; the full pipe is the OS user's"
+        )
+    })
+}
+
 /// The caller's own terminal id when this `pod` runs inside a terminal of
 /// the daemon it talks to.
 pub(crate) fn caller_terminal(pipe: &str) -> Option<String> {
     let sock = std::env::var(endpoint::ENV_SOCKET).ok()?;
     let id = std::env::var(endpoint::ENV_TERMINAL_ID).ok()?;
     (endpoint::pipe_path(&sock).eq_ignore_ascii_case(pipe) && !id.is_empty()).then_some(id)
+}
+
+#[cfg(test)]
+mod tests {
+    use clap::Parser;
+
+    use super::*;
+    use crate::args::Cli;
+
+    fn cmd(args: &[&str]) -> Cmd {
+        let mut all = vec!["pod"];
+        all.extend_from_slice(args);
+        Cli::try_parse_from(all).unwrap().cmd
+    }
+
+    /// docs/19 §20: a worker's `pod` reaches its worker endpoint only.
+    #[test]
+    fn a_worker_env_talks_to_its_worker_endpoint_only() {
+        let full = r"\\.\pipe\podd-me";
+        let worker = r"\\.\pipe\podd-me-worker";
+        let orch = cmd(&["orch", "check"]);
+        assert_eq!(worker_refusal(true, false, worker, &orch), None);
+        assert!(
+            worker_refusal(true, false, full, &orch)
+                .is_some_and(|w| w.contains("not a worker endpoint"))
+        );
+        assert!(
+            worker_refusal(true, true, "ssh:box", &orch).is_some_and(|w| w.contains("--machine"))
+        );
+        assert!(worker_refusal(true, false, full, &cmd(&["ls"])).is_some());
+        // Not a worker, or a command that never connects: no refusal.
+        assert_eq!(worker_refusal(false, false, full, &orch), None);
+        assert_eq!(worker_refusal(true, false, full, &cmd(&["guide"])), None);
+    }
 }

@@ -50,7 +50,8 @@
 //!   this terminal's env, writing `<dir>/out-<n>.json` =
 //!   `{args, code, stdout, stderr}`, then reports `idle`). An argv starting
 //!   with `!git` runs git instead, `["!write", file, text]` writes a file
-//!   (both in the agent's cwd). Never returns.
+//!   (both in the agent's cwd), `["!env"]` prints the agent's `POD_*`
+//!   variables as JSON. Never returns.
 //! - `hold`           sleep forever (until killed)
 //! - `exit:<code>`
 
@@ -317,6 +318,20 @@ fn orch_loop(out: &mut std::io::Stdout, base: &str) -> ! {
                     Ok(()) => (0, String::new(), String::new()),
                     Err(e) => (1, String::new(), e.to_string()),
                 },
+                // `!env`: this agent's `POD_*` variables as a JSON object
+                // in stdout (docs/19 §20 tests read the worker's endpoint
+                // and token the way its own `pod` would).
+                Some("!env") => {
+                    let vars: serde_json::Map<String, serde_json::Value> = std::env::vars()
+                        .filter(|(k, _)| k.to_ascii_uppercase().starts_with("POD_"))
+                        .map(|(k, v)| (k.to_ascii_uppercase(), v.into()))
+                        .collect();
+                    (
+                        0,
+                        serde_json::Value::Object(vars).to_string(),
+                        String::new(),
+                    )
+                }
                 _ => run(Command::new(&pod).args(&args)),
             };
             let _ = write!(out, "pod {} -> {code}\r\n", args.join(" "));

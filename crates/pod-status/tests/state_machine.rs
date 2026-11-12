@@ -536,6 +536,60 @@ fn heuristic_working_overrides_stale_hook_done() {
     );
 }
 
+/// docs/19 §21.1 (TM-22): `self_report` is the program's newest own report
+/// (hook or OSC change, by event order), not what heuristics made of a
+/// quiet screen after the hook went stale; `Unknown` once taken back.
+#[test]
+fn self_report_is_the_newest_report_not_the_screen() {
+    // Never reported: a shell, or an agent seen only through heuristics.
+    let mut t = TerminalStatus::new(0);
+    t.on_foreground(Some(&codex_proc()), 0);
+    t.on_title("Reply ok | work", 1_000);
+    t.tick(10_000);
+    assert_eq!(t.state(), Idle, "quiet Codex is idle by heuristic");
+    assert_eq!(t.self_report(), None);
+
+    // A stale hook `working`, then a quiet screen: shown idle, but the
+    // program's own last word is still `working`.
+    let mut t = TerminalStatus::new(0);
+    t.on_foreground(Some(&codex_proc()), 0);
+    t.on_hook(&codex("UserPromptSubmit", json!({})), 1_000);
+    assert_eq!(t.self_report(), Some(Working));
+    t.on_title("Reply ok | work", 200_000);
+    t.tick(210_000);
+    assert_eq!(
+        (t.state(), t.snapshot().source),
+        (Idle, Some(Source::Heuristic))
+    );
+    assert_eq!(t.self_report(), Some(Working));
+    t.on_hook(&codex("Stop", json!({})), 211_000);
+    assert_eq!(t.self_report(), Some(Done));
+    t.ack(212_000);
+    assert_eq!(t.self_report(), Some(Idle), "ack keeps a turn end");
+
+    // Event order across sources: a hook Stop, then an OSC change to
+    // working (the hook still decides the shown state while fresh).
+    let mut t = TerminalStatus::new(0);
+    t.feed_output(&osc("state=idle:app=claude-code"), 1);
+    t.on_hook(&claude("Stop", json!({})), 2);
+    assert_eq!(t.self_report(), Some(Done));
+    t.feed_output(&osc("state=working"), 3);
+    assert_eq!(t.state(), Done, "the fresh hook outranks OSC");
+    assert_eq!(t.self_report(), Some(Working), "the newest report wins");
+    t.feed_output(&osc("state=working"), 4); // a re-report changes nothing
+    assert_eq!(t.self_report(), Some(Working));
+
+    // Taken back: OSC `clear` with nothing replacing it.
+    t.on_hook(&claude("SessionEnd", json!({})), 5);
+    t.feed_output(&osc("state=clear"), 6);
+    assert_eq!((t.state(), t.self_report()), (Unknown, Some(Unknown)));
+
+    // A new run forgets it.
+    t.on_process_exit(7);
+    t.on_foreground(Some(&claude_proc()), 8);
+    assert_eq!(t.self_report(), None);
+}
+
 // ───────────── sub-records ─────────────
 
 #[test]
