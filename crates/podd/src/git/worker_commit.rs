@@ -183,7 +183,7 @@ fn at(_stage: &'static str) {
 ///   as streams or devices, nested repositories (submodule pointers are
 ///   left alone);
 /// - the files git hashes are held open from the check to the end of
-///   `hash-object` ([`Held`]: no rename, delete, write or swap), then
+///   `hash-object` (`Held`: no rename, delete, write or swap), then
 ///   re-read, and the config is read again: any change, nothing commits.
 ///
 /// The worktree's top level must be `worktree` itself. Returns (full hash,
