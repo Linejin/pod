@@ -44,6 +44,12 @@
                      4024,
                      1219
                  ],
+        "Client":  [
+                       2595,
+                       259,
+                       4013,
+                       1208
+                   ],
         "Scene":  "settings",
         "Theme":  "dark",
         "Style":  "",
@@ -324,6 +330,78 @@
         "HighContrast":  false
     },
     {
+        "Image":  "dark-machines.png",
+        "DPI":  144,
+        "Rect":  [
+                     2584,
+                     259,
+                     4024,
+                     1219
+                 ],
+        "Client":  [
+                       2595,
+                       259,
+                       4013,
+                       1208
+                   ],
+        "Scene":  "machines",
+        "Theme":  "dark",
+        "Style":  "",
+        "Layout":  "",
+        "Fixture":  true,
+        "Font":  "Malgun Gothic",
+        "TerminalFont":  "Cascadia Mono",
+        "HighContrast":  false
+    },
+    {
+        "Image":  "dark-machine-terminal.png",
+        "DPI":  144,
+        "Rect":  [
+                     2584,
+                     259,
+                     4024,
+                     1219
+                 ],
+        "Client":  [
+                       2595,
+                       259,
+                       4013,
+                       1208
+                   ],
+        "Scene":  "machine-terminal",
+        "Theme":  "dark",
+        "Style":  "",
+        "Layout":  "",
+        "Fixture":  true,
+        "Font":  "Malgun Gothic",
+        "TerminalFont":  "Cascadia Mono",
+        "HighContrast":  false
+    },
+    {
+        "Image":  "dark-machine-trust.png",
+        "DPI":  144,
+        "Rect":  [
+                     2584,
+                     259,
+                     4024,
+                     1219
+                 ],
+        "Client":  [
+                       2595,
+                       259,
+                       4013,
+                       1208
+                   ],
+        "Scene":  "machine-trust",
+        "Theme":  "dark",
+        "Style":  "",
+        "Layout":  "",
+        "Fixture":  true,
+        "Font":  "Malgun Gothic",
+        "TerminalFont":  "Cascadia Mono",
+        "HighContrast":  false
+    },
+    {
         "Image":  "light-workspace.png",
         "DPI":  144,
         "Rect":  [
@@ -368,6 +446,12 @@
                      4024,
                      1219
                  ],
+        "Client":  [
+                       2595,
+                       259,
+                       4013,
+                       1208
+                   ],
         "Scene":  "settings",
         "Theme":  "light",
         "Style":  "",
@@ -639,6 +723,78 @@
                      1219
                  ],
         "Scene":  "orch-settings",
+        "Theme":  "light",
+        "Style":  "",
+        "Layout":  "",
+        "Fixture":  true,
+        "Font":  "Malgun Gothic",
+        "TerminalFont":  "Cascadia Mono",
+        "HighContrast":  false
+    },
+    {
+        "Image":  "light-machines.png",
+        "DPI":  144,
+        "Rect":  [
+                     2584,
+                     259,
+                     4024,
+                     1219
+                 ],
+        "Client":  [
+                       2595,
+                       259,
+                       4013,
+                       1208
+                   ],
+        "Scene":  "machines",
+        "Theme":  "light",
+        "Style":  "",
+        "Layout":  "",
+        "Fixture":  true,
+        "Font":  "Malgun Gothic",
+        "TerminalFont":  "Cascadia Mono",
+        "HighContrast":  false
+    },
+    {
+        "Image":  "light-machine-terminal.png",
+        "DPI":  144,
+        "Rect":  [
+                     2584,
+                     259,
+                     4024,
+                     1219
+                 ],
+        "Client":  [
+                       2595,
+                       259,
+                       4013,
+                       1208
+                   ],
+        "Scene":  "machine-terminal",
+        "Theme":  "light",
+        "Style":  "",
+        "Layout":  "",
+        "Fixture":  true,
+        "Font":  "Malgun Gothic",
+        "TerminalFont":  "Cascadia Mono",
+        "HighContrast":  false
+    },
+    {
+        "Image":  "light-machine-trust.png",
+        "DPI":  144,
+        "Rect":  [
+                     2584,
+                     259,
+                     4024,
+                     1219
+                 ],
+        "Client":  [
+                       2595,
+                       259,
+                       4013,
+                       1208
+                   ],
+        "Scene":  "machine-trust",
         "Theme":  "light",
         "Style":  "",
         "Layout":  "",

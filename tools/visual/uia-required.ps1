@@ -25,6 +25,10 @@ $script:PodUiaRequired = @{
  'orch-inbox'    = @('받은 편지함')
  'orch-cleanup'  = @('끝난 워커 정리')
  'orch-settings' = @('오케스트레이션 설정')
+ # Remote machines (rm-r4ui): settings category, remote terminal panel, trust dialog.
+ 'machines'         = @('설정 분류', '머신 프로필은 원격 계정의 전체 사용자 권한')
+ 'machine-terminal' = @('연결 끊김 · 마지막 수신', '연결이 끊긴 동안 출력')
+ 'machine-trust'    = @('호스트 키가 바뀌었습니다: build-box')
 }
 # The table above is the workbench layout's (settings.json `layout` empty or
 # 'workbench'). The other layout modes (crates/pod-app/src/layout_mode.rs)
@@ -57,6 +61,8 @@ $script:PodUiaLayoutRequired = @{
  'block-terminal' = @{
   'workspace'     = @('블록 피드')
   'settings'      = @('블록 피드')
+  'machines'      = @('블록 피드')
+  'machine-terminal' = @('블록 피드')
   'agents'        = @('블록 피드')
   'inspect'       = @('블록 피드')
   'gates'         = @('블록 피드')

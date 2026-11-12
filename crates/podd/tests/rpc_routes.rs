@@ -18,6 +18,10 @@ use serde_json::{Value, json};
 /// The answer of each public method to `"params": "route-probe"` (a string,
 /// which no params struct accepts): `method code message`, or `method ok`.
 const PROBE: &str = r#"connection.hello -32602 invalid params: invalid type: string "route-probe", expected struct HelloParams
+fs.list -32602 invalid params: invalid type: string "route-probe", expected struct FsListParams
+fs.read -32602 invalid params: invalid type: string "route-probe", expected struct FsPathParams
+fs.stat -32602 invalid params: invalid type: string "route-probe", expected struct FsPathParams
+fs.write -32602 invalid params: invalid type: string "route-probe", expected struct FsWriteParams
 gate.create -32602 invalid params: invalid type: string "route-probe", expected struct GateCreateParams
 gate.list -32602 invalid params: invalid type: string "route-probe", expected struct GateListParams
 gate.resolve -32602 invalid params: invalid type: string "route-probe", expected struct GateResolveParams
@@ -76,12 +80,14 @@ repo.config -32602 invalid params: invalid type: string "route-probe", expected 
 repo.list -32602 invalid params: invalid type: string "route-probe", expected struct Empty
 repo.remove -32602 invalid params: invalid type: string "route-probe", expected struct RepoRef
 repo.set -32602 invalid params: invalid type: string "route-probe", expected struct RepoSetParams
+review.blob -32602 invalid params: invalid type: string "route-probe", expected struct ReviewBlobParams
 review.cancel -32602 invalid params: invalid type: string "route-probe", expected struct DeliveryRef
 review.comments.add -32602 invalid params: invalid type: string "route-probe", expected struct ReviewAddParams
 review.comments.list -32602 invalid params: invalid type: string "route-probe", expected struct ReviewListParams
 review.comments.remove -32602 invalid params: invalid type: string "route-probe", expected struct ReviewIdsParams
 review.comments.resolve -32602 invalid params: invalid type: string "route-probe", expected struct ReviewResolveParams
 review.deliveries -32602 invalid params: invalid type: string "route-probe", expected struct ReviewDeliveriesParams
+review.diff -32602 invalid params: invalid type: string "route-probe", expected struct ReviewDiffParams
 review.send -32602 invalid params: invalid type: string "route-probe", expected struct ReviewSendParams
 server.status -32602 invalid params: invalid type: string "route-probe", expected struct Empty
 server.stop -32602 invalid params: invalid type: string "route-probe", expected struct StopParams
@@ -205,8 +211,9 @@ fn every_public_method_answers_the_probe_as_before() {
         .keys()
         .map(String::as_str)
         .collect();
-    // v20 added terminal.input_once (docs/17 R4).
-    assert_eq!(methods.len(), 105, "the public method set");
+    // v20 added terminal.input_once (docs/17 R4), v22 the six file and
+    // review diff methods (docs/17 R5).
+    assert_eq!(methods.len(), 111, "the public method set");
 
     let d = Daemon::start("routes");
     let mut got = BTreeMap::new();

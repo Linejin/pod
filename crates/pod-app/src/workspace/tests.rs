@@ -316,6 +316,13 @@ fn the_layout_frame_borrows_the_workspace_state() {
                 .inspector_panel
                 .as_ref()
                 .is_some_and(|p| p.upgrade().is_some()),
+            remote_terminals: w
+                .machines
+                .read(cx)
+                .panels
+                .iter()
+                .filter(|p| p.upgrade().is_some())
+                .count(),
         };
         assert_eq!(f.panels, open);
         assert_eq!(f.metrics, LayoutMetrics::current(cx));

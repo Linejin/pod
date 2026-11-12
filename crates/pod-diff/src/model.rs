@@ -20,10 +20,12 @@ use anyhow::Result;
 pub(crate) mod git;
 mod load;
 mod patch;
+pub mod remote;
 
 pub use git::{cat_files, git_command};
 pub use load::{from_git, from_two_files, load_changed};
 pub use patch::{full_context_patch, patch_of};
+pub use remote::{ListedFile, Listing, Remote, ReviewSource, load_remote};
 
 /// Files larger than this are shown as "too large" instead of being diffed.
 pub const MAX_TEXT_BYTES: usize = 8 * 1024 * 1024;

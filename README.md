@@ -64,6 +64,7 @@ Pod는 Claude Code·Codex 같은 터미널 에이전트를 작업(git worktree)�
 | [19 워크트리 세션·오케스트레이션](docs/19-worktree-sessions-orchestration.md) | 세션 자동화, 워커·코디네이터 |
 | [21 확장 가이드](docs/21-extending.md) | 리팩터 후 RPC·데몬 도메인·레이아웃·설정 패널 추가와 검증 |
 | [22 위협 모델](docs/22-threat-model.md) | 원격·모바일·에이전트 신뢰 경계, 단계별 완화와 검증 |
+| [23 모바일 M2](docs/23-mobile-m2.md) | LAN TLS·QR·제한 API·로컬 웹 화면·라이선스 gate와 구현 카드 |
 
 기여 방법은 [CONTRIBUTING.md](CONTRIBUTING.md), 보안 문제 보고는 [SECURITY.md](SECURITY.md).
 

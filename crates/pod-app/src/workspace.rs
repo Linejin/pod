@@ -72,6 +72,9 @@ pub struct StartOptions {
     pub settings: bool,
     /// Check agent hooks at launch with this CLI (`None`: no check, e.g. tests).
     pub hook_cli: Option<crate::hooks_prompt::HookCliHandle>,
+    /// Remote machines: profiles and transport (`None`: the build's default,
+    /// the system one in the app, an empty isolated one in tests).
+    pub machines: Option<crate::machines_ui::MachinesBackend>,
 }
 
 pub struct Workspace {
@@ -125,6 +128,8 @@ pub struct Workspace {
     pub(crate) link_choices: Vec<(String, pod_terminal_view::LinkTarget)>,
     /// Agent hook check at launch and its banner (docs/14 §11).
     pub(crate) hooks: crate::hooks_prompt::HookPromptState,
+    /// Remote machines (docs/17 R3/R4): the board in the sidebar, settings, panels.
+    pub(crate) machines: Entity<crate::machines_ui::MachineBoard>,
     _pump: Task<()>,
     _subs: Vec<Subscription>,
 }
@@ -205,6 +210,22 @@ impl Workspace {
         subs.push(cx.on_focus_out(&toast_focus, window, move |_, _, _, _| pause.set(false)));
         let pump = Self::pump(events, window, cx);
 
+        // Remote machines: nothing connects until the user presses 연결.
+        let machines = {
+            let backend = options
+                .machines
+                .clone()
+                .unwrap_or_else(crate::machines_ui::MachinesBackend::default_for_build);
+            let ws = cx.entity().downgrade();
+            cx.new(|cx| crate::machines_ui::MachineBoard::new(backend, ws, cx))
+        };
+        cx.set_global(crate::machines_ui::MachinesGlobal(machines.downgrade()));
+        subs.push(cx.observe_in(&machines, window, |w, board, window, cx| {
+            if board.read(cx).pending_confirm.is_some() && !window.has_active_dialog(cx) {
+                w.machine_confirm_requested(window, cx);
+            }
+        }));
+
         // Agent hooks: checked in the background, never installed without a click.
         if let Some(h) = options.hook_cli.clone() {
             cx.defer_in(window, move |w: &mut Self, _, cx| {
@@ -247,6 +268,7 @@ impl Workspace {
             link_choices: Vec::new(),
             removal_confirmed: HashSet::new(),
             hooks: Default::default(),
+            machines,
             orch: Default::default(),
             sidebar: {
                 let ws = cx.entity().downgrade();

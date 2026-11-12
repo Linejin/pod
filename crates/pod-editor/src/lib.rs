@@ -3,7 +3,8 @@
 //! GUI-free core: [`tree`] (lazy, .gitignore-aware file tree), [`git`]
 //! (status markers), [`watch`] (debounced watcher), [`index`] + [`fuzzy`]
 //! (quick open), [`text`] (line endings, size guards, column units),
-//! [`uri`] (Windows-safe file URIs) and [`lsp`] (client, registry, store).
+//! [`uri`] (Windows-safe file URIs), [`lsp`] (client, registry, store) and
+//! [`source`] (the file I/O seam for local and remote worktrees, docs/17 R5).
 //!
 //! GPUI: [`EditorWorkspace`] is the embeddable view for one worktree root:
 //! file tree + tabs + code editor + quick open + problems/references panel.
@@ -14,6 +15,7 @@ pub mod fuzzy;
 pub mod git;
 pub mod index;
 pub mod lsp;
+pub mod source;
 pub mod tabs;
 pub mod text;
 pub mod tree;

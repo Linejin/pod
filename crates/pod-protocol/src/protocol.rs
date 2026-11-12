@@ -13,6 +13,7 @@ use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
 pub use crate::discovery_protocol::*;
+pub use crate::files_protocol::*;
 pub use crate::mobile_protocol::*;
 pub use crate::mods_protocol::*;
 pub use crate::orch_protocol::*;
@@ -84,7 +85,13 @@ pub const JSONRPC_VERSION: &str = "2.0";
 /// TM-20): `connection.hello` `worker` (attempt + token), `server.status`
 /// `endpoint`, `orch.gate.decide` `person` and [`worker_codes`]
 /// -32115..-32118. An older hello does not get `endpoint`.
-pub const PROTOCOL_VERSION: u32 = 21;
+/// v22 = v21 + remote files and review diff (docs/17 R5,
+/// `files_protocol.rs`): `fs.stat/list/read/write`, `review.diff`,
+/// `review.blob`, [`files_codes`] -32120..-32127, the `remote.files` and
+/// `remote.diff` capabilities and `FrameLimits.max_read_bytes` /
+/// `max_write_bytes` (all additive; an older hello gets neither the
+/// capabilities nor the limits).
+pub const PROTOCOL_VERSION: u32 = 22;
 
 // ---------------------------------------------------------------------------
 // Envelope
@@ -511,7 +518,8 @@ pub struct TerminalInfo {
 /// `terminal.read`) becomes `exited`. Before v20 an [`AttachResult`] loses
 /// its chunk fields (the daemon never chunks for such a connection; this is
 /// the safety net). Before v21 a [`ServerStatusResult`] loses `endpoint`.
-/// No-op for the current version.
+/// Before v22 a hello's [`FrameLimits`] loses `max_read_bytes` and
+/// `max_write_bytes`. No-op for the current version.
 pub fn downgrade_json(v: &mut Value, protocol: u32) {
     if protocol >= PROTOCOL_VERSION {
         return;
@@ -519,6 +527,13 @@ pub fn downgrade_json(v: &mut Value, protocol: u32) {
     match v {
         Value::Array(items) => items.iter_mut().for_each(|x| downgrade_json(x, protocol)),
         Value::Object(map) => {
+            if protocol < FILES_PROTOCOL
+                && map.contains_key("max_line_bytes")
+                && map.contains_key("attach_queue_bytes")
+            {
+                map.remove("max_read_bytes");
+                map.remove("max_write_bytes");
+            }
             if protocol < WORKER_ENDPOINT_PROTOCOL
                 && map.contains_key("state_dir")
                 && map.contains_key("uptime_ms")
@@ -1358,6 +1373,12 @@ pub fn schema() -> Value {
         entry::<SessionsHide>(),
         entry::<ConnectionHello>(),
         entry::<TerminalInputOnce>(),
+        entry::<FsStat>(),
+        entry::<FsList>(),
+        entry::<FsRead>(),
+        entry::<FsWrite>(),
+        entry::<ReviewDiff>(),
+        entry::<ReviewBlob>(),
         entry::<MobileDevices>(),
         entry::<MobileRevoke>(),
         entry::<MobilePolicy>(),
@@ -1570,6 +1591,7 @@ mod tests {
             .chain(MOBILE_METHODS)
             .chain(SESSION_METHODS)
             .chain(SESSIONS_METHODS)
+            .chain(FILES_METHODS)
             .chain([&ConnectionHello::NAME, &TerminalInputOnce::NAME])
         {
             assert!(s["methods"].get(*m).is_some(), "{m} missing from schema");

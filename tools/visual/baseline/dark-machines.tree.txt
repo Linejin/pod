@@ -1,0 +1,84 @@
+﻿App=pod-app (pid 60852)
+Window: "Pod", App: pod-app.
+
+0 영역 Pod
+	1 title bar Pod
+		2 menu bar 시스템 메뉴 모음
+			3 menu item 시스템
+		4 button 최소화
+		5 button 최대화
+		6 button 닫기
+	7 단추 명령·터미널 검색
+	8 단추 설정
+	9 트리 저장소와 작업 탐색
+		10 단추 격자
+		11 단추 + 작업
+		12 단추 + 터미널
+		13 단추 + 그룹
+		14 단추 에이전트
+		15 편집 저장소, 작업, 터미널 검색, Secondary Actions: SetValue
+		16 콘솔 트리 sample · 작업 100개, Secondary Actions: Select
+		17 콘솔 트리 Task 000 - 한글 작업과 레이아웃 🔎 · Claude 에이전트, Codex 에이전트 · 작업 중 1 · 응답 1 · 완료 1, Secondary Actions: Select
+			18 이미지 에이전트: Claude, Codex
+		19 콘솔 트리 Worker 0 · Claude 에이전트 | 작업 중 · 출처: osc · 신뢰도: 100% · 상위: 작업 중 · 마지막: — | 보고 없음
+			20 이미지 Claude 에이전트
+			21 상태 작업 중 · 출처: osc · 신뢰도: 100% · 상위: 작업 중 · 마지막: —
+		22 콘솔 트리 Worker 1 · Codex 에이전트 | 승인 필요 · 출처: osc · 신뢰도: 100% · 상위: 승인 필요 · 마지막: — | 보고 없음
+			23 이미지 Codex 에이전트
+			24 상태 승인 필요 · 출처: osc · 신뢰도: 100% · 상위: 승인 필요 · 마지막: —
+		25 콘솔 트리 Worker 2 · 셸 터미널 | 완료 · 출처: osc · 신뢰도: 100% · 상위: 완료 · 마지막: — | 보고 없음
+			26 이미지 셸 터미널
+			27 상태 완료 · 출처: osc · 신뢰도: 100% · 상위: 완료 · 마지막: —
+		28 콘솔 트리 Task 001 - 한글 작업과 레이아웃 🔎 · Claude 에이전트, Codex 에이전트 · 응답 1 · 대기 1 · 완료 1, Secondary Actions: Select
+			29 이미지 에이전트: Claude, Codex
+		30 콘솔 트리 Worker 3 · Claude 에이전트 | 승인 필요 · 출처: osc · 신뢰도: 100% · 상위: 승인 필요 · 마지막: — | 보고 없음
+			31 이미지 Claude 에이전트
+			32 상태 승인 필요 · 출처: osc · 신뢰도: 100% · 상위: 승인 필요 · 마지막: —
+		33 콘솔 트리 Worker 4 · Codex 에이전트 | 완료 · 출처: osc · 신뢰도: 100% · 상위: 완료 · 마지막: — | 보고 없음
+			34 이미지 Codex 에이전트
+			35 상태 완료 · 출처: osc · 신뢰도: 100% · 상위: 완료 · 마지막: —
+		36 콘솔 트리 Worker 5 · 셸 터미널 | 대기 · 출처: osc · 신뢰도: 100% · 상위: 대기 · 마지막: — | 보고 없음
+			37 이미지 셸 터미널
+			38 상태 대기 · 출처: osc · 신뢰도: 100% · 상위: 대기 · 마지막: —
+		39 콘솔 트리 Task 002 - 한글 작업과 레이아웃 🔎 · Claude 에이전트, Codex 에이전트 · 미확인 1 · 대기 1 · 완료 1, Secondary Actions: Select
+			40 이미지 에이전트: Claude, Codex
+		41 콘솔 트리 Worker 6 · Claude 에이전트 | 완료 · 출처: osc · 신뢰도: 100% · 상위: 완료 · 마지막: — | 보고 없음
+			42 이미지 Claude 에이전트
+			43 상태 완료 · 출처: osc · 신뢰도: 100% · 상위: 완료 · 마지막: —
+		44 영역 원격 머신
+			45 그룹 build-box · 연결됨 · 마지막 수신 18:29:57
+				46 단추 build-box 끊기
+				47 LIST build-box 터미널
+					48 목록 항목 t1 · agent · web/fix-login
+					49 목록 항목 t2 · shell
+			50 그룹 gpu-lab · 다시 연결 중 (3번째) · 마지막 수신 18:29:15
+				51 단추 gpu-lab 끊기
+				52 LIST gpu-lab 터미널
+					53 목록 항목 t4 · train
+			54 그룹 staging · 연결 실패 · 마지막 수신 받은 적 없음
+				55 단추 staging 다시 연결
+				56 경고 호스트 키가 바뀌어 연결을 막았습니다 서버가 바뀌었거나 중간자 공격일 수 있습니다. 관리자에게 새 fingerprint를 확인하기 전에는 known_hosts를 고치지 마세요.
+	57 LIST 최근 알림
+	58 탭 항목 설정, Secondary Actions: Select
+	59 단추 패널 메뉴
+	60 Tab 설정 분류
+		61 탭 항목 모양, Secondary Actions: Select
+		62 탭 항목 글꼴, Secondary Actions: Select
+		63 탭 항목 일반, Secondary Actions: Select
+		64 탭 항목 원격 머신, Secondary Actions: Select
+	65 탭 패널 원격 머신
+		66 메모 머신 프로필은 원격 계정의 전체 사용자 권한을 줍니다 — Pod는 이 계정으로 원격 Pod를 실행합니다. 그 계정이 할 수 있는 모든 명령 실행·파일 읽기와 쓰기를 이 앱에서 할 수 있게 됩니다. 믿는 머신과 계정만 추가하세요. 호스트 키는 Pod가 받아들이거나 바꾸지 않습니다(known_hosts는 직접 관리).
+		67 단추 머신 추가
+		68 LIST 원격 머신
+			69 목록 항목 build-box · alice@build.example.com · 연결됨
+				70 단추 build-box 편집
+				71 단추 build-box 삭제
+			72 목록 항목 gpu-lab · bob@10.0.0.7:2222 · 다시 연결 중 (3번째)
+				73 단추 gpu-lab 편집
+				74 단추 gpu-lab 삭제
+			75 목록 항목 staging · deploy@staging.example.com · 연결 실패
+				76 단추 staging 편집
+				77 단추 staging 삭제
+	78 상태 podd 연결됨 (podd UI fixture (read only) · pid 0) · 터미널 300 · 실행 300 · 패널 0 · 작업 중 49 · 응답 50 · 완료 51 · 작업 100개
+	79 단추 상태
+	80 단추 알림 0

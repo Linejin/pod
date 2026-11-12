@@ -1,5 +1,5 @@
 {
-  "about": "Wire golden of protocol v21 (refactor card D-F0, rewritten for docs/17 R4 and the docs/19 §20 worker endpoint); see crates/podd/tests/protocol_wire.rs",
+  "about": "Wire golden of protocol v22 (refactor card D-F0, rewritten for docs/17 R4, the docs/19 §20 worker endpoint and docs/17 R5 remote files); see crates/podd/tests/protocol_wire.rs",
   "base64": [
     {
       "bytes": [],
@@ -24,16 +24,19 @@
   ],
   "constants": {
     "CAPABILITIES": [
-      "attach.chunks"
+      "attach.chunks",
+      "remote.files",
+      "remote.diff"
     ],
     "CHUNKED_ATTACH_PROTOCOL": 20,
+    "FILES_PROTOCOL": 22,
     "HELLO_PROTOCOL": 12,
     "HOLDER_PROTOCOL": 3,
     "HOLDER_PROTOCOL_MIN": 1,
     "HOOK_MESSAGE_VERSION": 1,
     "JSONRPC_VERSION": "2.0",
     "PROTOCOL_MIN": 11,
-    "PROTOCOL_VERSION": 21,
+    "PROTOCOL_VERSION": 22,
     "UNREACHABLE_PROTOCOL": 19,
     "WORKER_ENDPOINT_PROTOCOL": 21,
     "capability": [
@@ -63,6 +66,14 @@
       "codes::TERMINAL_EXITED": -32004,
       "codes::TERMINAL_NOT_FOUND": -32001,
       "codes::TERMINAL_RUNNING": -32005,
+      "files_codes::BUSY": -32124,
+      "files_codes::CONFLICT": -32123,
+      "files_codes::NOT_A_FILE": -32126,
+      "files_codes::NOT_FOUND": -32121,
+      "files_codes::OPERATION_MISMATCH": -32125,
+      "files_codes::PATH_DENIED": -32120,
+      "files_codes::STALE_DIFF": -32127,
+      "files_codes::TOO_LARGE": -32122,
       "mobile_codes::MESSAGE_INVALID": -32064,
       "mobile_codes::MOBILE_AUTH": -32061,
       "mobile_codes::MOBILE_DENIED": -32060,
@@ -98,7 +109,16 @@
       "worker_codes::NO_WORKER": -32116,
       "worker_codes::OUT_OF_SCOPE": -32117
     },
+    "files": {
+      "LIST_PAGE": 500,
+      "MAX_PATH_BYTES": 4096,
+      "MAX_READ_BYTES": 4194304,
+      "MAX_WRITE_BYTES": 3000000,
+      "OPERATION_ID_MAX": 64,
+      "OPERATION_KEEP_MS": 86400000
+    },
     "method_lists": {
+      "FILES_METHODS": ["fs.stat","fs.list","fs.read","fs.write","review.diff","review.blob"],
       "METHODS": ["server.status","server.stop","terminal.run","terminal.list","terminal.send","terminal.keys","terminal.input","terminal.read","terminal.wait","terminal.resize","terminal.kill","terminal.rm","terminal.keep","terminal.attach","repo.add","repo.list","repo.remove","task.create","task.list","task.show","task.diff","task.remove","task.touch"],
       "MOBILE_METHODS": ["mobile.devices","mobile.revoke","mobile.policy","mobile.audit","mobile.settings"],
       "ORCH_METHODS": ["review.comments.add","review.comments.list","review.comments.resolve","review.comments.remove","review.send","review.deliveries","review.cancel","group.create","group.list","group.show","group.compare","group.check","group.check_cancel","group.pick","group.remove","gate.create","gate.resolve","gate.list","gate.show","gate.wait"],
@@ -146,7 +166,7 @@
     },
     "server_range": [
       11,
-      21
+      22
     ]
   },
   "downgrade_v18": [
@@ -174,6 +194,11 @@
       "case": "full#2",
       "type": "GroupListResult",
       "v18": {"groups":[{"base":"x","base_commit":"x","check":["x"],"check_job":{"all_passed":true,"argv":["x"],"done":["x"],"finished_ms":7,"id":"x","started_ms":7,"state":"cancelled","tasks":["x"],"timeout_ms":7},"created_ms":7,"gates":[{"choice":"x","created_ms":7,"decided_by":"x","expires_ms":7,"group":"x","id":"x","item":"x","message":"x","note":"x","options":["x"],"requested_by":"x","resolved_ms":7,"run":"x","state":"pending","task":"x","terminal":"x","title":"x"}],"id":"x","members":[{"agent":"claude","check":{"argv":["x"],"duration_ms":7,"error":"x","exit_code":7,"finished_ms":7,"output_tail":"x","passed":true,"timed_out":true},"info":{"agent":"claude","agent_session":{"agent":"x","captured_ms":7,"id":"x","source":"x"},"agent_terminal":"x","base":"x","base_commit":"x","branch":"x","branch_existed":true,"brief":{"after_setup":true,"brief_version":7,"delivery":"env","error":"x","first_line":"x","path":"x","state":"pending"},"created_ms":7,"gates":[{"choice":"x","created_ms":7,"decided_by":"x","expires_ms":7,"group":"x","id":"x","item":"x","message":"x","note":"x","options":["x"],"requested_by":"x","resolved_ms":7,"run":"x","state":"pending","task":"x","terminal":"x","title":"x"}],"git":{"ahead":7,"behind":7,"branch":"x","dirty":7,"head":"x","last_commit":{"author":"x","sha":"x","summary":"x","time_ms":7},"unpushed":7},"git_error":"x","group":"x","id":"x","lifecycle":"active","name":"x","parent_task":"x","parent_terminal":"x","pr":{"checks":{"failed":7,"passed":7,"pending":7,"skipped":7,"total":7},"draft":true,"head_oid":"x","merge_state":"x","number":7,"review_decision":"review_required","state":"merged","title":"x","updated_ms":7,"url":"x"},"prompt":"x","repo":"x","review":{"open":7,"queued":7,"resolved":7,"sent":7},"setup":{"error":"x","exit_code":7,"finished_ms":7,"hash":"x","source":"x","state":"failed","terminal":"x"},"status":{"badge":"x","kind":"x","state":"x","terminal":"x","terminals":7},"terminals":[{"id":"x","info":{"argv":["x"],"attached":7,"cols":7,"conpty":"x","created_ms":7,"cwd":"x","exit_code":7,"exited_ms":7,"holder_pid":7,"id":"x","incompatible_holder":"x","killed":true,"lost":true,"name":"x","parent_task":"x","parent_terminal":"x","pid":7,"rows":7,"state":"exited","status":{"agent":"x","app":"x","badge":"x","blocked_children":7,"confidence":1.5,"final_state":"x","hooks_accepted":7,"hooks_rejected":7,"kind":"x","msg":"x","outcome":"x","progress":7,"records":7,"running_children":7,"since":7,"source":"x","state":"x","title":"x","turn":7},"unreachable":"x"}}],"worktree":"x","worktree_exists":true},"picked":true,"removed":true,"task":"x"}],"name":"x","picked":"x","picked_ms":7,"prompt":"x","repo":"x"}]}
+    },
+    {
+      "case": "full#0",
+      "type": "HelloResult",
+      "v18": {"boot_id":"x","capabilities":["x"],"limits":{"attach_queue_bytes":7,"max_line_bytes":7,"max_output_chunk_bytes":7,"max_request_bytes":7},"machine_id":"x","max_protocol":7,"min_protocol":7,"os":"x","protocol":7,"version":"x"}
     },
     {
       "case": "full#2",
@@ -254,6 +279,11 @@
     },
     {
       "case": "full#0",
+      "type": "HelloResult",
+      "v19": {"boot_id":"x","capabilities":["x"],"limits":{"attach_queue_bytes":7,"max_line_bytes":7,"max_output_chunk_bytes":7,"max_request_bytes":7},"machine_id":"x","max_protocol":7,"min_protocol":7,"os":"x","protocol":7,"version":"x"}
+    },
+    {
+      "case": "full#0",
       "type": "ServerStatusResult",
       "v19": {"pid":7,"pipe":"x","protocol":7,"running":7,"started_ms":7,"state_dir":"x","terminals":7,"uptime_ms":7,"version":"x"}
     },
@@ -266,6 +296,11 @@
   "downgrade_v20": [
     {
       "case": "full#0",
+      "type": "HelloResult",
+      "v20": {"boot_id":"x","capabilities":["x"],"limits":{"attach_queue_bytes":7,"max_line_bytes":7,"max_output_chunk_bytes":7,"max_request_bytes":7},"machine_id":"x","max_protocol":7,"min_protocol":7,"os":"x","protocol":7,"version":"x"}
+    },
+    {
+      "case": "full#0",
       "type": "ServerStatusResult",
       "v20": {"pid":7,"pipe":"x","protocol":7,"running":7,"started_ms":7,"state_dir":"x","terminals":7,"uptime_ms":7,"version":"x"}
     },
@@ -273,6 +308,13 @@
       "case": "full#1",
       "type": "ServerStatusResult",
       "v20": {"pid":7,"pipe":"x","protocol":7,"running":7,"started_ms":7,"state_dir":"x","terminals":7,"uptime_ms":7,"version":"x"}
+    }
+  ],
+  "downgrade_v21": [
+    {
+      "case": "full#0",
+      "type": "HelloResult",
+      "v21": {"boot_id":"x","capabilities":["x"],"limits":{"attach_queue_bytes":7,"max_line_bytes":7,"max_output_chunk_bytes":7,"max_request_bytes":7},"machine_id":"x","max_protocol":7,"min_protocol":7,"os":"x","protocol":7,"version":"x"}
     }
   ],
   "errors": [
@@ -311,13 +353,29 @@
       "in": {"code":-32071,"data":{"exit_code":1,"output":"boom"},"message":"archive script failed"}
     },
     {
-      "in": {"code":-32051,"data":{"capabilities":["attach.chunks"],"max_protocol":21,"min_protocol":11,"missing":[]},"message":"no common protocol: client speaks 1..=10, this podd 11..=21; install matching Pod versions"}
+      "in": {"code":-32051,"data":{"capabilities":["attach.chunks","remote.files","remote.diff"],"max_protocol":22,"min_protocol":11,"missing":[]},"message":"no common protocol: client speaks 1..=10, this podd 11..=22; install matching Pod versions"}
     }
   ],
   "methods": {
     "connection.hello": {
       "params": "HelloParams",
       "result": "HelloResult"
+    },
+    "fs.list": {
+      "params": "FsListParams",
+      "result": "FsListResult"
+    },
+    "fs.read": {
+      "params": "FsPathParams",
+      "result": "FsReadResult"
+    },
+    "fs.stat": {
+      "params": "FsPathParams",
+      "result": "FsStatResult"
+    },
+    "fs.write": {
+      "params": "FsWriteParams",
+      "result": "FsWriteResult"
     },
     "gate.create": {
       "params": "GateCreateParams",
@@ -551,6 +609,10 @@
       "params": "RepoSetParams",
       "result": "RepoConfigResult"
     },
+    "review.blob": {
+      "params": "ReviewBlobParams",
+      "result": "ReviewBlobResult"
+    },
     "review.cancel": {
       "params": "DeliveryRef",
       "result": "DeliveryInfo"
@@ -574,6 +636,10 @@
     "review.deliveries": {
       "params": "ReviewDeliveriesParams",
       "result": "ReviewDeliveriesResult"
+    },
+    "review.diff": {
+      "params": "ReviewDiffParams",
+      "result": "ReviewDiffResult"
     },
     "review.send": {
       "params": "ReviewSendParams",
@@ -742,7 +808,7 @@
       "params": {"max_protocol":19,"min_protocol":11}
     },
     {
-      "outcome": {"ok":21},
+      "outcome": {"ok":22},
       "params": {"max_protocol":25,"min_protocol":12}
     },
     {
@@ -750,15 +816,15 @@
       "params": {"max_protocol":11,"min_protocol":1}
     },
     {
-      "outcome": {"error":{"code":-32051,"data":{"capabilities":["attach.chunks"],"max_protocol":21,"min_protocol":11,"missing":[]},"message":"no common protocol: client speaks 1..=10, this podd 11..=21; install matching Pod versions"}},
+      "outcome": {"error":{"code":-32051,"data":{"capabilities":["attach.chunks","remote.files","remote.diff"],"max_protocol":22,"min_protocol":11,"missing":[]},"message":"no common protocol: client speaks 1..=10, this podd 11..=22; install matching Pod versions"}},
       "params": {"max_protocol":10,"min_protocol":1}
     },
     {
-      "outcome": {"ok":21},
+      "outcome": {"ok":22},
       "params": {"max_protocol":30,"min_protocol":20}
     },
     {
-      "outcome": {"error":{"code":-32051,"data":{"capabilities":["attach.chunks"],"max_protocol":21,"min_protocol":11,"missing":["remote.files"]},"message":"this podd lacks required capabilities: remote.files"}},
+      "outcome": {"error":{"code":-32051,"data":{"capabilities":["attach.chunks","remote.files","remote.diff"],"max_protocol":22,"min_protocol":11,"missing":["remote.files"]},"message":"protocol 19 has no remote.files; the client must speak a newer protocol"}},
       "params": {"max_protocol":19,"min_protocol":12,"require":["remote.files"]}
     },
     {
@@ -770,7 +836,7 @@
       "params": {"client":"pod-app 1.0","max_protocol":19,"min_protocol":12}
     },
     {
-      "outcome": {"ok":21},
+      "outcome": {"ok":22},
       "params": {"max_protocol":30,"min_protocol":21}
     },
     {
@@ -788,6 +854,18 @@
     {
       "outcome": {"ok":20},
       "params": {"max_protocol":20,"min_protocol":12}
+    },
+    {
+      "outcome": {"ok":22},
+      "params": {"max_protocol":22,"min_protocol":12,"require":["remote.files","remote.diff"]}
+    },
+    {
+      "outcome": {"error":{"code":-32051,"data":{"capabilities":["attach.chunks","remote.files","remote.diff"],"max_protocol":22,"min_protocol":11,"missing":["remote.files"]},"message":"protocol 21 has no remote.files; the client must speak a newer protocol"}},
+      "params": {"max_protocol":21,"min_protocol":12,"require":["remote.files"]}
+    },
+    {
+      "outcome": {"ok":21},
+      "params": {"max_protocol":21,"min_protocol":12}
     }
   ],
   "notification_envelopes": [
@@ -895,6 +973,42 @@
       {"case":"full#0","in":{"exit_code":7,"id":"x","killed":true,"seq":7}},
       {"case":"min","in":{"id":"x","seq":7},"out":{"id":"x","killed":false,"seq":7}},
       {"case":"null","in":{"exit_code":null,"id":"x","seq":7},"out":{"id":"x","killed":false,"seq":7}}
+    ],
+    "FsListParams": [
+      {"case":"full#0","in":{"cursor":"x","limit":7,"path":"x","task":"x"}},
+      {"case":"min","in":{"task":"x"},"out":{"path":"","task":"x"}},
+      {"case":"null","in":{"cursor":null,"limit":null,"task":"x"},"out":{"path":"","task":"x"}}
+    ],
+    "FsListResult": [
+      {"case":"full#0","in":{"entries":[{"kind":"file","modified_ms":7,"name":"x","size":7}],"next":"x","path":"x","task":"x"}},
+      {"case":"full#1","in":{"entries":[{"kind":"dir","modified_ms":7,"name":"x","size":7}],"next":"x","path":"x","task":"x"}},
+      {"case":"full#2","in":{"entries":[{"kind":"link","modified_ms":7,"name":"x","size":7}],"next":"x","path":"x","task":"x"}},
+      {"case":"min","in":{"entries":[],"path":"x","task":"x"}},
+      {"case":"null","in":{"entries":[],"next":null,"path":"x","task":"x"},"out":{"entries":[],"path":"x","task":"x"}}
+    ],
+    "FsPathParams": [
+      {"case":"full#0","in":{"path":"x","task":"x"}}
+    ],
+    "FsReadResult": [
+      {"case":"full#0","in":{"binary":true,"bom":true,"data":"x","eol":"lf","path":"x","revision":"x","size":7,"task":"x","utf8":true}},
+      {"case":"full#1","in":{"binary":true,"bom":true,"data":"x","eol":"crlf","path":"x","revision":"x","size":7,"task":"x","utf8":true}},
+      {"case":"full#2","in":{"binary":true,"bom":true,"data":"x","eol":"none","path":"x","revision":"x","size":7,"task":"x","utf8":true}},
+      {"case":"full#3","in":{"binary":true,"bom":true,"data":"x","eol":"mixed","path":"x","revision":"x","size":7,"task":"x","utf8":true}},
+      {"case":"min","in":{"data":"x","eol":"lf","path":"x","revision":"x","size":7,"task":"x"},"out":{"binary":false,"bom":false,"data":"x","eol":"lf","path":"x","revision":"x","size":7,"task":"x","utf8":false}}
+    ],
+    "FsStatResult": [
+      {"case":"full#0","in":{"entry":{"kind":"file","modified_ms":7,"name":"x","size":7},"path":"x","revision":"x","task":"x"}},
+      {"case":"full#1","in":{"entry":{"kind":"dir","modified_ms":7,"name":"x","size":7},"path":"x","revision":"x","task":"x"}},
+      {"case":"full#2","in":{"entry":{"kind":"link","modified_ms":7,"name":"x","size":7},"path":"x","revision":"x","task":"x"}},
+      {"case":"min","in":{"path":"x","task":"x"}},
+      {"case":"null","in":{"entry":null,"path":"x","revision":null,"task":"x"},"out":{"path":"x","task":"x"}}
+    ],
+    "FsWriteParams": [
+      {"case":"full#0","in":{"data":"x","expected_revision":"x","operation_id":"x","path":"x","task":"x"}}
+    ],
+    "FsWriteResult": [
+      {"case":"full#0","in":{"outcome":"written","path":"x","revision":"x","size":7,"task":"x"}},
+      {"case":"full#1","in":{"outcome":"already","path":"x","revision":"x","size":7,"task":"x"}}
     ],
     "GateChangedEvent": [
       {"case":"full#0","in":{"gate":{"choice":"x","created_ms":7,"decided_by":"x","expires_ms":7,"group":"x","id":"x","item":"x","message":"x","note":"x","options":["x"],"requested_by":"x","resolved_ms":7,"run":"x","state":"pending","task":"x","terminal":"x","title":"x"},"seq":7}},
@@ -1033,8 +1147,9 @@
       {"case":"null","in":{"client":null,"max_protocol":7,"min_protocol":7,"worker":null},"out":{"max_protocol":7,"min_protocol":7}}
     ],
     "HelloResult": [
-      {"case":"full#0","in":{"boot_id":"x","capabilities":["x"],"limits":{"attach_queue_bytes":7,"max_line_bytes":7,"max_output_chunk_bytes":7,"max_request_bytes":7},"machine_id":"x","max_protocol":7,"min_protocol":7,"os":"x","protocol":7,"version":"x"}},
-      {"case":"min","in":{"boot_id":"x","capabilities":[],"limits":{"attach_queue_bytes":7,"max_line_bytes":7,"max_output_chunk_bytes":7,"max_request_bytes":7},"machine_id":"x","max_protocol":7,"min_protocol":7,"os":"x","protocol":7,"version":"x"}}
+      {"case":"full#0","in":{"boot_id":"x","capabilities":["x"],"limits":{"attach_queue_bytes":7,"max_line_bytes":7,"max_output_chunk_bytes":7,"max_read_bytes":7,"max_request_bytes":7,"max_write_bytes":7},"machine_id":"x","max_protocol":7,"min_protocol":7,"os":"x","protocol":7,"version":"x"}},
+      {"case":"min","in":{"boot_id":"x","capabilities":[],"limits":{"attach_queue_bytes":7,"max_line_bytes":7,"max_output_chunk_bytes":7,"max_request_bytes":7},"machine_id":"x","max_protocol":7,"min_protocol":7,"os":"x","protocol":7,"version":"x"}},
+      {"case":"null","in":{"boot_id":"x","capabilities":[],"limits":{"attach_queue_bytes":7,"max_line_bytes":7,"max_output_chunk_bytes":7,"max_read_bytes":null,"max_request_bytes":7,"max_write_bytes":null},"machine_id":"x","max_protocol":7,"min_protocol":7,"os":"x","protocol":7,"version":"x"},"out":{"boot_id":"x","capabilities":[],"limits":{"attach_queue_bytes":7,"max_line_bytes":7,"max_output_chunk_bytes":7,"max_request_bytes":7},"machine_id":"x","max_protocol":7,"min_protocol":7,"os":"x","protocol":7,"version":"x"}}
     ],
     "InputOnceParams": [
       {"case":"full#0","in":{"check":true,"data":"x","id":"x","name":"x","seq":7,"stream":"x"}},
@@ -1540,6 +1655,14 @@
       {"case":"full#1","in":{"comments":[{"body":"x","code":"x","end_line":7,"file":"x","line":7,"side":"new"}],"task":"x"}},
       {"case":"min","in":{"comments":[],"task":"x"}}
     ],
+    "ReviewBlobParams": [
+      {"case":"full#0","in":{"path":"x","rev":"x","task":"x"}}
+    ],
+    "ReviewBlobResult": [
+      {"case":"full#0","in":{"data":"x","path":"x","rev":"x","size":7,"task":"x"}},
+      {"case":"min","in":{"path":"x","rev":"x","task":"x"},"out":{"path":"x","rev":"x","size":0,"task":"x"}},
+      {"case":"null","in":{"data":null,"path":"x","rev":"x","task":"x"},"out":{"path":"x","rev":"x","size":0,"task":"x"}}
+    ],
     "ReviewCommentsResult": [
       {"case":"full#0","in":{"comments":[{"body":"x","code":"x","created_ms":7,"delivery":"x","end_line":7,"file":"x","id":"x","line":7,"note":"x","resolved_ms":7,"side":"old","state":"open","task":"x"}]}},
       {"case":"full#1","in":{"comments":[{"body":"x","code":"x","created_ms":7,"delivery":"x","end_line":7,"file":"x","id":"x","line":7,"note":"x","resolved_ms":7,"side":"new","state":"queued","task":"x"}]}},
@@ -1568,6 +1691,14 @@
       {"case":"full#4","in":{"delivery":{"agent_state":"x","app_bracketed_paste":true,"comment_ids":["x"],"created_ms":7,"delivered_ms":7,"delivered_state":"x","error":"x","id":"x","prompt":"x","state":"preview","task":"x","terminal":"x"},"seq":7,"submit":{"entered_ms":7,"enters":7,"settled_ms":7,"signal":"x","state":"pending"}}},
       {"case":"min","in":{"delivery":{"agent_state":"x","comment_ids":[],"created_ms":7,"id":"x","prompt":"x","state":"queued","task":"x","terminal":"x"},"seq":7}},
       {"case":"null","in":{"delivery":{"agent_state":"x","app_bracketed_paste":null,"comment_ids":[],"created_ms":7,"delivered_ms":null,"delivered_state":null,"error":null,"id":"x","prompt":"x","state":"queued","task":"x","terminal":"x"},"seq":7,"submit":null},"out":{"delivery":{"agent_state":"x","comment_ids":[],"created_ms":7,"id":"x","prompt":"x","state":"queued","task":"x","terminal":"x"},"seq":7}}
+    ],
+    "ReviewDiffParams": [
+      {"case":"full#0","in":{"task":"x"}}
+    ],
+    "ReviewDiffResult": [
+      {"case":"full#0","in":{"autocrlf":"x","base":"x","files":[{"added":7,"attrs":{"crlf":"x","eol":"x","text":"x"},"binary":true,"deleted":7,"old_path":"x","path":"x","revision":"x","size":7,"status":"x"}],"head":"x","merge_base":"x","snapshot":"x","task":"x"}},
+      {"case":"min","in":{"base":"x","files":[],"head":"x","merge_base":"x","snapshot":"x","task":"x"}},
+      {"case":"null","in":{"autocrlf":null,"base":"x","files":[],"head":"x","merge_base":"x","snapshot":"x","task":"x"},"out":{"base":"x","files":[],"head":"x","merge_base":"x","snapshot":"x","task":"x"}}
     ],
     "ReviewIdsParams": [
       {"case":"full#0","in":{"ids":["x"]}},

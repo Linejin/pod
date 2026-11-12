@@ -65,7 +65,7 @@ pub(crate) struct ChromePanel {
     focus: FocusHandle,
     /// Settings: selected category (index into `settings::CATEGORIES`), one focus handle per row.
     pub(super) category: usize,
-    pub(super) category_focus: [FocusHandle; 3],
+    pub(super) category_focus: [FocusHandle; 4],
     /// Settings: the open select and its highlighted option.
     pub(super) open_select: Option<(&'static str, usize)>,
     /// Scroll of the open select's list (one list is open at a time).
@@ -76,7 +76,12 @@ impl ChromePanel {
         let sub = workspace
             .upgrade()
             .map(|w| cx.observe(&w, |_, _, cx| cx.notify()));
-        let category_focus = [cx.focus_handle(), cx.focus_handle(), cx.focus_handle()];
+        let category_focus = [
+            cx.focus_handle(),
+            cx.focus_handle(),
+            cx.focus_handle(),
+            cx.focus_handle(),
+        ];
         ChromePanel {
             workspace,
             inspector,
@@ -87,6 +92,24 @@ impl ChromePanel {
             open_select: None,
             select_scroll: ScrollHandle::new(),
         }
+    }
+}
+
+impl ChromePanel {
+    /// Show settings category `i` (e.g. 원격 머신 from the palette) and focus its row.
+    pub(crate) fn select_category(
+        &mut self,
+        i: usize,
+        window: &mut Window,
+        cx: &mut Context<Self>,
+    ) {
+        if self.inspector {
+            return;
+        }
+        self.category = i.min(self.category_focus.len() - 1);
+        self.open_select = None;
+        self.category_focus[self.category].focus(window, cx);
+        cx.notify();
     }
 }
 

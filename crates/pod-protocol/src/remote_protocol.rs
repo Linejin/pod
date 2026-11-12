@@ -26,8 +26,9 @@ pub const PROTOCOL_MIN: u32 = 11;
 /// The first protocol with `connection.hello`; remote connections need it.
 pub const HELLO_PROTOCOL: u32 = 12;
 
-/// Capability names (docs/17 §5). Only `attach.chunks` is implemented
-/// (v20); a client that requires another one is refused.
+/// Capability names (docs/17 §5). `attach.chunks` since v20, `remote.files`
+/// and `remote.diff` since v22; a client that requires `gate.cas` is
+/// refused.
 pub mod capability {
     pub const REMOTE_FILES: &str = "remote.files";
     pub const REMOTE_DIFF: &str = "remote.diff";
@@ -40,16 +41,32 @@ pub mod capability {
 
 /// Capabilities this daemon offers (to a connection that chose v20 or newer;
 /// see [`capabilities_for`]).
-pub const CAPABILITIES: &[&str] = &[capability::ATTACH_CHUNKS];
+pub const CAPABILITIES: &[&str] = &[
+    capability::ATTACH_CHUNKS,
+    capability::REMOTE_FILES,
+    capability::REMOTE_DIFF,
+];
 
 /// The capabilities a connection that chose `protocol` gets in its hello
 /// result: an older client is told nothing it cannot use.
 pub fn capabilities_for(protocol: u32) -> Vec<String> {
     CAPABILITIES
         .iter()
-        .filter(|c| **c != capability::ATTACH_CHUNKS || protocol >= CHUNKED_ATTACH_PROTOCOL)
+        .filter(|c| offered_at(c, protocol))
         .map(|c| c.to_string())
         .collect()
+}
+
+/// Is `capability` part of `protocol` (`attach.chunks` from v20,
+/// `remote.files` / `remote.diff` from v22)? Unknown names: always.
+pub fn offered_at(capability: &str, protocol: u32) -> bool {
+    match capability {
+        capability::ATTACH_CHUNKS => protocol >= CHUNKED_ATTACH_PROTOCOL,
+        capability::REMOTE_FILES | capability::REMOTE_DIFF => {
+            protocol >= crate::files_protocol::FILES_PROTOCOL
+        }
+        _ => true,
+    }
 }
 
 /// v20 (docs/17 R4): the first protocol with chunked attach snapshots,
@@ -226,10 +243,17 @@ pub struct FrameLimits {
     pub max_output_chunk_bytes: u64,
     /// Per-client attach queue; past it the client gets `terminal.lagged`.
     pub attach_queue_bytes: u64,
+    /// v22: largest file `fs.read` / `review.blob` return.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub max_read_bytes: Option<u64>,
+    /// v22: largest content `fs.write` takes.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub max_write_bytes: Option<u64>,
 }
 
-/// Pick the newest version in both ranges and check required capabilities.
-/// `server` is the daemon's `(min, max)`.
+/// Pick the newest version in both ranges and check required capabilities
+/// (offered by the daemon and part of the chosen version, see
+/// [`offered_at`]). `server` is the daemon's `(min, max)`.
 pub fn negotiate(
     p: &HelloParams,
     server: (u32, u32),
@@ -250,7 +274,7 @@ pub fn negotiate(
         .require
         .iter()
         .map(String::as_str)
-        .filter(|c| !capabilities.contains(c))
+        .filter(|c| !capabilities.contains(c) || !offered_at(c, hi))
         .collect();
     let data = || {
         serde_json::json!({
@@ -272,13 +296,19 @@ pub fn negotiate(
         return Err(e);
     }
     if !missing.is_empty() {
-        let mut e = RpcError::new(
-            remote_codes::PROTOCOL_MISMATCH,
+        // Offered, but only by a newer protocol than the one both speak.
+        let message = if missing.iter().all(|c| capabilities.contains(c)) {
+            format!(
+                "protocol {hi} has no {}; the client must speak a newer protocol",
+                missing.join(", ")
+            )
+        } else {
             format!(
                 "this podd lacks required capabilities: {}",
                 missing.join(", ")
-            ),
-        );
+            )
+        };
+        let mut e = RpcError::new(remote_codes::PROTOCOL_MISMATCH, message);
         e.data = Some(data());
         return Err(e);
     }
@@ -344,6 +374,17 @@ mod tests {
             capabilities_for(CHUNKED_ATTACH_PROTOCOL),
             [capability::ATTACH_CHUNKS]
         );
+        // v22: the remote file and diff methods.
+        let f = crate::files_protocol::FILES_PROTOCOL;
+        assert_eq!(capabilities_for(f - 1), [capability::ATTACH_CHUNKS]);
+        assert_eq!(
+            capabilities_for(f),
+            [
+                capability::ATTACH_CHUNKS,
+                capability::REMOTE_FILES,
+                capability::REMOTE_DIFF
+            ]
+        );
         assert_eq!(
             negotiate(
                 &hello(12, 20, &[capability::ATTACH_CHUNKS]),
@@ -351,6 +392,22 @@ mod tests {
                 CAPABILITIES
             ),
             Ok(20)
+        );
+        // A client that speaks 21 at most cannot require a v22 capability.
+        let e = negotiate(
+            &hello(12, 21, &[capability::REMOTE_FILES]),
+            (11, 22),
+            CAPABILITIES,
+        )
+        .unwrap_err();
+        assert_eq!(e.data.unwrap()["missing"][0], "remote.files");
+        assert_eq!(
+            negotiate(
+                &hello(12, 22, &[capability::REMOTE_DIFF]),
+                (11, 22),
+                CAPABILITIES
+            ),
+            Ok(22)
         );
     }
 

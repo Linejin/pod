@@ -16,7 +16,7 @@ param(
  [string]$Layout = '',
  # UIA dump attempts per scene until the required nodes of the scene in this layout appear (uia-required.ps1).
  [int]$UiaAttempts = 6,
- [string[]]$Scenes = @('workspace','palette','settings','agents','inspect','open-repo','new-task','terminal','new-group','gates','notifications','review','shortcuts','editor','orch-board','orch-inbox','orch-cleanup','orch-settings')
+ [string[]]$Scenes = @('workspace','palette','settings','agents','inspect','open-repo','new-task','terminal','new-group','gates','notifications','review','shortcuts','editor','orch-board','orch-inbox','orch-cleanup','orch-settings','machines','machine-terminal','machine-trust')
 )
 Remove-Item Env:CARGO_TARGET_DIR -ErrorAction SilentlyContinue
 $env:RUSTC_WRAPPER = 'C:\Users\User\AppData\Local\Microsoft\WinGet\Packages\Mozilla.sccache_Microsoft.Winget.Source_8wekyb3d8bbwe\sccache-v0.19.0-x86_64-pc-windows-msvc\sccache.exe'

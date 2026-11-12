@@ -95,6 +95,8 @@ impl Workspace {
                     ),
             )
             .child(list)
+            // Remote machines (docs/17 R4); draws nothing without profiles.
+            .child(self.machines.clone())
     }
 
     fn render_row(&self, t: &TerminalVm, ws: &WeakEntity<Self>) -> impl IntoElement {

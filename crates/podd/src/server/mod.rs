@@ -17,6 +17,7 @@
 pub mod agent_launch;
 pub mod codex_allowance;
 pub mod discovery;
+pub mod files;
 pub mod gates;
 pub mod groups;
 pub mod lifecycle;
@@ -198,6 +199,8 @@ pub struct Daemon {
     early_wake: tokio::sync::Notify,
     /// Paired phones, their sessions, policy and audit (docs/17 M1, no listener).
     mobile: mobile::Mobile,
+    /// v22 remote files (docs/17 R5): the save journal and per-file locks.
+    files: files::Files,
 }
 
 /// Timestamped line on stderr (redirected to the log file by `podd --log`).

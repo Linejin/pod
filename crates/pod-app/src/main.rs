@@ -35,6 +35,7 @@ mod hooks_prompt;
 mod layout;
 mod layout_mode;
 mod layouts;
+mod machines_ui;
 mod mods_ui;
 #[cfg(test)]
 mod native_qa;
@@ -224,6 +225,11 @@ fn install(cx: &mut App) {
         register_panel(cx, name, orch_ui::build_panel);
     }
     register_panel(cx, "PodInspector", chrome::build_chrome_panel);
+    register_panel(
+        cx,
+        machines_ui::REMOTE_PANEL_NAME,
+        machines_ui::build_remote_panel,
+    );
 }
 
 fn main() {
@@ -277,7 +283,9 @@ fn main() {
         } else {
             hooks_prompt::PodCli::next_to_app().map(|c| std::sync::Arc::new(c) as _)
         };
-        let start = StartOptions { open_all: args.open_all, sound: !args.no_sound, review: args.review.clone(), settings: args.settings, hook_cli: hook_cli.map(hooks_prompt::HookCliHandle) };
+        // Fixture runs get fixed machines and never read the real profiles.
+        let machines = args.fixture.then(|| machines_ui::MachinesBackend::fixture(args.fixture_scene.as_deref()));
+        let start = StartOptions { open_all: args.open_all, sound: !args.no_sound, review: args.review.clone(), settings: args.settings, hook_cli: hook_cli.map(hooks_prompt::HookCliHandle), machines };
         let (stats_on, duration) = (args.stats || args.duration.is_some(), args.duration);
         let (window_handle, ws) = gpui_kit::open_window(options, cx, move |window, cx| cx.new(|cx| Workspace::new(source, events, start, window, cx)))
             .expect("failed to open window");
@@ -337,6 +345,7 @@ fn main() {
                         else if fixture_scenes::is_editor_scene(&scene) { fixture_scenes::run(&scene, w, window, cx); }
                         else if scene == layouts::queue::FIXTURE_SCENE { fixture_scenes::queue(w, window, cx); }
                         else if scene == layouts::dense::FIXTURE_SCENE { fixture_scenes::dense(w, window, cx); }
+                        else if machines_ui::fixture::SCENES.contains(&scene.as_str()) { machines_ui::fixture::run(&scene, w, window, cx); }
                         else { w.command(&scene, window, cx); }
                     });
                 }).detach();

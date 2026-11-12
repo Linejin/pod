@@ -2217,7 +2217,9 @@ fn a_waiting_worker_is_not_a_missed_done_and_is_woken() {
         ]],
     );
     assert_eq!(e.out(&a1, n[0])["code"], 0);
-    until_true("a1's turn-end escalation", 20, || {
+    // 60 s, not 20: under parallel builds the fake agent's turn (pod.exe
+    // spawn, RPC, OSC idle) took longer than 20 s twice in four runs.
+    until_true("a1's turn-end escalation", 60, || {
         turn_end_escalations(&e.peek("r1"), &a1) == 1
     });
     passes(&mut e.c());

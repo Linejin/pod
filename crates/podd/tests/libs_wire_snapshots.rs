@@ -1206,7 +1206,8 @@ fn library_wire_schema_matches_the_baseline() {
     // protocol number in GOLDEN_SCHEMA moved (19 -> 20). v21 (docs/19
     // §20): the number again (20 -> 21) and `orch.gate.decide` params
     // (`person`).
-    assert_eq!(PROTOCOL_VERSION, 21, "protocol version");
+    // v22 (docs/17 R5): the number only (21 -> 22); no library type changed.
+    assert_eq!(PROTOCOL_VERSION, 22, "protocol version");
     assert_eq!(pod_orch::engine::RUN_VERSION, 1, "orch run.json version");
     let sch = schema();
     let lib = |name: &str| {
@@ -4396,5 +4397,5 @@ const GOLDEN_SCHEMA: &str = r##"{
     "orch.mail": "aa20f9654e8dccd6",
     "sessions.changed": "6607bb4076acf9c3"
   },
-  "protocol": 21
+  "protocol": 22
 }"##;

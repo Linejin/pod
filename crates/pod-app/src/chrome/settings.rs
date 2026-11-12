@@ -112,10 +112,12 @@ fn choice_name(setting: &str, value: &str) -> String {
 }
 
 /// Settings categories (docs/10 §D4.6 category160): the left column, in order.
-pub(super) const CATEGORIES: [(&str, pod_ui::Icon); 3] = [
+pub(super) const CATEGORIES: [(&str, pod_ui::Icon); 4] = [
     (crate::strings::APPEARANCE, pod_ui::Icon::Palette),
     (crate::strings::SETTINGS_FONTS, pod_ui::Icon::Type),
     (crate::strings::SETTINGS_GENERAL, pod_ui::Icon::Settings),
+    // Remote machines (docs/17 R3/R4): `machines_ui::SETTINGS_CATEGORY`.
+    (crate::machines_ui::CATEGORY, pod_ui::Icon::Server),
 ];
 pub(super) const UI_FONTS: &[&str] = &["Segoe UI", "Malgun Gothic", "Consolas"];
 pub(super) const UI_SIZES: &[&str] = &["12", "13", "14", "16"];
@@ -171,6 +173,10 @@ impl ChromePanel {
         let content = match category {
             0 => appearance_section(&settings, &ws, &sel, cx),
             1 => fonts_section(&settings, &sel),
+            crate::machines_ui::SETTINGS_CATEGORY => {
+                let board = ws.upgrade().map(|w| w.read(cx).machines.clone());
+                crate::machines_ui::settings_section(board, cx)
+            }
             _ => general_section(&settings, &ws, cx),
         };
         // Narrow panels wrap the content under the column (좁으면 한 열).

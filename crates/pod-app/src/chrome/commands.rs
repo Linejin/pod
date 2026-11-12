@@ -131,6 +131,13 @@ pub(super) const COMMANDS: &[CommandSpec] = &[
         run: |w, window, cx| w.open_settings(window, cx),
     },
     CommandSpec {
+        id: "machines",
+        label: crate::machines_ui::CATEGORY,
+        detail: crate::machines_ui::COMMAND_DETAIL,
+        shortcut: None,
+        run: |w, window, cx| w.open_machine_settings(window, cx),
+    },
+    CommandSpec {
         id: "extensions",
         label: crate::mods_ui::s::OPEN_PAGE,
         detail: crate::mods_ui::s::OPEN_PAGE_DETAIL,

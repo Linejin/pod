@@ -52,7 +52,7 @@ impl Workspace {
             conn: &self.conn,
             gates,
             focused_terminal: self.focused_terminal.as_deref(),
-            panels: self.open_panels(),
+            panels: self.open_panels(cx),
             panel_detail: self.panel_detail(cx),
             metrics: LayoutMetrics::current(cx),
             labels: &self.saved.labels,
@@ -65,8 +65,15 @@ impl Workspace {
 
     /// The panels the workbench's "nothing open" hint checks, minus the
     /// app-level pages (each mode checks those itself).
-    fn open_panels(&self) -> OpenPanels {
+    fn open_panels(&self, cx: &App) -> OpenPanels {
         OpenPanels {
+            remote_terminals: self
+                .machines
+                .read(cx)
+                .panels
+                .iter()
+                .filter(|p| p.upgrade().is_some())
+                .count(),
             terminals: self.live_panels().len(),
             reviews: self.live_reviews().len(),
             editors: self.live_editors().len(),

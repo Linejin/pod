@@ -4,7 +4,7 @@
 //! like the pre-refactor master `64e9530`.
 //!
 //! - `contract_matches_the_baseline`: protocol/holder/hook numbers, the
-//!   `podd schema` fingerprint with its 105 method and 19 notification names
+//!   `podd schema` fingerprint with its 111 method and 19 notification names
 //!   (104/18 on the baseline; v20 added `terminal.input_once` and
 //!   `terminal.snapshot`, docs/17 R4),
 //!   and every method's answer on a fresh daemon to a params value no struct
@@ -470,7 +470,8 @@ fn contract_matches_the_baseline() {
     );
     wait_exit(&mut d);
     let _ = std::fs::remove_dir_all(&root);
-    assert_eq!(methods.len(), 105, "the public method set");
+    // 111 since v22 (docs/17 R5: fs.* and review.diff/blob).
+    assert_eq!(methods.len(), 111, "the public method set");
     check("podd-contract", CONTRACT_GOLDEN, &got);
 }
 
@@ -926,10 +927,14 @@ fn daemon_flow_matches_the_baseline() {
 // Protocol v21 (rm-o2, docs/19 §20) changed exactly three contract lines:
 // the numbers and schema fingerprint lines and `server.status` (protocol
 // 21, `endpoint: full`). The flow golden is unchanged.
+// Protocol v22 (rm-r5, docs/17 R5) changed the same three lines (22, the
+// schema fingerprint, 111 methods) and added the probe and `{}` lines of
+// fs.list/read/stat/write and review.blob/diff (12 lines). The flow golden
+// is unchanged.
 
 const CONTRACT_GOLDEN: &str = r##"
-numbers protocol=21 min=11 holder=3 holder_min=1 hook=1
-schema fnv64=a0e0890873ec118b methods=105 notifications=19 protocol=21 min_protocol=11
+numbers protocol=22 min=11 holder=3 holder_min=1 hook=1
+schema fnv64=bae1d6fc2dbfa8f9 methods=111 notifications=19 protocol=22 min_protocol=11
 notification terminal.output
 notification terminal.resized
 notification terminal.exited
@@ -951,6 +956,14 @@ notification orch.mail
 notification sessions.changed
 method connection.hello probe: -32602 invalid params: invalid type: string "route-probe", expected struct HelloParams
 method connection.hello {}: -32602 invalid params: missing field `min_protocol`
+method fs.list probe: -32602 invalid params: invalid type: string "route-probe", expected struct FsListParams
+method fs.list {}: -32602 invalid params: missing field `task`
+method fs.read probe: -32602 invalid params: invalid type: string "route-probe", expected struct FsPathParams
+method fs.read {}: -32602 invalid params: missing field `task`
+method fs.stat probe: -32602 invalid params: invalid type: string "route-probe", expected struct FsPathParams
+method fs.stat {}: -32602 invalid params: missing field `task`
+method fs.write probe: -32602 invalid params: invalid type: string "route-probe", expected struct FsWriteParams
+method fs.write {}: -32602 invalid params: missing field `task`
 method gate.create probe: -32602 invalid params: invalid type: string "route-probe", expected struct GateCreateParams
 method gate.create {}: -32602 invalid params: missing field `message`
 method gate.list probe: -32602 invalid params: invalid type: string "route-probe", expected struct GateListParams
@@ -1062,6 +1075,8 @@ method repo.remove probe: -32602 invalid params: invalid type: string "route-pro
 method repo.remove {}: -32602 invalid params: missing field `repo`
 method repo.set probe: -32602 invalid params: invalid type: string "route-probe", expected struct RepoSetParams
 method repo.set {}: -32602 invalid params: missing field `repo`
+method review.blob probe: -32602 invalid params: invalid type: string "route-probe", expected struct ReviewBlobParams
+method review.blob {}: -32602 invalid params: missing field `task`
 method review.cancel probe: -32602 invalid params: invalid type: string "route-probe", expected struct DeliveryRef
 method review.cancel {}: -32602 invalid params: missing field `id`
 method review.comments.add probe: -32602 invalid params: invalid type: string "route-probe", expected struct ReviewAddParams
@@ -1074,9 +1089,11 @@ method review.comments.resolve probe: -32602 invalid params: invalid type: strin
 method review.comments.resolve {}: -32602 invalid params: missing field `ids`
 method review.deliveries probe: -32602 invalid params: invalid type: string "route-probe", expected struct ReviewDeliveriesParams
 method review.deliveries {}: ok {"deliveries":[]}
+method review.diff probe: -32602 invalid params: invalid type: string "route-probe", expected struct ReviewDiffParams
+method review.diff {}: -32602 invalid params: missing field `task`
 method review.send probe: -32602 invalid params: invalid type: string "route-probe", expected struct ReviewSendParams
 method server.status probe: -32602 invalid params: invalid type: string "route-probe", expected struct Empty
-method server.status {}: ok {"endpoint":"full","pid":"<n>","pipe":"<PIPE>","protocol":21,"running":0,"started_ms":"<n>","state_dir":"<ROOT>\\state","terminals":0,"uptime_ms":"<n>","version":"<VERSION>"}
+method server.status {}: ok {"endpoint":"full","pid":"<n>","pipe":"<PIPE>","protocol":22,"running":0,"started_ms":"<n>","state_dir":"<ROOT>\\state","terminals":0,"uptime_ms":"<n>","version":"<VERSION>"}
 method server.stop probe: -32602 invalid params: invalid type: string "route-probe", expected struct StopParams
 method sessions.hide probe: -32042 session discovery is off (turn it on with `pod sessions scan --enable`)
 method sessions.hide {}: -32042 session discovery is off (turn it on with `pod sessions scan --enable`)

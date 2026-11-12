@@ -29,8 +29,8 @@ pub mod keys;
 // card D-F2). They stay reachable under their old paths, as the same modules:
 // `podd::protocol::TaskInfo` is `pod_protocol::protocol::TaskInfo`.
 pub use pod_protocol::{
-    discovery_protocol, mobile_protocol, mods_protocol, orch_protocol, orch_run_protocol,
-    pr_protocol, protocol, remote_protocol, session_protocol, status_protocol,
+    discovery_protocol, files_protocol, mobile_protocol, mods_protocol, orch_protocol,
+    orch_run_protocol, pr_protocol, protocol, remote_protocol, session_protocol, status_protocol,
 };
 
 #[cfg(feature = "server")]

@@ -7,6 +7,8 @@
 //! - `detach` (Windows): starting podd / pod-holder with no inherited handles.
 //! - [`env`]: terminal environment hygiene and the worker git guard, pure
 //!   map transforms (the git config itself is read by the daemon).
+//! - [`files`]: remote file saves that survive a lost answer (v22, docs/17
+//!   R5) and the decoding of file answers.
 //! - [`protocol`]: the wire types, re-exported from `pod-protocol`.
 //!
 //! Nothing here depends on the server, the holder, the PTY stack or tokio.
@@ -19,6 +21,7 @@ pub mod client;
 pub mod detach;
 pub mod endpoint;
 pub mod env;
+pub mod files;
 pub mod transport;
 
 // Consumers that still spell `podd::protocol` reach the same module.

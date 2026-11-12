@@ -89,6 +89,9 @@ impl Daemon {
                     remote,
                     self.config.attach_queue_limit,
                 ) as u64,
+                // v22 (docs/17 R5); dropped for older hellos (downgrade).
+                max_read_bytes: Some(MAX_READ_BYTES),
+                max_write_bytes: Some(MAX_WRITE_BYTES),
             },
         })
     }

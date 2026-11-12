@@ -1,6 +1,6 @@
 //! Every method the daemon serves, registered by domain: system, terminal,
-//! status, repo/task, PR, review/group/gate, orch, discovery, mods, mobile
-//! (and the debug-only `mobile.test.*`). The direct handlers are the former
+//! status, repo/task, PR, review/group/gate, orch, discovery, mods, mobile,
+//! files (and the debug-only `mobile.test.*`). The direct handlers are the former
 //! dispatch match arms, moved verbatim; the status, orch, discovery, mods and
 //! mobile methods go to their domain's own dispatch, which also answers the
 //! unregistered names it claims ([`CLAIMS`]).
@@ -34,6 +34,7 @@ pub(super) const REGISTERED: &[&[MethodRegistration]] = &[
     DISCOVERY,
     MODS,
     MOBILE,
+    FILES,
     MOBILE_TEST_HOOKS,
 ];
 
@@ -337,6 +338,22 @@ const MOBILE: &[MethodRegistration] = &[
     unary::<MobileSettingsMethod>(dispatch_mobile),
 ];
 
+// ───────────────────────────── files (v22) ─────────────────────────────
+
+/// docs/17 R5: remote files and the review diff of a task's worktree.
+const FILES: &[MethodRegistration] = &[
+    unary::<FsStat>(|d, _, p| Box::pin(async move { to_value(d.fs_stat(params(p)?).await?) })),
+    unary::<FsList>(|d, _, p| Box::pin(async move { to_value(d.fs_list(params(p)?).await?) })),
+    unary::<FsRead>(|d, _, p| Box::pin(async move { to_value(d.fs_read(params(p)?).await?) })),
+    unary::<FsWrite>(|d, _, p| Box::pin(async move { to_value(d.fs_write(params(p)?).await?) })),
+    unary::<ReviewDiff>(|d, _, p| {
+        Box::pin(async move { to_value(d.review_diff(params(p)?).await?) })
+    }),
+    unary::<ReviewBlob>(|d, _, p| {
+        Box::pin(async move { to_value(d.review_blob(params(p)?).await?) })
+    }),
+];
+
 /// Not public (not in the schema). The mobile dispatch keeps their gate: a
 /// debug build with `POD_MOBILE_TEST_HOOKS=1`, else an unknown method.
 const MOBILE_TEST_HOOKS: &[MethodRegistration] = &[
@@ -389,8 +406,9 @@ mod tests {
             .collect();
         let hooks = names(&[MOBILE_TEST_HOOKS]);
         let public: BTreeSet<&str> = names(REGISTERED).difference(&hooks).copied().collect();
-        // 105 since v20 added terminal.input_once (docs/17 R4).
-        assert_eq!(public.len(), 105);
+        // 105 since v20 added terminal.input_once (docs/17 R4); 111 since
+        // v22 added fs.stat/list/read/write and review.diff/blob (R5).
+        assert_eq!(public.len(), 111);
         assert_eq!(public, schema);
         assert!(hooks.iter().all(|m| m.starts_with("mobile.test.")));
         assert_eq!(hooks.len(), 3);
@@ -412,7 +430,7 @@ mod tests {
     /// domain whose `handles` claims it, or a direct handler when none does.
     #[test]
     fn each_method_keeps_its_former_dispatch() {
-        let tables: [(&[MethodRegistration], Option<&str>); 11] = [
+        let tables: [(&[MethodRegistration], Option<&str>); 12] = [
             (SYSTEM, None),
             (TERMINAL, None),
             (STATUS, Some("status")),
@@ -423,6 +441,7 @@ mod tests {
             (DISCOVERY, Some("discovery")),
             (MODS, Some("mods")),
             (MOBILE, Some("mobile")),
+            (FILES, None),
             (MOBILE_TEST_HOOKS, Some("mobile")),
         ];
         assert_eq!(tables.len(), REGISTERED.len());
@@ -460,7 +479,7 @@ mod tests {
     fn the_index_holds_every_registration() {
         let r = RpcRegistry::new(REGISTERED, CLAIMS);
         assert_eq!(r.names().collect::<BTreeSet<_>>(), names(REGISTERED));
-        assert_eq!(r.names().count(), 105 + 3);
+        assert_eq!(r.names().count(), 111 + 3);
         assert_eq!(
             r.get(TerminalAttach::NAME).map(|m| m.mode),
             Some(Mode::Attach)

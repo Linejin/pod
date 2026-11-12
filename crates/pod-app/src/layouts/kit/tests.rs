@@ -287,6 +287,10 @@ fn dock_is_empty_only_without_any_panel() {
             inspector: true,
             ..one
         },
+        OpenPanels {
+            remote_terminals: 1,
+            ..one
+        },
     ] {
         assert!(!p.dock_empty(), "{p:?}");
     }
@@ -524,6 +528,7 @@ fn other_panels_count_one_each_like_the_review_signature() {
             orch: true,
             settings: true,
             inspector: true,
+            remote_terminals: 2,
         },
         panel_detail: PanelDetail {
             groups: 2,
@@ -537,7 +542,7 @@ fn other_panels_count_one_each_like_the_review_signature() {
         },
         ..base.clone()
     };
-    assert_eq!(f.other_panels(), 1 + 1 + 2 + 2 + 1 + 1 + 1 + 1 + 1);
+    assert_eq!(f.other_panels(), 1 + 1 + 2 + 2 + 2 + 1 + 1 + 1 + 1 + 1);
 }
 
 #[test]

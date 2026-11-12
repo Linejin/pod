@@ -79,6 +79,7 @@ fn static_palette_ids_and_text_are_fixed() {
             "open-repo",
             "terminal",
             "settings",
+            "machines",
             "extensions",
             "sessions",
             "blocked",
@@ -108,6 +109,11 @@ fn static_palette_ids_and_text_are_fixed() {
         (crate::strings::NEW_TERMINAL, "Ctrl+Shift+T")
     );
     assert_eq!(text("settings"), (crate::strings::SETTINGS, "Ctrl+,"));
+    // rm-r4ui: remote machines (settings category), no key of its own.
+    assert_eq!(
+        text("machines"),
+        ("원격 머신", "SSH 머신 프로필 추가·편집, 연결 확인")
+    );
     assert_eq!(
         text("grid"),
         (crate::strings::ARRANGE_PANELS_IN_A_GRID, "Ctrl+Shift+G")
@@ -214,7 +220,11 @@ fn notification_times_read_just_now_minutes_hours_and_days() {
 #[test]
 fn settings_categories_are_korean_and_ordered() {
     let labels: Vec<_> = CATEGORIES.iter().map(|(l, _)| *l).collect();
-    assert_eq!(labels, ["모양", "글꼴", "일반"]);
+    assert_eq!(labels, ["모양", "글꼴", "일반", "원격 머신"]);
+    assert_eq!(
+        CATEGORIES[crate::machines_ui::SETTINGS_CATEGORY].0,
+        crate::machines_ui::CATEGORY
+    );
     assert_eq!(crate::strings::SETTINGS_CATEGORIES, "설정 분류");
 }
 

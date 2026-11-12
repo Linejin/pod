@@ -31,6 +31,8 @@ pod-editor = { path = "../pod-editor" }
 podd = { package = "pod-client", path = "../pod-client" }
 # P6 PR section fixtures (the fake forge; the app never runs gh itself).
 pod-forge = { path = "../pod-forge" }
+# Remote machines (docs/17 R3/R4): profiles, system-ssh transport, reconnecting sessions.
+pod-remote = { path = "../pod-remote" }
 anyhow = "1"
 futures = "0.3"
 serde = { version = "1", features = ["derive"] }
@@ -46,6 +48,8 @@ workspace = true
 # Headless GPUI test platform: native-QA interaction tests (keyboard, focus, IME, DPI).
 gpui = { package = "gpui-pre", version = "=0.3.11", features = ["test-support"] }
 tempfile = "3"
+# Loopback fault proxy for the remote-machine tests (dev only).
+pod-test-support = { path = "../pod-test-support" }
 
 [build-dependencies]
 # MIT: compiles per-binary Windows resources without leaking through rlibs.

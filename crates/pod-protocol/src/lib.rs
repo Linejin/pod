@@ -8,7 +8,7 @@
 //! a file, takes a lock or needs tokio or the daemon.
 //!
 //! The modules keep the names they have under `podd` (`protocol` and the
-//! nine `*_protocol` domains, all re-exported from [`protocol`]), and the
+//! ten `*_protocol` domains, all re-exported from [`protocol`]), and the
 //! wire types of pod-orch, pod-forge, pod-mods (without its `runtime`) and
 //! pod-discover stay re-exported where they were.
 
@@ -26,6 +26,7 @@ macro_rules! method {
 }
 
 pub mod discovery_protocol;
+pub mod files_protocol;
 pub mod mobile_protocol;
 pub mod mods_protocol;
 pub mod orch_protocol;
@@ -51,14 +52,16 @@ mod wire_golden {
 
     use crate::protocol::*;
 
-    const WIRE: &str = include_str!("../../podd/tests/fixtures/wire-v21.json");
-    const SCHEMA: &str = include_str!("../../podd/tests/fixtures/schema-v21.json");
+    const WIRE: &str = include_str!("../../podd/tests/fixtures/wire-v22.json");
+    const SCHEMA: &str = include_str!("../../podd/tests/fixtures/schema-v22.json");
     /// The newest protocol without the v19 `unreachable` terminal state.
     const DOWNGRADE_TO: u32 = 18;
     /// The newest protocol without the v20 attach chunk fields.
     const DOWNGRADE_TO_V19: u32 = 19;
     /// The newest protocol without the v21 worker endpoint fields.
     const DOWNGRADE_TO_V20: u32 = 20;
+    /// The newest protocol without the v22 file limits.
+    const DOWNGRADE_TO_V21: u32 = 21;
     /// Golden constants owned by other crates (holder binary, hook relay).
     const NOT_OURS: [&str; 3] = [
         "HOLDER_PROTOCOL",
@@ -187,6 +190,12 @@ mod wire_golden {
         SessionsHide,
         ConnectionHello,
         TerminalInputOnce,
+        FsStat,
+        FsList,
+        FsRead,
+        FsWrite,
+        ReviewDiff,
+        ReviewBlob,
         MobileDevices,
         MobileRevoke,
         MobilePolicy,
@@ -294,6 +303,14 @@ mod wire_golden {
             worker_codes::NO_WORKER,
             worker_codes::OUT_OF_SCOPE,
             worker_codes::CALLER_MISMATCH,
+            files_codes::PATH_DENIED,
+            files_codes::NOT_FOUND,
+            files_codes::TOO_LARGE,
+            files_codes::CONFLICT,
+            files_codes::BUSY,
+            files_codes::OPERATION_MISMATCH,
+            files_codes::NOT_A_FILE,
+            files_codes::STALE_DIFF,
         )
     }
 
@@ -307,6 +324,15 @@ mod wire_golden {
             "UNREACHABLE_PROTOCOL": UNREACHABLE_PROTOCOL,
             "CHUNKED_ATTACH_PROTOCOL": CHUNKED_ATTACH_PROTOCOL,
             "WORKER_ENDPOINT_PROTOCOL": WORKER_ENDPOINT_PROTOCOL,
+            "FILES_PROTOCOL": FILES_PROTOCOL,
+            "files": {
+                "MAX_READ_BYTES": MAX_READ_BYTES,
+                "MAX_WRITE_BYTES": MAX_WRITE_BYTES,
+                "MAX_PATH_BYTES": MAX_PATH_BYTES,
+                "LIST_PAGE": LIST_PAGE,
+                "OPERATION_KEEP_MS": OPERATION_KEEP_MS,
+                "OPERATION_ID_MAX": OPERATION_ID_MAX,
+            },
             "remote_framing": {
                 "REMOTE_OUTPUT_CHUNK": REMOTE_OUTPUT_CHUNK,
                 "REMOTE_ATTACH_QUEUE": REMOTE_ATTACH_QUEUE,
@@ -325,6 +351,7 @@ mod wire_golden {
                 "MOBILE_METHODS": MOBILE_METHODS,
                 "SESSION_METHODS": SESSION_METHODS,
                 "SESSIONS_METHODS": SESSIONS_METHODS,
+                "FILES_METHODS": FILES_METHODS,
             },
             "notifications": notification_types().iter().map(|(n, _)| *n).collect::<Vec<_>>(),
             "codes": error_codes(),
@@ -422,7 +449,7 @@ mod wire_golden {
         }
         d.check("schema (whole)", &now, &golden);
         d.assert_none();
-        assert_eq!(now["methods"].as_object().unwrap().len(), 105);
+        assert_eq!(now["methods"].as_object().unwrap().len(), 111);
         assert_eq!(now["notifications"].as_object().unwrap().len(), 19);
     }
 
@@ -436,7 +463,7 @@ mod wire_golden {
 
         let methods = method_types();
         let table: BTreeSet<&str> = methods.iter().map(|m| m.name).collect();
-        assert_eq!(methods.len(), 105, "method table");
+        assert_eq!(methods.len(), 111, "method table");
         assert_eq!(table, names(&golden["methods"]), "methods: table vs golden");
         assert_eq!(table, names(&s["methods"]), "methods: table vs schema()");
         for m in &methods {
@@ -597,6 +624,13 @@ mod wire_golden {
     #[test]
     fn v20_downgrade_matches_golden() {
         downgrade_matches(DOWNGRADE_TO_V20, "v20");
+    }
+
+    /// Every result and event sample, rewritten for a v21 client (only the
+    /// v22 hello limits go).
+    #[test]
+    fn v21_downgrade_matches_golden() {
+        downgrade_matches(DOWNGRADE_TO_V21, "v21");
     }
 
     fn downgrade_matches(protocol: u32, label: &str) {

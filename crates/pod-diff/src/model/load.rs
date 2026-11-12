@@ -38,17 +38,8 @@ fn text_or_none(bytes: Vec<u8>) -> Option<String> {
 /// Both versions of each changed file: the old side from `base` (the task's
 /// merge base) via one `git cat-file --batch`, the new side from the worktree.
 pub fn load_changed(worktree: &Path, base: &str, files: &[ChangedFile]) -> Result<Vec<SourceFile>> {
-    let added = |f: &ChangedFile| matches!(f.status.as_str(), "A" | "?");
-    let old_specs: Vec<(usize, String)> = files
-        .iter()
-        .enumerate()
-        .filter(|(_, f)| !added(f) && !f.binary)
-        .map(|(i, f)| {
-            (
-                i,
-                format!("{base}:{}", f.old_path.as_deref().unwrap_or(&f.path)),
-            )
-        })
+    let old_specs: Vec<(usize, String)> = old_side_wanted(files)
+        .map(|(i, p)| (i, format!("{base}:{p}")))
         .collect();
     let specs: Vec<String> = old_specs.iter().map(|(_, s)| s.clone()).collect();
     let blobs = cat_files(worktree, &specs)?;
@@ -56,11 +47,44 @@ pub fn load_changed(worktree: &Path, base: &str, files: &[ChangedFile]) -> Resul
     for ((i, _), blob) in old_specs.into_iter().zip(blobs) {
         old[i] = blob;
     }
+    let (mut out, crlf) = assemble(files, old, |f| std::fs::read(worktree.join(&f.path)).ok());
+    clean_worktree_eol(worktree, &mut out, &crlf)?;
+    Ok(out)
+}
+
+fn added(f: &ChangedFile) -> bool {
+    matches!(f.status.as_str(), "A" | "?")
+}
+
+/// The files whose old side is read, with the path to read it at.
+pub(crate) fn old_side_wanted(files: &[ChangedFile]) -> impl Iterator<Item = (usize, &str)> {
+    files
+        .iter()
+        .enumerate()
+        .filter(|(_, f)| !added(f) && !f.binary)
+        .map(|(i, f)| (i, f.old_path.as_deref().unwrap_or(&f.path)))
+}
+
+/// Does the new side of `f` get read?
+fn new_side_wanted(f: &ChangedFile) -> bool {
+    f.status != "D" && !f.binary
+}
+
+/// The rules shared by the local and the remote load (docs/17 R5: the same
+/// review either way): binary and oversized sides, added/deleted sides.
+/// `old[i]` is file `i`'s old bytes (when [`old_side_wanted`]); `new` reads
+/// the worktree side (`None`: missing or refused). Also the indexes of the
+/// files whose new side has CRLF (for [`apply_eol`]).
+pub(crate) fn assemble(
+    files: &[ChangedFile],
+    mut old: Vec<Option<Vec<u8>>>,
+    mut new: impl FnMut(&ChangedFile) -> Option<Vec<u8>>,
+) -> (Vec<SourceFile>, Vec<usize>) {
     let mut out = Vec::with_capacity(files.len());
     let mut crlf: Vec<usize> = Vec::new();
     for (i, f) in files.iter().enumerate() {
         let mut binary = f.binary;
-        let old_text = match old[i].take() {
+        let old_text = match old.get_mut(i).and_then(Option::take) {
             Some(b) => {
                 let t = text_or_none(b);
                 binary |= t.is_none();
@@ -68,16 +92,16 @@ pub fn load_changed(worktree: &Path, base: &str, files: &[ChangedFile]) -> Resul
             }
             None => None,
         };
-        let new_text = if f.status == "D" || f.binary {
+        let new_text = if !new_side_wanted(f) {
             None
         } else {
-            match std::fs::read(worktree.join(&f.path)) {
-                Ok(b) => {
+            match new(f) {
+                Some(b) => {
                     let t = text_or_none(b);
                     binary |= t.is_none();
                     t
                 }
-                Err(_) => None,
+                None => None,
             }
         };
         let (old_text, new_text) = if binary {
@@ -104,8 +128,7 @@ pub fn load_changed(worktree: &Path, base: &str, files: &[ChangedFile]) -> Resul
             binary,
         });
     }
-    clean_worktree_eol(worktree, &mut out, &crlf)?;
-    Ok(out)
+    (out, crlf)
 }
 
 /// Converts the worktree side of `files[idx]` (text with CRLF) the way
@@ -122,6 +145,19 @@ fn clean_worktree_eol(repo: &Path, files: &mut [SourceFile], idx: &[usize]) -> R
     let attrs = eol::attributes(repo, &paths)?;
     let index_specs: Vec<String> = paths.iter().map(|p| format!(":{p}")).collect();
     let index = cat_files(repo, &index_specs)?;
+    apply_eol(files, idx, attrs, index, autocrlf);
+    Ok(())
+}
+
+/// The cleaning itself, from the facts: per `idx` entry its `(text, crlf,
+/// eol)` attributes and its index blob, and `core.autocrlf`.
+pub(crate) fn apply_eol(
+    files: &mut [SourceFile],
+    idx: &[usize],
+    attrs: Vec<(String, String, String)>,
+    index: Vec<Option<Vec<u8>>>,
+    autocrlf: eol::AutoCrlf,
+) {
     for ((&i, (text, crlf, eol_attr)), index) in idx.iter().zip(attrs).zip(index) {
         let action = eol::action(&text, &crlf, &eol_attr, autocrlf);
         if let Some(new) = files[i].new.as_deref()
@@ -130,7 +166,6 @@ fn clean_worktree_eol(repo: &Path, files: &mut [SourceFile], idx: &[usize]) -> R
             files[i].new = Some(cleaned);
         }
     }
-    Ok(())
 }
 
 /// Working tree (tracked changes + untracked files) against `rev`.

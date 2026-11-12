@@ -203,8 +203,10 @@ pub(in crate::server) async fn write_json<W: AsyncWriteExt + Unpin, T: Serialize
     // ui-editor-03: one place for every message (any response, attach and
     // subscribe notifications), not a per-method list.
     let protocol = CONN_PROTOCOL.try_with(|c| c.get()).ok().flatten();
+    // Every hello older than this build is downgraded: v20 and v21 hellos
+    // too (they once got v21 `endpoint` and would get the v22 limits).
     let mut out = match protocol {
-        Some(p) if p < UNREACHABLE_PROTOCOL => {
+        Some(p) if p < PROTOCOL_VERSION => {
             let mut value = serde_json::to_value(v)?;
             downgrade_json(&mut value, p);
             serde_json::to_string(&value)?

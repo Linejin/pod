@@ -83,6 +83,8 @@ pub async fn serve(
     let runs = orch_runs::OrchRuns::load(&config.state_dir);
     let machine_id = remote::load_or_create_machine_id(&config.state_dir);
     let mobile = mobile::Mobile::load(&config.state_dir, mobile::session::system_clock());
+    // Settles saves a crash left half done before any request (docs/22 TM-16).
+    let files = super::files::Files::load(&config.state_dir);
     let daemon = Arc::new(Daemon {
         config,
         sa,
@@ -110,6 +112,7 @@ pub async fn serve(
         machine_id,
         boot_id: remote::new_boot_id(),
         mobile,
+        files,
     });
     log(&format!(
         "listening on {} (pid {}, state {}); workers on {worker_pipe}",

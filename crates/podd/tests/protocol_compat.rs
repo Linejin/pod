@@ -30,7 +30,7 @@ fn name_via_old<M: podd::protocol::Method>() -> &'static str {
 }
 
 fn golden() -> Value {
-    let path = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures/wire-v21.json");
+    let path = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures/wire-v22.json");
     let text = std::fs::read_to_string(&path).unwrap_or_else(|e| panic!("{path:?}: {e}"));
     serde_json::from_str(&text).unwrap()
 }
@@ -153,6 +153,13 @@ same_module!(
     "status.wait",
     StatusWaitParams
 );
+same_module!(
+    files_protocol,
+    files_protocol,
+    FsWrite,
+    "fs.write",
+    FsWriteParams
+);
 
 /// The shared items and the re-exports that consumers reach through
 /// `podd::protocol::*` keep pointing at the same definitions, and the old
@@ -174,7 +181,10 @@ fn shared_items_and_reexports_are_the_same() {
     // v20 (docs/17 R4): chunked attach and `terminal.input_once`.
     // v21 (docs/19 §20): the worker endpoint's hello and `server.status`
     // `endpoint`.
-    assert_eq!(podd::protocol::PROTOCOL_VERSION, 21);
+    // v22 (docs/17 R5): remote files and the review diff.
+    assert_eq!(podd::protocol::PROTOCOL_VERSION, 22);
+    same::<podd::protocol::ReviewDiffResult, pod_protocol::files_protocol::ReviewDiffResult>();
+    same::<podd::protocol::FsRead, pod_protocol::protocol::FsRead>();
     same::<podd::protocol::WorkerAuth, pod_protocol::remote_protocol::WorkerAuth>();
     same::<podd::protocol::Endpoint, pod_protocol::protocol::Endpoint>();
     same::<podd::protocol::InputOnceParams, pod_protocol::remote_protocol::InputOnceParams>();

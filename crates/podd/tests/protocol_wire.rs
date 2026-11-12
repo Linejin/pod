@@ -3,20 +3,22 @@
 //! types move to their own crate; later cards keep these tests green
 //! without touching the golden files. Rewritten for v20 (docs/17 R4:
 //! `terminal.input_once`, `terminal.snapshot`, the `AttachResult` chunk
-//! fields, `attach.chunks` and the remote framing constants) and v21
+//! fields, `attach.chunks` and the remote framing constants), v21
 //! (docs/19 §20: `connection.hello` `worker`, `server.status` `endpoint`,
-//! `orch.gate.decide` `person`, `worker_codes`, the v20 downgrade).
+//! `orch.gate.decide` `person`, `worker_codes`, the v20 downgrade) and v22
+//! (docs/17 R5: `fs.*`, `review.diff`/`review.blob`, `files_codes`, the
+//! file limits, `FrameLimits` read/write limits, the v21 downgrade).
 //!
-//! - `fixtures/schema-v21.json`: the whole `podd schema` output.
-//! - `fixtures/wire-v21.json`: the params and result type of each of the
-//!   105 methods, the event type of each of the 19 notifications, and
+//! - `fixtures/schema-v22.json`: the whole `podd schema` output.
+//! - `fixtures/wire-v22.json`: the params and result type of each of the
+//!   111 methods, the event type of each of the 19 notifications, and
 //!   samples of every such type: one per enum variant position (`full#k`,
 //!   every optional field set, the k-th variant of every enum), only the
 //!   required fields (`min`) and every nullable field null (`null`). A
 //!   sample's `in` goes through the real Rust type of the method
 //!   (deserialize, then serialize) and must give `out` (`in` when absent).
 //!   Also: error codes and error data, `connection.hello` negotiation,
-//!   the v18, v19 and v20 downgrades of every result and event sample, envelopes,
+//!   the v18, v19, v20 and v21 downgrades of every result and event sample, envelopes,
 //!   base64 and the protocol constants.
 //!
 //! Objects compare without key order; everything else (absent vs null,
@@ -36,14 +38,16 @@ use serde::Serialize;
 use serde::de::DeserializeOwned;
 use serde_json::{Map, Value, json};
 
-const WIRE: &str = "wire-v21.json";
-const SCHEMA: &str = "schema-v21.json";
+const WIRE: &str = "wire-v22.json";
+const SCHEMA: &str = "schema-v22.json";
 /// The newest protocol without the v19 `unreachable` terminal state.
 const DOWNGRADE_TO: u32 = 18;
 /// The newest protocol without the v20 attach chunk fields.
 const DOWNGRADE_TO_V19: u32 = 19;
 /// The newest protocol without the v21 worker endpoint fields.
 const DOWNGRADE_TO_V20: u32 = 20;
+/// The newest protocol without the v22 file limits.
+const DOWNGRADE_TO_V21: u32 = 21;
 
 // ───────────────────────────── the Rust types ─────────────────────────────
 
@@ -168,6 +172,12 @@ method_types!(
     SessionsHide,
     ConnectionHello,
     TerminalInputOnce,
+    FsStat,
+    FsList,
+    FsRead,
+    FsWrite,
+    ReviewDiff,
+    ReviewBlob,
     MobileDevices,
     MobileRevoke,
     MobilePolicy,
@@ -275,6 +285,14 @@ fn error_codes() -> Value {
         worker_codes::NO_WORKER,
         worker_codes::OUT_OF_SCOPE,
         worker_codes::CALLER_MISMATCH,
+        files_codes::PATH_DENIED,
+        files_codes::NOT_FOUND,
+        files_codes::TOO_LARGE,
+        files_codes::CONFLICT,
+        files_codes::BUSY,
+        files_codes::OPERATION_MISMATCH,
+        files_codes::NOT_A_FILE,
+        files_codes::STALE_DIFF,
     )
 }
 
@@ -288,6 +306,15 @@ fn constants() -> Value {
         "UNREACHABLE_PROTOCOL": UNREACHABLE_PROTOCOL,
         "CHUNKED_ATTACH_PROTOCOL": CHUNKED_ATTACH_PROTOCOL,
         "WORKER_ENDPOINT_PROTOCOL": WORKER_ENDPOINT_PROTOCOL,
+        "FILES_PROTOCOL": FILES_PROTOCOL,
+        "files": {
+            "MAX_READ_BYTES": MAX_READ_BYTES,
+            "MAX_WRITE_BYTES": MAX_WRITE_BYTES,
+            "MAX_PATH_BYTES": MAX_PATH_BYTES,
+            "LIST_PAGE": LIST_PAGE,
+            "OPERATION_KEEP_MS": OPERATION_KEEP_MS,
+            "OPERATION_ID_MAX": OPERATION_ID_MAX,
+        },
         "remote_framing": {
             "REMOTE_OUTPUT_CHUNK": REMOTE_OUTPUT_CHUNK,
             "REMOTE_ATTACH_QUEUE": REMOTE_ATTACH_QUEUE,
@@ -309,6 +336,7 @@ fn constants() -> Value {
             "MOBILE_METHODS": MOBILE_METHODS,
             "SESSION_METHODS": SESSION_METHODS,
             "SESSIONS_METHODS": SESSIONS_METHODS,
+            "FILES_METHODS": FILES_METHODS,
         },
         "notifications": notification_types().iter().map(|(n, _)| *n).collect::<Vec<_>>(),
         "codes": error_codes(),
@@ -426,7 +454,7 @@ fn schema_matches_master_golden() {
     }
     d.check("schema (whole)", &now, &golden);
     d.assert_none();
-    assert_eq!(golden["methods"].as_object().unwrap().len(), 105);
+    assert_eq!(golden["methods"].as_object().unwrap().len(), 111);
     assert_eq!(golden["notifications"].as_object().unwrap().len(), 19);
 }
 
@@ -464,7 +492,7 @@ fn every_method_and_notification_roundtrips_its_golden_samples() {
         .keys()
         .map(String::as_str)
         .collect();
-    assert_eq!(methods.len(), 105, "method table");
+    assert_eq!(methods.len(), 111, "method table");
     assert_eq!(names, in_golden, "methods: Rust table vs golden");
     assert_eq!(names, in_schema, "methods: Rust table vs schema()");
     for m in &methods {
@@ -616,8 +644,8 @@ fn v19_downgrade_matches_golden() {
     }
 }
 
-/// Every result and event sample, rewritten for a v20 client: only the
-/// v21 `server.status` `endpoint` goes (docs/19 §20).
+/// Every result and event sample, rewritten for a v20 client: the v21
+/// `server.status` `endpoint` (docs/19 §20) and the v22 hello limits go.
 #[test]
 fn v20_downgrade_matches_golden() {
     let golden = load(WIRE);
@@ -631,8 +659,35 @@ fn v20_downgrade_matches_golden() {
     }
     d.assert_none();
     for case in want {
-        assert_eq!(case["type"], "ServerStatusResult", "{case}");
+        let t = case["type"].as_str().unwrap();
+        assert!(t == "ServerStatusResult" || t == "HelloResult", "{case}");
         assert!(case["v20"].get("endpoint").is_none(), "{case}");
+        assert!(
+            !case["v20"].to_string().contains("max_read_bytes"),
+            "{case}"
+        );
+    }
+}
+
+/// Every result and event sample, rewritten for a v21 client: only the v22
+/// hello limits go (docs/17 R5); the file methods are new methods.
+#[test]
+fn v21_downgrade_matches_golden() {
+    let golden = load(WIRE);
+    let now = downgrades_to(&golden, DOWNGRADE_TO_V21, "v21");
+    let want = golden["downgrade_v21"].as_array().unwrap();
+    assert!(!want.is_empty());
+    let mut d = Diffs::default();
+    d.check("downgrade_v21 count", &json!(now.len()), &json!(want.len()));
+    for (i, (got, want)) in now.iter().zip(want).enumerate() {
+        d.check(format!("downgrade_v21[{i}]"), got, want);
+    }
+    d.assert_none();
+    for case in want {
+        assert_eq!(case["type"], "HelloResult", "{case}");
+        let limits = &case["v21"]["limits"];
+        assert!(limits.get("max_read_bytes").is_none(), "{case}");
+        assert!(limits.get("max_write_bytes").is_none(), "{case}");
     }
 }
 
@@ -752,7 +807,7 @@ fn write_golden() {
     );
 
     let mut golden = json!({
-        "about": "Wire golden of protocol v21 (refactor card D-F0, rewritten for docs/17 R4 and the docs/19 §20 worker endpoint); see crates/podd/tests/protocol_wire.rs",
+        "about": "Wire golden of protocol v22 (refactor card D-F0, rewritten for docs/17 R4, the docs/19 §20 worker endpoint and docs/17 R5 remote files); see crates/podd/tests/protocol_wire.rs",
         "constants": constants(),
         "methods": methods,
         "notifications": notifications,
@@ -797,6 +852,7 @@ fn write_golden() {
     golden["downgrade_v18"] = Value::Array(downgrades(&golden));
     golden["downgrade_v19"] = Value::Array(downgrades_to(&golden, DOWNGRADE_TO_V19, "v19"));
     golden["downgrade_v20"] = Value::Array(downgrades_to(&golden, DOWNGRADE_TO_V20, "v20"));
+    golden["downgrade_v21"] = Value::Array(downgrades_to(&golden, DOWNGRADE_TO_V21, "v21"));
 
     for (name, v, levels) in [(WIRE, &golden, 3), (SCHEMA, &schema, 2)] {
         let mut text = String::new();
@@ -880,6 +936,12 @@ fn negotiate_cases() -> Vec<Value> {
         // part in negotiation), and a v20 client next to a v21 podd.
         json!({ "min_protocol": 12, "max_protocol": 21, "worker": { "attempt": "a1", "token": "t" } }),
         json!({ "min_protocol": 12, "max_protocol": 20 }),
+        // v22 (docs/17 R5): a client that needs the file methods, the same
+        // one speaking 21 at most (refused: the capability is v22), and a
+        // v21 client next to a v22 podd.
+        json!({ "min_protocol": 12, "max_protocol": 22, "require": ["remote.files", "remote.diff"] }),
+        json!({ "min_protocol": 12, "max_protocol": 21, "require": ["remote.files"] }),
+        json!({ "min_protocol": 12, "max_protocol": 21 }),
     ];
     cases
         .into_iter()

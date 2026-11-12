@@ -379,8 +379,9 @@ fn hello_against_a_real_v12_daemon() {
         (h.machine_id.as_str(), h.boot_id.as_str())
     );
 
-    // Required capability that this podd does not have: refused, nothing done.
-    let e = d.client().hello(&[capability::REMOTE_FILES]).unwrap_err();
+    // Required capability that this podd does not have: refused, nothing done
+    // (`remote.files` is offered since v22; `gate.cas` is not).
+    let e = d.client().hello(&[capability::GATE_CAS]).unwrap_err();
     assert!(e.is_incompatible(), "{e:?}");
 
     // A future client that only speaks newer versions only: PROTOCOL_MISMATCH with the range.

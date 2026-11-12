@@ -1591,7 +1591,7 @@
         "guide"
       ],
       "exit": 0,
-      "stdout": "Pod guides (pod <VERSION> · protocol v21)\n\n  pod guide orchestration  coordinate workers in new worktrees; ask / reply / check / done; gates; limits; etiquette\n\n  pod guide install --repo <path> --target skill|agents-md [--write]\n                       put a pointer to the guide into a repository (preview without --write)\n\n가이드는 이 pod 버전에 맞춰 출력됩니다. 에이전트는 `pod guide orchestration`을 읽고 따르세요.\n",
+      "stdout": "Pod guides (pod <VERSION> · protocol v22)\n\n  pod guide orchestration  coordinate workers in new worktrees; ask / reply / check / done; gates; limits; etiquette\n\n  pod guide install --repo <path> --target skill|agents-md [--write]\n                       put a pointer to the guide into a repository (preview without --write)\n\n가이드는 이 pod 버전에 맞춰 출력됩니다. 에이전트는 `pod guide orchestration`을 읽고 따르세요.\n",
       "stderr": ""
     },
     {
@@ -1603,7 +1603,7 @@
         "schema"
       ],
       "exit": 0,
-      "stdout": "<podd/tests/fixtures/schema-v21.json>",
+      "stdout": "<podd/tests/fixtures/schema-v22.json>",
       "stderr": ""
     },
     {
@@ -1776,7 +1776,7 @@
       "exit": 0,
       "stdout_json": {
         "version": "<VERSION>",
-        "protocol": 21,
+        "protocol": 22,
         "pid": "<N>",
         "pipe": "<PIPE>",
         "started_ms": "<N>",

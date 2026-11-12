@@ -117,6 +117,7 @@ impl<'a> LayoutFrame<'a> {
         p.settings as usize
             + p.inspector as usize
             + p.editors
+            + p.remote_terminals
             + d.groups
             + d.gates_panel as usize
             + d.tree_panel as usize
@@ -180,6 +181,8 @@ pub(crate) struct OpenPanels {
     pub(crate) settings: bool,
     /// Inspector panel still open.
     pub(crate) inspector: bool,
+    /// Live remote terminal panels (`machines_ui`, docs/17 R4).
+    pub(crate) remote_terminals: usize,
 }
 
 /// What [`OpenPanels`] folds into `orch` or leaves out: the orchestration
@@ -211,6 +214,7 @@ impl OpenPanels {
             && !self.orch
             && !self.settings
             && !self.inspector
+            && self.remote_terminals == 0
     }
 }
 
