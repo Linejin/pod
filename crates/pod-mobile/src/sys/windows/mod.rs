@@ -4,6 +4,7 @@
 
 pub(crate) mod crypto;
 pub(crate) mod identity;
+pub(crate) mod storage;
 pub(crate) mod tls;
 
 use std::ffi::{CStr, c_void};

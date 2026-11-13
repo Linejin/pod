@@ -30,6 +30,9 @@ worker pipe → worker capability                  (mobile로 이어 붙이지 �
 
 ## 2. Listener·TLS (TM-01)
 
+저장 generation은 호출자가 지정한 `<state_dir>/mobile/generation.bin`의 `PodGen01` 버전·고정 순서 TLV·SHA-256 형식이며, 알 수 없는/중복/누락 필드와 손상은 거부한다.
+사용자 전용 임시 파일을 동기화한 뒤 원자 교체하며 이전 키 삭제 실패는 새 generation을 유지한 채 off로 보고한다.
+
 - T1: 두 플랫폼 handshake는 read 사이에서만 deadline을 검사하므로 daemon은 socket read timeout을 남은 handshake/request deadline 이하로 설정해야 한다.
 - 빌드 feature `mobile-lan`은 기본 off, 배포 빌드에서도 런타임 기본 off다. OS 사용자별 `<state_dir>/mobile/`에 선택 주소/포트/subnet만 저장한다. **enable은 현재 daemon 수명에만 유효**하며 재시작·손상 설정·인증 저장 실패 뒤에는 PC에서 다시 켠다. off는 bind socket·진행 중 TLS/long-poll·세션·pairing을 모두 닫는다.
 - PC에서 활성 NIC의 **구체 IPv4 RFC1918 또는 IPv6 ULA 주소 하나**와 직접 연결 subnet을 선택한다. 포트 기본 `0`(OS가 빈 포트 배정), 고정 포트는 1024–65535의 사용자 선택만; 실패 시 다른 포트로 조용히 이동하지 않는다. 실제 IP/포트를 QR에 넣는다. wildcard·공인/멀티캐스트·link-local·DNS hostname은 거부한다. loopback은 격리 시험 전용이며 제품 설정으로 우회할 수 없다.

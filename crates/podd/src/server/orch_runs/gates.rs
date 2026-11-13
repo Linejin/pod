@@ -8,10 +8,45 @@ use pod_orch::model::{attempt_mailbox, run_mailbox};
 use pod_orch::policy::{self, GateFacts, Policy};
 use serde_json::json;
 
-use super::identity::who;
+use super::identity::{Who, who};
 use super::rpc::{NEEDS_PERSON, oe};
 use super::state::{cached, remember};
 use crate::protocol::*;
+
+fn gate_origin(w: &Who) -> Result<mobile_v1::Origin, RpcError> {
+    Ok(match (w.works_in.as_ref(), w.attempt.as_ref()) {
+        (Some(run), Some(attempt)) => mobile_v1::Origin::Orch {
+            run: mobile_v1::Id::new(run.clone())
+                .map_err(|_| RpcError::new(codes::INVALID_PARAMS, "run id too long"))?,
+            attempt: mobile_v1::Id::new(attempt.clone())
+                .map_err(|_| RpcError::new(codes::INVALID_PARAMS, "attempt id too long"))?,
+        },
+        _ => mobile_v1::Origin::LocalUser,
+    })
+}
+
+#[cfg(test)]
+#[test]
+fn only_verified_attempt_identity_proves_orchestration_origin() {
+    let mut who = Who {
+        from: "human".into(),
+        attempt: None,
+        terminal: None,
+        coordinates: Some("r1".into()),
+        works_in: None,
+    };
+    assert_eq!(gate_origin(&who).unwrap(), mobile_v1::Origin::LocalUser);
+    who.works_in = Some("r2".into());
+    who.attempt = Some("a1".into());
+    who.from = "attempt:a1".into();
+    assert_eq!(
+        gate_origin(&who).unwrap(),
+        mobile_v1::Origin::Orch {
+            run: mobile_v1::Id::new("r2").unwrap(),
+            attempt: mobile_v1::Id::new("a1").unwrap()
+        }
+    );
+}
 use crate::server::gates::{Decide, Decided};
 use crate::server::orch_store::GateActor;
 use crate::server::{Daemon, log, status};
@@ -288,6 +323,9 @@ impl Daemon {
             ));
         }
         let requested_by = (w.from != "human").then(|| w.from.clone());
+        // Only a verified worker identity proves both run and attempt. A
+        // caller-supplied run/item or a human role claim is not provenance.
+        let origin = gate_origin(&w)?;
         let g = self.gate_create_as(
             GateCreateParams {
                 task: None,
@@ -301,6 +339,7 @@ impl Daemon {
                 options: p.options.clone(),
             },
             requested_by,
+            origin,
         )?;
         remember(
             &mut self.orch(),

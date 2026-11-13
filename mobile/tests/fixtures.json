@@ -1,0 +1,8 @@
+{
+  "tasks": {"tasks": [{"id": "task-1", "name": "변경 검토", "state": "waiting", "origin": {"kind": "orch", "run": "run-1", "attempt": "attempt-1"}, "received_ms": 1000}], "cursor": null, "server_ms": 2000},
+  "task": {"task": {"id": "task-1", "name": "변경 검토", "state": "waiting", "origin": {"kind": "orch", "run": "run-1", "attempt": "attempt-1"}, "received_ms": 1000}, "gates": [{"machine": "machine-1", "boot": "boot-1", "task": "task-1", "gate": "gate-1", "revision": 1, "issued_ms": 1000, "expires_ms": 90000, "origin": {"kind": "orch", "run": "run-1", "attempt": "attempt-1"}, "title": "변경 승인", "body": "전체 변경 내용을 확인하세요.", "options": ["진행", "중단"], "state": "pending", "complete": true, "body_fingerprint": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"}], "cursor": null, "operation": null, "server_ms": 2000},
+  "output": {"task": "task-1", "lines": ["검토 대기", "마지막 출력"], "truncated": true},
+  "decide": {"gate": {"machine": "machine-1", "boot": "boot-1", "task": "task-1", "gate": "gate-1", "revision": 2, "issued_ms": 1000, "expires_ms": 90000, "origin": {"kind": "orch", "run": "run-1", "attempt": "attempt-1"}, "title": "변경 승인", "body": "전체 변경 내용을 확인하세요.", "options": ["진행", "중단"], "state": "approved", "complete": true, "body_fingerprint": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"}, "replayed": false},
+  "message": {"delivery": "delivery-1", "state": "queued", "replayed": false},
+  "delivery": {"task": "task-1", "delivery": "delivery-1", "state": "delivered", "error": null}
+}

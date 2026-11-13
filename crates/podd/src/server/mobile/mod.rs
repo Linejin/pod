@@ -18,6 +18,7 @@ pub mod api;
 pub mod approval;
 pub mod audit;
 pub mod auth;
+pub mod challenge;
 pub mod listener;
 pub mod message;
 pub mod pairing;

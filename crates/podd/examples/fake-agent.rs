@@ -412,6 +412,13 @@ fn submit(msg: &mut Vec<u8>, pastes: usize, out: &mut std::io::Stdout, log: &str
         let _ = out.flush();
         return;
     }
+    if ORCH.load(Ordering::Relaxed) && text.trim().is_empty() {
+        // A bare Enter is no prompt, as in the real TUIs. podd presses Enter
+        // again when the unconfirmed brief shows no reaction within 4 s;
+        // treating that as a turn made a phantom turn-end escalation under
+        // load (a_waiting_worker_is_not_a_missed_done_and_is_woken).
+        return;
+    }
     let _ = write!(
         out,
         "{}RECEIVED {} line(s) (pastes so far {})\r\n",

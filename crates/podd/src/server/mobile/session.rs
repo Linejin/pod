@@ -10,7 +10,9 @@
 use std::collections::{HashMap, VecDeque};
 use std::sync::Arc;
 
+use super::challenge::{equal, hash, random_secret, secret_value, unauthenticated, valid_secret};
 use super::registry::Registry;
+use crate::protocol::mobile_v1 as wire;
 use crate::protocol::*;
 
 pub const SESSION_ABSOLUTE_MS: u64 = 8 * 3600 * 1000;
@@ -72,6 +74,45 @@ pub struct Sessions {
     boot: u64,
     next: u64,
     map: HashMap<String, Session>,
+    /// Latest observed wall clock, including background reads.
+    observed_ms: Option<u64>,
+    credentials: HashMap<String, SessionCredentials>,
+}
+
+struct SessionCredentials {
+    bearer: [u8; 32],
+    csrf: [u8; 32],
+    boot: wire::Id,
+    scopes: wire::List<wire::Scope, 20>,
+}
+impl std::fmt::Debug for SessionCredentials {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.write_str("SessionCredentials([redacted])")
+    }
+}
+
+pub(crate) fn policy_scopes(
+    reg: &Registry,
+    device: &str,
+) -> Result<wire::List<wire::Scope, 20>, wire::Error> {
+    let d = reg
+        .device(device)
+        .filter(|d| d.active())
+        .ok_or_else(unauthenticated)?;
+    wire::List::new(
+        d.policy
+            .iter()
+            .filter(|(_, caps)| caps.contains(&MobileCap::Status))
+            .map(|(task, caps)| {
+                Ok(wire::Scope {
+                    task: wire::Id::new(task.clone()).map_err(|_| unauthenticated())?,
+                    caps: wire::List::new(caps.iter().copied().collect())
+                        .map_err(|_| unauthenticated())?,
+                })
+            })
+            .collect::<Result<Vec<_>, wire::Error>>()?,
+    )
+    .map_err(|_| unauthenticated())
 }
 
 fn auth(m: impl Into<String>) -> RpcError {
@@ -84,11 +125,15 @@ impl Sessions {
             boot,
             next: 0,
             map: HashMap::new(),
+            observed_ms: None,
+            credentials: HashMap::new(),
         }
     }
 
     /// Open a session for an authenticated, active device.
     pub fn open(&mut self, reg: &Registry, device: &str, now: u64) -> Result<String, RpcError> {
+        self.observe(now)?;
+        self.check_storage(reg)?;
         let d = reg
             .device(device)
             .filter(|d| d.active())
@@ -99,10 +144,16 @@ impl Sessions {
             .filter(|s| s.device == device)
             .map(|s| (s.created_ms, s.id.clone()))
             .collect();
-        mine.sort();
+        mine.sort_by_key(|(time, id)| {
+            (
+                *time,
+                id.rsplit('-').next().and_then(|n| n.parse::<u64>().ok()),
+            )
+        });
         while mine.len() >= MAX_SESSIONS_PER_DEVICE {
             let (_, id) = mine.remove(0);
             self.map.remove(&id);
+            self.credentials.remove(&id);
         }
         self.next += 1;
         let id = format!("s{:x}-{}", self.boot, self.next);
@@ -128,6 +179,8 @@ impl Sessions {
         now: u64,
         user: bool,
     ) -> Result<String, RpcError> {
+        self.observe(now)?;
+        self.check_storage(reg)?;
         let Some(s) = self.map.get_mut(id) else {
             return Err(auth(
                 "no such session (expired, revoked or from before a restart)",
@@ -137,12 +190,17 @@ impl Sessions {
             None => Some("device unknown"),
             Some(d) if !d.active() => Some("device revoked"),
             Some(d) if d.auth_epoch != s.epoch => Some("device re-keyed"),
-            Some(_) if now >= s.created_ms + SESSION_ABSOLUTE_MS => Some("session expired (8 h)"),
-            Some(_) if now >= s.last_ms + SESSION_IDLE_MS => Some("session idle for 15 min"),
+            Some(_) if now.saturating_sub(s.created_ms) >= SESSION_ABSOLUTE_MS => {
+                Some("session expired (8 h)")
+            }
+            Some(_) if now.saturating_sub(s.last_ms) >= SESSION_IDLE_MS => {
+                Some("session idle for 15 min")
+            }
             Some(_) => None,
         };
         if let Some(r) = reason {
             self.map.remove(id);
+            self.credentials.remove(id);
             return Err(auth(r));
         }
         if user {
@@ -153,10 +211,163 @@ impl Sessions {
 
     pub fn drop_device(&mut self, device: &str) {
         self.map.retain(|_, s| s.device != device);
+        self.credentials.retain(|id, _| self.map.contains_key(id));
+    }
+
+    /// Off, shutdown, or an uncertain resume invalidates every session.
+    /// T1 calls this when suspend/resume elapsed time cannot be trusted.
+    pub fn clear(&mut self) {
+        self.map.clear();
+        self.credentials.clear();
+    }
+
+    pub(super) fn observe(&mut self, now: u64) -> Result<(), RpcError> {
+        if self.observed_ms.is_some_and(|last| now < last) {
+            self.clear();
+            self.observed_ms = Some(now);
+            return Err(auth("clock regressed; sessions ended"));
+        }
+        self.observed_ms = Some(now);
+        Ok(())
+    }
+
+    fn check_storage(&mut self, reg: &Registry) -> Result<(), RpcError> {
+        if reg.storage_failed {
+            self.clear();
+            return Err(auth("mobile storage failed; sessions ended"));
+        }
+        Ok(())
     }
 
     pub fn count(&self, device: &str) -> usize {
         self.map.values().filter(|s| s.device == device).count()
+    }
+
+    pub(crate) fn issue(
+        &mut self,
+        reg: &Registry,
+        device: &str,
+        boot: &wire::Id,
+        now: u64,
+    ) -> Result<wire::Session, wire::Error> {
+        let bearer = random_secret()?;
+        let csrf = random_secret()?;
+        let expires_ms = now
+            .checked_add(SESSION_ABSOLUTE_MS)
+            .ok_or_else(unauthenticated)?;
+        let scopes = policy_scopes(reg, device)?;
+        let epoch = reg.device(device).ok_or_else(unauthenticated)?.auth_epoch;
+        let device_id = wire::Id::new(device).map_err(|_| unauthenticated())?;
+        let id = self.open(reg, device, now).map_err(|_| unauthenticated())?;
+        self.credentials.insert(
+            id,
+            SessionCredentials {
+                bearer: hash(bearer.as_bytes()),
+                csrf: hash(csrf.as_bytes()),
+                boot: boot.clone(),
+                scopes: scopes.clone(),
+            },
+        );
+        Ok(wire::Session {
+            device: device_id,
+            boot: boot.clone(),
+            auth_epoch: epoch,
+            bearer: secret_value(bearer).expect("hex"),
+            csrf: secret_value(csrf).expect("hex"),
+            expires_ms,
+            scopes,
+        })
+    }
+
+    pub(crate) fn authenticate(
+        &mut self,
+        reg: &Registry,
+        credentials: super::auth::Credentials<'_>,
+        boot: &wire::Id,
+        now: u64,
+    ) -> Result<super::auth::AuthenticatedDevice, wire::Error> {
+        if !valid_secret(credentials.bearer) || !valid_secret(credentials.csrf) {
+            return Err(unauthenticated());
+        }
+        let bearer = hash(credentials.bearer.as_bytes());
+        let csrf = hash(credentials.csrf.as_bytes());
+        let id = self
+            .credentials
+            .iter()
+            .find(|(_, c)| equal(&c.bearer, &bearer) & equal(&c.csrf, &csrf))
+            .map(|(id, _)| id.clone())
+            .ok_or_else(unauthenticated)?;
+        let device = self
+            .check(reg, &id, now, false)
+            .map_err(|_| unauthenticated())?;
+        let c = self.credentials.get(&id).ok_or_else(unauthenticated)?;
+        if &c.boot != boot {
+            return Err(unauthenticated());
+        }
+        let scopes = Self::effective_scopes(reg, &device, &c.scopes)?;
+        let epoch = self.map[&id].epoch;
+        Ok(super::auth::AuthenticatedDevice::new(
+            device,
+            id,
+            boot.clone(),
+            epoch,
+            scopes,
+        ))
+    }
+
+    fn effective_scopes(
+        reg: &Registry,
+        device: &str,
+        snapshot: &wire::List<wire::Scope, 20>,
+    ) -> Result<wire::List<wire::Scope, 20>, wire::Error> {
+        let current = policy_scopes(reg, device)?;
+        wire::List::new(
+            snapshot
+                .as_slice()
+                .iter()
+                .filter_map(|s| {
+                    let policy = current.as_slice().iter().find(|p| p.task == s.task)?;
+                    let caps: Vec<_> = s
+                        .caps
+                        .as_slice()
+                        .iter()
+                        .copied()
+                        .filter(|c| policy.caps.as_slice().contains(c))
+                        .collect();
+                    caps.contains(&MobileCap::Status).then(|| wire::Scope {
+                        task: s.task.clone(),
+                        caps: wire::List::new(caps).expect("subset"),
+                    })
+                })
+                .collect(),
+        )
+        .map_err(|_| unauthenticated())
+    }
+
+    pub(crate) fn recheck(
+        &mut self,
+        reg: &Registry,
+        ctx: &super::auth::AuthenticatedDevice,
+        boot: &wire::Id,
+        now: u64,
+    ) -> Result<(), wire::Error> {
+        let device = self
+            .check(reg, ctx.session(), now, false)
+            .map_err(|_| unauthenticated())?;
+        let c = self
+            .credentials
+            .get(ctx.session())
+            .ok_or_else(unauthenticated)?;
+        let effective = Self::effective_scopes(reg, &device, &c.scopes)?;
+        if ctx.boot() != boot.as_str()
+            || c.boot != *boot
+            || ctx.device() != device
+            || ctx.auth_epoch() != self.map[ctx.session()].epoch
+            || ctx.scopes() != effective.as_slice()
+        {
+            return Err(unauthenticated());
+        }
+        Ok(())
     }
 }
 
@@ -210,6 +421,37 @@ impl Limits {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn effective_scope_requires_status_and_never_adds_tasks() {
+        let mut r = reg();
+        r.set_policy(
+            "m1",
+            "t1",
+            &[MobileCap::Status, MobileCap::Approve],
+            &[],
+            false,
+        )
+        .unwrap();
+        let snapshot = policy_scopes(&r, "m1").unwrap();
+        r.set_policy("m1", "t2", &[MobileCap::Status], &[], false)
+            .unwrap();
+        assert_eq!(
+            Sessions::effective_scopes(&r, "m1", &snapshot).unwrap(),
+            snapshot
+        );
+        r.devices[0]
+            .policy
+            .get_mut("t1")
+            .unwrap()
+            .remove(&MobileCap::Status);
+        assert!(
+            Sessions::effective_scopes(&r, "m1", &snapshot)
+                .unwrap()
+                .as_slice()
+                .is_empty()
+        );
+    }
 
     fn reg() -> Registry {
         let mut r = Registry::default();

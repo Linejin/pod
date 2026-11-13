@@ -20,7 +20,7 @@ const MAX_NAME: usize = 64;
 pub struct Device {
     pub id: String,
     pub name: String,
-    /// Placeholder until pairing (M2/M4) stores the real identity key.
+    /// P-256 SPKI encoded as base64, verified during pairing claim.
     pub public_key: String,
     pub created_ms: u64,
     #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -69,6 +69,9 @@ pub struct Registry {
     pub devices: Vec<Device>,
     #[serde(default)]
     pub settings: MobileSettings,
+    /// Runtime-only storage fault latch. T1 must close the listener when set.
+    #[serde(skip)]
+    pub storage_failed: bool,
 }
 
 fn denied(m: impl Into<String>) -> RpcError {
@@ -76,6 +79,51 @@ fn denied(m: impl Into<String>) -> RpcError {
 }
 
 impl Registry {
+    /// Commit a PC-approved claim before it may grant a session. Failed writes
+    /// roll back the candidate while retaining the fail-closed storage latch.
+    pub(crate) fn approve(
+        &mut self,
+        state_dir: &Path,
+        name: &str,
+        key: &str,
+        policy: BTreeMap<String, BTreeSet<MobileCap>>,
+        now: u64,
+    ) -> Result<Device, mobile_v1::Error> {
+        use mobile_v1::{Error, ErrorCode};
+        if self.storage_failed
+            || self.devices.iter().filter(|d| d.active()).count() >= MAX_DEVICES
+            || self
+                .devices
+                .iter()
+                .any(|d| d.active() && d.public_key == key)
+        {
+            return Err(Error::refusal());
+        }
+        let counter = self.counter.checked_add(1).ok_or_else(Error::refusal)?;
+        let device = Device {
+            id: format!("m{counter}"),
+            name: name.into(),
+            public_key: key.into(),
+            created_ms: now,
+            last_seen_ms: None,
+            revoked_ms: None,
+            auth_epoch: 1,
+            policy,
+        };
+        let old_counter = self.counter;
+        self.counter = counter;
+        self.devices.push(device.clone());
+        if self.save(state_dir).is_err() {
+            self.devices.pop();
+            self.counter = old_counter;
+            return Err(Error {
+                code: ErrorCode::Storage,
+                retry_after_ms: None,
+            });
+        }
+        Ok(device)
+    }
+
     pub fn path(state_dir: &Path) -> PathBuf {
         state_dir.join("mobile").join("devices.json")
     }
@@ -114,10 +162,18 @@ impl Registry {
         let write = || -> std::io::Result<()> {
             std::fs::create_dir_all(path.parent().unwrap())?;
             let tmp = path.with_extension("json.tmp");
-            std::fs::write(&tmp, serde_json::to_vec_pretty(self)?)?;
+            use std::io::Write;
+            let mut file = std::fs::File::create(&tmp)?;
+            file.write_all(&serde_json::to_vec_pretty(self)?)?;
+            file.sync_all()?;
+            drop(file);
             std::fs::rename(&tmp, &path)
         };
-        write().map_err(|e| {
+        let result = write();
+        if result.is_err() {
+            self.storage_failed = true;
+        }
+        result.map_err(|e| {
             RpcError::new(
                 codes::INTERNAL_ERROR,
                 format!("cannot save {}: {e}", path.display()),
@@ -178,8 +234,11 @@ impl Registry {
         if d.revoked_ms.is_some() {
             return Ok(false);
         }
+        d.auth_epoch = d
+            .auth_epoch
+            .checked_add(1)
+            .ok_or_else(|| denied("epoch exhausted"))?;
         d.revoked_ms = Some(now);
-        d.auth_epoch += 1;
         d.policy.clear();
         Ok(true)
     }
@@ -196,7 +255,8 @@ impl Registry {
         if !d.active() {
             return Err(denied(format!("device {id} is revoked")));
         }
-        let caps = d.policy.entry(task.to_string()).or_default();
+        let before = d.policy.get(task).cloned().unwrap_or_default();
+        let mut caps = before.clone();
         if clear {
             caps.clear();
         }
@@ -204,8 +264,16 @@ impl Registry {
         for c in deny {
             caps.remove(c);
         }
+        if !before.is_subset(&caps) {
+            d.auth_epoch = d
+                .auth_epoch
+                .checked_add(1)
+                .ok_or_else(|| denied("epoch exhausted"))?;
+        }
         if caps.is_empty() {
             d.policy.remove(task);
+        } else {
+            d.policy.insert(task.to_string(), caps);
         }
         Ok(d.clone())
     }

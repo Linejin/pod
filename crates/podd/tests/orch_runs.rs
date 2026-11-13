@@ -2203,6 +2203,9 @@ fn a_waiting_worker_is_not_a_missed_done_and_is_woken() {
     let r = json_of(&out);
     assert_eq!(r["waiting_on"], serde_json::json!([i1]), "{r}");
     assert!(r["next"].as_str().unwrap().contains("End your turn"), "{r}");
+    // No turn of a1 yet (the brief alone, or podd's retry Enter for it, is
+    // not a turn).
+    assert_eq!(turn_end_escalations(&e.peek("r1"), &a1), 0);
     // a1 ends a turn without done: escalated (the control).
     let n = e.run(
         &a1,
@@ -2217,11 +2220,18 @@ fn a_waiting_worker_is_not_a_missed_done_and_is_woken() {
         ]],
     );
     assert_eq!(e.out(&a1, n[0])["code"], 0);
-    // 60 s, not 20: under parallel builds the fake agent's turn (pod.exe
-    // spawn, RPC, OSC idle) took longer than 20 s twice in four runs.
-    until_true("a1's turn-end escalation", 60, || {
-        turn_end_escalations(&e.peek("r1"), &a1) == 1
+    // Wait for at least one and then require exactly one: the earlier `== 1`
+    // wait hid a double escalation (a phantom turn from the fake agent
+    // answering podd's retry Enter) as a 60 s timeout.
+    until_true("a1's turn-end escalation", 30, || {
+        turn_end_escalations(&e.peek("r1"), &a1) >= 1
     });
+    passes(&mut e.c());
+    assert_eq!(
+        turn_end_escalations(&e.peek("r1"), &a1),
+        1,
+        "one turn, one escalation"
+    );
     passes(&mut e.c());
     assert_eq!(
         turn_end_escalations(&e.peek("r1"), &a2),

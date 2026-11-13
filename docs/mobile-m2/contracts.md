@@ -16,7 +16,9 @@
 앱 요청은 `{op, params}`, 응답은 `{op, result}` 닫힌 union이다.
 `operation.get`은 없다. `task.operation`은 kind(decision/message), id,
 body_fingerprint를 필수로 받는다. 같은 인증 기기와 같은 Task·본문의
-저장 결과만 반환하며 현재 Approve/Message 권한을 재검사한다(T1/P3/T3).
+저장 결과만 반환하며 현재 Status+Approve/Status+Message 권한과 세션을 재검사한다(T1/P3/T3).
+decision 조회는 `ApprovalBoundary::lookup`을 사용한다. 다른 기기의 id는
+없는 id와 같은 `unknown_operation`, 같은 기기의 다른 본문 fingerprint는 `conflict`다.
 Cursor는 최대 512바이트 불투명 값이며 boot·권한 epoch 결합은 P2/T1 책임이다.
 
 원본 바이트에 `parse_call`을 적용한다. Value로 먼저 변환하면 중복 키가
@@ -32,10 +34,10 @@ OutputResult는 최대 100줄이며 T1은 합계 16 KiB와 제어문자 제거�
 
 | 고정 lifecycle DTO (앱 op 아님) | 필드 |
 |---|---|
-| Challenge | purpose(claim/finish/session), machine, boot, subject, auth_epoch, nonce, csrf, expires_ms |
-| Claim → Claimed | pairing_id, secret, code, nonce, public_key, signature, name, scopes → ticket, expires_ms |
-| Finish → Session | ticket, nonce, signature, 선택 wait_ms |
-| SessionOpen → Session | device, auth_epoch, nonce, signature |
+| Challenge | purpose(claim/finish/session), machine, boot, subject, auth_epoch, nonce, csrf, expires_ms (60초, 단일 소비; claim의 subject=pairing_id, auth_epoch=0) |
+| Claim → Claimed | pairing_id, secret, code, nonce, public_key, signature, name, scopes + CSRF 헤더 → ticket, expires_ms (최초 창의 2분 경계; P2b 승인 전 pending 전용) |
+| Finish → Session | ticket, nonce, signature, optional wait_ms + CSRF header; undecided = conflict/retry_after_ms=250; success once |
+| SessionOpen → Session | device, auth_epoch, nonce, signature + CSRF header; registered key and current epoch required |
 | Session | device, boot, auth_epoch, bearer, csrf, expires_ms, scopes |
 | Revoke (로컬만) | device, auth_epoch |
 
@@ -45,6 +47,11 @@ P-256 SPKI/DER 서명은 base64(각 최대 256/192바이트), 코드는 8자리�
 코드·수명·교집합을 검사한다. Scope는 task와 최대 네 caps, 한 요청 최대
 20개 Task다. secret-bearing lifecycle 객체는 Debug를 구현하지 않는다.
 인증 lifecycle 원본도 HTTP의 32 KiB 예산과 직접 serde 파싱을 적용해야 한다.
+
+서버는 nonce와 별도로 발급한 CSRF의 해시만 저장하며, 소비 시 요청 nonce와
+CSRF 헤더의 해시·용도·subject·epoch·만료를 검사한 뒤 제공된 값으로 서명용
+Challenge를 복원하고 한 번만 소비한다. QR secret과 pending ticket도 해시만,
+PC 화면의 8자리 코드는 무작위 salt를 붙인 해시만 메모리에 보관한다.
 
 오류 객체는 `{code, retry_after_ms}`다. 입력이나 진단 문자열을 반사하지 않는다.
 429는 HTTP Retry-After도 설정한다(T1).
@@ -79,23 +86,43 @@ Gate 해시는 `gate_preimage`의 고정 순서로 boot·전체 원문·출처·
 
 | 접합부 | 담당 / 현재 상태 |
 |---|---|
-| pairing::Pairing | P2: challenge/claim/finish, 현재 unavailable |
-| auth::Auth, AuthenticatedDevice | P2: bearer+CSRF 인증·요청별 recheck·open/revoke. 신원 필드는 private, Deserialize/공개 생성자 없음 |
+| pairing::Pairing, challenge::Challenges | P2a/P2b: claim, local approve/reject, finish. Approval commits the registry before granting access. finish_challenge(ticket) derives pairing_id and pending auth_epoch=1. T1/T2 retain one Pairing per daemon |
+| auth::Auth, AuthenticatedDevice | P2b: Auth::new shares Pairing's Arc<Mobile>/machine/boot. authenticate checks bearer+CSRF hashes; recheck checks current policy/epoch/lifetime without refreshing idle. challenge(device)/open(request, csrf_header, now) verify the registered key. T1 off calls both Auth::off and Pairing::off; durable revoke remains P2c |
 | Daemon::mobile_call | T1: 인증 context + Call → Reply. 현재 unavailable, M1 local_call로 fallback 없음 |
 | approval::ApprovalBoundary, GateMetadata, project_gate | P3: 동기 결정·영속 메타데이터. 미구현 decide는 unavailable |
 | session::Clock | 기존 시계 인터페이스 재사용. 두 락 획득 후와 commit 직전 새 시각 읽기 |
 | listener::Listener | T1: enable/call은 unavailable, is_enabled=false, socket 없음 |
 
-P3 경계는 mobile state → orch store 순서로 락을 잡고, 두 락 안에서
-시계·인증·현재 범위를 재검사한다. replay 조회 후 신규 전이에만 CAS/읽음
-기록을 검사하고 전이·revision·operation·감사를 단일 저장한다. 락 안에서
-await/network/terminal I/O는 금지한다. 이 F1의 trait는 그 호출 계약이며
-원자 저장·시계 경합 구현/검증을 완료했다는 뜻이 아니다.
+P3a의 `LockedApproval<S: ApprovalState>`는 mobile state → orch store 순서로
+락을 잡고, 두 락 안에서 새 시각으로 `ApprovalState::recheck`를 호출한다.
+P2b는 boot/session/절대·유휴 만료/auth_epoch/현재 Status+Approve/Task 소유를
+검사하며 idle 활동은 성공 후 `committed`에서만 갱신한다. T1은 완전한 task 상세 응답에만 mobile state의
+`ReadReceipts::record_detail`을 호출하고 세션 종료 시 `forget_session`을
+호출한다. 신규 전이는 pending/실제 만료/revision CAS와 30초 미만 읽음
+기록을 검사하고 PC·expiry와 공통 Gate commit 경계를 사용한다. 전이 알림은
+두 락을 해제한 뒤 발행한다. 락 안에서 await/network/terminal I/O는 금지한다.
+P3b는 인증·현재 범위 재검사 후 `(device, operation_id)` replay를 CAS보다 먼저
+조회한다. 같은 fingerprint는 저장 당시 Gate를 그대로 반환하며 다른 본문은
+conflict다. Gate가 삭제되거나 revision이 이동해도 성공 결과는 바뀌지 않는다.
+Gate·revision·operation 결과·성공 감사는 orch store의 `mobile_decisions`와 함께
+한 번 저장한다. 감사는 actor/device/auth_epoch/실효 Status+Approve scope fingerprint/
+이전·새 상태/서버 시각을 포함한다. `ApprovalState::approval_scope`를 재정의하면
+전체 현재 grant 집합의 fingerprint도 기록할 수 있다. 저장 직전 두 락 아래 새 시각으로
+expiry를 재검사하는 admission 이후, 동기화한 동일 디렉터리 temp 파일의 원자 교체가
+commit 지점이다. 교체 전 실패는 전이·operation을 rollback하고 읽음 기록을 유지한다.
+교체 후 응답 유실은 저장 결과 조회로 복구한다. recovery 검증 실패는 재시작해도
+모바일 변경을 거부하며 원본 손상 파일을 덮어쓰지 않는다.
+T1은 `decide_result`/`lookup`을 연결하고 `replayed=false`인 신규 성공 알림만 발행해야 한다. Gate payload는 replay에서도 동일하다. 현재 M2 dispatcher는
+unavailable이다. 파생 JSONL·30일/20 MiB 보존·admission 용량 거부는 P3c 범위다.
 
-서명 원문은 `claim_preimage`/`finish_preimage`/`session_preimage`가 고정한다.
-셋 다 domain 문자열과 서버 Challenge 전체(purpose/machine/boot/subject/
-auth_epoch/nonce/CSRF/만료)를 결합하고, claim은 pairing_id·secret·코드·
-nonce·공개키·이름, finish는 ticket/nonce, session은 device/epoch/nonce를 더한다.
-finish의 long-poll `wait_ms`는 서명하지 않는다. claim의 scope는 `scope_preimage`
-바이트를 그대로 넣는다. fixture에는 현재 session 원문/SHA-256 벡터만 있으며
-claim/finish 벡터와 실제 서명 검증·nonce 단일 소비는 P2가 추가한다.
+Signature preimages are fixed by `claim_preimage`/`finish_preimage`/`session_preimage`.
+Each binds its domain and the complete server Challenge (purpose/machine/boot/subject/
+auth_epoch/nonce/CSRF/expiry). Claim also binds pairing_id, secret, code, nonce,
+public_key, name and the exact `scope_preimage` bytes; finish binds ticket/nonce;
+session binds device/epoch/nonce. Finish does not sign long-poll `wait_ms`.
+The fixture contains claim, finish and session preimage/SHA-256 vectors.
+Finish subject is the pending pairing_id and epoch is the pending record's 1,
+unchanged across approval. A valid-ticket, CSRF-checked and signature-verified pending refusal preserves the nonce:
+T1 may wait without locks and retry, obtaining a fresh finish challenge if it expires.
+A lost success response requires a new registered-key session challenge/open;
+replaying finish cannot issue another session.

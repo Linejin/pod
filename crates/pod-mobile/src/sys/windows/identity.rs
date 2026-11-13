@@ -26,6 +26,7 @@ use windows_sys::Win32::Security::Cryptography::{
 use windows_sys::Win32::System::Time::FileTimeToSystemTime;
 use windows_sys::core::{PCSTR, PSTR, PWSTR};
 
+pub(crate) use super::storage;
 use super::{blob, blob_bytes, decode, encode, last_error, oid_str, wide};
 use crate::crypto::CryptoError;
 use crate::identity::CertificateInfo;
@@ -537,6 +538,15 @@ pub(crate) fn spki_der(info: &CERT_INFO) -> Result<Vec<u8>, CryptoError> {
 }
 
 pub(crate) fn parse_certificate(der: &[u8]) -> Result<CertificateInfo, CryptoError> {
+    use windows_sys::Win32::Security::Cryptography::{CERT_SIGNED_CONTENT_INFO, X509_CERT};
+    let decoded = decode(X509_CERT, der).map_err(|_| CryptoError::BadInput("certificate"))?;
+    // SAFETY: X509_CERT decodes to CERT_SIGNED_CONTENT_INFO in live storage.
+    let signed: &CERT_SIGNED_CONTENT_INFO = unsafe { decoded.get() };
+    // SAFETY: native re-encoding rejects trailing/noncanonical input without
+    // implementing an ASN.1 parser here.
+    if unsafe { encode(X509_CERT, ptr::from_ref(signed).cast()) }? != der {
+        return Err(CryptoError::BadInput("certificate"));
+    }
     let cert = CertCtx::from_der(der)?;
     let info = cert.info();
     // SAFETY: blobs of a live context.

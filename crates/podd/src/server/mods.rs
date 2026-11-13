@@ -427,12 +427,19 @@ impl Host for PoddHost {
     ) -> Result<String, String> {
         let d = self.d()?;
         let g = d
-            .gate_create(GateCreateParams {
-                task: Some(task.into()),
-                title: Some(format!("[{owner}] {title}")),
-                message: message.into(),
-                ..Default::default()
-            })
+            .gate_create_as(
+                GateCreateParams {
+                    task: Some(task.into()),
+                    title: Some(format!("[{owner}] {title}")),
+                    message: message.into(),
+                    ..Default::default()
+                },
+                None,
+                mobile_v1::Origin::Mod {
+                    id: mobile_v1::Id::new(owner)
+                        .map_err(|_| "mod id exceeds mobile provenance budget".to_string())?,
+                },
+            )
             .map_err(|e| e.message)?;
         Ok(g.id)
     }

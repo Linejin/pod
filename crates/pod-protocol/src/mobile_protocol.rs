@@ -568,7 +568,7 @@ pub mod mobile_v1 {
         Finish,
         Session,
     }
-    #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+    #[derive(Clone, PartialEq, Serialize, Deserialize)]
     #[serde(deny_unknown_fields)]
     pub struct Challenge {
         pub purpose: Purpose,

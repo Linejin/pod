@@ -54,6 +54,16 @@ jobs:
           powershell -NoProfile -ExecutionPolicy Bypass -File tools/check-mobile-licenses.ps1 -SelfTest
           if ($LASTEXITCODE -ne 0) { throw "check-mobile-licenses -SelfTest failed" }
 
+      - name: Mobile bundled assets and Edge security (no cargo)
+        shell: pwsh
+        run: |
+          powershell -NoProfile -ExecutionPolicy Bypass -File tools/check-mobile-assets.ps1 -SelfTest
+          if ($LASTEXITCODE -ne 0) { throw "mobile asset self-test failed" }
+          powershell -NoProfile -ExecutionPolicy Bypass -File tools/check-mobile-assets.ps1
+          if ($LASTEXITCODE -ne 0) { throw "mobile assets failed" }
+          node --test mobile/tests/
+          if ($LASTEXITCODE -ne 0) { throw "mobile Edge security failed" }
+
       - name: cargo fmt --check
         run: cargo fmt --all -- --check
 

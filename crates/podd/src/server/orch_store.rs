@@ -1,8 +1,9 @@
 //! Persisted state of review comments, deliveries, groups and gates
 //! (`<state_dir>\orch\store.json`, written atomically like the task
-//! registry: temp file + rename; a corrupt file is moved aside).
+//! registry: synced temp file + atomic replace; corrupt originals stay fenced).
 
 use std::collections::BTreeMap;
+use std::io::Write;
 use std::path::{Path, PathBuf};
 
 use serde::{Deserialize, Serialize};
@@ -11,6 +12,68 @@ use super::log;
 use crate::protocol::*;
 
 const STORE_VERSION: u32 = 1;
+
+/// Durable M2 result and success audit; JSONL is only a derived view (P3c).
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct MobileDecisionRecord {
+    pub device: String,
+    pub request: mobile_v1::Decide,
+    pub fingerprint: mobile_v1::Fingerprint,
+    pub result: mobile_v1::Gate,
+    pub actor: GateActor,
+    pub auth_epoch: u64,
+    pub scope_fingerprint: mobile_v1::Fingerprint,
+    pub previous: GateState,
+    pub new: GateState,
+    pub at_ms: u64,
+}
+
+/// Persistence checkpoints for deterministic crash fixtures.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum SavePhase {
+    BeforeWrite,
+    AfterTempWrite,
+    AfterReplace,
+}
+
+fn replace_store(tmp: &Path, path: &Path) -> std::io::Result<()> {
+    #[cfg(windows)]
+    {
+        use std::os::windows::ffi::OsStrExt;
+        use windows_sys::Win32::Storage::FileSystem::{
+            MOVEFILE_REPLACE_EXISTING, MOVEFILE_WRITE_THROUGH, MoveFileExW,
+        };
+        let from: Vec<u16> = tmp.as_os_str().encode_wide().chain(Some(0)).collect();
+        let to: Vec<u16> = path.as_os_str().encode_wide().chain(Some(0)).collect();
+        // SAFETY: both paths are NUL-terminated buffers alive for this call.
+        if unsafe {
+            MoveFileExW(
+                from.as_ptr(),
+                to.as_ptr(),
+                MOVEFILE_REPLACE_EXISTING | MOVEFILE_WRITE_THROUGH,
+            )
+        } == 0
+        {
+            return Err(std::io::Error::last_os_error());
+        }
+        Ok(())
+    }
+    #[cfg(not(windows))]
+    {
+        let parent = std::fs::File::open(path.parent().expect("store parent"))?;
+        std::fs::rename(tmp, path)?;
+        // Once rename succeeds it must not be presented as an aborted write.
+        // Directory sync completes durability of the new directory entry.
+        // An uncertain post-replace sync must not acknowledge success or let
+        // callers roll back a potentially committed file. Poison the held
+        // store lock; restart recovery is required before further changes.
+        parent
+            .sync_all()
+            .expect("orch directory sync after replace failed; recovery required");
+        Ok(())
+    }
+}
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct DeliveryRecord {
@@ -125,9 +188,20 @@ pub struct Store {
     pub groups: Vec<GroupRecord>,
     #[serde(default)]
     pub gates: Vec<GateInfo>,
+    /// Server provenance and revision; deliberately separate from GateInfo.
+    #[serde(default)]
+    pub gate_metadata: BTreeMap<String, super::mobile::approval::GateMetadata>,
+    #[serde(skip)]
+    gate_snapshots: BTreeMap<String, (GateInfo, super::mobile::approval::GateMetadata)>,
     /// Gate decisions (who, when, operation id), newest last, bounded.
     #[serde(default)]
     pub gate_ops: Vec<GateOpRecord>,
+    #[serde(default)]
+    pub mobile_decisions: Vec<MobileDecisionRecord>,
+    #[serde(skip)]
+    pub mobile_recovered: bool,
+    #[serde(skip)]
+    recovery_failed: bool,
 }
 
 impl Store {
@@ -139,14 +213,32 @@ impl Store {
         let path = Self::path(state_dir);
         let bytes = match std::fs::read(&path) {
             Ok(b) => b,
-            Err(e) if e.kind() == std::io::ErrorKind::NotFound => return Self::default(),
+            Err(e) if e.kind() == std::io::ErrorKind::NotFound => {
+                return Self {
+                    mobile_recovered: true,
+                    ..Self::default()
+                };
+            }
             Err(e) => {
                 log(&format!("cannot read {}: {e}", path.display()));
-                return Self::default();
+                return Self {
+                    recovery_failed: true,
+                    ..Self::default()
+                };
             }
         };
-        match serde_json::from_slice(&bytes) {
-            Ok(s) => s,
+        match serde_json::from_slice::<Self>(&bytes).and_then(|s| {
+            s.validate_mobile().map_err(serde::de::Error::custom)?;
+            Ok(s)
+        }) {
+            Ok(mut s) => {
+                for g in &s.gates {
+                    let metadata = s.gate_metadata.entry(g.id.clone()).or_default().clone();
+                    s.gate_snapshots.insert(g.id.clone(), (g.clone(), metadata));
+                }
+                s.mobile_recovered = true;
+                s
+            }
             Err(e) => {
                 let aside = path.with_extension(format!("corrupt-{}.json", crate::now_ms()));
                 log(&format!(
@@ -154,33 +246,143 @@ impl Store {
                     path.display(),
                     aside.display()
                 ));
-                let _ = std::fs::rename(&path, aside);
-                Self::default()
+                // Keep the authoritative bad file in place so another restart
+                // cannot mistake a failed recovery for an empty fresh store.
+                let _ = std::fs::copy(&path, aside);
+                Self {
+                    recovery_failed: true,
+                    ..Self::default()
+                }
             }
         }
     }
 
     pub fn save(&mut self, state_dir: &Path) -> Result<(), RpcError> {
+        self.save_with_checkpoint(state_dir, |_| Ok(()))
+    }
+
+    pub fn save_with_checkpoint(
+        &mut self,
+        state_dir: &Path,
+        mut checkpoint: impl FnMut(SavePhase) -> std::io::Result<()>,
+    ) -> Result<(), RpcError> {
+        if self.recovery_failed {
+            return Err(RpcError::new(
+                codes::INTERNAL_ERROR,
+                "orch recovery required",
+            ));
+        }
+        let before = self.gate_metadata.clone();
+        let before_version = self.version;
+        let mut staged = before.clone();
+        for g in &self.gates {
+            let metadata = staged.entry(g.id.clone()).or_default();
+            if let Some((old, old_metadata)) = self.gate_snapshots.get(&g.id) {
+                let changed = u64::from(g != old || metadata.origin != old_metadata.origin);
+                metadata.revision =
+                    old_metadata.revision.checked_add(changed).ok_or_else(|| {
+                        RpcError::new(codes::INTERNAL_ERROR, "gate revision exhausted")
+                    })?;
+            }
+        }
+        self.gate_metadata = staged;
         self.version = STORE_VERSION;
         let path = Self::path(state_dir);
-        let write = || -> std::io::Result<()> {
+        let mut write = || -> std::io::Result<()> {
+            checkpoint(SavePhase::BeforeWrite)?;
             std::fs::create_dir_all(path.parent().unwrap())?;
             let tmp = path.with_extension("json.tmp");
-            std::fs::write(&tmp, serde_json::to_vec_pretty(self)?)?;
-            std::fs::rename(&tmp, &path)
+            let mut file = std::fs::File::create(&tmp)?;
+            file.write_all(&serde_json::to_vec_pretty(self)?)?;
+            file.sync_all()?;
+            drop(file);
+            checkpoint(SavePhase::AfterTempWrite)?;
+            replace_store(&tmp, &path)?;
+            // Replace is the durable commit boundary. An error after it must
+            // never be reported as an aborted write and rolled back in memory.
+            let _ = checkpoint(SavePhase::AfterReplace);
+            Ok(())
         };
-        write().map_err(|e| {
+        let result = write().map_err(|e| {
             RpcError::new(
                 codes::INTERNAL_ERROR,
                 format!("cannot save {}: {e}", path.display()),
             )
-        })
+        });
+        if result.is_ok() {
+            self.mobile_recovered = true;
+            for g in &self.gates {
+                self.gate_snapshots
+                    .insert(g.id.clone(), (g.clone(), self.gate_metadata[&g.id].clone()));
+            }
+        } else {
+            self.gate_metadata = before;
+            self.version = before_version;
+        }
+        result
+    }
+
+    fn validate_mobile(&self) -> Result<(), &'static str> {
+        if self.version > STORE_VERSION {
+            return Err("unsupported orch version");
+        }
+        let mut keys = std::collections::BTreeSet::new();
+        for r in &self.mobile_decisions {
+            let digest = super::mobile::approval::decision_fingerprint(&r.request)
+                .map_err(|_| "bad fingerprint")?;
+            let body_digest =
+                super::mobile::approval::fingerprint(&mobile_v1::gate_preimage(&r.result))
+                    .map_err(|_| "bad gate fingerprint")?;
+            let expected_state = match r.request.decision {
+                GateDecision::Approve => GateState::Approved,
+                GateDecision::Reject => GateState::Rejected,
+            };
+            if !keys.insert((&r.device, r.request.operation_id.as_str()))
+                || digest != r.fingerprint
+                || body_digest != r.result.body_fingerprint
+                || r.scope_fingerprint.as_str().len() != 64
+                || !r
+                    .scope_fingerprint
+                    .as_str()
+                    .bytes()
+                    .all(|b| b.is_ascii_hexdigit() && !b.is_ascii_uppercase())
+                || r.new != expected_state
+                || !r.result.complete
+                || r.actor
+                    != (GateActor::Mobile {
+                        device: r.device.clone(),
+                    })
+                || r.previous != GateState::Pending
+                || r.new != r.result.state
+                || r.result.gate != r.request.gate
+                || r.result.task != r.request.task
+                || r.result.machine != r.request.machine
+                || r.request.revision.checked_add(1) != Some(r.result.revision)
+                || self
+                    .gate_metadata
+                    .get(r.request.gate.as_str())
+                    .is_none_or(|m| m.revision < r.result.revision)
+                || self
+                    .gates
+                    .iter()
+                    .any(|g| g.id == r.request.gate.as_str() && g.state == GateState::Pending)
+            {
+                return Err("invalid mobile outcome");
+            }
+        }
+        Ok(())
     }
 
     /// Next id with this prefix: `c1`, `c2`...
     pub fn next_id(&mut self, prefix: &str) -> String {
         let n = self.counters.entry(prefix.to_string()).or_insert(0);
-        *n += 1;
+        *n = n.checked_add(1).expect("identifier space exhausted");
+        while prefix == "g"
+            && (self.gate_metadata.contains_key(&format!("g{n}"))
+                || self.gates.iter().any(|g| g.id == format!("g{n}")))
+        {
+            *n = n.checked_add(1).expect("identifier space exhausted");
+        }
         format!("{prefix}{n}")
     }
 

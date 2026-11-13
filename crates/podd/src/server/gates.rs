@@ -8,10 +8,30 @@ use std::time::{Duration, Instant};
 
 use tokio::sync::broadcast;
 
+use super::mobile::approval::GateMetadata;
 use super::orch_store::{GateActor, GateOpRecord, Store};
 use super::status::{self, HubEvent};
 use super::{Daemon, log};
 use crate::protocol::*;
+
+/// Shared persistence boundary for PC, mobile and expiry transitions.
+fn commit_gates(
+    st: &mut Store,
+    changes: Vec<(usize, GateInfo)>,
+    save: impl FnOnce(&mut Store) -> Result<(), RpcError>,
+) -> Result<(), RpcError> {
+    let before: Vec<_> = changes
+        .into_iter()
+        .map(|(i, g)| (i, std::mem::replace(&mut st.gates[i], g)))
+        .collect();
+    if let Err(e) = save(st) {
+        for (i, g) in before {
+            st.gates[i] = g;
+        }
+        return Err(e);
+    }
+    Ok(())
+}
 
 const MAX_MESSAGE: usize = 16 * 1024;
 /// Longest accepted `expires_in_s` (one year).
@@ -123,8 +143,9 @@ pub(super) fn decide_in(
         GateDecision::Approve => GateState::Approved,
         GateDecision::Reject => GateState::Rejected,
     };
+    let mut updated = before.clone();
     {
-        let g = &mut st.gates[i];
+        let g = &mut updated;
         g.state = new;
         g.resolved_ms = Some(now);
         g.note = req.note.clone();
@@ -150,7 +171,7 @@ pub(super) fn decide_in(
         .position(|r| now.saturating_sub(r.at_ms) < GATE_OPS_KEEP_MS)
         .unwrap_or(st.gate_ops.len());
     dropped.extend(st.gate_ops.drain(..keep_from));
-    if let Err(e) = save(st) {
+    if let Err(e) = commit_gates(st, vec![(i, updated)], save) {
         st.gate_ops.pop();
         let rest = std::mem::take(&mut st.gate_ops);
         st.gate_ops = dropped;
@@ -222,15 +243,15 @@ pub(super) fn expire_in(
     save: impl FnOnce(&mut Store) -> Result<(), RpcError>,
 ) -> (Vec<GateInfo>, Option<u64>) {
     let mut expired = Vec::new();
-    let mut before = Vec::new();
+    let mut changes = Vec::new();
     let mut next: Option<u64> = None;
-    for (i, g) in st.gates.iter_mut().enumerate() {
+    for (i, original) in st.gates.iter().enumerate() {
+        let mut g = original.clone();
         if g.state != GateState::Pending {
             continue;
         }
         let Some(at) = g.expires_ms else { continue };
         if at <= now {
-            before.push((i, g.clone()));
             g.state = GateState::Expired;
             g.resolved_ms = Some(now);
             g.note = Some(format!(
@@ -238,17 +259,12 @@ pub(super) fn expire_in(
                 at.saturating_sub(g.created_ms) / 1000
             ));
             expired.push(g.clone());
+            changes.push((i, g));
         } else {
             next = Some(next.map_or(at, |n| n.min(at)));
         }
     }
-    if !expired.is_empty()
-        && let Err(e) = save(st)
-    {
-        log(&e.message);
-        for (i, g) in before {
-            st.gates[i] = g;
-        }
+    if !expired.is_empty() && commit_gates(st, changes, save).is_err() {
         // Retry soon.
         return (Vec::new(), Some(now + 1_000));
     }
@@ -261,7 +277,7 @@ fn gate_not_found(id: &str) -> RpcError {
 
 impl Daemon {
     pub(super) fn gate_create(&self, p: GateCreateParams) -> Result<GateInfo, RpcError> {
-        self.gate_create_as(p, None)
+        self.gate_create_as(p, None, mobile_v1::Origin::LocalUser)
     }
 
     /// Create a gate; `requested_by` is the orchestration mailbox that gets
@@ -270,6 +286,7 @@ impl Daemon {
         &self,
         p: GateCreateParams,
         requested_by: Option<String>,
+        origin: mobile_v1::Origin,
     ) -> Result<GateInfo, RpcError> {
         let options = clean_options(&p.options)?;
         let (run, item) = self.orch_gate_target(p.run.as_deref(), p.item.as_deref())?;
@@ -338,7 +355,18 @@ impl Daemon {
                 decided_by: None,
             };
             st.gates.push(g.clone());
-            self.save_orch(&mut st)?;
+            st.gate_metadata.insert(
+                g.id.clone(),
+                GateMetadata {
+                    revision: 1,
+                    origin,
+                },
+            );
+            if let Err(e) = self.save_orch(&mut st) {
+                st.gates.pop();
+                st.gate_metadata.remove(&g.id);
+                return Err(e);
+            }
             g
         };
         log(&format!(
@@ -371,12 +399,17 @@ impl Daemon {
     }
 
     /// Decide a gate through [`decide_in`] and announce it.
-    pub(super) fn gate_decide(&self, req: &Decide, now: u64) -> Result<Decided, RpcError> {
+    pub(super) fn gate_decide(&self, req: &Decide, _now: u64) -> Result<Decided, RpcError> {
         let res = {
             let mut st = self.orch.lock().unwrap();
-            decide_in(&mut st, req, now, |st| self.save_orch(st))
+            decide_in(&mut st, req, crate::now_ms(), |st| self.save_orch(st))
         };
-        match &res {
+        self.announce_gate_decision(req, &res);
+        res
+    }
+
+    pub(super) fn announce_gate_decision(&self, req: &Decide, res: &Result<Decided, RpcError>) {
+        match res {
             Ok(Decided::Now(g)) => {
                 log(&format!(
                     "gate {} {:?} by {}",
@@ -393,7 +426,6 @@ impl Daemon {
             }
             _ => {}
         }
-        res
     }
 
     pub(super) fn gate_resolve(&self, p: GateResolveParams) -> Result<GateInfo, RpcError> {

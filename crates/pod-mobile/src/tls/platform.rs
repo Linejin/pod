@@ -2,12 +2,13 @@
 //! the system OpenSSL 3 on Linux (`crate::sys`).
 
 use std::io::{self, Read, Write};
-use std::time::{Duration, Instant};
+use std::net::{SocketAddr, TcpStream};
+use std::time::{Duration, Instant, SystemTime};
 
 use super::{
     HANDSHAKE_TIMEOUT, SessionInfo, SpkiSha256, TlsAcceptor, TlsConnection, TlsError, VersionPolicy,
 };
-use crate::identity::ServerIdentity;
+use crate::identity::{CertificateInfo, ServerIdentity};
 use crate::sys::tls as imp;
 
 /// Cipher families the [`PinnedClient`] offers.
@@ -141,10 +142,41 @@ impl PinnedClient {
         })
     }
 
-    /// Runs the client handshake, then checks the pin and the policy. On
-    /// [`TlsError::PinMismatch`] or a policy error the session is dropped
-    /// without application data.
-    pub fn connect<S: Read + Write>(&self, io: S) -> Result<TlsStream<S>, TlsError> {
+    /// Loopback harness convenience: trust the harness-created socket's
+    /// endpoint, then check certificate, pin and policy. For pairing, use
+    /// [`Self::connect_endpoint`] with the trusted QR endpoint. Non-loopback
+    /// sockets require that explicit endpoint and are refused here.
+    pub fn connect(&self, io: TcpStream) -> Result<TlsStream<TcpStream>, TlsError> {
+        let endpoint = io.peer_addr()?;
+        if !endpoint.ip().is_loopback() {
+            return Err(TlsError::Policy(
+                "explicit expected endpoint required".into(),
+            ));
+        }
+        self.connect_endpoint(io, endpoint)
+    }
+
+    /// Connect using the IP and port from the trusted pairing record.
+    /// Checks the actual socket endpoint before starting TLS.
+    pub fn connect_endpoint(
+        &self,
+        io: TcpStream,
+        endpoint: SocketAddr,
+    ) -> Result<TlsStream<TcpStream>, TlsError> {
+        self.connect_endpoint_with_clock(io, endpoint, SystemTime::now)
+    }
+
+    /// As above, with a clock sampled after the handshake for deterministic
+    /// expiry tests. Mapped IPv6 is not an alias for an IPv4 certificate.
+    pub fn connect_endpoint_with_clock(
+        &self,
+        io: TcpStream,
+        endpoint: SocketAddr,
+        clock: impl FnOnce() -> SystemTime,
+    ) -> Result<TlsStream<TcpStream>, TlsError> {
+        if io.peer_addr()? != endpoint {
+            return Err(TlsError::Policy("connected endpoint mismatch".into()));
+        }
         let deadline = Instant::now() + self.handshake_timeout;
         let stream = TlsStream(self.inner.connect(io, deadline)?);
         match stream.peer_spki_sha256() {
@@ -152,6 +184,31 @@ impl PinnedClient {
             _ => return Err(TlsError::PinMismatch),
         }
         stream.session().check(self.policy)?;
+        let cert = stream
+            .peer_certificate()
+            .ok_or_else(|| TlsError::Policy("missing server certificate".into()))?;
+        let info = CertificateInfo::parse(cert)
+            .map_err(|_| TlsError::Policy("invalid server certificate".into()))?;
+        let now = clock()
+            .duration_since(SystemTime::UNIX_EPOCH)
+            .ok()
+            .and_then(|d| i64::try_from(d.as_secs()).ok())
+            .ok_or_else(|| TlsError::Policy("invalid client clock".into()))?;
+        if now < info.not_before || now > info.not_after {
+            return Err(TlsError::Policy("server certificate validity".into()));
+        }
+        if info.san_ips != [endpoint.ip()] || info.san_other != 0 {
+            return Err(TlsError::Policy("server certificate IP SAN".into()));
+        }
+        if !info.self_signed
+            || !info.server_auth
+            || !info.digital_signature
+            || info.ca == Some(true)
+        {
+            return Err(TlsError::Policy(
+                "server certificate purpose or signature".into(),
+            ));
+        }
         Ok(stream)
     }
 }

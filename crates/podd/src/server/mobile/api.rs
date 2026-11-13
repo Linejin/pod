@@ -364,7 +364,7 @@ impl Daemon {
         ctx: &MobileCtx,
         device: &str,
         p: &MobileGateDecideParams,
-        now: u64,
+        _now: u64,
     ) -> Result<MobileGateDecideResult, RpcError> {
         message::check_operation_id(&p.operation_id)?;
         let not_found =
@@ -410,13 +410,20 @@ impl Daemon {
         // across the commit: a revoke lands either before (refused) or
         // after (the decision stands), never in between.
         let mut st = self.mobile.state.lock().unwrap();
+        let mut orch = self.orch.lock().unwrap();
+        let now = crate::now_ms();
         let s = &mut *st;
         s.sessions.check(&s.registry, &ctx.session, now, false)?;
-        if !s.registry.allows(device, &task, MobileCap::Approve) {
+        if !s.registry.allows(device, &task, MobileCap::Status)
+            || !s.registry.allows(device, &task, MobileCap::Approve)
+        {
             return Err(denied(format!("not allowed: approve on task {task:?}")));
         }
-        let res = self.gate_decide(&req, now);
+        let res =
+            super::super::gates::decide_in(&mut orch, &req, now, |store| self.save_orch(store));
+        drop(orch);
         drop(st);
+        self.announce_gate_decision(&req, &res);
         let (g, replayed) = match res? {
             Decided::Now(g) => (g, false),
             Decided::Replayed(g) => (g, true),

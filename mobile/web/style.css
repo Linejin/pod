@@ -1,0 +1,12 @@
+/* SPDX-License-Identifier: Apache-2.0 */
+:root { color-scheme: light dark; font-family: system-ui, sans-serif; }
+body { max-width: 48rem; margin: auto; padding: 1rem; line-height: 1.5; }
+header { display: flex; align-items: center; justify-content: space-between; }
+section { border-block-start: 1px solid #888; padding-block: 1rem; }
+button, select, textarea { font: inherit; padding: .65rem; margin: .3rem; }
+button { min-height: 44px; cursor: pointer; }
+button:disabled { cursor: default; opacity: .5; }
+textarea { display: block; width: 90%; }
+pre, dd, button { white-space: pre-wrap; overflow-wrap: anywhere; }
+dt { font-weight: bold; } dd { margin-inline-start: 1rem; }
+#status { border: 1px solid #888; padding: .7rem; }

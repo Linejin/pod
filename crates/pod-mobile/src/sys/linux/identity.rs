@@ -19,6 +19,7 @@ use openssl::x509::{X509, X509Builder, X509ExtendedKeyUsage, X509KeyUsage, X509N
 
 use super::crypto::generate_p256;
 use super::ossl;
+pub(crate) use super::storage;
 use crate::crypto::CryptoError;
 use crate::identity::CertificateInfo;
 
@@ -27,7 +28,7 @@ unsafe extern "C" {
     fn geteuid() -> u32;
 }
 
-fn effective_uid() -> u32 {
+pub(super) fn effective_uid() -> u32 {
     // SAFETY: geteuid has no arguments or preconditions.
     unsafe { geteuid() }
 }
@@ -36,9 +37,9 @@ fn effective_uid() -> u32 {
 // per architecture (asm-generic vs arm/arm64); a wrong one would silently mean
 // another flag, so unknown architectures do not build.
 #[cfg(any(target_arch = "x86_64", target_arch = "x86", target_arch = "riscv64"))]
-const O_NOFOLLOW: i32 = 0o400000;
+pub(super) const O_NOFOLLOW: i32 = 0o400000;
 #[cfg(any(target_arch = "aarch64", target_arch = "arm"))]
-const O_NOFOLLOW: i32 = 0o100000;
+pub(super) const O_NOFOLLOW: i32 = 0o100000;
 #[cfg(not(any(
     target_arch = "x86_64",
     target_arch = "x86",
@@ -244,6 +245,9 @@ pub(crate) fn self_signed(
 pub(crate) fn parse_certificate(der: &[u8]) -> Result<CertificateInfo, CryptoError> {
     let e = ossl("X509 read");
     let x = X509::from_der(der).map_err(|_| CryptoError::BadInput("certificate"))?;
+    if x.to_der().map_err(&e)? != der {
+        return Err(CryptoError::BadInput("certificate"));
+    }
     let mut serial = x.serial_number().to_bn().map_err(&e)?.to_vec();
     if serial.is_empty() {
         serial.push(0);
