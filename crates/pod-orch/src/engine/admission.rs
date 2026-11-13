@@ -1,6 +1,8 @@
 //! The resource queue (docs/19 §5.1): queued attempts in FIFO order and the
 //! gate that admits one when the limits and resources allow.
 
+use std::collections::BTreeMap;
+
 use serde_json::Value;
 
 use super::{Admitted, Orch, Result};
@@ -55,39 +57,43 @@ impl Orch {
         let all: Vec<&Attempt> = self.attempts().collect();
         let plan = resource::plan(&all, limits, sample, free_disk, now);
         let mut out = Admitted::default();
-        let mut dirty: Vec<String> = Vec::new();
+        let mut records = BTreeMap::new();
         for v in &plan.waiting {
-            let Ok(a) = self.attempt_mut(&v.attempt) else {
+            let Ok(current) = self.attempt(&v.attempt) else {
                 continue;
             };
-            let Some(q) = a.queue.as_mut() else { continue };
+            let Some(q) = current.queue.as_ref() else {
+                continue;
+            };
             // The reason text carries live numbers (CPU %, free GiB): store
             // it only when the kind or place changes, so a waiting queue does
             // not rewrite run.json every pass. `orch.queue` shows fresh text.
             if q.kind != v.kind || q.position != v.position {
+                let rec = records
+                    .entry(current.run.clone())
+                    .or_insert_with(|| self.runs[&current.run].rec.clone());
+                let a = rec.attempts.iter_mut().find(|a| a.id == v.attempt).unwrap();
+                let q = a.queue.as_mut().unwrap();
                 q.kind = v.kind;
                 q.reason = v.reason.clone();
                 q.position = v.position;
-                let a = a.clone();
-                if !dirty.contains(&a.run) {
-                    dirty.push(a.run.clone());
-                }
                 out.changed.push(a.public());
             }
         }
-        if let (Some(id), Some(hash)) = (&plan.start, token_hash) {
-            let a = self.attempt_mut(id)?;
-            a.queue = None;
-            a.token_hash = hash;
-            let launch = a.launch.take().unwrap_or(Value::Null);
-            let a = a.clone();
-            if !dirty.contains(&a.run) {
-                dirty.push(a.run.clone());
-            }
-            out.start = Some((a.public(), launch));
+        // Waiting verdicts can span runs. Commit them independently, keeping
+        // memory consistent with each saved snapshot. Admit last: an error
+        // must never consume a launch that the caller did not receive.
+        for rec in records.into_values() {
+            self.commit_run(rec)?;
         }
-        for run in dirty {
-            self.save_run(&run)?;
+        if let (Some(id), Some(hash)) = (&plan.start, token_hash) {
+            let mut launch = Value::Null;
+            let a = self.update_attempt(id, |a| {
+                a.queue = None;
+                a.token_hash = hash;
+                launch = a.launch.take().unwrap_or(Value::Null);
+            })?;
+            out.start = Some((a.public(), launch));
         }
         Ok(out)
     }

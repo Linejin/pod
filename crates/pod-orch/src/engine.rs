@@ -319,13 +319,6 @@ impl Orch {
         Ok(self.attempt(id)?.run.clone())
     }
 
-    fn attempt_mut(&mut self, id: &str) -> Result<&mut Attempt> {
-        self.runs
-            .values_mut()
-            .find_map(|r| r.rec.attempts.iter_mut().find(|a| a.id == id))
-            .ok_or_else(|| not_found(ErrorKind::AttemptNotFound, "attempt", id))
-    }
-
     pub fn item(&self, id: &str) -> Result<&Item> {
         self.runs
             .values()

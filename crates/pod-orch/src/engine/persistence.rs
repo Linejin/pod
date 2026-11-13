@@ -113,11 +113,24 @@ impl Orch {
     }
 
     pub(super) fn next_id(&mut self, prefix: &str) -> Result<String> {
-        let c = self.index.counters.entry(prefix.to_string()).or_insert(0);
+        let mut index = self.index.clone();
+        let c = index.counters.entry(prefix.to_string()).or_insert(0);
         *c += 1;
         let id = format!("{prefix}{c}");
-        self.save_index()?;
+        store::write_json(&store::index_json(&self.root), &index).map_err(io)?;
+        self.index = index;
         Ok(id)
+    }
+
+    /// Publish a staged transition only after its snapshot is saved. Mail
+    /// and read receipts stay in place; completion keeps its own mail journal.
+    pub(super) fn commit_run(&mut self, rec: RunRecord) -> Result<()> {
+        let run = rec.run.id.clone();
+        let path = store::run_json(&self.root, &run);
+        let st = self.run_mut(&run)?;
+        store::write_json(&path, &rec).map_err(io)?;
+        st.rec = rec;
+        Ok(())
     }
 
     pub(super) fn save_run(&self, run: &str) -> Result<()> {

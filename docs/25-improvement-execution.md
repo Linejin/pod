@@ -1,6 +1,6 @@
 # 개선 작업 실행 기록
 
-시작일: 2026-11-13 · 상태: Astra 워커 3명 구현 진행 중
+시작일: 2026-11-13 · 상태: B05 통합 완료, 나머지 Astra 워커 2명 구현 진행 중
 
 ## 작업 기준
 
@@ -19,7 +19,7 @@
 |---|---|---|---|---|
 | editor-rename | B01: rename 후 dirty·저장·LSP 경로 | `crates/pod-editor` | 파일·폴더 rename 후 편집과 저장·닫기·LSP 회귀 검사, 국소 수정 커밋 | 시작 확인 |
 | daemon-lifecycle | B02–B04: 잠금 순서, keep과 release 경합, 출력 보관 실패 | `crates/podd/src/server/orch_runs` 및 해당 데몬 회귀 검사 | 결정적 동시 실행·보관 실패 시험, 실패 시 데이터·프로세스 보존 | 시작 확인 |
-| orch-persistence | B05: 메모리 선변경과 저장 실패 | `crates/pod-orch` | 관련 전이에 저장 실패를 주입하고 메모리·디스크·재시작 일관성 확인 | 시작 확인 |
+| orch-persistence | B05: 메모리 선변경과 저장 실패 | `crates/pod-orch` | 관련 전이에 저장 실패를 주입하고 메모리·디스크·재시작 일관성 확인 | 검토·통합 완료 |
 
 모델은 앞서 요청한 `gpt-6-astra`를 사용한다. 워커끼리 공유 파일을 수정하지 않으며, 소유 범위를 넓혀야 하면 코디네이터에게 먼저 알린다. 공용 문서와 통합은 코디네이터가 담당한다.
 
@@ -48,4 +48,26 @@
 | daemon-lifecycle | `SJin-Choi/pod-fix-daemon-lifecycle` | `C:/Users/Sejin/orca/workspaces/pod/pod-fix-daemon-lifecycle` | `task_d952c97d0bc8` / `ctx_f4d52a9c1f98` |
 | orch-persistence | `SJin-Choi/pod-fix-orch-persistence` | `C:/Users/Sejin/orca/workspaces/pod/pod-fix-orch-persistence` | `task_f2dbdfc36250` / `ctx_fa8fa5a5601b` |
 
-구현 커밋과 검증 결과는 아직 수신하지 않았다. 완료 보고를 받은 뒤 검토·통합 결과를 추가한다.
+### B05 상태 저장 실패 처리
+
+- 워커 커밋: `f7995fa9b4a4ee50f0ad9cb650e62bc4dcdac8d0`
+- 통합 커밋: `d8304406b810e1a9b9f1a1fa5b66c42f38a301b4` (`improvements/stability-foundation`에 cherry-pick).
+- 변경: Attempt 관련 전이는 Run 복제본을 저장한 뒤 메모리에 반영한다. ID counter도 index 저장 후 확정한다. Queue 대기 판정을 먼저 저장하고 마지막에 시작을 승인하여 다른 Run의 저장 실패 때문에 실행 정보가 소모되지 않도록 했다.
+- 검토: 코디네이터가 변경 제어 흐름과 실패 주입 검사를 확인했다. 기존 completion journal은 유지하며 mail·read receipt를 Run 교체 중 보존한다. 워커 소유 범위 밖 파일 변경은 없다.
+
+워커 환경의 실제 검사 결과:
+
+| 명령 | 결과 |
+|---|---|
+| `cargo test -p pod-orch --locked` | 통과: 단위 시험 50개(신규 실패 주입 회귀 10개 포함), wire snapshot 4개, doc test 0개 |
+| `cargo clippy -p pod-orch --all-targets --locked -- -D warnings` | 통과 |
+| `cargo fmt -p pod-orch -- --check` | 통과 |
+| `git diff --check` | 통과 |
+
+이 워커 실행에서는 SAC 차단이 발생하지 않았다. 초기 환경의 차단을 현재 검사의 미실행 사유로 재사용하지 않는다. 코드 변경 없이 동일 커밋을 통합했으므로 동일 crate 검사를 중복 실행하지 않았으며, 데몬 변경과 결합한 검사는 해당 워커 완료 후 판단한다.
+
+통합 worktree에서 docs 색인, crate boundaries, workspace policy 검사를 모두 통과했다.
+
+남은 제한: Run snapshot 복제 비용, Run 저장 실패 후 예약 ID의 빈 번호, 여러 Run의 대기 판정이 일부만 저장될 수 있는 동작은 허용한다. 기존 fsync 없는 저장의 전원 손실 보장은 바뀌지 않는다. Item·mail·wake 전체 트랜잭션과 B10 읽기 실패 복구는 이번 수정 범위 밖이다.
+
+데몬 워커에는 `crates/podd/src/server/orch_runs.rs`의 최소 상태 필드 변경도 승인했다. 프로토콜 변경 없이 잠금·release claim을 조정하기 위한 범위 확장이며 다른 워커와 파일 소유가 겹치지 않는다.

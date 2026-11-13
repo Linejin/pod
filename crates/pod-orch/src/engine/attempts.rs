@@ -91,8 +91,13 @@ impl Orch {
         }
         // Worker limits (per run and global) and resources are not refused
         // here: the daemon queues the attempt (`enqueue`, `admit`).
+        // Reserve the id first, then stage both the replacement and the new
+        // generation together. A failed run save may consume an id, but must
+        // not abandon the old worker or consume an item generation.
+        let id = self.next_id("a")?;
+        let mut rec = self.run(&b.run)?.rec.clone();
         if let Some(old) = &b.retry_of {
-            let a = self.attempt_mut(old)?;
+            let a = rec.attempts.iter_mut().find(|a| a.id == *old).unwrap();
             if a.state.is_open() {
                 a.state = AttemptState::Abandoned;
                 a.ended_ms = Some(now);
@@ -105,9 +110,7 @@ impl Orch {
                 }
             }
         }
-        let id = self.next_id("a")?;
-        let st = self.run_mut(&b.run)?;
-        let it = st.rec.items.iter_mut().find(|i| i.id == b.item).unwrap();
+        let it = rec.items.iter_mut().find(|i| i.id == b.item).unwrap();
         it.generation += 1;
         it.state = if it.gates.is_empty() {
             ItemState::Assigned
@@ -149,8 +152,8 @@ impl Orch {
             launch: None,
             waiting_on: Vec::new(),
         };
-        st.rec.attempts.push(a.clone());
-        self.save_run(&b.run)?;
+        rec.attempts.push(a.clone());
+        self.commit_run(rec)?;
         Ok(a)
     }
 
@@ -163,15 +166,12 @@ impl Orch {
         brief: Option<&str>,
         turn: u64,
     ) -> Result<Attempt> {
-        let run = self.attempt_run(attempt)?;
-        let a = self.attempt_mut(attempt)?;
-        a.task = task.map(str::to_string);
-        a.terminal = Some(terminal.to_string());
-        a.brief_path = brief.map(str::to_string);
-        a.seen_turn = turn;
-        let a = a.clone();
-        self.save_run(&run)?;
-        Ok(a)
+        self.update_attempt(attempt, |a| {
+            a.task = task.map(str::to_string);
+            a.terminal = Some(terminal.to_string());
+            a.brief_path = brief.map(str::to_string);
+            a.seen_turn = turn;
+        })
     }
 
     /// The worker could not be started. Returns whether this opened the
@@ -179,13 +179,8 @@ impl Orch {
     pub fn start_failed(&mut self, attempt: &str, error: &str, now: Ms) -> Result<bool> {
         let strikes = self.limits.start_strikes;
         let run = self.attempt_run(attempt)?;
-        let st = self.run_mut(&run)?;
-        let a = st
-            .rec
-            .attempts
-            .iter_mut()
-            .find(|a| a.id == attempt)
-            .unwrap();
+        let mut rec = self.run(&run)?.rec.clone();
+        let a = rec.attempts.iter_mut().find(|a| a.id == attempt).unwrap();
         a.state = AttemptState::StartFailed;
         a.queue = None;
         a.launch = None;
@@ -194,7 +189,7 @@ impl Orch {
         a.released_ms = Some(now);
         a.error = Some(error.to_string());
         let (item, gen_) = (a.item.clone(), a.generation);
-        let it = st.rec.items.iter_mut().find(|i| i.id == item).unwrap();
+        let it = rec.items.iter_mut().find(|i| i.id == item).unwrap();
         let mut tripped = false;
         if it.generation == gen_ {
             it.start_failures += 1;
@@ -207,35 +202,29 @@ impl Orch {
                 it.state = ItemState::Ready;
             }
         }
-        self.save_run(&run)?;
+        self.commit_run(rec)?;
         Ok(tripped)
     }
 
     /// The agent was seen working: the start succeeded (resets the breaker).
     pub fn mark_ready(&mut self, attempt: &str, now: Ms) -> Result<bool> {
-        let run = self.attempt_run(attempt)?;
-        let st = self.run_mut(&run)?;
-        let a = st
-            .rec
-            .attempts
-            .iter_mut()
-            .find(|a| a.id == attempt)
-            .unwrap();
+        let a = self.attempt(attempt)?;
         if a.state != AttemptState::Starting {
             return Ok(false);
         }
+        let mut rec = self.run(&a.run)?.rec.clone();
+        let a = rec.attempts.iter_mut().find(|a| a.id == attempt).unwrap();
         a.state = AttemptState::Ready;
         a.ready_ms = Some(now);
         let (item, gen_) = (a.item.clone(), a.generation);
-        if let Some(it) = st
-            .rec
+        if let Some(it) = rec
             .items
             .iter_mut()
             .find(|i| i.id == item && i.generation == gen_)
         {
             it.start_failures = 0;
         }
-        self.save_run(&run)?;
+        self.commit_run(rec)?;
         Ok(true)
     }
 
@@ -264,17 +253,12 @@ impl Orch {
         release_after_ms: Option<Ms>,
         now: Ms,
     ) -> Result<bool> {
-        let run = self.attempt_run(attempt)?;
-        let st = self.run_mut(&run)?;
-        let a = st
-            .rec
-            .attempts
-            .iter_mut()
-            .find(|a| a.id == attempt)
-            .unwrap();
+        let a = self.attempt(attempt)?;
         if !a.state.is_open() {
             return Ok(false);
         }
+        let mut rec = self.run(&a.run)?.rec.clone();
+        let a = rec.attempts.iter_mut().find(|a| a.id == attempt).unwrap();
         a.state = state;
         a.ended_ms = Some(now);
         a.error = Some(why.to_string());
@@ -289,8 +273,7 @@ impl Orch {
             None => {}
         }
         let (item, gen_) = (a.item.clone(), a.generation);
-        if let Some(it) = st
-            .rec
+        if let Some(it) = rec
             .items
             .iter_mut()
             .find(|i| i.id == item && i.generation == gen_ && i.state == ItemState::Assigned)
@@ -298,7 +281,7 @@ impl Orch {
             it.state = ItemState::Ready;
             it.updated_ms = now;
         }
-        self.save_run(&run)?;
+        self.commit_run(rec)?;
         Ok(true)
     }
 
@@ -310,23 +293,20 @@ impl Orch {
         log_path: Option<&str>,
         now: Ms,
     ) -> Result<Attempt> {
-        let run = self.attempt_run(attempt)?;
-        let a = self.attempt_mut(attempt)?;
-        a.worker = w;
-        match w {
-            WorkerState::Released => {
-                a.released_ms = Some(now);
-                a.release_at_ms = None;
-                if let Some(p) = log_path {
-                    a.log_path = Some(p.to_string());
+        self.update_attempt(attempt, |a| {
+            a.worker = w;
+            match w {
+                WorkerState::Released => {
+                    a.released_ms = Some(now);
+                    a.release_at_ms = None;
+                    if let Some(p) = log_path {
+                        a.log_path = Some(p.to_string());
+                    }
                 }
+                WorkerState::Kept => a.release_at_ms = None,
+                _ => {}
             }
-            WorkerState::Kept => a.release_at_ms = None,
-            _ => {}
-        }
-        let a = a.clone();
-        self.save_run(&run)?;
-        Ok(a)
+        })
     }
 
     /// Supervisor bookkeeping (turn seen, escalation marks).
@@ -336,10 +316,11 @@ impl Orch {
         f: impl FnOnce(&mut Attempt),
     ) -> Result<Attempt> {
         let run = self.attempt_run(attempt)?;
-        let a = self.attempt_mut(attempt)?;
+        let mut rec = self.run(&run)?.rec.clone();
+        let a = rec.attempts.iter_mut().find(|a| a.id == attempt).unwrap();
         f(a);
         let a = a.clone();
-        self.save_run(&run)?;
+        self.commit_run(rec)?;
         Ok(a)
     }
 

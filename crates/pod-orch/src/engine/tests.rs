@@ -5,6 +5,8 @@ use crate::resource::{ResourceLimits, Sample};
 use crate::store;
 use crate::text;
 
+mod attempt_persistence;
+
 fn temp(tag: &str) -> PathBuf {
     let nanos = std::time::SystemTime::now()
         .duration_since(std::time::UNIX_EPOCH)
