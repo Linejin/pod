@@ -21,6 +21,12 @@ use crate::server::{Daemon, log, status};
 #[derive(Default)]
 pub(super) struct Releases {
     claimed: std::collections::HashSet<String>,
+    failures: std::collections::HashMap<String, ReleaseFailure>,
+}
+
+struct ReleaseFailure {
+    message: String,
+    retry_at_ms: u64,
 }
 
 /// An in-memory claim is the release linearization point. Before it, keep/input
@@ -30,10 +36,14 @@ pub(super) struct Releases {
 struct ReleaseClaim<'a> {
     runs: &'a OrchRuns,
     attempt: String,
+    active: bool,
 }
 
 impl Drop for ReleaseClaim<'_> {
     fn drop(&mut self) {
+        if !self.active {
+            return;
+        }
         self.runs
             .releases
             .lock()
@@ -70,6 +80,17 @@ impl OrchRuns {
         {
             return Ok(None);
         }
+        if automatic
+            && self
+                .releases
+                .lock()
+                .unwrap()
+                .failures
+                .get(attempt)
+                .is_some_and(|failure| crate::now_ms() < failure.retry_at_ms)
+        {
+            return Ok(None);
+        }
         if a.worker == WorkerState::Released {
             return Err(RpcError::new(
                 orch_codes::INVALID_STATE,
@@ -86,6 +107,7 @@ impl OrchRuns {
             ReleaseClaim {
                 runs: self,
                 attempt: attempt.to_string(),
+                active: true,
             },
             a.clone(),
         )))
@@ -167,6 +189,23 @@ impl Daemon {
             },
             _ => MsgText::new(tx::NEXT_FINISHED),
         };
+        let failure = self
+            .runs
+            .releases
+            .lock()
+            .unwrap()
+            .failures
+            .get(&a.id)
+            .map(|f| f.message.clone());
+        let (next, next_text) = match failure {
+            Some(error) => (
+                format!(
+                    "Release failed: {error}. Resources retained where available; automatic release will retry if still due, or keep/retry release manually."
+                ),
+                None,
+            ),
+            None => (next.en(), Some(next)),
+        };
         WorkerInfo {
             attempt: a.public(),
             item_title: o.item(&a.item).map(|i| i.title.clone()).unwrap_or_default(),
@@ -174,8 +213,8 @@ impl Daemon {
             last_output_ms: t.as_ref().map(|t| t.last_output_ms()).unwrap_or(0),
             waiting_answer: waiting,
             unread,
-            next: next.en(),
-            next_text: Some(next),
+            next,
+            next_text,
             wake_unconfirmed_ms: self.runs.unconfirmed.since(o, &attempt_mailbox(&a.id)),
         }
     }
@@ -350,6 +389,7 @@ impl Daemon {
             }
             o.set_worker(&a.id, WorkerState::Kept, None, now)
                 .map_err(oe)?;
+            self.runs.releases.lock().unwrap().failures.remove(&a.id);
         } else {
             // release
             if a.worker == WorkerState::Released {
@@ -387,15 +427,62 @@ impl Daemon {
         attempt: &str,
         automatic: bool,
     ) -> Result<Option<Attempt>, RpcError> {
-        let Some((_claim, a)) = self.runs.claim_release(attempt, automatic)? else {
+        let Some((mut claim, a)) = self.runs.claim_release(attempt, automatic)? else {
             return Ok(None);
         };
         #[cfg(debug_assertions)]
         if automatic {
             release_test_gate("claimed").await;
         }
-        let mut log_path = None;
+        let result = self.release_claimed_worker(&a, automatic).await;
+        let changed = {
+            let mut releases = self.runs.releases.lock().unwrap();
+            // Publish the error and free the claim atomically. A worker.show
+            // caller observing the error can immediately issue keep/retry.
+            releases.claimed.remove(attempt);
+            claim.active = false;
+            match &result {
+                Ok(_) => releases.failures.remove(attempt).is_some(),
+                Err(error) => {
+                    let changed = releases
+                        .failures
+                        .get(attempt)
+                        .is_none_or(|f| f.message != error.message);
+                    releases.failures.insert(
+                        attempt.to_string(),
+                        ReleaseFailure {
+                            message: error.message.clone(),
+                            retry_at_ms: crate::now_ms().saturating_add(1_000),
+                        },
+                    );
+                    changed
+                }
+            }
+        };
+        // Release the claim before announcing failure: a caller reacting to
+        // the event can keep/retry immediately. Unwinding/cancellation also
+        // drops it, without requiring a successful persistence operation.
+        drop(claim);
+        if changed {
+            status::publish_orch_changed(&a.run, Some(&a.item), Some(&a.id));
+        }
+        result.map(Some)
+    }
+
+    async fn release_claimed_worker(
+        &self,
+        a: &Attempt,
+        automatic: bool,
+    ) -> Result<Attempt, RpcError> {
+        let attempt = &a.id;
+        let mut log_path = a.log_path.clone();
         if let Some(t) = a.terminal.as_deref().and_then(|t| self.terminal_by_id(t)) {
+            if automatic && t.incompatible.is_some() {
+                return Err(RpcError::new(
+                    codes::INTERNAL_ERROR,
+                    "cannot archive output from an incompatible holder; use explicit release only if discarding its output is intended",
+                ));
+            }
             let (lines, _) = t.read_lines(ReadMode::History);
             let mut text = lines.join("\n");
             if text.len() > ARCHIVE_BYTES {
@@ -413,15 +500,47 @@ impl Daemon {
                 .root()
                 .join(&a.run)
                 .join(format!("{}.log", a.id));
-            match std::fs::write(&path, text) {
-                Ok(()) => log_path = Some(path.display().to_string()),
-                Err(e) => log(&format!("orch: cannot archive {}: {e}", a.id)),
+            let archive_path = path.display().to_string();
+            // No engine/config/lifecycle mutex is held during disk I/O.
+            // Keep the write within this claim's lifetime, including when the
+            // release future is cancelled (no detached writer can outlive it).
+            let write = std::fs::write(&path, text);
+            match write {
+                Ok(()) => {
+                    log_path = Some(archive_path.clone());
+                    // Remember the archive BEFORE removal, so a failed remove
+                    // or a retry after terminal disappearance still finds it.
+                    self.orch()
+                        .update_attempt(attempt, |a| a.log_path = Some(archive_path))
+                        .map_err(oe)?;
+                }
+                Err(e) if automatic => {
+                    return Err(RpcError::new(
+                        codes::INTERNAL_ERROR,
+                        format!("cannot archive {}: {e}; terminal preserved", a.id),
+                    ));
+                }
+                // `orch.worker.release` is an explicit request to force-close
+                // resources; preserve that existing discard-on-error intent.
+                Err(e) => log(&format!(
+                    "orch: explicit release {} proceeds without archive: {e}",
+                    a.id
+                )),
             }
             self.rm(RmParams {
                 target: TerminalRef::id(t.id.clone()),
                 force: true,
             })
             .await?;
+        } else if automatic
+            && a.terminal
+                .as_deref()
+                .is_some_and(|tid| self.holder_retrying(tid))
+        {
+            return Err(RpcError::new(
+                codes::INTERNAL_ERROR,
+                "holder unreachable; archive and release will retry after reconnection",
+            ));
         }
         let a = self
             .orch()
@@ -434,7 +553,7 @@ impl Daemon {
             .map_err(oe)?;
         log(&format!("orch: released worker {attempt}"));
         status::publish_orch_changed(&a.run, Some(&a.item), Some(&a.id));
-        Ok(Some(a))
+        Ok(a)
     }
 
     /// `orch.commit` (docs/19 §18.1, §18.6): stage and commit in the calling
@@ -542,6 +661,7 @@ impl Daemon {
             if o.set_worker(&id, WorkerState::Kept, None, crate::now_ms())
                 .is_ok()
             {
+                self.runs.releases.lock().unwrap().failures.remove(&id);
                 log(&format!(
                     "orch: a person typed into {terminal}: worker {id} is kept"
                 ));
@@ -588,6 +708,61 @@ fn commit_next(commit: &str) -> String {
 
 #[cfg(test)]
 mod tests {
+    use super::*;
+
+    #[test]
+    fn dropping_release_claim_allows_keep_and_retry_without_state_locks() {
+        let dir = std::env::temp_dir().join(format!(
+            "podd-release-claim-{}-{}",
+            std::process::id(),
+            crate::now_ms()
+        ));
+        let runs = OrchRuns::load(&dir);
+        {
+            let mut o = runs.engine.lock().unwrap();
+            o.create_run("release test", Some("t1"), None, 1).unwrap();
+            o.add_item("r1", None, "test worker", &[], None, 1).unwrap();
+            o.begin_attempt(
+                pod_orch::engine::BeginAttempt {
+                    run: "r1".into(),
+                    item: "i1".into(),
+                    agent: "test".into(),
+                    place: "current".into(),
+                    retry_of: None,
+                    token_hash: "test".into(),
+                },
+                1,
+            )
+            .unwrap();
+            o.end_attempt("a1", AttemptState::Stopped, "finished", None, Some(0), 2)
+                .unwrap();
+        }
+        let (claim, _) = runs.claim_release("a1", true).unwrap().unwrap();
+        {
+            let _engine = runs
+                .engine
+                .try_lock()
+                .expect("claim must not hold the engine during I/O");
+            assert!(runs.config.try_lock().is_ok());
+            assert!(runs.ensure_not_releasing("a1").is_err());
+        }
+        // Error unwinding and cancelled futures drop exactly this guard.
+        drop(claim);
+        {
+            let _engine = runs.engine.lock().unwrap();
+            runs.ensure_not_releasing("a1").unwrap();
+        }
+        let (retry, _) = runs.claim_release("a1", true).unwrap().unwrap();
+        drop(retry);
+        {
+            let mut o = runs.engine.lock().unwrap();
+            runs.ensure_not_releasing("a1").unwrap();
+            o.set_worker("a1", WorkerState::Kept, None, 3).unwrap();
+        }
+        assert!(runs.claim_release("a1", true).unwrap().is_none());
+        let _ = std::fs::remove_dir_all(dir);
+    }
+
     #[test]
     fn a_worker_commit_says_hooks_and_filters_were_skipped() {
         let n = super::commit_next("0123456789abcdef0123");

@@ -384,6 +384,149 @@ fn automatic_release_claim_rejects_late_keep_and_does_not_mark_input_kept() {
     });
 }
 
+#[test]
+fn automatic_release_preserves_output_on_archive_failure_then_retries() {
+    let e = Env::new("orch-release-archive", &[("POD_ORCH_RELEASE_AFTER", "1ms")]);
+    let w = e.start_worker("Archive before release", "current");
+    let id = &w.attempt.id;
+    let terminal = w.terminal.as_deref().unwrap();
+    let pid = e
+        .c()
+        .call::<TerminalShow>(&TerminalRef::id(terminal))
+        .unwrap()
+        .pid
+        .unwrap();
+    let run_dir =
+        e.d.as_ref()
+            .unwrap()
+            .state_dir
+            .join("orch/runs")
+            .join(&w.attempt.run);
+    let archive = run_dir.join(format!("{id}.log"));
+    // A directory at the output-file path deterministically fails the actual
+    // write, without permissions, sleeps, or global fault injection.
+    std::fs::create_dir(&archive).unwrap();
+    let n = e.run(
+        id,
+        &[&[
+            "orch",
+            "done",
+            "--outcome",
+            "succeeded",
+            "--body",
+            "ok",
+            "--json",
+        ]],
+    );
+    assert_eq!(e.out(id, n[0])["code"], 0);
+    until_true("retryable archive failure", 20, || {
+        e.worker(id).next.contains("cannot archive")
+    });
+    let failed = e.worker(id);
+    assert_eq!(failed.attempt.worker, WorkerState::Finished);
+    assert!(failed.attempt.release_at_ms.is_some());
+    assert!(failed.attempt.released_ms.is_none());
+    assert!(failed.next.contains("retry"));
+    assert!(process_alive(pid));
+    let read = e
+        .c()
+        .call::<OrchWorkerRead>(&OrchWorkerReadParams {
+            attempt: id.clone(),
+            lines: None,
+        })
+        .unwrap();
+    assert_eq!(read.source, "terminal");
+    assert!(
+        read.lines
+            .join("\n")
+            .contains(&format!("orch agent {id} ready"))
+    );
+    let disk: Value =
+        serde_json::from_slice(&std::fs::read(run_dir.join("run.json")).unwrap()).unwrap();
+    assert_eq!(disk["attempts"][0]["worker"], "finished");
+
+    std::fs::remove_dir(&archive).unwrap();
+    until_true("automatic archive retry succeeded", 20, || {
+        e.worker(id).attempt.worker == WorkerState::Released
+    });
+    let released = e.worker(id);
+    assert!(!released.next.contains("failed"));
+    assert!(released.attempt.released_ms.is_some());
+    assert!(
+        std::fs::read_to_string(released.attempt.log_path.unwrap())
+            .unwrap()
+            .contains(&format!("orch agent {id} ready"))
+    );
+    until_true("retried release process gone", 10, || !process_alive(pid));
+    assert!(
+        e.c()
+            .call::<TerminalShow>(&TerminalRef::id(terminal))
+            .is_err()
+    );
+    assert_eq!(
+        e.c()
+            .call::<OrchWorkerRead>(&OrchWorkerReadParams {
+                attempt: id.clone(),
+                lines: None
+            })
+            .unwrap()
+            .source,
+        "archive"
+    );
+}
+
+#[test]
+fn archive_failure_releases_claim_for_keep_and_explicit_force_release() {
+    let e = Env::new("orch-release-force", &[("POD_ORCH_RELEASE_AFTER", "1ms")]);
+    let w = e.start_worker("Keep after failed archive", "current");
+    let id = &w.attempt.id;
+    let terminal = w.terminal.as_deref().unwrap();
+    let pid = e
+        .c()
+        .call::<TerminalShow>(&TerminalRef::id(terminal))
+        .unwrap()
+        .pid
+        .unwrap();
+    let archive =
+        e.d.as_ref()
+            .unwrap()
+            .state_dir
+            .join("orch/runs")
+            .join(&w.attempt.run)
+            .join(format!("{id}.log"));
+    std::fs::create_dir(&archive).unwrap();
+    let n = e.run(
+        id,
+        &[&[
+            "orch",
+            "done",
+            "--outcome",
+            "succeeded",
+            "--body",
+            "ok",
+            "--json",
+        ]],
+    );
+    assert_eq!(e.out(id, n[0])["code"], 0);
+    until_true("archive failed before keep", 20, || {
+        e.worker(id).next.contains("cannot archive")
+    });
+    let p = OrchAttemptRef {
+        attempt: id.clone(),
+        ..Default::default()
+    };
+    e.c().call::<OrchWorkerKeep>(&p).unwrap();
+    passes(&mut e.c());
+    assert_eq!(e.worker(id).attempt.worker, WorkerState::Kept);
+    assert!(process_alive(pid));
+    // Explicit manual release retains the established force/discard behavior,
+    // even while the archive fault remains; it cannot be blocked forever.
+    let released = e.c().call::<OrchWorkerRelease>(&p).unwrap();
+    assert_eq!(released.attempt.worker, WorkerState::Released);
+    assert!(released.attempt.log_path.is_none());
+    until_true("explicit release process gone", 10, || !process_alive(pid));
+}
+
 fn json_of(out: &Value) -> Value {
     serde_json::from_str(out["stdout"].as_str().unwrap()).unwrap_or_else(|e| panic!("{e}: {out}"))
 }
