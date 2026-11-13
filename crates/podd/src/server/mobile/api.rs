@@ -1,7 +1,8 @@
 //! The mobile API: the only operations a mobile channel can ever reach.
 //!
 //! A channel (M2 LAN TLS, M4/M5 relay + Noise) authenticates the device,
-//! then calls `Daemon::mobile_call` with a session and an operation name.
+//! then calls `Daemon::mobile_call` with a server-derived context and a typed
+//! M2 call. The M1 debug pipe uses the separate `mobile_local_call`.
 //! [`route`] maps names to the closed [`Op`] set; anything else, every
 //! pipe method included, is refused before any daemon state is touched.
 //! There is no generic JSON-RPC proxy: each op has its own handler and DTO
@@ -134,7 +135,7 @@ impl Daemon {
     /// at the outermost layer unless the handler recorded it with more
     /// context (security-05). Parameter errors are audited without the
     /// parameters (no message body in the log).
-    pub(crate) async fn mobile_call(
+    pub(crate) async fn mobile_local_call(
         self: &Arc<Self>,
         ctx: &MobileCtx,
         method: &str,
@@ -596,6 +597,18 @@ impl Daemon {
             submit: d.submit.clone(),
             error: d.info.error.clone(),
         })
+    }
+}
+
+impl Daemon {
+    /// M2 network boundary. T1 fills the closed dispatcher after P2/P3 land.
+    /// Never converts an authenticated context into the M1 test context.
+    pub fn mobile_call(
+        &self,
+        _ctx: &super::auth::AuthenticatedDevice,
+        _call: mobile_v1::Call,
+    ) -> Result<mobile_v1::Reply, mobile_v1::Error> {
+        Err(mobile_v1::Error::refusal())
     }
 }
 

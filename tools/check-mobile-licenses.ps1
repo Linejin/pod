@@ -284,7 +284,8 @@ function Read-Lock([string]$text) {
 function Read-Tree([string[]]$lines) {
   $pkgs = @{}
   foreach ($raw in $lines) {
-    $l = ($raw -replace '\s*\(\*\)\s*$', '').Trim()
+    # CI sets CARGO_TERM_COLOR=always; --color never below, and strip any SGR left.
+    $l = (($raw -replace "$([char]27)\[[0-9;]*m", '') -replace '\s*\(\*\)\s*$', '').Trim()
     if (-not $l) { continue }
     $m = [regex]::Match($l, '^(\S+) v(\S+)( \(.+\))?\|(.*)$')
     if (-not $m.Success) { throw "unexpected cargo tree line: $l" }
@@ -297,7 +298,7 @@ function Read-Tree([string[]]$lines) {
 function Invoke-Tree([string]$root, [string[]]$a) {
   $prev = $ErrorActionPreference; $ErrorActionPreference = "Continue"
   Push-Location $root
-  try { $out = @(& cargo tree @a --locked --prefix none --format "{p}|{l}" 2>$null) } finally { Pop-Location; $ErrorActionPreference = $prev }
+  try { $out = @(& cargo tree @a --locked --color never --prefix none --format "{p}|{l}" 2>$null) } finally { Pop-Location; $ErrorActionPreference = $prev }
   if ($LASTEXITCODE -ne 0) { throw "cargo tree $($a -join ' ') failed ($LASTEXITCODE)" }
   return (Read-Tree $out)
 }

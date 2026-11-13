@@ -156,28 +156,55 @@ pub struct ServerIdentity {
     credential: imp::Credential,
 }
 
+/// Deletes only the key successfully created by this generation attempt.
+struct CreatedKey<'a> {
+    store: &'a imp::Store,
+    name: Option<&'a str>,
+}
+
+impl Drop for CreatedKey<'_> {
+    fn drop(&mut self) {
+        if let Some(name) = self.name {
+            let _ = self.store.delete(name);
+        }
+    }
+}
+
 impl ServerIdentity {
     /// Creates a fresh key in `store` and a self-signed certificate for
     /// `params`: SAN = the one IP, EKU serverAuth, CA=false (critical),
     /// key usage digitalSignature (critical), ECDSA-SHA256, random serial.
-    /// If the certificate step fails the new key is deleted again.
+    /// Any failure after key creation deletes the new key again.
     pub fn generate(
         store: &KeyStore,
         params: &IdentityParams,
     ) -> Result<ServerIdentity, CryptoError> {
+        Self::generate_with(store, params, Self::bind)
+    }
+
+    fn generate_with(
+        store: &KeyStore,
+        params: &IdentityParams,
+        bind: impl FnOnce(&imp::Store, String, imp::Key, Vec<u8>) -> Result<Self, CryptoError>,
+    ) -> Result<Self, CryptoError> {
         let (not_before, not_after) = params.window()?;
         let mut id = [0u8; 16];
         crypto::random_bytes(&mut id)?;
         let key_name = format!("{}{}", store.prefix, hex(&id));
         let key = store.inner.create(&key_name)?;
-        match imp::self_signed(&key, params.ip, not_before, not_after) {
-            Ok(der) => ServerIdentity::bind(&store.inner, key_name, key, der),
-            Err(e) => {
-                drop(key);
-                let _ = store.inner.delete(&key_name);
-                Err(e)
-            }
+        let mut cleanup = CreatedKey {
+            store: &store.inner,
+            name: Some(&key_name),
+        };
+        // Keep the key inside this closure so its handle drops before cleanup.
+        let result = (|| {
+            let der = imp::self_signed(&key, params.ip, not_before, not_after)?;
+            bind(&store.inner, key_name.clone(), key, der)
+        })();
+        if result.is_ok() {
+            cleanup.name = None;
         }
+        result
     }
 
     /// Reopens a stored identity: the key named `key_name` must exist in
@@ -288,4 +315,37 @@ impl CertificateInfo {
 
 pub(crate) fn hex(bytes: &[u8]) -> String {
     bytes.iter().map(|b| format!("{b:02x}")).collect()
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn failed_bind_removes_created_key() {
+        let prefix = format!(
+            "PodMobileTest-bind-{}-",
+            hex(&crypto::random_256().unwrap()[..4])
+        );
+        #[cfg(windows)]
+        let store = KeyStore::current_user(&prefix).unwrap();
+        #[cfg(target_os = "linux")]
+        let dir = std::env::temp_dir().join(&prefix);
+        #[cfg(target_os = "linux")]
+        let store = KeyStore::directory(&dir, &prefix).unwrap();
+        let result = ServerIdentity::generate_with(
+            &store,
+            &IdentityParams::new(IpAddr::from([127, 0, 0, 1])),
+            |store, name, key, _der| ServerIdentity::bind(store, name, key, vec![0]),
+        );
+        let keys = store.keys().unwrap();
+        // Clean up even on a regression before asserting.
+        for key in &keys {
+            store.delete(key).unwrap();
+        }
+        #[cfg(target_os = "linux")]
+        std::fs::remove_dir(&dir).unwrap();
+        assert!(result.is_err());
+        assert!(keys.is_empty(), "failed bind left keys: {keys:?}");
+    }
 }

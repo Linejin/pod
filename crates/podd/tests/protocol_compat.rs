@@ -204,3 +204,16 @@ fn shared_items_and_reexports_are_the_same() {
     ) -> Result<podd::protocol::TerminalInfo, podd::client::ClientError> =
         podd::client::Client::call::<pod_protocol::protocol::TerminalResize>;
 }
+
+#[test]
+fn mobile_m2_does_not_change_local_m1_requests() {
+    use pod_protocol::mobile_protocol::{MobileGateDecideParams, mobile_v1};
+    same::<podd::protocol::mobile_v1::Call, mobile_v1::Call>();
+    let fixture: Value =
+        serde_json::from_str(include_str!("fixtures/mobile-m2-wire.json")).unwrap();
+    let old: MobileGateDecideParams = serde_json::from_value(fixture["local_m1"].clone()).unwrap();
+    assert_eq!(old.gate, "g1");
+    assert_eq!(old.choice, None);
+    assert!(serde_json::from_value::<mobile_v1::Decide>(fixture["local_m1"].clone()).is_err());
+    assert_eq!(pod_protocol::protocol::PROTOCOL_VERSION, 22);
+}

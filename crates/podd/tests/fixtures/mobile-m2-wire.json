@@ -1,0 +1,80 @@
+{
+  "calls": [
+    {
+      "op": "tasks",
+      "params": {}
+    },
+    {
+      "op": "task",
+      "params": {
+        "task": "t1",
+        "operation": {
+          "kind": "decision",
+          "id": "op1",
+          "body_fingerprint": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+        }
+      }
+    },
+    {
+      "op": "output",
+      "params": {
+        "task": "t1"
+      }
+    },
+    {
+      "op": "gate.decide",
+      "params": {
+        "machine": "m1",
+        "task": "t1",
+        "gate": "g1",
+        "revision": 1,
+        "operation_id": "op1",
+        "decision": "approve",
+        "choice": null
+      }
+    },
+    {
+      "op": "message",
+      "params": {
+        "task": "t1",
+        "operation_id": "op2",
+        "text": "hello",
+        "comments": []
+      }
+    },
+    {
+      "op": "delivery",
+      "params": {
+        "task": "t1",
+        "delivery": "d1"
+      }
+    }
+  ],
+  "local_m1": {
+    "gate": "g1",
+    "decision": "approve",
+    "operation_id": "old-op"
+  },
+  "decision_preimage": "[\"pod-mobile/1/decision\",\"m1\",\"t1\",\"g1\",1,\"approve\",null]",
+  "decision_sha256": "443df53c62b5804cf6a320f7c5ec631d06617a089bcd94f23fd8f06495f059b9",
+  "scope_preimage": "[\"pod-mobile/1/scope\",{\"t1\":[\"approve\",\"status\"]}]",
+  "scope_sha256": "f6cc7f7d6c5c145d0b53264ec54d2ded484f63d8762b0ea03f3df72831ac27ca",
+  "challenge": {
+    "purpose": "session",
+    "machine": "m1",
+    "boot": "b1",
+    "subject": "d1",
+    "auth_epoch": 1,
+    "nonce": "0000000000000000000000000000000000000000000000000000000000000000",
+    "csrf": "1111111111111111111111111111111111111111111111111111111111111111",
+    "expires_ms": 60000
+  },
+  "session_open": {
+    "device": "d1",
+    "auth_epoch": 1,
+    "nonce": "0000000000000000000000000000000000000000000000000000000000000000",
+    "signature": "fixture-signature"
+  },
+  "session_preimage": "[\"pod-mobile/1/session\",{\"purpose\":\"session\",\"machine\":\"m1\",\"boot\":\"b1\",\"subject\":\"d1\",\"auth_epoch\":1,\"nonce\":\"0000000000000000000000000000000000000000000000000000000000000000\",\"csrf\":\"1111111111111111111111111111111111111111111111111111111111111111\",\"expires_ms\":60000},\"d1\",1,\"0000000000000000000000000000000000000000000000000000000000000000\"]",
+  "session_sha256": "008b532a40a8e054aa54f9afe62959b774259293982a0fe7a62491c0320606e2"
+}

@@ -2,9 +2,9 @@
 //! read by OpenSSL.
 
 use std::fs::{self, DirBuilder, OpenOptions};
-use std::io::{self, Write};
+use std::io::{self, Read, Write};
 use std::net::{IpAddr, Ipv4Addr, Ipv6Addr};
-use std::os::unix::fs::{DirBuilderExt, OpenOptionsExt, PermissionsExt};
+use std::os::unix::fs::{DirBuilderExt, MetadataExt, OpenOptionsExt, PermissionsExt};
 use std::path::{Path, PathBuf};
 
 use openssl::asn1::Asn1Time;
@@ -21,6 +21,32 @@ use super::crypto::generate_p256;
 use super::ossl;
 use crate::crypto::CryptoError;
 use crate::identity::CertificateInfo;
+
+// Linux uid_t is unsigned int. No dependency is needed for this libc call.
+unsafe extern "C" {
+    fn geteuid() -> u32;
+}
+
+fn effective_uid() -> u32 {
+    // SAFETY: geteuid has no arguments or preconditions.
+    unsafe { geteuid() }
+}
+
+// Linux O_NOFOLLOW: reject a symlink at the key path on open. The value is
+// per architecture (asm-generic vs arm/arm64); a wrong one would silently mean
+// another flag, so unknown architectures do not build.
+#[cfg(any(target_arch = "x86_64", target_arch = "x86", target_arch = "riscv64"))]
+const O_NOFOLLOW: i32 = 0o400000;
+#[cfg(any(target_arch = "aarch64", target_arch = "arm"))]
+const O_NOFOLLOW: i32 = 0o100000;
+#[cfg(not(any(
+    target_arch = "x86_64",
+    target_arch = "x86",
+    target_arch = "riscv64",
+    target_arch = "aarch64",
+    target_arch = "arm"
+)))]
+compile_error!("pod-mobile: add this architecture's O_NOFOLLOW value");
 
 /// The subject and issuer common name of the listener certificate.
 const SUBJECT_CN: &str = "Pod mobile";
@@ -50,7 +76,10 @@ impl Store {
                 .map_err(|e| io_err("mkdir", &e))?;
         }
         let meta = fs::symlink_metadata(dir).map_err(|e| io_err("stat", &e))?;
-        if !meta.is_dir() || meta.permissions().mode() & 0o077 != 0 {
+        if !meta.is_dir()
+            || meta.uid() != effective_uid()
+            || meta.permissions().mode() & 0o7777 != 0o700
+        {
             return Err(CryptoError::BadInput(
                 "key directory (a 0700 directory, not a link)",
             ));
@@ -87,13 +116,28 @@ impl Store {
     }
 
     pub(crate) fn open(&self, name: &str) -> Result<Option<Key>, CryptoError> {
-        match fs::read(self.path(name)) {
-            Ok(pem) => PKey::private_key_from_pem(&pem)
-                .map(|k| Some(Key(k)))
-                .map_err(|_| CryptoError::BadInput("stored key")),
-            Err(e) if e.kind() == io::ErrorKind::NotFound => Ok(None),
-            Err(e) => Err(io_err("read key", &e)),
+        let mut file = match OpenOptions::new()
+            .read(true)
+            .custom_flags(O_NOFOLLOW)
+            .open(self.path(name))
+        {
+            Ok(file) => file,
+            Err(e) if e.kind() == io::ErrorKind::NotFound => return Ok(None),
+            Err(e) => return Err(io_err("open key", &e)),
+        };
+        let meta = file.metadata().map_err(|e| io_err("stat key", &e))?;
+        if !meta.is_file()
+            || meta.uid() != effective_uid()
+            || meta.permissions().mode() & 0o7777 != 0o600
+        {
+            return Err(CryptoError::BadInput("key file owner or mode"));
         }
+        let mut pem = Vec::new();
+        file.read_to_end(&mut pem)
+            .map_err(|e| io_err("read key", &e))?;
+        PKey::private_key_from_pem(&pem)
+            .map(|k| Some(Key(k)))
+            .map_err(|_| CryptoError::BadInput("stored key"))
     }
 
     pub(crate) fn delete(&self, name: &str) -> Result<bool, CryptoError> {
@@ -163,8 +207,9 @@ pub(crate) fn self_signed(
     b.set_version(2).map_err(&e)?;
     let mut serial = BigNum::new().map_err(&e)?;
     serial.rand(127, MsbOption::MAYBE_ZERO, false).map_err(&e)?;
-    b.set_serial_number(&serial.to_asn1_integer().map_err(&e)?)
-        .map_err(&e)?;
+    // Bound first: `&expr?` does not deref-coerce to the *Ref parameter type.
+    let serial = serial.to_asn1_integer().map_err(&e)?;
+    b.set_serial_number(&serial).map_err(&e)?;
     let mut name = X509NameBuilder::new().map_err(&e)?;
     name.append_entry_by_nid(Nid::COMMONNAME, SUBJECT_CN)
         .map_err(&e)?;
@@ -172,8 +217,9 @@ pub(crate) fn self_signed(
     b.set_subject_name(&name).map_err(&e)?;
     b.set_issuer_name(&name).map_err(&e)?;
     b.set_pubkey(&key.0).map_err(&e)?;
-    b.set_not_before(&asn1_time(not_before)?).map_err(&e)?;
-    b.set_not_after(&asn1_time(not_after)?).map_err(&e)?;
+    let (not_before, not_after) = (asn1_time(not_before)?, asn1_time(not_after)?);
+    b.set_not_before(&not_before).map_err(&e)?;
+    b.set_not_after(&not_after).map_err(&e)?;
     b.append_extension(BasicConstraints::new().critical().build().map_err(&e)?)
         .map_err(&e)?;
     b.append_extension(
@@ -242,4 +288,74 @@ pub(crate) fn parse_certificate(der: &[u8]) -> Result<CertificateInfo, CryptoErr
         self_signed: same_name && x.verify(&public).unwrap_or(false),
         spki_der: public.public_key_to_der().map_err(&e)?,
     })
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::os::unix::fs::{chown, symlink};
+
+    struct Fixture(PathBuf);
+    impl Fixture {
+        fn new() -> Self {
+            let suffix = crate::identity::hex(&crate::crypto::random_256().unwrap()[..8]);
+            Self(std::env::temp_dir().join(format!("PodMobileTest-perms-{suffix}")))
+        }
+    }
+    impl Drop for Fixture {
+        fn drop(&mut self) {
+            let _ = fs::remove_dir_all(&self.0);
+        }
+    }
+
+    #[test]
+    fn key_open_refuses_symlinks_and_non_private_modes() {
+        let f = Fixture::new();
+        let store = Store::directory(&f.0).unwrap();
+        drop(store.create("PodMobileTest-key").unwrap());
+        assert!(store.open("PodMobileTest-key").unwrap().is_some());
+        symlink(
+            store.path("PodMobileTest-key"),
+            store.path("PodMobileTest-link"),
+        )
+        .unwrap();
+        assert!(store.open("PodMobileTest-link").is_err());
+        for mode in [0o644, 0o400, 0o1600] {
+            fs::set_permissions(
+                store.path("PodMobileTest-key"),
+                fs::Permissions::from_mode(mode),
+            )
+            .unwrap();
+            assert!(store.open("PodMobileTest-key").is_err(), "mode {mode:o}");
+        }
+    }
+
+    #[test]
+    fn directory_refuses_links_and_non_private_modes() {
+        let f = Fixture::new();
+        let _store = Store::directory(&f.0).unwrap();
+        let link = Fixture::new();
+        symlink(&f.0, &link.0).unwrap();
+        assert!(Store::directory(&link.0).is_err());
+        fs::remove_file(&link.0).unwrap();
+        fs::set_permissions(&f.0, fs::Permissions::from_mode(0o755)).unwrap();
+        assert!(Store::directory(&f.0).is_err());
+    }
+
+    #[test]
+    fn foreign_owned_private_directory_and_key_are_refused() {
+        // chown requires privilege. This case runs in root Linux CI/containers;
+        // unprivileged runs explicitly leave ownership runtime validation open.
+        if effective_uid() != 0 {
+            eprintln!("unverified: foreign-owner fixture requires root");
+            return;
+        }
+        let f = Fixture::new();
+        let store = Store::directory(&f.0).unwrap();
+        drop(store.create("PodMobileTest-key").unwrap());
+        chown(store.path("PodMobileTest-key"), Some(1), None).unwrap();
+        assert!(store.open("PodMobileTest-key").is_err());
+        chown(&f.0, Some(1), None).unwrap();
+        assert!(Store::directory(&f.0).is_err());
+    }
 }

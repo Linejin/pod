@@ -219,3 +219,18 @@ fn software_signer_round_trips_through_the_verifier() {
         );
     }
 }
+
+#[test]
+fn scalars_at_or_above_curve_order_are_rejected() {
+    let key = spki(UX, UY);
+    let (msg, r, s) = VECTORS[0];
+    let (r, s) = (unhex(r), unhex(s));
+    let order = unhex("FFFFFFFF00000000FFFFFFFFFFFFFFFFBCE6FAADA7179E84F3B9CAC2FC632551");
+    let mut above = order.clone();
+    above[31] += 1;
+    for invalid in [&order, &above, &vec![0xff; 32]] {
+        for sig in [der_sig(invalid, &s), der_sig(&r, invalid)] {
+            assert!(crypto::verify_p256_sha256(&key, msg.as_bytes(), &sig).is_err());
+        }
+    }
+}

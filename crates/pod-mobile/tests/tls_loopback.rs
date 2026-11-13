@@ -116,10 +116,10 @@ fn wrong_pin_fails_before_any_application_data() {
     // The listener finished its side but never receives a byte of data.
     let mut s = s.unwrap();
     let mut buf = [0u8; 64];
-    match s.read(&mut buf) {
-        Ok(0) | Err(_) => {}
-        Ok(n) => panic!("listener received {n} bytes after a pin mismatch"),
-    }
+    assert_eq!(
+        s.read(&mut buf).unwrap_err().kind(),
+        std::io::ErrorKind::UnexpectedEof
+    );
 }
 
 #[test]
@@ -240,4 +240,88 @@ fn pins_are_independent_of_the_transport() {
     let id = identity(&t);
     let cert_hash = pod_mobile::crypto::sha256(id.cert_der()).unwrap();
     assert_ne!(SpkiSha256(cert_hash), id.spki_sha256());
+}
+
+#[test]
+fn tcp_fin_mid_stream_is_truncation() {
+    let t = TestStore::new("tls-fin");
+    let id = identity(&t);
+    let policy = VersionPolicy::platform_default();
+    let client = PinnedClient::new(id.spki_sha256(), policy).unwrap();
+    let (s, c) = handshake(ServerConfig::new(&id, policy).unwrap(), &client);
+    let (mut s, mut c) = (s.unwrap(), c.unwrap());
+    c.write_all(b"hello").unwrap();
+    let mut data = [0; 5];
+    s.read_exact(&mut data).unwrap();
+    assert_eq!(&data, b"hello");
+    c.get_ref().shutdown(std::net::Shutdown::Write).unwrap();
+    assert_eq!(
+        s.read(&mut data).unwrap_err().kind(),
+        std::io::ErrorKind::UnexpectedEof
+    );
+}
+
+#[test]
+fn expired_read_deadline_refuses_a_live_peer() {
+    let t = TestStore::new("tls-deadline");
+    let id = identity(&t);
+    let policy = VersionPolicy::platform_default();
+    let client = PinnedClient::new(id.spki_sha256(), policy).unwrap();
+    let (s, c) = handshake(ServerConfig::new(&id, policy).unwrap(), &client);
+    let (mut s, mut c) = (s.unwrap(), c.unwrap());
+    s.set_read_deadline(Some(Instant::now()));
+    c.write_all(b"x").unwrap();
+    assert_eq!(
+        s.read(&mut [0]).unwrap_err().kind(),
+        std::io::ErrorKind::TimedOut
+    );
+    s.set_read_deadline(None);
+    assert_eq!(s.read(&mut [0]).unwrap(), 1);
+}
+
+#[test]
+fn session_outlives_server_config() {
+    // handshake() drops ServerConfig before returning its live session.
+    let t = TestStore::new("tls-drop");
+    let id = identity(&t);
+    let policy = VersionPolicy::platform_default();
+    let client = PinnedClient::new(id.spki_sha256(), policy).unwrap();
+    let (s, c) = handshake(ServerConfig::new(&id, policy).unwrap(), &client);
+    let (mut s, mut c) = (s.unwrap(), c.unwrap());
+    c.write_all(b"x").unwrap();
+    assert_eq!(s.read(&mut [0]).unwrap(), 1);
+    s.write_all(b"y").unwrap();
+    assert_eq!(c.read(&mut [0]).unwrap(), 1);
+    drop(s);
+    drop(c);
+}
+
+#[test]
+fn slow_drip_client_hello_hits_absolute_deadline() {
+    let t = TestStore::new("tls-drip");
+    let id = identity(&t);
+    let server = ServerConfig::new(&id, VersionPolicy::platform_default())
+        .unwrap()
+        .with_handshake_timeout(Duration::from_millis(150));
+    let (s, mut c) = tcp_pair();
+    s.set_read_timeout(Some(Duration::from_millis(150)))
+        .unwrap();
+    let peer = thread::spawn(move || {
+        // An incomplete handshake record, delivered below the socket timeout.
+        for byte in [22, 3, 3, 0x40, 0, 1, 0, 0x3f, 0xfc] {
+            if c.write_all(&[byte]).is_err() {
+                break;
+            }
+            thread::sleep(Duration::from_millis(40));
+        }
+    });
+    let start = Instant::now();
+    let result = server.accept(s);
+    assert!(
+        matches!(result, Err(TlsError::Timeout)),
+        "{:?}",
+        result.err()
+    );
+    assert!(start.elapsed() < Duration::from_secs(2));
+    peer.join().unwrap();
 }

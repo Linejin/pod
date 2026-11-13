@@ -110,6 +110,8 @@ impl Drop for Cred {
     fn drop(&mut self) {
         // SAFETY: a handle from AcquireCredentialsHandleW.
         unsafe { FreeCredentialsHandle(&self.0) };
+        #[cfg(test)]
+        tests::record_drop("credential");
     }
 }
 
@@ -124,6 +126,8 @@ impl Drop for Ctx {
         if self.live {
             // SAFETY: a context created by ISC/ASC.
             unsafe { DeleteSecurityContext(&self.h) };
+            #[cfg(test)]
+            tests::record_drop("context");
         }
     }
 }
@@ -344,10 +348,18 @@ fn alpn_buffer() -> Vec<u8> {
 }
 
 /// Appends one read from `io` to `buf`; `Ok(0)` at end of stream.
-fn read_more<S: Read>(io: &mut S, buf: &mut Vec<u8>) -> io::Result<usize> {
+fn read_more<S: Read>(
+    io: &mut S,
+    buf: &mut Vec<u8>,
+    deadline: Option<Instant>,
+) -> io::Result<usize> {
     let old = buf.len();
     buf.resize(old + READ_CHUNK, 0);
     loop {
+        if deadline.is_some_and(|d| Instant::now() >= d) {
+            buf.truncate(old);
+            return Err(io::ErrorKind::TimedOut.into());
+        }
         match io.read(&mut buf[old..]) {
             Ok(n) => {
                 buf.truncate(old + n);
@@ -372,8 +384,9 @@ struct Step {
 
 /// Drives ISC (client) or ASC (server) for one context.
 struct Driver {
-    cred: Arc<Cred>,
+    // Fields drop in declaration order: the context must release before its credential.
     ctx: Ctx,
+    cred: Arc<Cred>,
     server: bool,
     alpn: Vec<u8>,
 }
@@ -486,30 +499,46 @@ impl Driver {
     fn handshake<S: Read + Write>(
         &mut self,
         io: &mut S,
-        mut buf: Vec<u8>,
+        buf: Vec<u8>,
         deadline: Instant,
     ) -> Result<Vec<u8>, TlsError> {
+        self.handshake_with(io, buf, deadline, |d, buf| d.step(Some(buf), true))
+    }
+
+    fn handshake_with<S: Read + Write>(
+        &mut self,
+        io: &mut S,
+        mut buf: Vec<u8>,
+        deadline: Instant,
+        mut step: impl FnMut(&mut Self, &mut [u8]) -> Step,
+    ) -> Result<Vec<u8>, TlsError> {
+        let mut total = buf.len();
         let mut need_read = buf.is_empty();
         loop {
+            if Instant::now() >= deadline {
+                return Err(TlsError::Timeout);
+            }
             if need_read {
-                if Instant::now() >= deadline {
-                    return Err(TlsError::Timeout);
-                }
-                if buf.len() >= MAX_HANDSHAKE_BYTES {
+                if total >= MAX_HANDSHAKE_BYTES {
                     return Err(TlsError::TooLarge);
                 }
-                if read_more(io, &mut buf)? == 0 {
+                let n = read_more(io, &mut buf, Some(deadline))?;
+                total += n;
+                if total > MAX_HANDSHAKE_BYTES {
+                    return Err(TlsError::TooLarge);
+                }
+                if n == 0 {
                     return Err(TlsError::Io(io::ErrorKind::UnexpectedEof.into()));
                 }
             }
-            let step = self.step(Some(&mut buf), true);
+            let step = step(self, &mut buf);
             match step.status {
                 SEC_E_OK | SEC_I_CONTINUE_NEEDED => {
                     if let Some(t) = &step.token {
                         io.write_all(t.bytes())?;
                         io.flush()?;
                     }
-                    buf.drain(..buf.len() - step.extra);
+                    buf.drain(..buf.len() - step.extra.min(buf.len()));
                     if step.status == SEC_E_OK {
                         return Ok(buf);
                     }
@@ -538,13 +567,7 @@ impl Driver {
         Ok(v)
     }
 
-    /// The established session: sizes, version, suite, ALPN and (client)
-    /// the server certificate.
-    fn into_stream<S>(self, io: S, leftover: Vec<u8>) -> Result<Stream<S>, TlsError> {
-        let sizes: SecPkgContext_StreamSizes = self.query(
-            SECPKG_ATTR_STREAM_SIZES,
-            "QueryContextAttributes(stream sizes)",
-        )?;
+    fn session_info(&self) -> Result<SessionInfo, TlsError> {
         let conn: SecPkgContext_ConnectionInfo = self.query(
             SECPKG_ATTR_CONNECTION_INFO,
             "QueryContextAttributes(connection)",
@@ -576,12 +599,22 @@ impl Driver {
                 alpn.ProtocolId[..usize::from(alpn.ProtocolIdSize).min(alpn.ProtocolId.len())]
                     .to_vec()
             });
-        let info = SessionInfo {
+        Ok(SessionInfo {
             version,
             cipher_suite: u16::try_from(cipher.dwCipherSuite).unwrap_or(0),
             cipher_name: String::from_utf16_lossy(&cipher.szCipherSuite[..name_len]),
             alpn,
-        };
+        })
+    }
+
+    /// The established session: sizes, version, suite, ALPN and (client)
+    /// the server certificate.
+    fn into_stream<S>(self, io: S, leftover: Vec<u8>) -> Result<Stream<S>, TlsError> {
+        let sizes: SecPkgContext_StreamSizes = self.query(
+            SECPKG_ATTR_STREAM_SIZES,
+            "QueryContextAttributes(stream sizes)",
+        )?;
+        let info = self.session_info()?;
         let (peer_cert, peer_spki) = if self.server {
             (None, None)
         } else {
@@ -614,6 +647,8 @@ impl Driver {
             plain: Vec::new(),
             pos: 0,
             closed: false,
+            read_deadline: None,
+            empty_records: 0,
             info,
             peer_cert,
             peer_spki,
@@ -699,6 +734,8 @@ pub(crate) struct Stream<S> {
     pos: usize,
     /// close_notify received.
     closed: bool,
+    read_deadline: Option<Instant>,
+    empty_records: usize,
     info: SessionInfo,
     peer_cert: Option<Vec<u8>>,
     peer_spki: Option<SpkiSha256>,
@@ -715,6 +752,28 @@ enum Decrypted {
 }
 
 impl<S> Stream<S> {
+    pub(crate) fn set_read_deadline(&mut self, deadline: Option<Instant>) {
+        self.read_deadline = deadline;
+    }
+
+    fn check_read_deadline(&self) -> io::Result<()> {
+        if self.read_deadline.is_some_and(|d| Instant::now() >= d) {
+            return Err(io::ErrorKind::TimedOut.into());
+        }
+        Ok(())
+    }
+
+    fn count_empty_record(&mut self) -> io::Result<()> {
+        self.empty_records += 1;
+        if self.empty_records > 32 {
+            return Err(io::Error::new(
+                io::ErrorKind::InvalidData,
+                "too many empty TLS records",
+            ));
+        }
+        Ok(())
+    }
+
     pub(crate) fn get_ref(&self) -> &S {
         &self.io
     }
@@ -737,6 +796,22 @@ impl<S> Stream<S> {
 }
 
 impl<S: Read + Write> Stream<S> {
+    fn verify_session_unchanged(&self) -> io::Result<()> {
+        let info = self.d.session_info().map_err(io::Error::other)?;
+        if info != self.info {
+            return Err(io::Error::new(
+                io::ErrorKind::InvalidData,
+                "TLS session changed after handshake",
+            ));
+        }
+        Ok(())
+    }
+
+    fn read_more(&mut self) -> io::Result<usize> {
+        self.check_read_deadline()?;
+        read_more(&mut self.io, &mut self.enc, self.read_deadline)
+    }
+
     /// Decrypts what `enc` holds: plaintext goes to `plain`, close_notify
     /// sets `closed`, a TLS 1.3 post-handshake message (ticket, key update)
     /// is fed back to ISC/ASC.
@@ -805,6 +880,7 @@ impl<S: Read + Write> Stream<S> {
             ));
         }
         loop {
+            self.check_read_deadline()?;
             let mut input = std::mem::take(&mut self.enc);
             let mut dummy = [0u8; 1];
             let slice: &mut [u8] = if input.is_empty() {
@@ -822,9 +898,11 @@ impl<S: Read + Write> Stream<S> {
                     input.drain(..input.len() - step.extra.min(input.len()));
                     self.enc = input;
                     if step.status == SEC_E_OK {
+                        self.verify_session_unchanged()?;
                         return Ok(());
                     }
-                    if self.enc.is_empty() && read_more(&mut self.io, &mut self.enc)? == 0 {
+                    self.count_empty_record()?;
+                    if self.enc.is_empty() && self.read_more()? == 0 {
                         return Err(io::ErrorKind::UnexpectedEof.into());
                     }
                 }
@@ -836,7 +914,7 @@ impl<S: Read + Write> Stream<S> {
                             "TLS post-handshake message too large",
                         ));
                     }
-                    if read_more(&mut self.io, &mut self.enc)? == 0 {
+                    if self.read_more()? == 0 {
                         return Err(io::ErrorKind::UnexpectedEof.into());
                     }
                 }
@@ -871,7 +949,9 @@ impl<S: Read + Write> Read for Stream<S> {
             return Ok(0);
         }
         loop {
+            self.check_read_deadline()?;
             if self.pos < self.plain.len() {
+                self.empty_records = 0;
                 let n = out.len().min(self.plain.len() - self.pos);
                 out[..n].copy_from_slice(&self.plain[self.pos..self.pos + n]);
                 self.pos += n;
@@ -885,6 +965,9 @@ impl<S: Read + Write> Read for Stream<S> {
                 return Ok(0);
             }
             if !self.enc.is_empty() && matches!(self.decrypt()?, Decrypted::Progress) {
+                if self.plain.is_empty() && !self.closed {
+                    self.count_empty_record()?;
+                }
                 continue;
             }
             if self.enc.len() >= MAX_CIPHERTEXT {
@@ -893,7 +976,7 @@ impl<S: Read + Write> Read for Stream<S> {
                     "TLS record too large",
                 ));
             }
-            if read_more(&mut self.io, &mut self.enc)? == 0 {
+            if self.read_more()? == 0 {
                 // End of stream without close_notify: possible truncation.
                 return Err(io::ErrorKind::UnexpectedEof.into());
             }
@@ -906,6 +989,16 @@ impl<S: Read + Write> Write for Stream<S> {
         if data.is_empty() {
             return Ok(0);
         }
+        self.write_record(data)
+    }
+
+    fn flush(&mut self) -> io::Result<()> {
+        self.io.flush()
+    }
+}
+
+impl<S: Read + Write> Stream<S> {
+    fn write_record(&mut self, data: &[u8]) -> io::Result<usize> {
         let (h, t) = (self.sizes.cbHeader as usize, self.sizes.cbTrailer as usize);
         let n = data.len().min(self.sizes.cbMaximumMessage as usize);
         let mut buf = vec![0u8; h + n + t];
@@ -940,8 +1033,195 @@ impl<S: Read + Write> Write for Stream<S> {
         }
         Ok(n)
     }
+}
 
-    fn flush(&mut self) -> io::Result<()> {
-        self.io.flush()
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::time::Duration;
+
+    thread_local! {
+        static DROPS: std::cell::RefCell<Option<Vec<&'static str>>> = const { std::cell::RefCell::new(None) };
+    }
+
+    pub(super) fn record_drop(name: &'static str) {
+        DROPS.with(|events| {
+            if let Some(events) = &mut *events.borrow_mut() {
+                events.push(name);
+            }
+        });
+    }
+
+    fn driver() -> Driver {
+        let offer = Offer {
+            tls12: true,
+            tls13: false,
+            cbc_only: false,
+        };
+        Driver::new(Arc::new(acquire(false, None, offer).unwrap()), false)
+    }
+
+    #[test]
+    fn handshake_counts_consumed_bytes() {
+        let mut d = driver();
+        let listener = std::net::TcpListener::bind((std::net::Ipv4Addr::LOCALHOST, 0)).unwrap();
+        let mut peer = std::net::TcpStream::connect(listener.local_addr().unwrap()).unwrap();
+        let (mut input, _) = listener.accept().unwrap();
+        input
+            .set_read_timeout(Some(Duration::from_secs(2)))
+            .unwrap();
+        peer.set_write_timeout(Some(Duration::from_secs(2)))
+            .unwrap();
+        let sender =
+            std::thread::spawn(move || peer.write_all(&vec![0; MAX_HANDSHAKE_BYTES + READ_CHUNK]));
+        let result = d.handshake_with(
+            &mut input,
+            Vec::new(),
+            Instant::now() + Duration::from_secs(2),
+            |_, _| Step {
+                status: SEC_I_CONTINUE_NEEDED,
+                token: None,
+                extra: 0,
+            },
+        );
+        assert!(matches!(result, Err(TlsError::TooLarge)));
+        drop(input);
+        let _ = sender.join().unwrap();
+    }
+
+    #[test]
+    fn handshake_clamps_oversized_extra() {
+        let mut d = driver();
+        let mut input = io::Cursor::new(Vec::new());
+        let result = d.handshake_with(
+            &mut input,
+            vec![0],
+            Instant::now() + Duration::from_secs(2),
+            |_, _| Step {
+                status: SEC_E_OK,
+                token: None,
+                extra: usize::MAX,
+            },
+        );
+        assert_eq!(result.unwrap(), vec![0]);
+    }
+
+    #[test]
+    fn handshake_times_out_without_progress() {
+        let mut d = driver();
+        let mut input = io::Cursor::new(Vec::new());
+        let mut calls = 0;
+        let result = d.handshake_with(
+            &mut input,
+            vec![0],
+            Instant::now() + Duration::from_millis(20),
+            |_, _| {
+                calls += 1;
+                std::thread::sleep(Duration::from_millis(5));
+                Step {
+                    status: if calls < 20 {
+                        SEC_I_CONTINUE_NEEDED
+                    } else {
+                        -1
+                    },
+                    token: None,
+                    extra: 1,
+                }
+            },
+        );
+        assert!(matches!(result, Err(TlsError::Timeout)));
+    }
+
+    #[test]
+    fn empty_records_are_bounded_over_loopback() {
+        empty_record_peer(false);
+        if has_tls13_server() {
+            empty_record_peer(true);
+        }
+    }
+
+    fn empty_record_peer(tls13: bool) {
+        use crate::identity::{IdentityParams, KeyStore, ServerIdentity};
+        use std::net::{TcpListener, TcpStream};
+        let prefix = format!(
+            "PodMobileTest-empty-{}-",
+            crate::identity::hex(&crate::crypto::random_256().unwrap()[..4])
+        );
+        let store = KeyStore::current_user(&prefix).unwrap();
+        struct Cleanup(KeyStore);
+        impl Drop for Cleanup {
+            fn drop(&mut self) {
+                for key in self.0.keys().unwrap() {
+                    self.0.delete(&key).unwrap();
+                }
+            }
+        }
+        let store = Cleanup(store);
+        let id = ServerIdentity::generate(&store.0, &IdentityParams::new([127, 0, 0, 1].into()))
+            .unwrap();
+        let offer = Offer {
+            tls12: !tls13,
+            tls13,
+            cbc_only: false,
+        };
+        let server = Server::new(id.credential(), offer).unwrap();
+        let client = Client::new(offer).unwrap();
+        let listener = TcpListener::bind((std::net::Ipv4Addr::LOCALHOST, 0)).unwrap();
+        let c = TcpStream::connect(listener.local_addr().unwrap()).unwrap();
+        let (s, _) = listener.accept().unwrap();
+        for socket in [&s, &c] {
+            socket
+                .set_read_timeout(Some(Duration::from_secs(2)))
+                .unwrap();
+            socket
+                .set_write_timeout(Some(Duration::from_secs(2)))
+                .unwrap();
+        }
+        let peer = std::thread::spawn(move || {
+            server
+                .accept(s, Instant::now() + Duration::from_secs(2))
+                .unwrap()
+        });
+        let mut c = client
+            .connect(c, Instant::now() + Duration::from_secs(2))
+            .unwrap();
+        let mut s = peer.join().unwrap();
+        s.verify_session_unchanged().unwrap();
+        let suite = s.info.cipher_suite;
+        s.info.cipher_suite ^= 1;
+        assert_eq!(
+            s.verify_session_unchanged().unwrap_err().kind(),
+            io::ErrorKind::InvalidData
+        );
+        s.info.cipher_suite = suite;
+        let version = s.info.version;
+        s.info.version = if tls13 {
+            TlsVersion::Tls12
+        } else {
+            TlsVersion::Tls13
+        };
+        assert_eq!(
+            s.verify_session_unchanged().unwrap_err().kind(),
+            io::ErrorKind::InvalidData
+        );
+        s.info.version = version;
+        // Exercise the live session after its Server has already dropped.
+        for _ in 0..32 {
+            c.write_record(&[]).unwrap();
+        }
+        c.write_all(b"x").unwrap();
+        assert_eq!(s.read(&mut [0]).unwrap(), 1);
+        for _ in 0..33 {
+            c.write_record(&[]).unwrap();
+        }
+        c.io.flush().unwrap();
+        assert_eq!(
+            s.read(&mut [0]).unwrap_err().kind(),
+            io::ErrorKind::InvalidData
+        );
+        DROPS.with(|events| *events.borrow_mut() = Some(Vec::new()));
+        drop(s);
+        let events = DROPS.with(|events| events.borrow_mut().take().unwrap());
+        assert_eq!(events, ["context", "credential"]);
     }
 }

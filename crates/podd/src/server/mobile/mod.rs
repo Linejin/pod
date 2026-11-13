@@ -15,8 +15,12 @@
 //! `POD_MOBILE_TEST_HOOKS=1` (pipe methods `mobile.test.*`).
 
 pub mod api;
+pub mod approval;
 pub mod audit;
+pub mod auth;
+pub mod listener;
 pub mod message;
+pub mod pairing;
 pub mod registry;
 pub mod session;
 
@@ -316,7 +320,7 @@ mod test_hooks {
                     session: p.session,
                     user_initiated: p.user_initiated,
                 };
-                daemon.mobile_call(&ctx, &p.method, p.params).await
+                daemon.mobile_local_call(&ctx, &p.method, p.params).await
             }
             other => Err(RpcError::new(
                 codes::METHOD_NOT_FOUND,

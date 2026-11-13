@@ -7,8 +7,8 @@ use std::time::Instant;
 
 use openssl::error::ErrorStack;
 use openssl::ssl::{
-    AlpnError, HandshakeError, Ssl, SslContext, SslContextBuilder, SslMethod, SslOptions,
-    SslSessionCacheMode, SslStream, SslVerifyMode, SslVersion, select_next_proto,
+    AlpnError, HandshakeError, ShutdownState, Ssl, SslContext, SslContextBuilder, SslMethod,
+    SslOptions, SslSessionCacheMode, SslStream, SslVerifyMode, SslVersion, select_next_proto,
 };
 
 use super::identity::Credential;
@@ -275,6 +275,10 @@ impl<S: Read + Write> Stream<S> {
 }
 
 impl<S> Stream<S> {
+    pub(crate) fn set_read_deadline(&mut self, deadline: Option<Instant>) {
+        self.s.get_mut().deadline = deadline;
+    }
+
     pub(crate) fn get_ref(&self) -> &S {
         &self.s.get_ref().inner
     }
@@ -298,7 +302,11 @@ impl<S> Stream<S> {
 
 impl<S: Read + Write> Read for Stream<S> {
     fn read(&mut self, buf: &mut [u8]) -> io::Result<usize> {
-        self.s.read(buf)
+        let n = self.s.read(buf)?;
+        if n == 0 && !buf.is_empty() && !self.s.get_shutdown().contains(ShutdownState::RECEIVED) {
+            return Err(io::ErrorKind::UnexpectedEof.into());
+        }
+        Ok(n)
     }
 }
 

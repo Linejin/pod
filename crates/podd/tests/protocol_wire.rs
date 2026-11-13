@@ -1279,3 +1279,189 @@ fn layout(v: &Value, levels: usize, indent: usize, out: &mut String) {
         other => out.push_str(&serde_json::to_string(other).unwrap()),
     }
 }
+
+#[test]
+fn mobile_m2_closed_wire_contract() {
+    use pod_protocol::mobile_protocol::mobile_v1 as w;
+    let fixture: Value =
+        serde_json::from_str(include_str!("fixtures/mobile-m2-wire.json")).unwrap();
+    let calls = fixture["calls"].as_array().unwrap();
+    assert_eq!(
+        w::OPS,
+        [
+            "tasks",
+            "task",
+            "output",
+            "gate.decide",
+            "message",
+            "delivery"
+        ]
+    );
+    for call in calls {
+        let raw = serde_json::to_string(call).unwrap();
+        assert!(w::parse_call(raw.as_bytes()).is_ok(), "{raw}");
+        let mut unknown = call.clone();
+        unknown["params"]["caller"] = json!("m1");
+        assert!(w::parse_call(&serde_json::to_vec(&unknown).unwrap()).is_err());
+        let mut outer = call.clone();
+        outer["method"] = json!("server.stop");
+        assert!(w::parse_call(&serde_json::to_vec(&outer).unwrap()).is_err());
+        for key in ["op", "params"] {
+            let mut absent = call.clone();
+            absent.as_object_mut().unwrap().remove(key);
+            assert!(w::parse_call(&serde_json::to_vec(&absent).unwrap()).is_err());
+            let duplicate = format!("{{{key:?}:{},{}", call[key], &raw[1..]);
+            assert!(w::parse_call(duplicate.as_bytes()).is_err(), "{duplicate}");
+        }
+        for (key, value) in call["params"].as_object().unwrap() {
+            let params = serde_json::to_string(&call["params"]).unwrap();
+            let duplicate = format!(
+                "{{\"op\":{},\"params\":{{{key:?}:{value},{}}}",
+                call["op"],
+                &params[1..]
+            );
+            assert!(w::parse_call(duplicate.as_bytes()).is_err(), "{duplicate}");
+            if key == "operation" {
+                continue;
+            }
+            let mut absent = call.clone();
+            absent["params"].as_object_mut().unwrap().remove(key);
+            assert!(
+                w::parse_call(&serde_json::to_vec(&absent).unwrap()).is_err(),
+                "missing {key}"
+            );
+        }
+    }
+    for name in [
+        "operation.get",
+        "mobile.test.call",
+        "server.stop",
+        "Tasks",
+        "tasks ",
+        "mobile.tasks",
+        "terminal.send",
+    ] {
+        assert!(
+            w::parse_call(&serde_json::to_vec(&json!({"op":name,"params":{}})).unwrap()).is_err()
+        );
+    }
+    for raw in [
+        r#"[]"#,
+        r#"{"op":"tasks","params":{},"op":"tasks"}"#,
+        r#"{"op":"task","params":{"task":"t1","operation":{"kind":"decision","kind":"message","id":"o","body_fingerprint":"a"}}}"#,
+    ] {
+        assert!(w::parse_call(raw.as_bytes()).is_err());
+    }
+}
+
+#[test]
+fn mobile_m2_budgets_and_fingerprint_vectors() {
+    use pod_protocol::mobile_protocol::mobile_v1 as w;
+    use podd::server::mobile::approval;
+    let fixture: Value =
+        serde_json::from_str(include_str!("fixtures/mobile-m2-wire.json")).unwrap();
+    let w::Call::Decide(p) =
+        w::parse_call(&serde_json::to_vec(&fixture["calls"][3]).unwrap()).unwrap()
+    else {
+        panic!()
+    };
+    assert_eq!(
+        String::from_utf8(w::decision_preimage(&p)).unwrap(),
+        fixture["decision_preimage"]
+    );
+    assert_eq!(
+        approval::decision_fingerprint(&p).unwrap().as_str(),
+        fixture["decision_sha256"]
+    );
+    let challenge: w::Challenge = serde_json::from_value(fixture["challenge"].clone()).unwrap();
+    let open: w::SessionOpen = serde_json::from_value(fixture["session_open"].clone()).unwrap();
+    let preimage = w::session_preimage(&challenge, &open);
+    assert_eq!(
+        String::from_utf8(preimage.clone()).unwrap(),
+        fixture["session_preimage"]
+    );
+    assert_eq!(
+        approval::fingerprint(&preimage).unwrap().as_str(),
+        fixture["session_sha256"]
+    );
+    let mut other_boot = challenge.clone();
+    other_boot.boot = w::Id::new("b2").unwrap();
+    assert_ne!(preimage, w::session_preimage(&other_boot, &open));
+    let scopes: Vec<w::Scope> =
+        serde_json::from_value(json!([{"task":"t1","caps":["status","approve","status"]}]))
+            .unwrap();
+    assert_eq!(
+        String::from_utf8(w::scope_preimage(&scopes)).unwrap(),
+        fixture["scope_preimage"]
+    );
+    assert_eq!(
+        approval::scope_fingerprint(&scopes).unwrap().as_str(),
+        fixture["scope_sha256"]
+    );
+    let mut altered = p.clone();
+    altered.revision += 1;
+    assert_ne!(
+        approval::decision_fingerprint(&p).unwrap(),
+        approval::decision_fingerprint(&altered).unwrap()
+    );
+    altered = p.clone();
+    altered.choice = Some(w::Text::new("").unwrap());
+    assert_ne!(w::decision_preimage(&p), w::decision_preimage(&altered));
+    assert!(w::parse_call(&vec![b' '; w::REQUEST_BYTES + 1]).is_err());
+    assert!(w::response_bytes(&"x".repeat(w::RESPONSE_BYTES)).is_err());
+    assert_eq!(
+        w::response_bytes(&"x".repeat(w::RESPONSE_BYTES - 2))
+            .unwrap()
+            .len(),
+        w::RESPONSE_BYTES
+    );
+    for text in [
+        "x".repeat(1001),
+        "x\n".repeat(20),
+        "x\u{202e}".into(),
+        "x\0".into(),
+    ] {
+        let value = json!({"op":"message","params":{"task":"t1","operation_id":"op","text":text,"comments":[]}});
+        assert!(w::parse_call(&serde_json::to_vec(&value).unwrap()).is_err());
+    }
+    assert!(serde_json::from_value::<w::List<w::Id, 20>>(json!(vec!["c"; 21])).is_err());
+    assert!(serde_json::from_value::<w::Text<128>>(json!("é".repeat(65))).is_err());
+    assert!(w::parse_call(br#"{"op":"tasks","params":{"wait_ms":25001}}"#).is_err());
+    assert!(w::parse_call(br#"{"op":"tasks","params":{"wait_ms":25000}}"#).is_ok());
+}
+
+#[test]
+fn mobile_m2_lifecycle_is_strict() {
+    use pod_protocol::mobile_protocol::mobile_v1 as w;
+    fn check<T: serde::de::DeserializeOwned>(value: Value) {
+        assert!(serde_json::from_value::<T>(value.clone()).is_ok());
+        for key in value.as_object().unwrap().keys() {
+            let mut absent = value.clone();
+            absent.as_object_mut().unwrap().remove(key);
+            assert!(
+                serde_json::from_value::<T>(absent).is_err(),
+                "missing {key}"
+            );
+            let raw = serde_json::to_string(&value).unwrap();
+            let duplicate = format!("{{{key:?}:{},{}", value[key], &raw[1..]);
+            assert!(
+                serde_json::from_str::<T>(&duplicate).is_err(),
+                "duplicate {key}"
+            );
+        }
+        let mut unknown = value;
+        unknown["caller"] = json!("m1");
+        assert!(serde_json::from_value::<T>(unknown).is_err());
+    }
+    check::<w::Claim>(
+        json!({"pairing_id":"p1","secret":"secret","code":"12345678","nonce":"nonce","public_key":"key","signature":"signature","name":"fixture","scopes":[]}),
+    );
+    check::<w::Finish>(json!({"ticket":"ticket","nonce":"nonce","signature":"sig"}));
+    check::<w::SessionOpen>(
+        json!({"device":"m1","auth_epoch":1,"nonce":"nonce","signature":"sig"}),
+    );
+    check::<w::Revoke>(json!({"device":"m1","auth_epoch":1}));
+    check::<w::Challenge>(
+        json!({"purpose":"claim","machine":"m1","boot":"b1","subject":"p1","auth_epoch":1,"nonce":"nonce","csrf":"csrf","expires_ms":1}),
+    );
+}

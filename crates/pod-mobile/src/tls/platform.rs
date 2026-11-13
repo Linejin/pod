@@ -160,6 +160,12 @@ impl PinnedClient {
 pub struct TlsStream<S>(imp::Stream<S>);
 
 impl<S> TlsStream<S> {
+    /// Sets an absolute read deadline, checked before each transport read.
+    /// The caller must also bound the socket timeout by the remaining deadline.
+    pub fn set_read_deadline(&mut self, deadline: Option<Instant>) {
+        self.0.set_read_deadline(deadline);
+    }
+
     /// The transport.
     pub fn get_ref(&self) -> &S {
         self.0.get_ref()
