@@ -10,12 +10,87 @@ use pod_orch::engine::Orch;
 use pod_orch::model::attempt_mailbox;
 
 use super::ARCHIVE_BYTES;
+use super::OrchRuns;
 use super::identity::who;
 use super::rpc::oe;
 use super::state::{Stopping, cached, remember};
 use crate::protocol::*;
 use crate::server::terminal::Terminal;
 use crate::server::{Daemon, log, status};
+
+#[derive(Default)]
+pub(super) struct Releases {
+    claimed: std::collections::HashSet<String>,
+}
+
+/// An in-memory claim is the release linearization point. Before it, keep/input
+/// wins under the engine lock; afterwards keep fails and input cannot promise
+/// preservation. Dropping on every exit (including errors/cancellation) permits
+/// a later keep or retry. No state lock spans terminal or filesystem operations.
+struct ReleaseClaim<'a> {
+    runs: &'a OrchRuns,
+    attempt: String,
+}
+
+impl Drop for ReleaseClaim<'_> {
+    fn drop(&mut self) {
+        self.runs
+            .releases
+            .lock()
+            .unwrap()
+            .claimed
+            .remove(&self.attempt);
+    }
+}
+
+impl OrchRuns {
+    // The caller holds the engine lock, shared with release admission.
+    fn ensure_not_releasing(&self, attempt: &str) -> Result<(), RpcError> {
+        if self.releases.lock().unwrap().claimed.contains(attempt) {
+            return Err(RpcError::new(
+                orch_codes::INVALID_STATE,
+                format!("worker {attempt} release already claimed; retry if release fails"),
+            ));
+        }
+        Ok(())
+    }
+
+    fn claim_release(
+        &self,
+        attempt: &str,
+        automatic: bool,
+    ) -> Result<Option<(ReleaseClaim<'_>, Attempt)>, RpcError> {
+        let o = self.engine.lock().unwrap();
+        let a = o.attempt(attempt).map_err(oe)?;
+        // Selection by the supervisor is only a hint: keep/input may have won
+        // since then, or another release may already have removed the terminal.
+        if automatic
+            && (a.worker != WorkerState::Finished
+                || !a.release_at_ms.is_some_and(|at| at <= crate::now_ms()))
+        {
+            return Ok(None);
+        }
+        if a.worker == WorkerState::Released {
+            return Err(RpcError::new(
+                orch_codes::INVALID_STATE,
+                format!("worker {attempt} was already released"),
+            ));
+        }
+        self.ensure_not_releasing(attempt)?;
+        self.releases
+            .lock()
+            .unwrap()
+            .claimed
+            .insert(attempt.to_string());
+        Ok(Some((
+            ReleaseClaim {
+                runs: self,
+                attempt: attempt.to_string(),
+            },
+            a.clone(),
+        )))
+    }
+}
 
 impl Daemon {
     /// For mod events: an attempt's state word and its task.
@@ -265,14 +340,15 @@ impl Daemon {
                 ));
             }
         } else if method == OrchWorkerKeep::NAME {
-            if a.worker == WorkerState::Released {
+            let mut o = self.orch();
+            self.runs.ensure_not_releasing(&a.id)?;
+            if o.attempt(&a.id).map_err(oe)?.worker == WorkerState::Released {
                 return Err(RpcError::new(
                     orch_codes::INVALID_STATE,
                     format!("worker {} was already released", a.id),
                 ));
             }
-            self.orch()
-                .set_worker(&a.id, WorkerState::Kept, None, now)
+            o.set_worker(&a.id, WorkerState::Kept, None, now)
                 .map_err(oe)?;
         } else {
             // release
@@ -294,7 +370,7 @@ impl Daemon {
                     )
                     .map_err(oe)?;
             }
-            self.release_worker(&a.id).await?;
+            self.release_worker(&a.id, false).await?;
         }
         let mut o = self.orch();
         let info = self.worker_info(&o, o.attempt(&a.id).map_err(oe)?);
@@ -306,8 +382,18 @@ impl Daemon {
 
     /// Archive the last output, close the terminal (its Job Object ends the
     /// process tree), keep the task and worktree.
-    pub(super) async fn release_worker(&self, attempt: &str) -> Result<Attempt, RpcError> {
-        let a = self.orch().attempt(attempt).map_err(oe)?.clone();
+    pub(super) async fn release_worker(
+        &self,
+        attempt: &str,
+        automatic: bool,
+    ) -> Result<Option<Attempt>, RpcError> {
+        let Some((_claim, a)) = self.runs.claim_release(attempt, automatic)? else {
+            return Ok(None);
+        };
+        #[cfg(debug_assertions)]
+        if automatic {
+            release_test_gate("claimed").await;
+        }
         let mut log_path = None;
         if let Some(t) = a.terminal.as_deref().and_then(|t| self.terminal_by_id(t)) {
             let (lines, _) = t.read_lines(ReadMode::History);
@@ -348,7 +434,7 @@ impl Daemon {
             .map_err(oe)?;
         log(&format!("orch: released worker {attempt}"));
         status::publish_orch_changed(&a.run, Some(&a.item), Some(&a.id));
-        Ok(a)
+        Ok(Some(a))
     }
 
     /// `orch.commit` (docs/19 §18.1, §18.6): stage and commit in the calling
@@ -447,6 +533,12 @@ impl Daemon {
             .map(|a| (a.id.clone(), a.run.clone(), a.item.clone()))
             .collect();
         for (id, run, item) in ids {
+            if self.runs.ensure_not_releasing(&id).is_err() {
+                log(&format!(
+                    "orch: input into {terminal} arrived after release claim for {id}"
+                ));
+                continue;
+            }
             if o.set_worker(&id, WorkerState::Kept, None, crate::now_ms())
                 .is_ok()
             {
@@ -456,6 +548,30 @@ impl Daemon {
                 status::publish_orch_changed(&run, Some(&item), Some(&id));
             }
         }
+    }
+}
+
+/// Debug integration-test rendezvous, absent from release builds. File signals
+/// force selection/claim -> competing request -> continuation; elapsed time is
+/// only a bounded failure escape, never the ordering assertion.
+#[cfg(debug_assertions)]
+pub(super) async fn release_test_gate(phase: &str) {
+    let Some(dir) = std::env::var_os("POD_TEST_ORCH_RELEASE_GATE") else {
+        return;
+    };
+    let dir = PathBuf::from(dir);
+    if std::fs::remove_file(dir.join(format!("{phase}.armed"))).is_err() {
+        return;
+    }
+    if std::fs::write(dir.join(format!("{phase}.arrived")), b"ready").is_err() {
+        return;
+    }
+    let deadline = tokio::time::Instant::now() + std::time::Duration::from_secs(30);
+    while !dir.join(format!("{phase}.proceed")).exists() {
+        if tokio::time::Instant::now() >= deadline {
+            break;
+        }
+        tokio::time::sleep(std::time::Duration::from_millis(10)).await;
     }
 }
 

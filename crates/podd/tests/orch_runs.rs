@@ -237,6 +237,153 @@ fn type_human(c: &mut Client, t: &str, text: &str) {
     .unwrap();
 }
 
+/// Explicit handshake with the debug daemon; polling only observes signals.
+/// The supervisor cannot cross the selected boundary until the test says so.
+#[cfg(debug_assertions)]
+struct ReleaseGate(PathBuf);
+
+#[cfg(debug_assertions)]
+impl ReleaseGate {
+    fn new(phase: &str) -> Self {
+        let dir = std::env::temp_dir().join(unique("release-gate"));
+        std::fs::create_dir_all(&dir).unwrap();
+        std::fs::write(dir.join(format!("{phase}.armed")), b"").unwrap();
+        Self(dir)
+    }
+
+    fn arrived(&self, phase: &str) {
+        appears(
+            &self.0.join(format!("{phase}.arrived")),
+            Duration::from_secs(20),
+        );
+    }
+
+    fn proceed(&self, phase: &str) {
+        std::fs::write(self.0.join(format!("{phase}.proceed")), b"").unwrap();
+    }
+}
+
+#[cfg(debug_assertions)]
+impl Drop for ReleaseGate {
+    fn drop(&mut self) {
+        let _ = std::fs::remove_dir_all(&self.0);
+    }
+}
+
+#[cfg(debug_assertions)]
+#[test]
+fn automatic_release_rechecks_keep_and_input_after_due_selection() {
+    for human_input in [false, true] {
+        let gate = ReleaseGate::new("selected");
+        let e = Env::new(
+            "orch-release-selection",
+            &[
+                ("POD_ORCH_RELEASE_AFTER", "1ms"),
+                ("POD_TEST_ORCH_RELEASE_GATE", gate.0.to_str().unwrap()),
+            ],
+        );
+        let w = e.start_worker("Keep at release boundary", "current");
+        let id = &w.attempt.id;
+        let terminal = w.terminal.as_deref().unwrap();
+        let pid = e
+            .c()
+            .call::<TerminalShow>(&TerminalRef::id(terminal))
+            .unwrap()
+            .pid
+            .unwrap();
+        let n = e.run(
+            id,
+            &[&[
+                "orch",
+                "done",
+                "--outcome",
+                "succeeded",
+                "--body",
+                "ok",
+                "--json",
+            ]],
+        );
+        assert_eq!(e.out(id, n[0])["code"], 0);
+        gate.arrived("selected");
+        assert_eq!(e.worker(id).attempt.worker, WorkerState::Finished);
+        if human_input {
+            type_human(&mut e.c(), terminal, "x");
+        } else {
+            e.c()
+                .call::<OrchWorkerKeep>(&OrchAttemptRef {
+                    attempt: id.clone(),
+                    ..Default::default()
+                })
+                .unwrap();
+        }
+        assert_eq!(e.worker(id).attempt.worker, WorkerState::Kept);
+        gate.proceed("selected");
+        passes(&mut e.c());
+        assert_eq!(e.worker(id).attempt.worker, WorkerState::Kept);
+        assert!(
+            process_alive(pid),
+            "last-minute keep/input must preserve the process"
+        );
+        assert_eq!(
+            e.c()
+                .call::<OrchWorkerRead>(&OrchWorkerReadParams {
+                    attempt: id.clone(),
+                    lines: None
+                })
+                .unwrap()
+                .source,
+            "terminal"
+        );
+    }
+}
+
+#[cfg(debug_assertions)]
+#[test]
+fn automatic_release_claim_rejects_late_keep_and_does_not_mark_input_kept() {
+    let gate = ReleaseGate::new("claimed");
+    let e = Env::new(
+        "orch-release-claim",
+        &[
+            ("POD_ORCH_RELEASE_AFTER", "1ms"),
+            ("POD_TEST_ORCH_RELEASE_GATE", gate.0.to_str().unwrap()),
+        ],
+    );
+    let w = e.start_worker("Release already claimed", "current");
+    let id = &w.attempt.id;
+    let terminal = w.terminal.as_deref().unwrap();
+    let n = e.run(
+        id,
+        &[&[
+            "orch",
+            "done",
+            "--outcome",
+            "succeeded",
+            "--body",
+            "ok",
+            "--json",
+        ]],
+    );
+    assert_eq!(e.out(id, n[0])["code"], 0);
+    gate.arrived("claimed");
+    let error = e
+        .c()
+        .call::<OrchWorkerKeep>(&OrchAttemptRef {
+            attempt: id.clone(),
+            ..Default::default()
+        })
+        .unwrap_err();
+    assert!(
+        error.to_string().contains("release already claimed"),
+        "{error}"
+    );
+    type_human(&mut e.c(), terminal, "x");
+    assert_eq!(e.worker(id).attempt.worker, WorkerState::Finished);
+    gate.proceed("claimed");
+    until_true("claimed release finished", 20, || {
+        e.worker(id).attempt.worker == WorkerState::Released
+    });
+}
+
 fn json_of(out: &Value) -> Value {
     serde_json::from_str(out["stdout"].as_str().unwrap()).unwrap_or_else(|e| panic!("{e}: {out}"))
 }

@@ -336,8 +336,12 @@ impl Daemon {
         }
         // Finished workers past their release time.
         let due = self.orch().due_releases(now);
+        #[cfg(debug_assertions)]
+        if !due.is_empty() {
+            super::workers::release_test_gate("selected").await;
+        }
         for id in due {
-            if let Err(e) = self.release_worker(&id).await {
+            if let Err(e) = self.release_worker(&id, true).await {
                 log(&format!("orch: release {id}: {}", e.message));
             }
         }

@@ -119,6 +119,9 @@ pub struct OrchRuns {
     pub wake: tokio::sync::Notify,
     /// Attempts a `stop` is ending: the supervisor must not call them lost.
     pub stopping: std::sync::Mutex<std::collections::HashSet<String>>,
+    /// Release admission, shared with keep and human input. Lock order is
+    /// engine -> releases; neither lock is held during archive/removal I/O.
+    releases: std::sync::Mutex<workers::Releases>,
     /// Timings and defaults (`orch.config.*`, `orch_config.rs`).
     pub config: std::sync::Mutex<OrchConfig>,
     state_dir: PathBuf,
@@ -173,6 +176,7 @@ impl OrchRuns {
             waiters: std::sync::Mutex::new(HashMap::new()),
             wake: tokio::sync::Notify::new(),
             stopping: std::sync::Mutex::new(Default::default()),
+            releases: std::sync::Mutex::new(Default::default()),
             linked: std::sync::Mutex::new(Default::default()),
             unconfirmed: Unconfirmed::default(),
             passes: Passes::default(),
