@@ -19,9 +19,10 @@ Pod를 매일 쓸 수 있게 **사용자별(관리자 권한 없음)** 설치 �
 ## 2. 빌드
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File tools/installer/build.ps1            # 전체
-powershell -ExecutionPolicy Bypass -File tools/installer/build.ps1 -SkipBuild # 이미 빌드했으면
-powershell -ExecutionPolicy Bypass -File tools/installer/build.ps1 -Release   # 릴리스(§2.1)
+powershell -NoProfile -File tools/installer/build.ps1            # 서명 없는 개발 빌드
+powershell -NoProfile -File tools/installer/build.ps1 -SkipBuild # 이미 빌드했으면 (개발용)
+powershell -NoProfile -File tools/installer/build.ps1 -Release -Unsigned # OSS 신청용 unsigned 후보 (태그 필요, SAC용 아님)
+powershell -NoProfile -File tools/installer/build.ps1 -Release -SigningConfig C:\signing-config\signing.json # 공인 서명 릴리스
 ```
 
 필요한 것: Rust stable(msvc), `cargo-deny`, Inno Setup 6(없으면 스크립트가 설치 명령을 알려 줌, 또는 `ISCC` 환경 변수). 단계:
@@ -39,7 +40,7 @@ powershell -ExecutionPolicy Bypass -File tools/installer/build.ps1 -Release   # 
 
 1. 루트 `Cargo.toml`의 `[workspace.package] version`을 올리고 [CHANGELOG.md](../CHANGELOG.md)의 `미출시` 항목을 새 버전 제목으로 옮긴다.
 2. 커밋 뒤 `git tag v<버전>`.
-3. `build.ps1 -Release`: HEAD에 `v<버전>` 태그가 없거나 추적 파일이 바뀌어 있으면 실패한다.
+3. OSS 신청용은 `build.ps1 -Release -Unsigned`, 일반 서명 경로는 `build.ps1 -Release -SigningConfig <json>`을 실행한다. HEAD의 `v<버전>` 태그와 깨끗한 추적 파일이 필요하다. 서명 빌드는 `-SkipBuild`/`-SkipDeny`를 허용하지 않는다. 우선 경로는 [SignPath Foundation 신청 준비](install/signpath.md)이며 아직 미승인이다.
 
 Rust는 `rust-version`(루트 `Cargo.toml`)보다 낮으면 빌드를 거부한다. 이 값은 개발·CI에서 실제로 쓰는 버전이고, 더 낮은 버전은 시험하지 않았다.
 
@@ -104,9 +105,11 @@ Rust는 `rust-version`(루트 `Cargo.toml`)보다 낮으면 빌드를 거부한�
 
 `Pod-<버전>-x64-portable.zip`을 풀고 `pod-app.exe`를 실행한다. 설치 프로그램과 같은 파일이다. 시작 메뉴·PATH·제거 정보가 없고, 데이터 위치는 같다. 업그레이드는 폴더를 바꾸는 것이라 실행 중인 holder가 있으면 이전 폴더를 지울 수 없다(터미널을 닫은 뒤 지울 것).
 
-## 9. 서명과 SmartScreen
+## 9. 서명과 Smart App Control
 
-코드 서명은 하지 않았다(범위 밖). 그래서 내려받은 설치 프로그램을 처음 실행하면 **Windows SmartScreen**이 "Windows의 PC 보호" 경고를 띄울 수 있다 → "추가 정보" → "실행". 받은 파일은 `SHA256SUMS.txt`와 비교한다. 정식 배포 전에는 Authenticode 서명(EV 또는 Azure Trusted Signing)으로 `Pod-Setup-*.exe`와 exe 5개를 서명해야 경고가 사라진다(평판이 쌓이기 전에는 OV 서명도 경고가 남을 수 있음). 번들 `conpty.dll`/`OpenConsole.exe`는 Microsoft 서명이 이미 있다.
+공개 OSS의 우선 경로는 [SignPath Foundation](install/signpath.md)이며 신청·승인 전이다. 신청용 unsigned 빌드는 자격 없이 준비할 수 있다. `-SigningConfig`의 공인 CA 인증서 저장소 / Microsoft Artifact Signing은 선택 가능한 일반 경로로 보존한다. Pod EXE 5개를 서명하고, 번들 ConPTY의 Microsoft 서명을 보존·검증하며, Inno 내부 서명으로 설치 EXE·제거 프로그램·임시 실행 구성 요소를 처리한다. 전체 검증을 통과한 뒤 ZIP과 체크섬을 만든다. unsigned 결과는 SAC 배포용이 아니다. 자체 서명이나 관리자 실행은 해결책으로 취급하지 않는다. [Code signing policy](../CODE_SIGNING_POLICY.md).
+
+외부 Windows 빌드, 서명 입력 예시, 사전 진단, 수동 CI, SAC 시험 및 현재 차단 상태는 [서명 배포 절차](install/signing.md)를 따른다. 아직 이 PC에서는 rustc 실행이 오류 4551로 차단되어 설치 EXE를 만들지 못했고, 공인 서명 자격도 미제공이다.
 
 ## 10. 테스트 (2026-11-09)
 

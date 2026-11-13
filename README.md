@@ -29,6 +29,7 @@ Pod는 Claude Code·Codex 같은 터미널 에이전트를 작업(git worktree)�
 ## 설치와 빌드
 
 - **설치 프로그램**: 사용자별(관리자 권한 없음) Inno Setup 설치 파일과 포터블 zip. 만드는 방법과 업그레이드·제거 동작은 [docs/14-install.md](docs/14-install.md).
+- **Code signing policy**: [미승인 정책 초안](CODE_SIGNING_POLICY.md). SignPath Foundation OSS 지원은 [신청 준비 중](docs/install/signpath.md)이며 아직 제공·승인되지 않았습니다. Unsigned 빌드는 Smart App Control 호환 배포본이 아닙니다. [개인정보·네트워크 설명 초안](PRIVACY.md).
 - **소스에서 빌드** (Windows, Rust stable msvc):
 
   ```powershell

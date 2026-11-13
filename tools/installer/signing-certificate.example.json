@@ -1,0 +1,6 @@
+{
+  "Provider": "CertificateStore",
+  "CertificateThumbprint": "REPLACE_WITH_40_HEX_DIGITS",
+  "CertificateStoreLocation": "CurrentUser",
+  "TimestampUrl": "https://REPLACE_WITH_CA_RFC3161_ENDPOINT"
+}
