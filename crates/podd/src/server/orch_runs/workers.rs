@@ -532,6 +532,10 @@ impl Daemon {
                 force: true,
             })
             .await?;
+            #[cfg(debug_assertions)]
+            if automatic {
+                release_test_gate("removed").await;
+            }
         } else if automatic
             && a.terminal
                 .as_deref()

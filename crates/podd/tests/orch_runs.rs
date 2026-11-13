@@ -527,6 +527,223 @@ fn archive_failure_releases_claim_for_keep_and_explicit_force_release() {
     until_true("explicit release process gone", 10, || !process_alive(pid));
 }
 
+#[cfg(debug_assertions)]
+#[test]
+fn release_archive_path_persistence_failure_preserves_terminal_and_retries() {
+    release_persistence_failure(false);
+}
+
+#[cfg(debug_assertions)]
+#[test]
+fn release_final_persistence_failure_retries_after_removal_and_restart() {
+    release_persistence_failure(true);
+}
+
+/// Block the real snapshot write at a selected boundary, with the previous
+/// run.json still readable. Both cases must preserve the B05 memory/disk state.
+#[cfg(debug_assertions)]
+fn release_persistence_failure(after_removal: bool) {
+    let phase = if after_removal { "removed" } else { "claimed" };
+    let gate = ReleaseGate::new("claimed");
+    if after_removal {
+        std::fs::write(gate.0.join("removed.armed"), b"").unwrap();
+    }
+    let mut e = Env::new(
+        "orch-release-persistence",
+        &[
+            ("POD_ORCH_RELEASE_AFTER", "1ms"),
+            ("POD_TEST_ORCH_RELEASE_GATE", gate.0.to_str().unwrap()),
+        ],
+    );
+    let w = e.start_worker("Persist release safely", "current");
+    let id = &w.attempt.id;
+    let terminal = w.terminal.as_deref().unwrap();
+    let pid = e
+        .c()
+        .call::<TerminalShow>(&TerminalRef::id(terminal))
+        .unwrap()
+        .pid
+        .unwrap();
+    let run_dir =
+        e.d.as_ref()
+            .unwrap()
+            .state_dir
+            .join("orch/runs")
+            .join(&w.attempt.run);
+    let archive = run_dir.join(format!("{id}.log"));
+    let run_file = run_dir.join("run.json");
+    let blocked = run_dir.join("run.json.tmp");
+    let disk_attempt = || -> Value {
+        let disk: Value = serde_json::from_slice(&std::fs::read(&run_file).unwrap()).unwrap();
+        disk["attempts"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .find(|a| a["id"] == *id)
+            .unwrap()
+            .clone()
+    };
+    let n = e.run(
+        id,
+        &[&[
+            "orch",
+            "done",
+            "--outcome",
+            "succeeded",
+            "--body",
+            "ok",
+            "--json",
+        ]],
+    );
+    assert_eq!(e.out(id, n[0])["code"], 0);
+    // Let the fixture finish recording the done RPC result before its process
+    // can be removed; then advance to the exact persistence boundary.
+    gate.arrived("claimed");
+    if after_removal {
+        gate.proceed("claimed");
+        gate.arrived("removed");
+    }
+    let before = e.worker(id).attempt;
+    let before_disk = disk_attempt();
+    assert_eq!(before.worker, WorkerState::Finished);
+    assert_eq!(before.log_path.is_some(), after_removal);
+    assert!(before.release_at_ms.is_some());
+    assert!(before.released_ms.is_none());
+    if after_removal {
+        assert!(
+            e.c()
+                .call::<TerminalShow>(&TerminalRef::id(terminal))
+                .is_err()
+        );
+        until_true("removed worker process gone", 10, || !process_alive(pid));
+        assert_eq!(
+            before.log_path.as_deref().map(Path::new),
+            Some(archive.as_path())
+        );
+    } else {
+        assert!(process_alive(pid));
+        assert!(!archive.exists(), "claim gate precedes archive creation");
+    }
+    // Failure cannot affect done or the earlier archive-path snapshot: the
+    // supervisor is paused at exactly the boundary this case is checking.
+    std::fs::create_dir(&blocked).unwrap();
+    // Stop the NEXT pass before admission as well, so testing claim cleanup
+    // below cannot race a new retry, regardless of machine load/backoff.
+    std::fs::write(gate.0.join("selected.armed"), b"").unwrap();
+    gate.proceed(phase);
+    until_true("retryable release snapshot failure", 20, || {
+        e.worker(id).next.contains("Release failed:")
+    });
+    gate.arrived("selected");
+    let failed = e.worker(id);
+    assert_eq!(
+        failed.attempt, before,
+        "failed save must not publish memory"
+    );
+    assert_eq!(
+        disk_attempt(),
+        before_disk,
+        "failed save must not change disk"
+    );
+    assert!(failed.next.contains("retry"));
+    assert!(
+        std::fs::read_to_string(&archive)
+            .unwrap()
+            .contains(&format!("orch agent {id} ready"))
+    );
+    let read = e
+        .c()
+        .call::<OrchWorkerRead>(&OrchWorkerReadParams {
+            attempt: id.clone(),
+            lines: None,
+        })
+        .unwrap();
+    assert_eq!(
+        read.source,
+        if after_removal { "archive" } else { "terminal" }
+    );
+    assert!(
+        read.lines
+            .join("\n")
+            .contains(&format!("orch agent {id} ready"))
+    );
+    if !after_removal {
+        assert!(process_alive(pid));
+        assert!(
+            e.c()
+                .call::<TerminalShow>(&TerminalRef::id(terminal))
+                .is_ok()
+        );
+    }
+    // Keep reaches the failing store, rather than a stale release claim. With
+    // B05 its own failed save also leaves the worker Finished and retryable.
+    let error = e
+        .c()
+        .call::<OrchWorkerKeep>(&OrchAttemptRef {
+            attempt: id.clone(),
+            ..Default::default()
+        })
+        .unwrap_err();
+    match error {
+        podd::client::ClientError::Rpc(error) => {
+            assert_eq!(error.code, codes::INTERNAL_ERROR, "{error:?}")
+        }
+        error => panic!("expected snapshot error, got {error}"),
+    }
+    assert_eq!(e.worker(id).attempt, before);
+    assert_eq!(disk_attempt(), before_disk);
+    gate.proceed("selected");
+
+    if after_removal {
+        // Restart with the fault still present: loading retains the durable
+        // archive reference and a new supervisor can retry without a terminal.
+        e.restart_with(|| {});
+        until_true("release retry after restart", 20, || {
+            e.worker(id).next.contains("Release failed:")
+        });
+        assert_eq!(e.worker(id).attempt, before);
+        assert_eq!(disk_attempt(), before_disk);
+        assert_eq!(
+            e.c()
+                .call::<OrchWorkerRead>(&OrchWorkerReadParams {
+                    attempt: id.clone(),
+                    lines: None
+                })
+                .unwrap()
+                .source,
+            "archive"
+        );
+    }
+    std::fs::remove_dir(&blocked).unwrap();
+    until_true("release snapshot retry committed", 20, || {
+        e.worker(id).attempt.worker == WorkerState::Released
+    });
+    let released = e.worker(id);
+    assert!(released.attempt.released_ms.is_some());
+    assert!(released.attempt.release_at_ms.is_none());
+    assert_eq!(
+        released.attempt.log_path.as_deref().map(Path::new),
+        Some(archive.as_path())
+    );
+    assert!(!released.next.contains("failed"));
+    let disk = disk_attempt();
+    assert_eq!(disk["worker"], "released");
+    assert_eq!(
+        disk["released_ms"],
+        serde_json::json!(released.attempt.released_ms)
+    );
+    assert_eq!(
+        disk["log_path"],
+        serde_json::json!(released.attempt.log_path)
+    );
+    until_true("released worker process gone", 10, || !process_alive(pid));
+    assert!(
+        e.c()
+            .call::<TerminalShow>(&TerminalRef::id(terminal))
+            .is_err()
+    );
+}
+
 fn json_of(out: &Value) -> Value {
     serde_json::from_str(out["stdout"].as_str().unwrap()).unwrap_or_else(|e| panic!("{e}: {out}"))
 }
@@ -2509,8 +2726,13 @@ fn a_waiting_worker_is_not_a_missed_done_and_is_woken() {
     assert_eq!(e.out(&a1, n[0])["code"], 0);
     // 60 s, not 20: under parallel builds the fake agent's turn (pod.exe
     // spawn, RPC, OSC idle) took longer than 20 s twice in four runs.
-    until_true("a1's turn-end escalation", 60, || {
-        turn_end_escalations(&e.peek("r1"), &a1) == 1
+    wait::until(Duration::from_secs(60), Duration::from_millis(100), || {
+        let count = turn_end_escalations(&e.peek("r1"), &a1);
+        if count == 1 { Ok(()) } else { Err(count) }
+    }).unwrap_or_else(|error| {
+        let read = e.c().call::<OrchWorkerRead>(&OrchWorkerReadParams { attempt: a1.clone(), lines: None });
+        panic!("a1's turn-end escalation: {error}; worker={:?}; output={read:?}; submitted={:?}; mail={:?}",
+            e.worker(&a1), e.submits(&a1), e.peek("r1"));
     });
     passes(&mut e.c());
     assert_eq!(
