@@ -6,6 +6,7 @@ use std::path::{Path, PathBuf};
 use gpui_kit::component::input::{InputEvent, InputState};
 use gpui_kit::*;
 
+use crate::lsp::language_for_path;
 use crate::tree::TreeAction;
 use crate::ui::strings as txt;
 use crate::uri::path_key;
@@ -280,21 +281,44 @@ impl EditorWorkspace {
             } else {
                 continue;
             };
-            let text_now = self.buffers[i].state.read(cx).value().to_string();
-            let reopen = self.buffers[i].lsp_open;
-            self.lsp.update(cx, |s, cx| {
-                s.close_document(&old);
-                if reopen {
-                    s.open_document(&new, text_now, cx);
-                }
-            });
+            self.lsp.update(cx, |s, _| s.close_document(&old));
             let rel = rel_of(&self.root, &new);
             self.tabs.rename(&TabKey::of(&old), TabKey::of(&new));
             let b = &mut self.buffers[i];
+            // Cancel a full-text sync captured before the rename. The new
+            // document opens below with the current, possibly unsaved text.
+            b._sync = Task::ready(());
+            let reopen = b.lsp_open || self.tabs.active() == Some(i);
+            b.lsp_open = false;
+            let language = language_for_path(&new);
+            if b.language != language && !b.large {
+                b.state.update(cx, |s, cx| {
+                    s.set_highlighter(language.map_or("plaintext", |l| l.highlight), cx);
+                });
+            }
+            b.language = language;
             b.path = new.clone();
             b.rel = rel;
+            let state = b.state.clone();
+            let enabled = !b.large && b.language.is_some();
+            let dirty = b.dirty;
+            self.bind_buffer_lsp(&state, &new, enabled, cx);
+            // Diagnostics belonged to the old URI.
+            super::set_editor_diagnostics(&state, Vec::new(), cx);
+            if reopen {
+                self.ensure_lsp(i, cx);
+            }
+            if dirty {
+                cx.emit(EditorEvent::DirtyChanged {
+                    path: old.clone(),
+                    dirty: false,
+                });
+            }
             cx.emit(EditorEvent::FileClosed(old));
-            cx.emit(EditorEvent::FileOpened(new));
+            cx.emit(EditorEvent::FileOpened(new.clone()));
+            if dirty {
+                cx.emit(EditorEvent::DirtyChanged { path: new, dirty });
+            }
         }
         cx.emit(EditorEvent::ActiveFileChanged(
             self.active_path().map(Path::to_path_buf),

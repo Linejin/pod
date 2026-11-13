@@ -68,6 +68,19 @@ impl Harness {
         self.cx.update(|_, cx| f(ed.read(cx)))
     }
 
+    fn rename(&mut self, path: &Path, name: &str) {
+        self.with(|e, w, cx| e.start_rename_entry(path.to_path_buf(), w, cx));
+        self.cx.update(|w, cx| {
+            w.activate_window();
+            w.refresh();
+            let _ = w.draw(cx);
+        });
+        self.cx.simulate_input(name);
+        self.cx.simulate_keystrokes("enter");
+        self.cx.run_until_parked();
+        assert!(!self.read(|e| e.has_overlay()), "rename must succeed");
+    }
+
     /// Replaces the active buffer's text as typing would.
     fn type_text(&mut self, text: &str) {
         let text = text.to_string();
@@ -249,4 +262,89 @@ fn failed_replace_is_reported_then_retried_or_overwritten() {
     h.with(|e, w, cx| e.answer_save_failure(false, w, cx));
     assert_eq!(std::fs::read_to_string(&file).unwrap(), "newer\n");
     assert!(!h.read(|e| e.tab_states())[0].save_failed);
+}
+
+/// B01: use the real rename prompt and editor events, then the same dirty
+/// flag used by save-all, tab close and the host's task-close safeguard.
+#[core::prelude::v1::test]
+fn renamed_buffers_keep_edit_save_and_close_tracking() {
+    for directory in [false, true] {
+        for already_dirty in [false, true] {
+            let (_dir, root) = worktree();
+            std::fs::create_dir_all(root.join("src")).unwrap();
+            let file = root.join("src/a.txt");
+            std::fs::write(&file, "saved\n").unwrap();
+            let mut h = Harness::new(&root);
+            h.with(|e, w, cx| e.preview_file(&file, w, cx)).unwrap();
+            let old = h.read(|e| e.active_path().unwrap().to_path_buf());
+            let state = h.with(|e, _, _| e.active_editor().unwrap());
+            if already_dirty {
+                h.type_text("before rename\n");
+            }
+            let new = if directory {
+                let parent = old.parent().unwrap();
+                h.rename(parent, "renamed");
+                parent.parent().unwrap().join("renamed/a.txt")
+            } else {
+                h.rename(&old, "renamed.txt");
+                old.with_file_name("renamed.txt")
+            };
+            assert!(!old.exists());
+            assert_eq!(h.read(|e| e.active_path().unwrap().to_path_buf()), new);
+            assert_eq!(h.with(|e, _, _| e.active_editor().unwrap()), state);
+            assert_eq!(h.read(|e| e.tab_states())[0].dirty, already_dirty);
+
+            // Returning to the saved text clears an already-dirty renamed tab.
+            h.type_text("saved\n");
+            assert!(h.read(|e| e.dirty_paths()).is_empty());
+            h.type_text("after rename\n");
+            assert_eq!(h.read(|e| e.dirty_paths()), vec![new.clone()]);
+            assert!(!h.read(|e| e.tab_states())[0].preview);
+            h.with(|e, w, cx| e.close_active(w, cx));
+            assert!(h.read(|e| e.close_prompt_open()));
+            h.with(|e, w, cx| e.answer_close_prompt(None, w, cx));
+            assert_eq!(h.read(|e| e.open_paths()), vec![new.clone()]);
+            h.with(|e, w, cx| e.save_all(w, cx));
+            assert_eq!(std::fs::read_to_string(&new).unwrap(), "after rename\n");
+            assert!(!old.exists(), "save must not recreate the old path");
+            assert!(h.read(|e| e.dirty_paths()).is_empty());
+
+            h.type_text("save on close\n");
+            h.with(|e, w, cx| e.close_path(&new, false, w, cx));
+            assert!(h.read(|e| e.close_prompt_open()));
+            h.with(|e, w, cx| e.answer_close_prompt(Some(true), w, cx));
+            assert!(h.read(|e| e.open_paths()).is_empty());
+            assert_eq!(std::fs::read_to_string(&new).unwrap(), "save on close\n");
+        }
+    }
+}
+
+#[core::prelude::v1::test]
+fn directory_rename_saves_background_and_active_buffers() {
+    let (_dir, root) = worktree();
+    std::fs::create_dir_all(root.join("src")).unwrap();
+    for name in ["a.txt", "b.txt"] {
+        std::fs::write(root.join("src").join(name), "saved\n").unwrap();
+    }
+    let mut h = Harness::new(&root);
+    h.with(|e, w, cx| e.open_file(&root.join("src/a.txt"), w, cx))
+        .unwrap();
+    h.type_text("background unsaved\n");
+    h.with(|e, w, cx| e.open_file(&root.join("src/b.txt"), w, cx))
+        .unwrap();
+    let old_dir = h.read(|e| e.active_path().unwrap().parent().unwrap().to_path_buf());
+    h.rename(&old_dir, "moved");
+    h.type_text("active unsaved\n");
+    assert_eq!(h.read(|e| e.dirty_paths()).len(), 2);
+    h.with(|e, w, cx| e.save_all(w, cx));
+    assert!(h.read(|e| e.dirty_paths()).is_empty());
+    assert_eq!(
+        std::fs::read_to_string(root.join("moved/a.txt")).unwrap(),
+        "background unsaved\n"
+    );
+    assert_eq!(
+        std::fs::read_to_string(root.join("moved/b.txt")).unwrap(),
+        "active unsaved\n"
+    );
+    assert!(!old_dir.exists());
 }

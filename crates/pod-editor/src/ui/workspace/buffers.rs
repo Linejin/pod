@@ -65,7 +65,101 @@ impl EditorWorkspace {
         if large || undecodable {
             state.update(cx, |s, cx| s.set_readonly(true, cx));
         }
-        if !large && language.is_some() {
+        self.bind_buffer_lsp(&state, path, !large && language.is_some(), cx);
+        let change = cx.subscribe_in(
+            &state,
+            window,
+            |this: &mut Self, state, ev: &InputEvent, window, cx| {
+                if let InputEvent::Change = ev
+                    && let Some(b) = this.buffers.iter().find(|b| &b.state == state)
+                {
+                    let path = b.path.clone();
+                    this.on_buffer_changed(&path, window, cx);
+                }
+            },
+        );
+        // Incremental sync: each edit goes to the store as a ranged change
+        // (the debounced full-text sync below stays as a repair path).
+        // The same edits keep a snippet session's stops in place, and an
+        // inserted completion picks up its tab stops and auto-imports.
+        let lsp = self.lsp.clone();
+        let edits = cx.subscribe_in(
+            &state,
+            window,
+            move |this: &mut Self, state, ev: &InputEditsEvent, window, cx| {
+                // The editor entity survives file and parent-directory renames.
+                let Some(b) = this.buffers.iter().find(|b| &b.state == state) else {
+                    return;
+                };
+                let path = b.path.clone();
+                for (e, after) in ev.edits() {
+                    let new_text = after.slice(e.start_byte..e.new_end_byte).to_string();
+                    lsp.update(cx, |s, _| {
+                        s.edit_document(&path, e.start_byte, e.old_end_byte, &new_text)
+                    });
+                    this.track_snippet(
+                        &path,
+                        snippet::Edit {
+                            start: e.start_byte,
+                            old_end: e.old_end_byte,
+                            new_end: e.new_end_byte,
+                        },
+                    );
+                    let line = after.offset_to_position(e.start_byte).line;
+                    if let Some(extra) =
+                        lsp.update(cx, |s, _| s.take_completion(&path, line, &new_text))
+                    {
+                        this.after_completion(
+                            &path,
+                            state.clone(),
+                            e.start_byte,
+                            extra,
+                            window,
+                            cx,
+                        );
+                    }
+                }
+            },
+        );
+        let observe = cx.observe(&state, |_, _, cx| cx.notify());
+        let mut b = Buffer {
+            path: path.to_path_buf(),
+            rel: rel_of(&self.root, path),
+            state,
+            language,
+            format: loaded.format,
+            saved: loaded.text,
+            dirty: false,
+            large,
+            undecodable,
+            stamp: Some(loaded.stamp),
+            save_blocked: false,
+            save_failed: None,
+            disk: DiskState::Same,
+            lsp_open: false,
+            _subs: vec![change, edits, observe],
+            snippet: None,
+            _sync: Task::ready(()),
+        };
+        // Diagnostics that arrived before the tab existed.
+        let diags = self.lsp.read(cx).diagnostics_for(path).to_vec();
+        if !diags.is_empty() {
+            set_editor_diagnostics(&b.state, diags, cx);
+        }
+        b.dirty = false;
+        b
+    }
+
+    /// Providers carry a document path, so install fresh ones after a rename.
+    /// Keep the editor entity (text, selection and undo history) intact.
+    pub(super) fn bind_buffer_lsp(
+        &self,
+        state: &Entity<EditorState>,
+        path: &Path,
+        enabled: bool,
+        cx: &mut Context<Self>,
+    ) {
+        if enabled {
             let apply: crate::lsp::providers::ApplyEdits = {
                 let ws = cx.entity().downgrade();
                 Rc::new(move |edits, window: &mut Window, cx: &mut App| {
@@ -108,76 +202,17 @@ impl EditorWorkspace {
                 l.show_document = Some(show);
                 cx.notify();
             });
+        } else {
+            state.update(cx, |s, cx| {
+                let l = s.lsp_mut();
+                l.completion_provider = None;
+                l.hover_provider = None;
+                l.code_action_providers.clear();
+                l.definition_provider = None;
+                l.show_document = None;
+                cx.notify();
+            });
         }
-        let p2 = path.to_path_buf();
-        let change = cx.subscribe_in(
-            &state,
-            window,
-            move |this: &mut Self, _, ev: &InputEvent, window, cx| {
-                if let InputEvent::Change = ev {
-                    this.on_buffer_changed(&p2, window, cx);
-                }
-            },
-        );
-        // Incremental sync: each edit goes to the store as a ranged change
-        // (the debounced full-text sync below stays as a repair path).
-        // The same edits keep a snippet session's stops in place, and an
-        // inserted completion picks up its tab stops and auto-imports.
-        let p3 = path.to_path_buf();
-        let lsp = self.lsp.clone();
-        let edits = cx.subscribe_in(
-            &state,
-            window,
-            move |this: &mut Self, state, ev: &InputEditsEvent, window, cx| {
-                for (e, after) in ev.edits() {
-                    let new_text = after.slice(e.start_byte..e.new_end_byte).to_string();
-                    lsp.update(cx, |s, _| {
-                        s.edit_document(&p3, e.start_byte, e.old_end_byte, &new_text)
-                    });
-                    this.track_snippet(
-                        &p3,
-                        snippet::Edit {
-                            start: e.start_byte,
-                            old_end: e.old_end_byte,
-                            new_end: e.new_end_byte,
-                        },
-                    );
-                    let line = after.offset_to_position(e.start_byte).line;
-                    if let Some(extra) =
-                        lsp.update(cx, |s, _| s.take_completion(&p3, line, &new_text))
-                    {
-                        this.after_completion(&p3, state.clone(), e.start_byte, extra, window, cx);
-                    }
-                }
-            },
-        );
-        let observe = cx.observe(&state, |_, _, cx| cx.notify());
-        let mut b = Buffer {
-            path: path.to_path_buf(),
-            rel: rel_of(&self.root, path),
-            state,
-            language,
-            format: loaded.format,
-            saved: loaded.text,
-            dirty: false,
-            large,
-            undecodable,
-            stamp: Some(loaded.stamp),
-            save_blocked: false,
-            save_failed: None,
-            disk: DiskState::Same,
-            lsp_open: false,
-            _subs: vec![change, edits, observe],
-            snippet: None,
-            _sync: Task::ready(()),
-        };
-        // Diagnostics that arrived before the tab existed.
-        let diags = self.lsp.read(cx).diagnostics_for(path).to_vec();
-        if !diags.is_empty() {
-            set_editor_diagnostics(&b.state, diags, cx);
-        }
-        b.dirty = false;
-        b
     }
 
     pub(super) fn on_buffer_changed(
