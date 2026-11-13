@@ -34,9 +34,9 @@ worker pipe → worker capability                  (mobile로 이어 붙이지 �
 - PC에서 활성 NIC의 **구체 IPv4 RFC1918 또는 IPv6 ULA 주소 하나**와 직접 연결 subnet을 선택한다. 포트 기본 `0`(OS가 빈 포트 배정), 고정 포트는 1024–65535의 사용자 선택만; 실패 시 다른 포트로 조용히 이동하지 않는다. 실제 IP/포트를 QR에 넣는다. wildcard·공인/멀티캐스트·link-local·DNS hostname은 거부한다. loopback은 격리 시험 전용이며 제품 설정으로 우회할 수 없다.
 - 해당 NIC/subnet과 socket peer를 모두 확인한다. IPv4-mapped IPv6는 canonical IPv4로 검사하고 family 불일치·zone id·IPv6 scope 우회는 거부한다. HTTP Host/authority는 QR의 IP와 실제 포트의 정확한 집합만 허용(IPv6 bracket 포함). proxy/forwarded 헤더는 신뢰하지 않으며 absolute-form URL·중복 Host·redirect는 거부한다. NIC/IP/subnet 변경·절전 복귀 시 listener를 닫고 재선택한다.
 - LAN도 적대적이다. OS 방화벽·UPnP·포트 전달·서비스를 자동 변경하지 않는다. 다른 머신 Gate를 모아 LAN에 재노출하지 않는다. VPN peer/profile·relay는 후속 단계이며 private IP만 보고 VPN까지 자동 허용하지 않는다.
-- TLS 1.3만, ALPN `http/1.1`, 0-RTT·TLS resumption·압축·HTTP fallback은 M2에서 끈다. handshake 10초, header 8 KiB/5초, body 32 KiB/10초, 연결 총 16개·인증 전 IP별 동시 2개/10회·분, 인증된 기기별 연결 2개로 제한한다. 느린 수신에는 응답 송신 10초·연결당 큐 128 KiB 상한을 둔다.
+- TLS는 **플랫폼 스택**이다(사용자 결정 2026-11-13): Windows SChannel·CNG, Linux 시스템 OpenSSL 3(동적 링크, 번들 없음). rustls·ring·aws-lc·RustCrypto TLS는 쓰지 않는다. **TLS 1.3이 기본**이고, OS에 TLS 1.3 server가 없는 Windows 10만 TLS 1.2를 ECDHE-ECDSA + AEAD(AES-GCM, ChaCha20) suite로 허용한다. handshake 뒤 version·suite·ALPN을 다시 검사하고, 협상 version을 pairing 기록과 PC UI에 남긴다. 신뢰는 CA가 아니라 **QR의 SPKI 핀**이 운반하므로 TLS 1.2에서도 핀·CertificateVerify 검사는 같다. ALPN `http/1.1`, 0-RTT·TLS resumption·압축·renegotiation·HTTP fallback은 끈다. 구현과 closure는 [mobile-m2/dependencies.md](mobile-m2/dependencies.md). handshake 10초, header 8 KiB/5초, body 32 KiB/10초, 연결 총 16개·인증 전 IP별 동시 2개/10회·분, 인증된 기기별 연결 2개로 제한한다. 느린 수신에는 응답 송신 10초·연결당 큐 128 KiB 상한을 둔다.
 
-최초 enable 때 OS CSPRNG로 **P-256 ECDSA 키와 자가서명 leaf 인증서**를 만든다. SAN은 선택한 IP 하나, EKU serverAuth, CA=false, 유효기간 90일(시작은 발급 시각보다 5분 앞), 무작위 serial이다. 생성·서명·검증은 검토된 라이브러리/provider만 쓰며 ASN.1/암호를 직접 구현하지 않는다. certificate DER·SPKI SHA-256·key epoch·endpoint manifest를 한 generation으로 기록한다. 개인키 PKCS#8은 Windows 사용자 DPAPI로 보호하고 디렉터리/파일 DACL은 해당 사용자 전용, reparse/잘못된 소유권 경로는 거부한다. 쓰기·동기화·원자 교체 성공 뒤만 enable하고 손상/부분 저장이면 off다. Linux 0700/0600 보장은 R6a 이후 별도 검증한다.
+최초 enable 때 OS CSPRNG로 **P-256 ECDSA 키와 자가서명 leaf 인증서**를 만든다. SAN은 선택한 IP 하나, EKU serverAuth, CA=false, 유효기간 90일(시작은 발급 시각보다 5분 앞), 무작위 serial이다. 생성·서명·검증은 OS 암호 API(Windows CNG·CryptoAPI, Linux OpenSSL)만 쓰며 ASN.1/암호를 직접 구현하지 않는다. certificate DER·SPKI SHA-256·key epoch·endpoint manifest를 한 generation으로 기록한다. 개인키는 Windows에서 현재 사용자 CNG 키 저장소(Microsoft Software KSP)의 영구·내보내기 불가 키로 두어 사용자 DPAPI가 보호하고, 인증서는 OS 인증서 저장소에 넣지 않는다. Linux는 OpenSSL PKCS#8 파일(0600)이다. 기록 디렉터리/파일 DACL은 해당 사용자 전용, reparse/잘못된 소유권 경로는 거부한다. 쓰기·동기화·원자 교체 성공 뒤만 enable하고 손상/부분 저장이면 off다. Linux 0700/0600 보장은 R6a 이후 별도 검증한다.
 
 native 클라이언트는 **인증 데이터 전송 전에** QR의 SPKI와 실제 인증서 공개키를 상수시간 비교하고, TLS CertificateVerify 키 소유·인증서 서명/기간/SAN·접속 IP/포트·machine_id를 검증한다. 사설 QR 앵커 검증은 OS 신뢰 저장소에 CA를 설치하거나 모든 인증서 오류를 허용하는 TrustManager가 아니다. 토큰을 미리 버퍼링하지 않으며 핀/기간/endpoint 실패 시 secret·코드·토큰 전송은 0이다. machine_id는 핀 검증 이후 얻은 응답과 QR을 대조하고, 클라이언트 시계 오류는 안내 후 차단한다.
 
@@ -117,21 +117,16 @@ M4에서는 여기에 request digest·최대 60초 challenge·channel/boot/epoch
 
 유료 기능 검사가 아니라 **신규 직접·전이 의존성의 출시 gate**다. 허용 선택지는 Apache-2.0/MIT/ISC뿐이며 SPDX OR은 실제 허용 분기를 선택해 원문을 보관하고 AND는 모든 항목을 충족해야 한다. 기존 `deny.toml`의 BSD/MIT-0/기타 예외를 신규 모바일 closure에 상속하지 않는다.
 
-아래 버전의 crates.io 메타데이터(license·non-yanked)는 2026-11-12 읽기 전용 조회했다. **후보이며 채택/보안성/전이 closure 승인은 미완료**, 구현 시 버전·feature·권고 보안 패치를 다시 검증한다.
+**결정(2026-11-13): TLS·암호는 플랫폼 것만 쓴다.** 채택 closure와 근거·재현은 [mobile-m2/dependencies.md](mobile-m2/dependencies.md), 고정본은 [mobile-m2/sbom.json](mobile-m2/sbom.json), gate는 `tools/check-mobile-licenses.ps1`이다(카드 M2-F0b).
 
-| 구체 후보 | SPDX / 역할·검토할 feature |
-|---|---|
-| [rustls 0.23.46](https://crates.io/api/v1/crates/rustls/0.23.46) | Apache-2.0 OR ISC OR MIT. TLS 1.3; default-features off, provider 명시. |
-| [tokio-rustls 0.26.4](https://crates.io/api/v1/crates/tokio-rustls/0.26.4) | MIT OR Apache-2.0. async TLS; default provider/tls12 feature 유입 검사. |
-| [rcgen 0.14.10](https://crates.io/api/v1/crates/rcgen/0.14.10) | MIT OR Apache-2.0. 인증서 생성; default ring 경로와 선택 provider 원문 검사. |
-| [qrcode 0.14.1](https://crates.io/api/v1/crates/qrcode/0.14.1) | MIT OR Apache-2.0. 기본 image/svg feature 없이 행렬만 native가 렌더. |
-| [axum 0.8.9](https://crates.io/api/v1/crates/axum/0.8.9) | MIT. 최소 HTTP routing; 필요한 http1/json/tokio만, ws/form/multipart 불필요. |
-| [p256 0.13.2](https://crates.io/api/v1/crates/p256/0.13.2) | Apache-2.0 OR MIT. 기기 서명 검증 후보; ECDSA/SHA-256/PKCS#8의 정확 closure 확인. |
-| [getrandom 0.3.4](https://crates.io/api/v1/crates/getrandom/0.3.4), [sha2 0.10.9](https://crates.io/api/v1/crates/sha2/0.10.9) | MIT OR Apache-2.0. OS RNG/토큰·SPKI hash; OS target별 전이·중복 버전 검토. |
+| 대상 | 배포물에 링크되는 closure | build host 전용 |
+|---|---|---|
+| Windows x64 (daemon·desktop double) | windows-sys 0.61.2, windows-link 0.2.1(MIT OR Apache-2.0) + OS의 SChannel·CNG·CryptoAPI | 없음 |
+| Linux x64 (예정, 런타임 미검증) | openssl 0.10.82(Apache-2.0), openssl-sys 0.9.118(MIT), foreign-types 0.3.2·shared 0.1.1, bitflags, cfg-if, libc + 시스템 libssl/libcrypto 3 | cc, pkg-config, vcpkg, openssl-macros·syn·quote·proc-macro2, unicode-ident(`Unicode-3.0` 항: host 전용 pin 1개, 사용자 확인 대상) |
 
-**TLS provider는 아직 승인하지 않았다.** rustls crate의 허용 SPDX가 ring/aws-lc의 C/assembly closure를 승인하지 않는다. rustls는 [CryptoProvider 교체](https://docs.rs/rustls/latest/rustls/)를 지원하지만 provider를 바꾸는 것만으로 적합성이 보장되지 않는다. 기본 provider, rcgen 서명 backend, 인증서 검증(webpki 등)의 실제 원문을 함께 검사한다. 허용 closure를 확보하지 못하면 F0를 blocked로 보고 구현/출시를 멈춘다. 암호 직접 작성·인증서 검증 생략·미검토 alpha provider·조용한 라이선스 예외로 진행하지 않는다.
+rustls·ring·aws-lc·RustCrypto는 쓰지 않는다(ring 경로는 rustls의 BSD-3-Clause `subtle` 예외가 필요했다). gate는 이들과 openssl-src(번들 OpenSSL)가 closure에 나타나면 실패한다. SPKI SHA-256·256비트 random·P-256 서명 검증도 OS API(BCrypt/NCrypt, OpenSSL)로 하므로 p256·sha2·getrandom을 새로 넣지 않았다. [qrcode 0.14.1](https://crates.io/api/v1/crates/qrcode/0.14.1)(MIT OR Apache-2.0)·[axum 0.8.9](https://crates.io/api/v1/crates/axum/0.8.9)(MIT)는 아직 후보이며 추가할 때 같은 gate를 통과해야 한다. 암호 직접 작성·인증서 검증 생략·조용한 라이선스 예외로 진행하지 않는다.
 
-F0 산출물은 `Cargo.lock` checksum, feature/target graph, SBOM, SPDX 선택 근거·원문·NOTICE·자산 해시와 재현 명령이다. Windows x64 daemon/desktop double과 M3 Android arm64/JNI, 예정 Linux target은 각각 구분한다. normal/build/dev 의존성을 따로 기록하며 실제 번들 C/assembly/JNI/폰트/JS는 빠짐없이 포함한다. JDK/SDK/NDK/Gradle 같은 외부 빌드 도구의 사용 조건은 별도로 기록한다. AndroidX·QR 스캔 SDK·APK 서명/backup/업데이트 검증은 M3 gate이며 아직 승인된 runtime으로 취급하지 않는다. 금지 라이선스/누락 원문/다른 자산 hash를 주입한 합성 manifest는 CI가 실패해야 한다.
+F0 산출물은 `Cargo.lock` checksum, feature/target graph, SBOM, SPDX 선택 근거·원문·NOTICE·자산 해시와 재현 명령이다. Windows x64 daemon/desktop double과 예정 Linux target은 각각 구분한다. M3 Android는 OS TLS + 앱의 SPKI 핀이며 이 Rust closure 밖의 별도 gate다. normal/build/dev 의존성을 따로 기록하며 실제 번들 C/assembly/JNI/폰트/JS는 빠짐없이 포함한다. JDK/SDK/NDK/Gradle 같은 외부 빌드 도구의 사용 조건은 별도로 기록한다. AndroidX·QR 스캔 SDK·APK 서명/backup/업데이트 검증은 M3 gate이며 아직 승인된 runtime으로 취급하지 않는다. 금지 라이선스/누락 원문/다른 자산 hash를 주입한 합성 manifest는 CI가 실패해야 한다.
 
 문서 작성 검증: M1/O2 코드·시험 소스 대조와 후보 메타데이터 조회, `git diff --check`·`check-docs`·`check-workspace`·`check-boundaries` 수행. 제품 코드·Cargo/daemon/실제 agent/Android 실행·사용자 설정·네트워크 쓰기는 없었다. 아래 시험은 앞으로 제출할 증거이며 이 문서의 PASS 결과가 아니다.
 
@@ -151,6 +146,8 @@ F0 산출물은 `Cargo.lock` checksum, feature/target graph, SBOM, SPDX 선택 �
 
 ### F0 — license closure·빌드 경계 · wave 0 · M · 의존 없음
 
+**상태(2026-11-13):** F0b로 완료 — 플랫폼 TLS(SChannel/OpenSSL 3), `pod-mobile` TLS seam·플랫폼 암호, 엄격 gate·Linux CI 검사 → master `01663c4`. 이후 manifest 변경도 이 gate를 통과해야 한다.
+
 OWNED (11): `Cargo.toml`, `Cargo.lock`, `crates/{podd,pod-app}/Cargo.toml`, `crates/pod-mobile/{Cargo.toml,src/lib.rs}`, `tools/{check-mobile-licenses.ps1,check-boundaries.ps1}`, `.github/workflows/ci.yml`, `docs/mobile-m2/{dependencies.md,sbom.json}`.
 
 1. §7 후보의 실제 provider/target closure 승인 또는 차단 근거를 제출한다. 승인 후만 기본 off feature·최소 crate 골격/manifest를 추가한다.
@@ -166,6 +163,8 @@ OWNED (11): `crates/pod-protocol/src/{mobile_protocol.rs,protocol.rs,lib.rs}`, `
 3. 증명: **W, TM-05/06** 여섯 이름 집합·필수 필드/unknown/duplicate 거부·구형 로컬 golden·scope/본문 fingerprint 벡터.
 
 ### P1 — TLS·주소·키 저장 · wave 1 · M · 의존 F1
+
+**F0b 반영:** `tls.rs`·`identity.rs`의 TLS 정책·CNG 키·자체 서명 인증서는 이미 있다. P1은 generation 기록·원자 저장·DACL, 주소/peer/Host 정책, QR과 F0b 보안 검토 지적 수정으로 좁힌다.
 
 OWNED (7): `crates/pod-mobile/src/{tls.rs,address.rs,identity.rs,qr.rs}`, `crates/pod-mobile/tests/{tls_pin.rs,address_policy.rs,qr.rs}`.
 

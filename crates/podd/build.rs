@@ -23,14 +23,28 @@ fn main() {
         );
         return;
     }
-    // OUT_DIR = <target>/<profile>/build/podd-<hash>/out
     let out = PathBuf::from(std::env::var("OUT_DIR").unwrap());
-    let Some(profile_dir) = out.ancestors().nth(3) else {
+    let Some(profile_dir) = profile_dir(&out) else {
+        println!(
+            "cargo:warning=no `build` directory above OUT_DIR {}: pod-holder will use the inbox ConPTY",
+            out.display()
+        );
         return;
     };
     for dir in [profile_dir.to_path_buf(), profile_dir.join("deps")] {
         copy_tree(&vendor, &dir);
     }
+}
+
+/// `<target>/<profile>`, where the binaries land, from the build script's
+/// OUT_DIR: the parent of the nearest `build` directory above it. Cargo up to
+/// 1.99 uses `<profile>/build/podd-<hash>/out`, 1.100 uses
+/// `<profile>/build/podd/<hash>/out`; a fixed depth broke on the change and the
+/// holder silently fell back to the inbox ConPTY.
+fn profile_dir(out: &Path) -> Option<&Path> {
+    out.ancestors()
+        .find(|p| p.file_name().is_some_and(|n| n == "build"))
+        .and_then(Path::parent)
 }
 
 fn copy_tree(from: &Path, to: &Path) {

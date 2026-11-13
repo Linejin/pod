@@ -1,4 +1,6 @@
-# Pod CI (quality-01). Windows is the only supported platform.
+# Pod CI (quality-01). Windows is the only supported platform; the `linux`
+# job only compile-checks the mobile LAN crate's OpenSSL backend (docs/23
+# section 2, card M2-F0b).
 #
 # Not active yet: pushing this file needs a GitHub token with the `workflow`
 # scope, which the current one lacks (see CONTRIBUTING.md "CI").
@@ -46,6 +48,11 @@ jobs:
             powershell -NoProfile -ExecutionPolicy Bypass -File "tools/$s.ps1"
             if ($LASTEXITCODE -ne 0) { throw "$s failed" }
           }
+          # TM-04: synthetic closures with a forbidden or missing license,
+          # OR/AND cases, an excluded TLS crate (rustls, ring, subtle...),
+          # the wrong stack per target or a changed file must fail.
+          powershell -NoProfile -ExecutionPolicy Bypass -File tools/check-mobile-licenses.ps1 -SelfTest
+          if ($LASTEXITCODE -ne 0) { throw "check-mobile-licenses -SelfTest failed" }
 
       - name: cargo fmt --check
         run: cargo fmt --all -- --check
@@ -68,6 +75,16 @@ jobs:
       - name: cargo build
         run: cargo build --workspace --exclude pod-spike --exclude diff-spike --locked
 
+      # podd's build.rs puts the bundled ConPTY next to pod-holder. If it does
+      # not (cargo 1.100 moved build script output), the holder silently uses
+      # the inbox ConPTY and terminal tests fail far away from the cause.
+      - name: Bundled ConPTY next to the binaries
+        shell: pwsh
+        run: |
+          foreach ($f in "target/debug/conpty.dll", "target/debug/x64/OpenConsole.exe") {
+            if (-not (Test-Path $f)) { throw "$f missing: podd build.rs did not copy vendor/conpty" }
+          }
+
       # POD_REQUIRE_TOOLS=1: a test that would skip because a tool is missing
       # fails instead (quality-07). Codex is not installed on the runner, so
       # its one test is skipped by name here, visibly.
@@ -75,6 +92,57 @@ jobs:
         env:
           POD_REQUIRE_TOOLS: "1"
         run: cargo test --workspace --exclude pod-spike --exclude diff-spike --locked -- --skip codex_hooks_trusted_via_app_server_in_temp_home
+
+      # docs/23 section 7 / card M2-F0b: the default-off `mobile-lan` closure
+      # (SChannel/CNG through windows-sys; the system OpenSSL 3 on Linux)
+      # matches the reviewed docs/mobile-m2/sbom.json under the strict license
+      # policy, default builds stay TLS-free, and the feature build and its
+      # loopback TLS tests pass. The tests create per-user CNG keys under a
+      # test prefix and delete them; nothing listens beyond 127.0.0.1.
+      - name: Mobile LAN license gate and feature build
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = "Stop"
+          cargo fetch --locked
+          if ($LASTEXITCODE -ne 0) { throw "cargo fetch failed" }
+          powershell -NoProfile -ExecutionPolicy Bypass -File tools/check-mobile-licenses.ps1
+          if ($LASTEXITCODE -ne 0) { throw "check-mobile-licenses failed" }
+          cargo clippy -p pod-mobile --features mobile-lan --all-targets --locked -- -D warnings
+          if ($LASTEXITCODE -ne 0) { throw "clippy (mobile-lan) failed" }
+          cargo test -p pod-mobile --features mobile-lan --locked
+          if ($LASTEXITCODE -ne 0) { throw "pod-mobile tests (mobile-lan) failed" }
+          cargo check -p podd --features mobile-lan --locked
+          if ($LASTEXITCODE -ne 0) { throw "podd check (mobile-lan) failed" }
+
+  # The OpenSSL 3 backend of pod-mobile (Linux daemon target, docs/23 section
+  # 2): compile and lint gate. Its runtime is unverified in M2; the test step
+  # below reports without failing the job until a Linux owner reviews it.
+  linux:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: clippy
+
+      - uses: Swatinem/rust-cache@v2
+
+      - name: System OpenSSL 3 (headers for openssl-sys; linked dynamically)
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends libssl-dev pkg-config
+          openssl version
+
+      - name: cargo check / clippy (pod-mobile, mobile-lan)
+        run: |
+          cargo check -p pod-mobile --features mobile-lan --all-targets --locked
+          cargo clippy -p pod-mobile --features mobile-lan --all-targets --locked -- -D warnings
+
+      - name: pod-mobile tests (informational, runtime unverified)
+        continue-on-error: true
+        run: cargo test -p pod-mobile --features mobile-lan --locked
 
   # cargo-deny-action is a container action (Linux runners only); the policy
   # itself targets x86_64-pc-windows-msvc (deny.toml [graph]).

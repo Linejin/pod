@@ -1,0 +1,46 @@
+[package]
+name = "pod-mobile"
+version = "0.1.0"
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+publish = false
+description = "Pod mobile LAN endpoint pieces (docs/23): the TLS seam over the platform stack and platform crypto; no daemon, pipe client or GUI"
+
+# No podd, pod-client, pod-app or GPUI dependency (tools/check-boundaries.ps1):
+# the daemon hands this crate the six mobile operations as typed callbacks.
+[features]
+default = []
+# docs/23 section 2: the mobile LAN endpoint, off by default. TLS and crypto
+# come from the platform only (user decision 2026-11-13): SChannel + CNG on
+# Windows, the system OpenSSL 3 (dynamically linked, never vendored) on
+# Linux. No rustls, ring, aws-lc or RustCrypto. The whole closure is pinned
+# in docs/mobile-m2/sbom.json and checked by tools/check-mobile-licenses.ps1;
+# change a dependency here only together with that review
+# (docs/mobile-m2/dependencies.md).
+mobile-lan = ["dep:windows-sys", "dep:openssl"]
+
+# MIT OR Apache-2.0; already in the lockfile (podd, pod-client, tokio...).
+# SSPI (SChannel), CNG (NCrypt/BCrypt) and CryptoAPI certificate encoding.
+[target.'cfg(windows)'.dependencies.windows-sys]
+version = "0.61"
+optional = true
+features = [
+    "Wdk_System_SystemServices",
+    "Win32_Foundation",
+    "Win32_Security_Authentication_Identity",
+    "Win32_Security_Credentials",
+    "Win32_Security_Cryptography",
+    "Win32_System_SystemInformation",
+    "Win32_System_Time",
+]
+
+# Apache-2.0 (openssl-sys: MIT). Links the system libssl/libcrypto 3
+# dynamically; the `vendored` feature (bundled OpenSSL sources) stays off.
+[target.'cfg(target_os = "linux")'.dependencies.openssl]
+version = "0.10"
+optional = true
+default-features = false
+
+[lints]
+workspace = true

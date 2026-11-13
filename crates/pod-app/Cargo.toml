@@ -11,6 +11,12 @@ description = "Pod desktop app (P2 UI MVP): GPUI client of the podd daemon"
 name = "pod-app"
 path = "src/main.rs"
 
+[features]
+# docs/23 card T2: the PC side of mobile pairing (enable/off, QR, final
+# allow), off by default. The app never carries the mobile TLS listener; it
+# drives podd's local management calls.
+mobile-lan = []
+
 [dependencies]
 # MIT/Apache-2.0; GPUI already uses this handle interface.
 raw-window-handle = "0.6"

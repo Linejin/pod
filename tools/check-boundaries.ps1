@@ -18,6 +18,15 @@
 #     (alacritty_terminal) and tokio's server side: the runtime and its OS
 #     drivers (features in $tokioServer), whether the dependency entry,
 #     [workspace.dependencies] or a [features] `tokio/x` entry turns them on;
+#   - the mobile endpoint pod-mobile (docs/23 section 1, card F0) reaches neither
+#     the daemon, the full pipe client nor the app (podd, pod-client,
+#     pod-app, pod-cli, pod-remote), GPUI or the terminal emulator; podd
+#     hands it the six mobile operations as typed callbacks. Its TLS is the
+#     platform's (SChannel / system OpenSSL 3, user decision 2026-11-13), so
+#     it lists no Rust TLS or crypto provider (rustls, ring, aws-lc,
+#     RustCrypto, a vendored OpenSSL);
+#   - pod-protocol and pod-client stay free of the mobile runtime and TLS
+#     (pod-mobile, openssl, schannel, native-tls, rustls, ring, aws-lc);
 #   - every crate a rule names is a workspace member, so renaming one cannot
 #     switch its rule off silently.
 # A dependency counts under its package name (`x = { package = "..." }`, and
@@ -38,7 +47,12 @@ $forbidden = @(
   @{ From = @("pod-app", "pod-cli", "pod-remote"); To = '^podd$'; Why = "clients reach the daemon through pod-client" },
   @{ From = @("pod-protocol", "pod-client"); To = '^podd$'; Why = "wire and client crates stay free of the daemon" },
   @{ From = @("pod-protocol", "pod-client"); To = '^gpui([-_].*)?$'; Why = "wire and client crates stay free of GPUI" },
-  @{ From = @("pod-protocol", "pod-client"); To = '^alacritty'; Why = "wire and client crates stay free of the terminal emulator" }
+  @{ From = @("pod-protocol", "pod-client"); To = '^alacritty'; Why = "wire and client crates stay free of the terminal emulator" },
+  @{ From = @("pod-mobile"); To = '^(podd|pod-client|pod-app|pod-cli|pod-remote)$'; Why = "the mobile endpoint gets typed callbacks, not the daemon, the full pipe client or the app" },
+  @{ From = @("pod-mobile"); To = '^gpui([-_].*)?$'; Why = "the mobile endpoint stays free of GPUI" },
+  @{ From = @("pod-mobile"); To = '^alacritty'; Why = "the mobile endpoint stays free of the terminal emulator" },
+  @{ From = @("pod-mobile"); To = '^(rustls.*|tokio-rustls|ring|aws-lc.*|subtle|p256|ecdsa|sha2|openssl-src|boring.*|native-tls)$'; Why = "the mobile endpoint uses the platform TLS and crypto only" },
+  @{ From = @("pod-protocol", "pod-client"); To = '^(pod-mobile|openssl.*|schannel|native-tls|tokio-native-tls|rustls.*|tokio-rustls|ring|aws-lc.*)$'; Why = "wire and client crates stay free of the mobile runtime and TLS" }
 )
 # Packages that must not turn on tokio's runtime or OS drivers (what podd's
 # `server` feature needs); pure helpers such as sync or io-util stay allowed.
@@ -242,7 +256,8 @@ function Test-Boundaries([string]$root) {
 if ($SelfTest) {
   $tmp = Join-Path ([IO.Path]::GetTempPath()) ("pod-check-boundaries-" + [Guid]::NewGuid().ToString("N"))
   $all = @("crates/pod-spike", "crates/diff-spike", "crates/app", "crates/pod-process", "crates/pod-storage", "crates/pod-test-support",
-           "crates/pod-editor", "crates/podd", "crates/pod-protocol", "crates/pod-client", "crates/pod-app", "crates/pod-cli", "crates/pod-remote")
+           "crates/pod-editor", "crates/podd", "crates/pod-protocol", "crates/pod-client", "crates/pod-app", "crates/pod-cli", "crates/pod-remote",
+           "crates/pod-mobile")
   $shipped = @($all | Where-Object { $spikes -notcontains $_ })
   # A root manifest; the app crates inherit their `podd` alias from it.
   function New-Ws([string[]]$members, [string[]]$defaults, [string]$deps = "") {
@@ -268,6 +283,8 @@ if ($SelfTest) {
     "crates/pod-app" = "[package]`nname = `"pod-app`"`n[dependencies]`npodd = { package = `"pod-client`", path = `"../pod-client`" }`ngpui-kit = `"0.9`"`nalacritty_terminal = `"0.25`""
     "crates/pod-cli" = "[package]`nname = `"pod-cli`"`n[dependencies.podd]`npackage = `"pod-client`"`npath = `"../pod-client`"`n[dev-dependencies]`ntokio = { version = `"1`", features = [`"full`"] }"
     "crates/pod-remote" = "[package]`nname = `"pod-remote`"`n[dependencies]`npodd.workspace = true"
+    # Platform TLS behind a feature per target; the protocol types are fine.
+    "crates/pod-mobile" = "[package]`nname = `"pod-mobile`"`n[dependencies]`npod-protocol.path = `"../pod-protocol`"`n[target.'cfg(windows)'.dependencies.windows-sys]`nversion = `"0.61`"`noptional = true`n[target.'cfg(target_os = `"linux`")'.dependencies]`nopenssl = { version = `"0.10`", optional = true }`n[features]`nmobile-lan = [`"dep:windows-sys`", `"dep:openssl`"]"
   }
   $client = "clients reach the daemon through pod-client"
   $wire = "wire and client crates stay free of"
@@ -330,6 +347,22 @@ if ($SelfTest) {
                   "crates/pod-client [dev-dependencies.tokio] tokio: pod-client must not use tokio's server-side features (full)",
                   "crates/pod-client [target.'cfg(windows)'.dependencies] tokio: pod-client must not use tokio's server-side features (signal)",
                   "crates/pod-protocol [dependencies] tokio: pod-protocol must not use tokio's server-side features (process, rt-multi-thread)") },
+    @{ Name = "mobile reaches the daemon, the pipe client, the app, GPUI, the terminal or a Rust TLS stack; protocol and client reach mobile or TLS"; Ws = $wsGood
+       Set = @{ "crates/pod-mobile" = "[package]`nname = `"pod-mobile`"`n[dependencies]`ndaemon = { package = `"podd`", path = `"../podd`" }`npodd.workspace = true`n[target.'cfg(windows)'.dev-dependencies]`npod-app = { path = `"../pod-app`" }`nui = { package = `"gpui-kit`", version = `"0.9`" }`n[build-dependencies.alacritty_terminal]`nversion = `"0.25`"`n[target.'cfg(target_os = `"linux`")'.dependencies]`nrustls = { version = `"0.23`", optional = true }`nring = `"0.17`"`nopenssl-src = `"300`""
+                "crates/pod-protocol" = "[package]`nname = `"pod-protocol`"`n[dependencies]`nmobile = { package = `"pod-mobile`", path = `"../pod-mobile`", optional = true }`n[dev-dependencies]`nopenssl = `"0.10`""
+                "crates/pod-client" = "[package]`nname = `"pod-client`"`n[target.'cfg(windows)'.dependencies]`nschannel = `"0.1`"`ntls = { package = `"tokio-native-tls`", version = `"0.3`" }" }
+       Expect = @("crates/pod-mobile [dependencies] daemon (package podd): pod-mobile must not depend on podd (the mobile endpoint gets typed callbacks, not the daemon, the full pipe client or the app)",
+                  "crates/pod-mobile [dependencies] podd (package pod-client): pod-mobile must not depend on pod-client (the mobile endpoint gets typed callbacks, not the daemon, the full pipe client or the app)",
+                  "crates/pod-mobile [target.'cfg(windows)'.dev-dependencies] pod-app: pod-mobile must not depend on pod-app (the mobile endpoint gets typed callbacks, not the daemon, the full pipe client or the app)",
+                  "crates/pod-mobile [target.'cfg(windows)'.dev-dependencies] ui (package gpui-kit): pod-mobile must not depend on gpui-kit (the mobile endpoint stays free of GPUI)",
+                  "crates/pod-mobile [build-dependencies.alacritty_terminal] alacritty_terminal: pod-mobile must not depend on alacritty_terminal (the mobile endpoint stays free of the terminal emulator)",
+                  "crates/pod-mobile [target.'cfg(target_os = `"linux`")'.dependencies] rustls: pod-mobile must not depend on rustls (the mobile endpoint uses the platform TLS and crypto only)",
+                  "crates/pod-mobile [target.'cfg(target_os = `"linux`")'.dependencies] ring: pod-mobile must not depend on ring (the mobile endpoint uses the platform TLS and crypto only)",
+                  "crates/pod-mobile [target.'cfg(target_os = `"linux`")'.dependencies] openssl-src: pod-mobile must not depend on openssl-src (the mobile endpoint uses the platform TLS and crypto only)",
+                  "crates/pod-protocol [dependencies] mobile (package pod-mobile): pod-protocol must not depend on pod-mobile ($wire the mobile runtime and TLS)",
+                  "crates/pod-protocol [dev-dependencies] openssl: pod-protocol must not depend on openssl ($wire the mobile runtime and TLS)",
+                  "crates/pod-client [target.'cfg(windows)'.dependencies] schannel: pod-client must not depend on schannel ($wire the mobile runtime and TLS)",
+                  "crates/pod-client [target.'cfg(windows)'.dependencies] tls (package tokio-native-tls): pod-client must not depend on tokio-native-tls ($wire the mobile runtime and TLS)") },
     @{ Name = "a crate a rule names is no longer a member"
        Ws = New-Ws @($all | Where-Object { $_ -ne "crates/pod-client" -and $_ -ne "crates/pod-remote" }) @($shipped | Where-Object { $_ -ne "crates/pod-client" -and $_ -ne "crates/pod-remote" })
        Set = @{}
@@ -360,4 +393,4 @@ if ($SelfTest) {
 
 $r = Test-Boundaries (Resolve-Path $Root).Path
 if ($r.Fail.Count -gt 0) { $r.Fail | ForEach-Object { Write-Output "FAIL: $_" }; exit 1 }
-Write-Output "crate boundaries ok ($($r.Members) members; test-support dev-only, leaf crates without workspace deps, spikes outside defaults, forbidden edges absent: editor->forge, app/cli/remote->podd, protocol/client->podd/GPUI/alacritty/tokio server)"
+Write-Output "crate boundaries ok ($($r.Members) members; test-support dev-only, leaf crates without workspace deps, spikes outside defaults, forbidden edges absent: editor->forge, app/cli/remote->podd, protocol/client->podd/GPUI/alacritty/tokio server/mobile/TLS, mobile->podd/client/app/GPUI/alacritty/Rust TLS)"

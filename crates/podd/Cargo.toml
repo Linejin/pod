@@ -26,7 +26,12 @@ required-features = ["server"]
 # client side re-exported from pod-client; the app, CLI and remote crates
 # depend on pod-client itself (docs/20-refactor/daemon.md §2, card D-T1).
 default = ["server"]
-server = ["dep:tokio", "dep:alacritty_terminal", "dep:pod-status", "dep:sha2", "dep:toml", "dep:pod-process", "dep:pod-storage", "pod-mods/runtime"]
+server = ["dep:tokio", "dep:alacritty_terminal", "dep:pod-status", "dep:sha2", "dep:toml", "dep:pod-process", "dep:pod-storage", "dep:pod-mobile", "pod-mods/runtime"]
+# docs/23 section 2: the mobile LAN endpoint, off by default (and off at run
+# time once built). Only this feature brings in pod-mobile's platform TLS:
+# SChannel + CNG on Windows, the system OpenSSL 3 on Linux
+# (docs/mobile-m2/dependencies.md). Without it there is no mobile listener.
+mobile-lan = ["server", "pod-mobile/mobile-lan"]
 
 [dependencies]
 anyhow = "1"
@@ -60,6 +65,9 @@ pod-discover = { path = "../pod-discover" }
 # repo config) and the temporary-file + rename JSON write (discovery cache).
 pod-process = { path = "../pod-process", optional = true }
 pod-storage = { path = "../pod-storage", optional = true }
+# Mobile endpoint pieces (docs/23), daemon side only (`server`): the TLS seam
+# types. Without `mobile-lan` it has no third-party dependency and no TLS.
+pod-mobile = { path = "../pod-mobile", optional = true }
 # Pipes, Job Objects and tokens of the server side. Not optional, as before
 # the client side (`detach`, `transport`) moved to pod-client (card D-T1).
 windows-sys = { version = "0.61", features = [
