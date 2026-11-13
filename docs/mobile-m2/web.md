@@ -18,7 +18,7 @@ native 소유다. JS에는 키나 토큰을 주지 않는다. 메시지 코멘�
 ```powershell
 powershell -NoProfile -ExecutionPolicy Bypass -File tools/check-mobile-assets.ps1 -SelfTest
 powershell -NoProfile -ExecutionPolicy Bypass -File tools/check-mobile-assets.ps1
-node --test mobile/tests/
+node --test mobile/tests/security.test.mjs
 ```
 
 Node 내장 모듈과 설치된 Microsoft Edge만 사용하며 다운로드는 없다.

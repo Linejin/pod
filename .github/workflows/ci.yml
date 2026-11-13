@@ -61,7 +61,9 @@ jobs:
           if ($LASTEXITCODE -ne 0) { throw "mobile asset self-test failed" }
           powershell -NoProfile -ExecutionPolicy Bypass -File tools/check-mobile-assets.ps1
           if ($LASTEXITCODE -ne 0) { throw "mobile assets failed" }
-          node --test mobile/tests/
+          # A file, not the directory: Node 22 (the runner's) resolves a
+          # directory argument as a module instead of searching it.
+          node --test mobile/tests/security.test.mjs
           if ($LASTEXITCODE -ne 0) { throw "mobile Edge security failed" }
 
       - name: cargo fmt --check
