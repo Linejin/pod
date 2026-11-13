@@ -172,18 +172,36 @@ impl Daemon {
     }
 
     pub(super) fn orch_config_set(&self, s: OrchSettings) -> Result<OrchSettings, RpcError> {
-        let mut c = self.runs.config.lock().unwrap_or_else(|e| e.into_inner());
-        let out = c
-            .set(&self.runs.state_dir, &s)
-            .map_err(|e| RpcError::new(codes::INVALID_PARAMS, e))?;
-        // The per-run worker cap belongs to `orch.limits`: keep the engine's.
-        let mut o = self.orch();
-        o.limits = pod_orch::engine::Limits {
-            run_worker_cap: o.limits.run_worker_cap,
-            ..c.limits
-        };
-        Ok(out)
+        set_config(&self.runs, &s, || {})
     }
+}
+
+/// The caller holds `ops`, serializing config writers (including the temporary
+/// file). Save a private copy without either state lock; failed saves leave the
+/// effective settings untouched. Publication takes engine -> config, the same
+/// order used by worker completion/loss when consulting the release policy.
+fn set_config(
+    runs: &OrchRuns,
+    s: &OrchSettings,
+    before_publish: impl FnOnce(),
+) -> Result<OrchSettings, RpcError> {
+    let mut c = runs
+        .config
+        .lock()
+        .unwrap_or_else(|e| e.into_inner())
+        .clone();
+    let out = c
+        .set(&runs.state_dir, s)
+        .map_err(|e| RpcError::new(codes::INVALID_PARAMS, e))?;
+    before_publish();
+    let mut o = runs.engine.lock().unwrap();
+    // The per-run worker cap belongs to `orch.limits`: keep the engine's.
+    o.limits = pod_orch::engine::Limits {
+        run_worker_cap: o.limits.run_worker_cap,
+        ..c.limits
+    };
+    *runs.config.lock().unwrap_or_else(|e| e.into_inner()) = c;
+    Ok(out)
 }
 
 #[cfg(test)]
@@ -191,6 +209,66 @@ mod tests {
     use super::super::records::run_info;
     use super::*;
     use pod_orch::engine::NewMail;
+
+    #[test]
+    fn config_publication_does_not_block_engine_holder_reading_release_policy() {
+        use std::sync::{Arc, Barrier, mpsc};
+        use std::time::Duration;
+
+        let dir = std::env::temp_dir().join(format!(
+            "podd-config-locks-{}-{}",
+            std::process::id(),
+            crate::now_ms()
+        ));
+        let runs = Arc::new(OrchRuns::load(&dir));
+        // Do not inherit a developer's environment-pinned timings in this test.
+        *runs.config.lock().unwrap() = OrchConfig::default();
+        let settings = OrchSettings {
+            release_after_min: Some(7),
+            max_depth: 2,
+            ..OrchConfig::default().settings()
+        };
+        let mut engine = runs.engine.lock().unwrap();
+        engine.limits.run_worker_cap = 17;
+        let saved = Arc::new(Barrier::new(2));
+        let (done_tx, done_rx) = mpsc::channel();
+        let writer = {
+            let runs = runs.clone();
+            let saved = saved.clone();
+            std::thread::spawn(move || {
+                let _ops = runs.ops.blocking_lock();
+                let result = set_config(&runs, &settings, || {
+                    saved.wait();
+                });
+                done_tx.send(result).unwrap();
+            })
+        };
+        // The writer has saved, and is about to wait for our engine lock.
+        saved.wait();
+        let config = runs
+            .config
+            .try_lock()
+            .expect("writer must release config before waiting for engine");
+        assert_eq!(release_ms(&config), Some(600_000));
+        drop(config);
+        drop(engine);
+        assert_eq!(
+            done_rx
+                .recv_timeout(Duration::from_secs(5))
+                .unwrap()
+                .unwrap()
+                .max_depth,
+            2
+        );
+        writer.join().unwrap();
+        // A following supervisor-style pass can take engine -> config again.
+        let engine = runs.engine.lock().unwrap();
+        assert_eq!(engine.limits.run_worker_cap, 17);
+        assert_eq!(engine.limits.max_depth, 2);
+        assert_eq!(release_ms(&runs.config.lock().unwrap()), Some(420_000));
+        drop(engine);
+        let _ = std::fs::remove_dir_all(dir);
+    }
 
     /// orch-02 (app part): the time of an unconfirmed wake-up is reported
     /// while the engine counts it open, kept from the first miss, and gone
