@@ -66,6 +66,8 @@ Pod는 Claude Code·Codex 같은 터미널 에이전트를 작업(git worktree)�
 | [21 확장 가이드](docs/21-extending.md) | 리팩터 후 RPC·데몬 도메인·레이아웃·설정 패널 추가와 검증 |
 | [22 위협 모델](docs/22-threat-model.md) | 원격·모바일·에이전트 신뢰 경계, 단계별 완화와 검증 |
 | [23 모바일 M2](docs/23-mobile-m2.md) | LAN TLS·QR·제한 API·로컬 웹 화면·라이선스 gate와 구현 카드 |
+| [24 개선 과제와 기능 로드맵](docs/24-improvements.md) | 안정성·품질 개선, 기능 제안 15개, 우선순위·선행 조건·완료 기준 |
+| [25 개선 작업 실행 기록](docs/25-improvement-execution.md) | 독립 통합 브랜치, 워커별 소유 범위, 검증·통합 기록 |
 
 기여 방법은 [CONTRIBUTING.md](CONTRIBUTING.md), 보안 문제 보고는 [SECURITY.md](SECURITY.md).
 
