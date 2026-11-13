@@ -53,6 +53,9 @@ jobs:
       - name: Bundled ConPTY (pinned version and SHA-256)
         run: powershell -NoProfile -ExecutionPolicy Bypass -File tools/fetch-conpty.ps1
 
+      - name: Installer signing checks (no signing credentials)
+        run: powershell -NoProfile -File tools/installer/test-signing.ps1
+
       - name: cargo clippy
         run: cargo clippy --workspace --exclude pod-spike --exclude diff-spike --all-targets --locked -- -D warnings
 

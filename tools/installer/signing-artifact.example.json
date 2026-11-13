@@ -1,0 +1,6 @@
+{
+  "Provider": "ArtifactSigning",
+  "DlibPath": "C:\\signing-tools\\bin\\x64\\Azure.CodeSigning.Dlib.dll",
+  "MetadataPath": "C:\\signing-config\\metadata.json",
+  "TimestampUrl": "http://timestamp.acs.microsoft.com"
+}

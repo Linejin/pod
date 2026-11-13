@@ -27,6 +27,8 @@ AppPublisher=Linejin
 AppComments=에이전트 코딩 IDE (Claude Code · Codex)
 VersionInfoVersion={#FileVersion}
 VersionInfoProductName=Pod
+; Match the payload's workspace version even for a dev-labelled installer.
+VersionInfoProductVersion={#FileVersion}
 VersionInfoDescription=Pod 설치 프로그램
 ; Per-user: %LOCALAPPDATA%\Programs\Pod, HKCU only, never elevates.
 PrivilegesRequired=lowest
@@ -56,6 +58,14 @@ UninstallDisplayIcon={app}\pod-app.exe
 UninstallDisplayName=Pod
 UsePreviousTasks=yes
 SetupLogging=yes
+#ifdef PodSigned
+; Inno must sign its internal setup copies as well as the final EXE.
+SignTool=PodReleaseSign
+SignedUninstaller=yes
+SignedUninstallerDir={#SignedOutputDir}
+#else
+SignedUninstaller=no
+#endif
 
 [Languages]
 Name: "korean"; MessagesFile: "compiler:Languages\Korean.isl"

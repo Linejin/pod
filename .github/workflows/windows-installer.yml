@@ -1,0 +1,94 @@
+# OSS bootstrap: no signing account, certificate, secret or approval required.
+# Manual or this dedicated build branch only. No public release is created.
+name: windows-installer-unsigned
+
+on:
+  push:
+    branches: [SJin-Choi/pod-signed-installer]
+  workflow_dispatch:
+    inputs:
+      release:
+        description: 'Use release version (requires clean HEAD tagged v<workspace version>; still UNSIGNED)'
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+jobs:
+  package:
+    runs-on: windows-2022
+    timeout-minutes: 120
+    env:
+      CARGO_INCREMENTAL: 0
+      POD_RELEASE: ${{ inputs.release }}
+    defaults:
+      run:
+        shell: powershell
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: dtolnay/rust-toolchain@1.100.0
+      - uses: Swatinem/rust-cache@v2
+        with:
+          key: windows-installer-release
+
+      - name: Prepare pinned packaging tools
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $dir = Join-Path $env:RUNNER_TEMP 'pod-packaging-tools'
+          New-Item -ItemType Directory -Path $dir -Force | Out-Null
+          $installer = Join-Path $dir 'innosetup-6.7.3.exe'
+          Invoke-WebRequest -UseBasicParsing 'https://github.com/jrsoftware/issrc/releases/download/is-6_7_3/innosetup-6.7.3.exe' -OutFile $installer
+          if ((Get-FileHash $installer -Algorithm SHA256).Hash -ne '9C73C3BAE7ED48D44112A0F48E66742C00090BDB5BEF71D9D3C056C66E97B732') { throw 'Inno Setup SHA256 mismatch' }
+          if ((Get-AuthenticodeSignature $installer).Status -ne 'Valid') { throw 'Inno Setup signature invalid' }
+          $innoDir = Join-Path $dir 'Inno Setup 6'
+          $process = Start-Process -FilePath $installer -ArgumentList @('/VERYSILENT','/SUPPRESSMSGBOXES','/NORESTART',('/DIR="' + $innoDir + '"')) -WindowStyle Hidden -Wait -PassThru
+          if ($process.ExitCode -ne 0) { throw "Inno Setup install failed: $($process.ExitCode)" }
+          "ISCC=$(Join-Path $innoDir 'ISCC.exe')" | Out-File $env:GITHUB_ENV -Append -Encoding utf8
+          cargo install cargo-deny --version 0.20.2 --locked
+          if ($LASTEXITCODE -ne 0) { throw 'cargo-deny installation failed' }
+
+      - name: Build unsigned installer, ZIP and SignPath application inputs
+        run: |
+          $ErrorActionPreference = 'Stop'
+          powershell -NoProfile -File tools/installer/build.ps1 -CheckPrerequisites -Unsigned
+          if ($LASTEXITCODE -ne 0) { throw 'Packaging preflight failed' }
+          powershell -NoProfile -File tools/fetch-conpty.ps1
+          if ($LASTEXITCODE -ne 0) { throw 'ConPTY fetch failed' }
+          powershell -NoProfile -File tools/installer/test-signing.ps1
+          if ($LASTEXITCODE -ne 0) { throw 'Signing tests failed' }
+          $arguments = @('-NoProfile','-File','tools/installer/build.ps1','-NoCpuGate','-Unsigned')
+          if ($env:POD_RELEASE -eq 'true') { $arguments += '-Release' }
+          & powershell @arguments
+          if ($LASTEXITCODE -ne 0) { throw 'Unsigned packaging failed' }
+          $labelArgs = @('-NoProfile','-File','tools/installer/build.ps1','-PrintVersion')
+          if ($env:POD_RELEASE -eq 'true') { $labelArgs += '-Release' }
+          $label = (& powershell @labelArgs).Trim()
+          if ($LASTEXITCODE -ne 0) { throw 'Cannot determine build label' }
+          powershell -NoProfile -File tools/installer/prepare-signpath.ps1 -Stage "dist/stage/Pod-$label"
+          if ($LASTEXITCODE -ne 0) { throw 'SignPath input preparation failed' }
+          $readiness = Get-Content dist/signpath-input/readiness.json -Raw | ConvertFrom-Json
+          "POD_VERSION=$($readiness.Version)" | Out-File $env:GITHUB_ENV -Append -Encoding utf8
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: pod-windows-UNSIGNED-${{ github.sha }}
+          if-no-files-found: error
+          retention-days: 30
+          path: |
+            dist/Pod-Setup-*-x64.exe
+            dist/Pod-*-x64-portable.zip
+            dist/SHA256SUMS.txt
+            dist/signpath-input/readiness.json
+
+      # Separate artifact ID for a future approved request. No submission here.
+      - uses: actions/upload-artifact@v4
+        id: unsigned-payload
+        with:
+          name: pod-signpath-input-UNSIGNED-${{ github.sha }}
+          if-no-files-found: error
+          retention-days: 30
+          path: dist/signpath-input/*.exe

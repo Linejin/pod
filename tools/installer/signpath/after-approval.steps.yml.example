@@ -1,0 +1,33 @@
+# NOT an executable workflow. After approval, review/pin action commits and insert
+# these steps into the SAME GitHub-hosted build job after unsigned-payload upload.
+# This signs payload only; it DOES NOT complete signed Inno Setup packaging.
+# Set job permissions to contents:read + actions:read. Configure mandatory manual
+# approval in SignPath itself, not just a GitHub environment gate. POD_VERSION
+# comes from prepare-signpath's workspace version in the unsigned build job.
+- name: Require validated product metadata before submission
+  shell: powershell
+  run: |
+    $ready = Get-Content dist/signpath-input/readiness.json -Raw | ConvertFrom-Json
+    if (-not $ready.MetadataReady -or $ready.Version -ne $env:POD_VERSION) { throw 'Pod product metadata is not ready for signing' }
+- name: Submit Pod payload after Foundation approval
+  uses: signpath/github-action-submit-signing-request@v3
+  with:
+    api-token: ${{ secrets.SIGNPATH_API_TOKEN }}
+    organization-id: ${{ vars.SIGNPATH_ORGANIZATION_ID }}
+    project-slug: ${{ vars.SIGNPATH_PROJECT_SLUG }}
+    signing-policy-slug: ${{ vars.SIGNPATH_SIGNING_POLICY_SLUG }}
+    artifact-configuration-slug: ${{ vars.SIGNPATH_PAYLOAD_CONFIGURATION_SLUG }}
+    github-artifact-id: ${{ steps.unsigned-payload.outputs.artifact-id }}
+    wait-for-completion: true
+    wait-for-completion-timeout-in-seconds: 3600
+    output-artifact-directory: dist/signpath-returned
+    parameters: |
+      version: ${{ toJSON(env.POD_VERSION) }}
+- name: Verify returned payload (not a completed installer)
+  shell: powershell
+  run: |
+    $ErrorActionPreference = 'Stop'
+    foreach ($name in 'pod-app.exe','podd.exe','pod-holder.exe','pod.exe','pod-hook.exe') {
+      powershell -NoProfile -File tools/installer/sign.ps1 -Action Verify -Path "dist/signpath-returned/$name"
+      if ($LASTEXITCODE -ne 0) { throw "Returned signature invalid: $name" }
+    }
