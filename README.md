@@ -68,6 +68,8 @@ Pod는 Claude Code·Codex 같은 터미널 에이전트를 작업(git worktree)�
 | [23 모바일 M2](docs/23-mobile-m2.md) | LAN TLS·QR·제한 API·로컬 웹 화면·라이선스 gate와 구현 카드 |
 | [24 개선 과제와 기능 로드맵](docs/24-improvements.md) | 안정성·품질 개선, 기능 제안 15개, 우선순위·선행 조건·완료 기준 |
 | [25 개선 작업 실행 기록](docs/25-improvement-execution.md) | 독립 통합 브랜치, 워커별 소유 범위, 검증·통합 기록 |
+| [26 기능 목록과 검증 계획](docs/26-feature-validation.md) | 현재 기능별 검증 절차·통과 기준, 자동 시험·실제 UI·외부 연동, 검증·수정 루프 입력 |
+| [27 기능 검증과 수정 실행 결과](docs/27-feature-validation-results.md) | 91개 기능의 실제 검사·실패 수정·재검증과 미실행 범위 |
 
 기여 방법은 [CONTRIBUTING.md](CONTRIBUTING.md), 보안 문제 보고는 [SECURITY.md](SECURITY.md).
 

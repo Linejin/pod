@@ -1,0 +1,1125 @@
+﻿{
+    "run":  "2026-11-18-01",
+    "source_commit":  "fd9a1f04f66864cdeadfe41bc703ad3a02cf5792",
+    "branch":  "improvements/stability-foundation",
+    "status":  "IN_PROGRESS",
+    "started_at":  "2026-11-17T23:58:48.9180096Z",
+    "timezone":  "Asia/Seoul",
+    "features":  [
+                     {
+                         "feature_id":  "SYS01",
+                         "feature":  "사용자별 EXE 설치, PATH·바로가기",
+                         "overall_status":  "NOT_RUN",
+                         "cases":  [
+
+                                   ],
+                         "notes":  [
+
+                                   ]
+                     },
+                     {
+                         "feature_id":  "SYS02",
+                         "feature":  "포터블 ZIP",
+                         "overall_status":  "NOT_RUN",
+                         "cases":  [
+
+                                   ],
+                         "notes":  [
+
+                                   ]
+                     },
+                     {
+                         "feature_id":  "SYS03",
+                         "feature":  "실행 중 업그레이드",
+                         "overall_status":  "NOT_RUN",
+                         "cases":  [
+
+                                   ],
+                         "notes":  [
+
+                                   ]
+                     },
+                     {
+                         "feature_id":  "SYS04",
+                         "feature":  "제거와 데이터 보존 선택",
+                         "overall_status":  "NOT_RUN",
+                         "cases":  [
+
+                                   ],
+                         "notes":  [
+
+                                   ]
+                     },
+                     {
+                         "feature_id":  "SYS05",
+                         "feature":  "서명·패키지 무결성",
+                         "overall_status":  "NOT_RUN",
+                         "cases":  [
+
+                                   ],
+                         "notes":  [
+
+                                   ]
+                     },
+                     {
+                         "feature_id":  "SYS06",
+                         "feature":  "daemon 시작·상태·중지",
+                         "overall_status":  "NOT_RUN",
+                         "cases":  [
+
+                                   ],
+                         "notes":  [
+
+                                   ]
+                     },
+                     {
+                         "feature_id":  "SYS07",
+                         "feature":  "CLI 텍스트·JSON·종료 코드와 가이드",
+                         "overall_status":  "NOT_RUN",
+                         "cases":  [
+
+                                   ],
+                         "notes":  [
+
+                                   ]
+                     },
+                     {
+                         "feature_id":  "SYS08",
+                         "feature":  "프로토콜 버전·클라이언트 호환",
+                         "overall_status":  "NOT_RUN",
+                         "cases":  [
+
+                                   ],
+                         "notes":  [
+
+                                   ]
+                     },
+                     {
+                         "feature_id":  "TASK01",
+                         "feature":  "저장소 등록·목록·등록 해제",
+                         "overall_status":  "NOT_RUN",
+                         "cases":  [
+
+                                   ],
+                         "notes":  [
+
+                                   ]
+                     },
+                     {
+                         "feature_id":  "TASK02",
+                         "feature":  "이름·기준 ref·worktree 생성",
+                         "overall_status":  "NOT_RUN",
+                         "cases":  [
+
+                                   ],
+                         "notes":  [
+
+                                   ]
+                     },
+                     {
+                         "feature_id":  "TASK03",
+                         "feature":  "agent 선택·인자·브리프 전달",
+                         "overall_status":  "NOT_RUN",
+                         "cases":  [
+
+                                   ],
+                         "notes":  [
+
+                                   ]
+                     },
+                     {
+                         "feature_id":  "TASK04",
+                         "feature":  "저장소 설정·개인 override·신뢰",
+                         "overall_status":  "NOT_RUN",
+                         "cases":  [
+
+                                   ],
+                         "notes":  [
+
+                                   ]
+                     },
+                     {
+                         "feature_id":  "TASK05",
+                         "feature":  "setup·기본 탭·순차 시작",
+                         "overall_status":  "NOT_RUN",
+                         "cases":  [
+
+                                   ],
+                         "notes":  [
+
+                                   ]
+                     },
+                     {
+                         "feature_id":  "TASK06",
+                         "feature":  "sparse checkout",
+                         "overall_status":  "NOT_RUN",
+                         "cases":  [
+
+                                   ],
+                         "notes":  [
+
+                                   ]
+                     },
+                     {
+                         "feature_id":  "TASK07",
+                         "feature":  "Task 목록·git 사실·touch",
+                         "overall_status":  "NOT_RUN",
+                         "cases":  [
+
+                                   ],
+                         "notes":  [
+
+                                   ]
+                     },
+                     {
+                         "feature_id":  "TASK08",
+                         "feature":  "보관·보관 해제·agent 재개",
+                         "overall_status":  "NOT_RUN",
+                         "cases":  [
+
+                                   ],
+                         "notes":  [
+
+                                   ]
+                     },
+                     {
+                         "feature_id":  "TASK09",
+                         "feature":  "정리 등급과 안전한 삭제",
+                         "overall_status":  "NOT_RUN",
+                         "cases":  [
+
+                                   ],
+                         "notes":  [
+
+                                   ]
+                     },
+                     {
+                         "feature_id":  "TERM01",
+                         "feature":  "프로세스 실행·목록·부모 트리",
+                         "overall_status":  "NOT_RUN",
+                         "cases":  [
+
+                                   ],
+                         "notes":  [
+
+                                   ]
+                     },
+                     {
+                         "feature_id":  "TERM02",
+                         "feature":  "텍스트·키 전송·실제 제출",
+                         "overall_status":  "NOT_RUN",
+                         "cases":  [
+
+                                   ],
+                         "notes":  [
+
+                                   ]
+                     },
+                     {
+                         "feature_id":  "TERM03",
+                         "feature":  "화면·scrollback·출력 대기",
+                         "overall_status":  "NOT_RUN",
+                         "cases":  [
+
+                                   ],
+                         "notes":  [
+
+                                   ]
+                     },
+                     {
+                         "feature_id":  "TERM04",
+                         "feature":  "attach·detach·다중 뷰",
+                         "overall_status":  "NOT_RUN",
+                         "cases":  [
+
+                                   ],
+                         "notes":  [
+
+                                   ]
+                     },
+                     {
+                         "feature_id":  "TERM05",
+                         "feature":  "resize·렌더링·마우스 보고",
+                         "overall_status":  "NOT_RUN",
+                         "cases":  [
+
+                                   ],
+                         "notes":  [
+
+                                   ]
+                     },
+                     {
+                         "feature_id":  "TERM06",
+                         "feature":  "선택·복사·붙여넣기·링크 이동",
+                         "overall_status":  "NOT_RUN",
+                         "cases":  [
+
+                                   ],
+                         "notes":  [
+
+                                   ]
+                     },
+                     {
+                         "feature_id":  "TERM07",
+                         "feature":  "한글 IME·넓은 글자·폰트",
+                         "overall_status":  "NOT_RUN",
+                         "cases":  [
+
+                                   ],
+                         "notes":  [
+
+                                   ]
+                     },
+                     {
+                         "feature_id":  "TERM08",
+                         "feature":  "kill·rm·종료 터미널 보존",
+                         "overall_status":  "NOT_RUN",
+                         "cases":  [
+
+                                   ],
+                         "notes":  [
+
+                                   ]
+                     },
+                     {
+                         "feature_id":  "TERM09",
+                         "feature":  "앱·daemon 재시작과 holder 재발견",
+                         "overall_status":  "NOT_RUN",
+                         "cases":  [
+
+                                   ],
+                         "notes":  [
+
+                                   ]
+                     },
+                     {
+                         "feature_id":  "STATE01",
+                         "feature":  "훅·OSC·휴리스틱 상태와 출처",
+                         "overall_status":  "NOT_RUN",
+                         "cases":  [
+
+                                   ],
+                         "notes":  [
+
+                                   ]
+                     },
+                     {
+                         "feature_id":  "STATE02",
+                         "feature":  "훅 설치·상태·제거와 격리",
+                         "overall_status":  "NOT_RUN",
+                         "cases":  [
+
+                                   ],
+                         "notes":  [
+
+                                   ]
+                     },
+                     {
+                         "feature_id":  "STATE03",
+                         "feature":  "실제 agent 승인·질문·취소 상태",
+                         "overall_status":  "NOT_RUN",
+                         "cases":  [
+
+                                   ],
+                         "notes":  [
+
+                                   ]
+                     },
+                     {
+                         "feature_id":  "STATE04",
+                         "feature":  "청크와 무관한 완료 턴 기록",
+                         "overall_status":  "NOT_RUN",
+                         "cases":  [
+
+                                   ],
+                         "notes":  [
+
+                                   ]
+                     },
+                     {
+                         "feature_id":  "UI01",
+                         "feature":  "저장소·Task·터미널 사이드바와 필터",
+                         "overall_status":  "NOT_RUN",
+                         "cases":  [
+
+                                   ],
+                         "notes":  [
+
+                                   ]
+                     },
+                     {
+                         "feature_id":  "UI02",
+                         "feature":  "패널 열기·분할·복제·이름·닫기",
+                         "overall_status":  "NOT_RUN",
+                         "cases":  [
+
+                                   ],
+                         "notes":  [
+
+                                   ]
+                     },
+                     {
+                         "feature_id":  "UI03",
+                         "feature":  "레이아웃 저장·복원",
+                         "overall_status":  "NOT_RUN",
+                         "cases":  [
+
+                                   ],
+                         "notes":  [
+
+                                   ]
+                     },
+                     {
+                         "feature_id":  "UI04",
+                         "feature":  "7종 레이아웃과 테마",
+                         "overall_status":  "NOT_RUN",
+                         "cases":  [
+
+                                   ],
+                         "notes":  [
+
+                                   ]
+                     },
+                     {
+                         "feature_id":  "UI05",
+                         "feature":  "설정 버튼·설정 저장",
+                         "overall_status":  "NOT_RUN",
+                         "cases":  [
+
+                                   ],
+                         "notes":  [
+
+                                   ]
+                     },
+                     {
+                         "feature_id":  "UI06",
+                         "feature":  "팔레트·단축키·모달·포커스",
+                         "overall_status":  "NOT_RUN",
+                         "cases":  [
+
+                                   ],
+                         "notes":  [
+
+                                   ]
+                     },
+                     {
+                         "feature_id":  "UI07",
+                         "feature":  "알림·응답함·완료 확인",
+                         "overall_status":  "NOT_RUN",
+                         "cases":  [
+
+                                   ],
+                         "notes":  [
+
+                                   ]
+                     },
+                     {
+                         "feature_id":  "UI08",
+                         "feature":  "DPI·작은 창·접근성",
+                         "overall_status":  "NOT_RUN",
+                         "cases":  [
+
+                                   ],
+                         "notes":  [
+
+                                   ]
+                     },
+                     {
+                         "feature_id":  "EDIT01",
+                         "feature":  "파일 트리·생성·삭제·이름 변경",
+                         "overall_status":  "NOT_RUN",
+                         "cases":  [
+
+                                   ],
+                         "notes":  [
+
+                                   ]
+                     },
+                     {
+                         "feature_id":  "EDIT02",
+                         "feature":  "파일 색인·빠른 열기·줄 이동",
+                         "overall_status":  "NOT_RUN",
+                         "cases":  [
+
+                                   ],
+                         "notes":  [
+
+                                   ]
+                     },
+                     {
+                         "feature_id":  "EDIT03",
+                         "feature":  "탭·미리 보기·고정·MRU·재열기",
+                         "overall_status":  "NOT_RUN",
+                         "cases":  [
+
+                                   ],
+                         "notes":  [
+
+                                   ]
+                     },
+                     {
+                         "feature_id":  "EDIT04",
+                         "feature":  "코드 편집·강조·찾기·치환·undo",
+                         "overall_status":  "NOT_RUN",
+                         "cases":  [
+
+                                   ],
+                         "notes":  [
+
+                                   ]
+                     },
+                     {
+                         "feature_id":  "EDIT05",
+                         "feature":  "저장·전체 저장·인코딩·줄 끝",
+                         "overall_status":  "NOT_RUN",
+                         "cases":  [
+
+                                   ],
+                         "notes":  [
+
+                                   ]
+                     },
+                     {
+                         "feature_id":  "EDIT06",
+                         "feature":  "외부 변경·충돌·저장 실패",
+                         "overall_status":  "NOT_RUN",
+                         "cases":  [
+
+                                   ],
+                         "notes":  [
+
+                                   ]
+                     },
+                     {
+                         "feature_id":  "EDIT07",
+                         "feature":  "rename 이후 dirty·저장·LSP",
+                         "overall_status":  "NOT_RUN",
+                         "cases":  [
+
+                                   ],
+                         "notes":  [
+
+                                   ]
+                     },
+                     {
+                         "feature_id":  "EDIT08",
+                         "feature":  "탭·커서 복원과 LSP 지연 시작",
+                         "overall_status":  "NOT_RUN",
+                         "cases":  [
+
+                                   ],
+                         "notes":  [
+
+                                   ]
+                     },
+                     {
+                         "feature_id":  "LSP01",
+                         "feature":  "서버 설정·저장소 신뢰",
+                         "overall_status":  "NOT_RUN",
+                         "cases":  [
+
+                                   ],
+                         "notes":  [
+
+                                   ]
+                     },
+                     {
+                         "feature_id":  "LSP02",
+                         "feature":  "서버 시작·재시작·종료·상한",
+                         "overall_status":  "NOT_RUN",
+                         "cases":  [
+
+                                   ],
+                         "notes":  [
+
+                                   ]
+                     },
+                     {
+                         "feature_id":  "LSP03",
+                         "feature":  "문서 sync·진단·문자 위치",
+                         "overall_status":  "NOT_RUN",
+                         "cases":  [
+
+                                   ],
+                         "notes":  [
+
+                                   ]
+                     },
+                     {
+                         "feature_id":  "LSP04",
+                         "feature":  "완성·스니펫·hover·정의·참조",
+                         "overall_status":  "NOT_RUN",
+                         "cases":  [
+
+                                   ],
+                         "notes":  [
+
+                                   ]
+                     },
+                     {
+                         "feature_id":  "LSP05",
+                         "feature":  "심볼 rename·코드 액션·applyEdit",
+                         "overall_status":  "NOT_RUN",
+                         "cases":  [
+
+                                   ],
+                         "notes":  [
+
+                                   ]
+                     },
+                     {
+                         "feature_id":  "REVIEW01",
+                         "feature":  "변경 파일·diff·에디터 연결",
+                         "overall_status":  "NOT_RUN",
+                         "cases":  [
+
+                                   ],
+                         "notes":  [
+
+                                   ]
+                     },
+                     {
+                         "feature_id":  "REVIEW02",
+                         "feature":  "줄·범위 의견·해결·삭제·재열기",
+                         "overall_status":  "NOT_RUN",
+                         "cases":  [
+
+                                   ],
+                         "notes":  [
+
+                                   ]
+                     },
+                     {
+                         "feature_id":  "REVIEW03",
+                         "feature":  "미저장 초안과 저장 중 입력",
+                         "overall_status":  "NOT_RUN",
+                         "cases":  [
+
+                                   ],
+                         "notes":  [
+
+                                   ]
+                     },
+                     {
+                         "feature_id":  "REVIEW04",
+                         "feature":  "의견 전달·큐·취소·만료",
+                         "overall_status":  "NOT_RUN",
+                         "cases":  [
+
+                                   ],
+                         "notes":  [
+
+                                   ]
+                     },
+                     {
+                         "feature_id":  "GROUP01",
+                         "feature":  "같은 요청의 다중 agent 비교",
+                         "overall_status":  "NOT_RUN",
+                         "cases":  [
+
+                                   ],
+                         "notes":  [
+
+                                   ]
+                     },
+                     {
+                         "feature_id":  "GROUP02",
+                         "feature":  "멤버별 check 실행·중지·결과",
+                         "overall_status":  "NOT_RUN",
+                         "cases":  [
+
+                                   ],
+                         "notes":  [
+
+                                   ]
+                     },
+                     {
+                         "feature_id":  "GROUP03",
+                         "feature":  "승자 선택·나머지 정리·그룹 해제",
+                         "overall_status":  "NOT_RUN",
+                         "cases":  [
+
+                                   ],
+                         "notes":  [
+
+                                   ]
+                     },
+                     {
+                         "feature_id":  "GATE01",
+                         "feature":  "승인·거절·선택지·기한",
+                         "overall_status":  "NOT_RUN",
+                         "cases":  [
+
+                                   ],
+                         "notes":  [
+
+                                   ]
+                     },
+                     {
+                         "feature_id":  "GATE02",
+                         "feature":  "Gate 대기와 재시작",
+                         "overall_status":  "NOT_RUN",
+                         "cases":  [
+
+                                   ],
+                         "notes":  [
+
+                                   ]
+                     },
+                     {
+                         "feature_id":  "ORCH01",
+                         "feature":  "Run·Item·의존관계·조회",
+                         "overall_status":  "NOT_RUN",
+                         "cases":  [
+
+                                   ],
+                         "notes":  [
+
+                                   ]
+                     },
+                     {
+                         "feature_id":  "ORCH02",
+                         "feature":  "worker 시작·배치·부모·브리프",
+                         "overall_status":  "NOT_RUN",
+                         "cases":  [
+
+                                   ],
+                         "notes":  [
+
+                                   ]
+                     },
+                     {
+                         "feature_id":  "ORCH03",
+                         "feature":  "완료 보고·중복·재시도·generation",
+                         "overall_status":  "NOT_RUN",
+                         "cases":  [
+
+                                   ],
+                         "notes":  [
+
+                                   ]
+                     },
+                     {
+                         "feature_id":  "ORCH04",
+                         "feature":  "메일·그룹 주소·질문·응답·읽음",
+                         "overall_status":  "NOT_RUN",
+                         "cases":  [
+
+                                   ],
+                         "notes":  [
+
+                                   ]
+                     },
+                     {
+                         "feature_id":  "ORCH05",
+                         "feature":  "깨우기·전달 불확실·재시작",
+                         "overall_status":  "NOT_RUN",
+                         "cases":  [
+
+                                   ],
+                         "notes":  [
+
+                                   ]
+                     },
+                     {
+                         "feature_id":  "ORCH06",
+                         "feature":  "Run Gate·의존 차단·권한",
+                         "overall_status":  "NOT_RUN",
+                         "cases":  [
+
+                                   ],
+                         "notes":  [
+
+                                   ]
+                     },
+                     {
+                         "feature_id":  "ORCH07",
+                         "feature":  "동시성·CPU·메모리·디스크 큐",
+                         "overall_status":  "NOT_RUN",
+                         "cases":  [
+
+                                   ],
+                         "notes":  [
+
+                                   ]
+                     },
+                     {
+                         "feature_id":  "ORCH08",
+                         "feature":  "감독·대기·lost·회로 차단·중첩",
+                         "overall_status":  "NOT_RUN",
+                         "cases":  [
+
+                                   ],
+                         "notes":  [
+
+                                   ]
+                     },
+                     {
+                         "feature_id":  "ORCH09",
+                         "feature":  "keep·사람 입력·자동 release 경합",
+                         "overall_status":  "NOT_RUN",
+                         "cases":  [
+
+                                   ],
+                         "notes":  [
+
+                                   ]
+                     },
+                     {
+                         "feature_id":  "ORCH10",
+                         "feature":  "출력 archive·release·재시작 복구",
+                         "overall_status":  "NOT_RUN",
+                         "cases":  [
+
+                                   ],
+                         "notes":  [
+
+                                   ]
+                     },
+                     {
+                         "feature_id":  "ORCH11",
+                         "feature":  "설정·limits·영속 상태",
+                         "overall_status":  "NOT_RUN",
+                         "cases":  [
+
+                                   ],
+                         "notes":  [
+
+                                   ]
+                     },
+                     {
+                         "feature_id":  "ORCH12",
+                         "feature":  "worker endpoint·token·허용 커밋",
+                         "overall_status":  "NOT_RUN",
+                         "cases":  [
+
+                                   ],
+                         "notes":  [
+
+                                   ]
+                     },
+                     {
+                         "feature_id":  "ORCH13",
+                         "feature":  "다른 worker 기다리기·정리 UI",
+                         "overall_status":  "NOT_RUN",
+                         "cases":  [
+
+                                   ],
+                         "notes":  [
+
+                                   ]
+                     },
+                     {
+                         "feature_id":  "ORCH14",
+                         "feature":  "worker stop·abandon·수동 release",
+                         "overall_status":  "NOT_RUN",
+                         "cases":  [
+
+                                   ],
+                         "notes":  [
+
+                                   ]
+                     },
+                     {
+                         "feature_id":  "PR01",
+                         "feature":  "원격 인식·상태·checks·리뷰 결정",
+                         "overall_status":  "NOT_RUN",
+                         "cases":  [
+
+                                   ],
+                         "notes":  [
+
+                                   ]
+                     },
+                     {
+                         "feature_id":  "PR02",
+                         "feature":  "작업 브랜치 push·PR 초안 생성·열기",
+                         "overall_status":  "NOT_RUN",
+                         "cases":  [
+
+                                   ],
+                         "notes":  [
+
+                                   ]
+                     },
+                     {
+                         "feature_id":  "PR03",
+                         "feature":  "merge 방식·확인·실패 처리",
+                         "overall_status":  "NOT_RUN",
+                         "cases":  [
+
+                                   ],
+                         "notes":  [
+
+                                   ]
+                     },
+                     {
+                         "feature_id":  "MOD01",
+                         "feature":  "모드 목록·설치 경로·enable·reload",
+                         "overall_status":  "NOT_RUN",
+                         "cases":  [
+
+                                   ],
+                         "notes":  [
+
+                                   ]
+                     },
+                     {
+                         "feature_id":  "MOD02",
+                         "feature":  "JS sandbox·타이머·예산·오류 격리",
+                         "overall_status":  "NOT_RUN",
+                         "cases":  [
+
+                                   ],
+                         "notes":  [
+
+                                   ]
+                     },
+                     {
+                         "feature_id":  "MOD03",
+                         "feature":  "상태 detector·알림·레이아웃 preset",
+                         "overall_status":  "NOT_RUN",
+                         "cases":  [
+
+                                   ],
+                         "notes":  [
+
+                                   ]
+                     },
+                     {
+                         "feature_id":  "MOD04",
+                         "feature":  "모드 명령·터미널 전송·check·Gate",
+                         "overall_status":  "NOT_RUN",
+                         "cases":  [
+
+                                   ],
+                         "notes":  [
+
+                                   ]
+                     },
+                     {
+                         "feature_id":  "DISC01",
+                         "feature":  "외부 Claude·Codex 세션 탐색",
+                         "overall_status":  "NOT_RUN",
+                         "cases":  [
+
+                                   ],
+                         "notes":  [
+
+                                   ]
+                     },
+                     {
+                         "feature_id":  "DISC02",
+                         "feature":  "세션 연결·저장소 등록·숨김",
+                         "overall_status":  "NOT_RUN",
+                         "cases":  [
+
+                                   ],
+                         "notes":  [
+
+                                   ]
+                     },
+                     {
+                         "feature_id":  "DISC03",
+                         "feature":  "외부 세션 재개·실행 중 보호",
+                         "overall_status":  "NOT_RUN",
+                         "cases":  [
+
+                                   ],
+                         "notes":  [
+
+                                   ]
+                     },
+                     {
+                         "feature_id":  "REMOTE01",
+                         "feature":  "머신 프로필·연결·오류 진단",
+                         "overall_status":  "NOT_RUN",
+                         "cases":  [
+
+                                   ],
+                         "notes":  [
+
+                                   ]
+                     },
+                     {
+                         "feature_id":  "REMOTE02",
+                         "feature":  "stdio 전송·프레이밍·버전·backpressure",
+                         "overall_status":  "NOT_RUN",
+                         "cases":  [
+
+                                   ],
+                         "notes":  [
+
+                                   ]
+                     },
+                     {
+                         "feature_id":  "REMOTE03",
+                         "feature":  "원격 attach·재접속·입력 중복 방지",
+                         "overall_status":  "NOT_RUN",
+                         "cases":  [
+
+                                   ],
+                         "notes":  [
+
+                                   ]
+                     },
+                     {
+                         "feature_id":  "REMOTE04",
+                         "feature":  "앱 머신 보드·host key 확인·원격 터미널",
+                         "overall_status":  "NOT_RUN",
+                         "cases":  [
+
+                                   ],
+                         "notes":  [
+
+                                   ]
+                     },
+                     {
+                         "feature_id":  "REMOTE05",
+                         "feature":  "원격 파일 읽기·저장·diff API",
+                         "overall_status":  "NOT_RUN",
+                         "cases":  [
+
+                                   ],
+                         "notes":  [
+
+                                   ]
+                     },
+                     {
+                         "feature_id":  "MOBILE01",
+                         "feature":  "M1 기기·Task 권한·철회·감사 API",
+                         "overall_status":  "NOT_RUN",
+                         "cases":  [
+
+                                   ],
+                         "notes":  [
+
+                                   ]
+                     },
+                     {
+                         "feature_id":  "MOBILE02",
+                         "feature":  "M1 Gate 결정·짧은 메시지·delivery API",
+                         "overall_status":  "NOT_RUN",
+                         "cases":  [
+
+                                   ],
+                         "notes":  [
+
+                                   ]
+                     }
+                 ],
+    "workers":  [
+                    {
+                        "area":  "core-status",
+                        "task_id":  "task_6dba5c7fe1ce",
+                        "dispatch_id":  "ctx_0e30d9f36c3a",
+                        "path":  "C:/Users/Sejin/orca/workspaces/pod/pod-qa-core-20261118",
+                        "branch":  "Linejin/pod-qa-core-20261118"
+                    },
+                    {
+                        "area":  "app-editor",
+                        "task_id":  "task_8b1fb33ed1e1",
+                        "dispatch_id":  "ctx_e9c80f5dca26",
+                        "path":  "C:/Users/Sejin/orca/workspaces/pod/pod-qa-ui-20261118",
+                        "branch":  "Linejin/pod-qa-ui-20261118"
+                    },
+                    {
+                        "area":  "daemon-cli",
+                        "task_id":  "task_6448805f10b5",
+                        "dispatch_id":  "ctx_0ba5bb1420e4",
+                        "path":  "C:/Users/Sejin/orca/workspaces/pod/pod-qa-daemon-20261118",
+                        "branch":  "Linejin/pod-qa-daemon-20261118"
+                    }
+                ],
+    "preliminary_checks":  {
+                               "policies":  [
+                                                {
+                                                    "value":  [
+                                                                  {
+                                                                      "name":  "check-workspace",
+                                                                      "exit_code":  0,
+                                                                      "status":  "PASS",
+                                                                      "started_at":  "2026-11-17T23:58:49.1471572Z",
+                                                                      "finished_at":  "2026-11-17T23:58:49.5805591Z"
+                                                                  },
+                                                                  {
+                                                                      "name":  "check-docs",
+                                                                      "exit_code":  0,
+                                                                      "status":  "PASS",
+                                                                      "started_at":  "2026-11-17T23:58:49.5805591Z",
+                                                                      "finished_at":  "2026-11-17T23:58:49.9739950Z"
+                                                                  },
+                                                                  {
+                                                                      "name":  "check-boundaries",
+                                                                      "exit_code":  0,
+                                                                      "status":  "PASS",
+                                                                      "started_at":  "2026-11-17T23:58:49.9739950Z",
+                                                                      "finished_at":  "2026-11-17T23:58:50.5223419Z"
+                                                                  },
+                                                                  {
+                                                                      "name":  "check-vendor-notices",
+                                                                      "exit_code":  0,
+                                                                      "status":  "PASS",
+                                                                      "started_at":  "2026-11-17T23:58:50.5223419Z",
+                                                                      "finished_at":  "2026-11-17T23:58:50.8748417Z"
+                                                                  },
+                                                                  {
+                                                                      "name":  "test-publish-public",
+                                                                      "exit_code":  0,
+                                                                      "status":  "PASS",
+                                                                      "started_at":  "2026-11-17T23:58:50.8748417Z",
+                                                                      "finished_at":  "2026-11-17T23:59:05.9215333Z"
+                                                                  }
+                                                              ],
+                                                    "Count":  5
+                                                }
+                                            ],
+                               "commands":  [
+                                                {
+                                                    "check_name":  "baseline-format",
+                                                    "source_commit":  "fd9a1f04f66864cdeadfe41bc703ad3a02cf5792",
+                                                    "branch":  "improvements/stability-foundation",
+                                                    "dirty_files":  [
+
+                                                                    ],
+                                                    "working_directory":  "C:\\Users\\Sejin\\orca\\workspaces\\pod\\pod-improvements",
+                                                    "file":  "cargo",
+                                                    "arguments":  [
+                                                                      "fmt",
+                                                                      "--all",
+                                                                      "--",
+                                                                      "--check"
+                                                                  ],
+                                                    "started_at":  "2026-11-18T00:00:14.1244119Z",
+                                                    "finished_at":  "2026-11-18T00:00:21.3929701Z",
+                                                    "exit_code":  0,
+                                                    "check_status":  "PASS",
+                                                    "error":  null,
+                                                    "evidence":  "target\\feature-validation\\20261118-085848\\coordinator\\baseline-format-20261118-090014-125.log",
+                                                    "serialized":  true
+                                                },
+                                                {
+                                                    "check_name":  "baseline-signing",
+                                                    "source_commit":  "d9a230d6541a02ac638b0d269dd7225a890acad8",
+                                                    "branch":  "improvements/stability-foundation",
+                                                    "dirty_files":  [
+
+                                                                    ],
+                                                    "working_directory":  "C:\\Users\\Sejin\\orca\\workspaces\\pod\\pod-improvements",
+                                                    "file":  "powershell.exe",
+                                                    "arguments":  [
+                                                                      "-NoProfile",
+                                                                      "-File",
+                                                                      "tools/installer/test-signing.ps1"
+                                                                  ],
+                                                    "started_at":  "2026-11-18T00:02:44.5123215Z",
+                                                    "finished_at":  "2026-11-18T00:02:45.6003400Z",
+                                                    "exit_code":  0,
+                                                    "check_status":  "PASS",
+                                                    "error":  null,
+                                                    "evidence":  "target\\feature-validation\\20261118-085848\\coordinator\\baseline-signing-20261118-090244-512.log",
+                                                    "serialized":  false
+                                                }
+                                            ]
+                           }
+}
