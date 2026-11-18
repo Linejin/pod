@@ -394,6 +394,7 @@ impl ReviewPanel {
                 .label(label)
                 .xsmall()
                 .tooltip(tip)
+                .when(pr, |b| b.accessibility_label(tip))
                 .when(on, |b| b.primary())
                 .when(!on, |b| b.ghost())
                 .on_click(cx.listener(move |p, _, _, cx| p.set_pr_tab(pr, cx)))
