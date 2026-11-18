@@ -72,7 +72,8 @@ pub struct OutputResult {
     /// Number of `ESC]7501;?` queries seen; podd writes [`crate::QUERY_REPLY`]
     /// to the PTY input once per query.
     pub queries: usize,
-    /// Root transition caused by this chunk, if any.
+    /// Last root transition caused by this chunk, if any. The turn counter
+    /// includes every transition in the chunk, even if it ends where it began.
     pub transition: Option<Transition>,
     /// Any change visible in the snapshot (state, records, msg, progress…).
     pub changed: bool,

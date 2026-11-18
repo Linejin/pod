@@ -89,11 +89,17 @@ impl TerminalStatus {
                         self.reset_run(now); // a new program reports in this terminal
                     }
                     res.changed |= self.apply_report(r, now);
+                    // Resolve each report in stream order: a read may contain
+                    // several whole turns. Resolving only its last report
+                    // would lose every intermediate departure from working.
+                    if let Some(transition) = self.recompute(now) {
+                        res.transition = Some(transition);
+                    }
                 }
             }
         }
         self.output_after_answer(now);
-        res.transition = self.recompute(now);
+        res.transition = self.recompute(now).or(res.transition);
         res.changed |= res.transition.is_some();
         res
     }

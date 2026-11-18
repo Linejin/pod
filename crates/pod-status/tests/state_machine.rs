@@ -18,6 +18,93 @@ fn osc(fields: &str) -> Vec<u8> {
     format!("\x1b]7501;{fields}\x07").into_bytes()
 }
 
+#[test]
+fn osc_turns_are_independent_of_chunk_boundaries() {
+    let reports = ["working", "idle", "working", "done", "working", "error"];
+    let bytes: Vec<u8> = reports
+        .iter()
+        .flat_map(|s| osc(&format!("state={s}")))
+        .collect();
+    let mut separate = TerminalStatus::new(0);
+    for state in reports {
+        separate.feed_output(&osc(&format!("state={state}")), 10);
+    }
+    assert_eq!((separate.state(), separate.turn()), (Error, 3));
+    // Every fixed chunk size includes coalesced reports and fragmented OSCs.
+    for size in 1..=bytes.len() {
+        let mut t = TerminalStatus::new(0);
+        let mut last = None;
+        for chunk in bytes.chunks(size) {
+            let result = t.feed_output(chunk, 10);
+            last = result.transition.or(last);
+        }
+        assert_eq!(t.snapshot(), separate.snapshot(), "chunk size {size}");
+        let tr = last.unwrap();
+        assert_eq!((tr.from, tr.to, tr.turn), (Working, Error, 3));
+    }
+}
+
+#[test]
+fn coalesced_osc_preserves_hook_precedence_and_program_boundaries() {
+    let bytes = [osc("state=working"), osc("state=idle")].concat();
+    let mut t = TerminalStatus::new(0);
+    t.on_hook(&codex("UserPromptSubmit", json!({})), 1);
+    t.feed_output(&bytes, 2);
+    assert_eq!(
+        (t.state(), t.turn(), t.snapshot().source),
+        (Working, 0, Some(Source::Hook))
+    );
+    t.on_hook(&codex("Stop", json!({})), 3);
+    assert_eq!((t.state(), t.turn()), (Done, 1));
+    t.on_process_exit(4);
+    // New program, including an OSC split across the exit boundary's next inputs.
+    t.feed_output(&bytes[..7], 5);
+    t.feed_output(&bytes[7..], 5);
+    assert_eq!(
+        (t.state(), t.turn(), t.snapshot().source),
+        (Idle, 2, Some(Source::Osc))
+    );
+    assert_eq!(t.snapshot().final_state, None);
+    t.on_hook(&codex("SessionStart", json!({})), 6);
+    assert_eq!(t.turn(), 2);
+    t.on_hook(&codex("UserPromptSubmit", json!({})), 7);
+    t.on_hook(&codex("Stop", json!({})), 8);
+    assert_eq!(t.turn(), 3);
+}
+
+#[test]
+fn coalesced_turn_returns_last_transition_even_when_final_state_is_unchanged() {
+    let mut t = TerminalStatus::new(0);
+    t.feed_output(&osc("state=idle"), 1);
+    let result = t.feed_output(&[osc("state=working"), osc("state=idle")].concat(), 2);
+    assert!(result.changed);
+    let tr = result.transition.unwrap();
+    assert_eq!((tr.from, tr.to, tr.turn), (Working, Idle, 1));
+    assert_eq!(t.self_report(), Some(Idle));
+    // Ordinary output after completion must not count the same turn twice.
+    assert!(t.feed_output(b"output", 3).transition.is_none());
+    assert_eq!(t.turn(), 1);
+}
+
+#[test]
+fn fragmented_st_osc_and_hook_blocked_end_match_separate_reports() {
+    let bytes = b"\x1b]7501;state=working\x1b\\\x1b]7501;?\x07\x1b]7501;state=idle\x1b\\";
+    for size in 1..=bytes.len() {
+        let mut t = TerminalStatus::new(0);
+        t.on_hook(&claude("PermissionRequest", json!({"tool_name":"Bash"})), 1);
+        let mut queries = 0;
+        for chunk in bytes.chunks(size) {
+            queries += t.feed_output(chunk, 2).queries;
+        }
+        // OSC working cannot clear a fresh blocked hook; its idle change can.
+        assert_eq!(
+            (t.state(), t.turn(), t.snapshot().source),
+            (Idle, 0, Some(Source::Osc))
+        );
+        assert_eq!(queries, 1);
+    }
+}
+
 fn hook(agent: HookAgent, event: &str, payload: Value) -> HookMessage {
     HookMessage::new("t1", agent, event, payload)
 }
