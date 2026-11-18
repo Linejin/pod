@@ -271,6 +271,9 @@ pub struct Orch {
     /// Failed reads can hide IDs and journal entries; only a fresh load may
     /// clear this fence. Diagnostics alone must not permit partial writes.
     recovery_incomplete: bool,
+    /// Runtime link-journal failures can be reconciled by a link retry.
+    /// They must never clear an incomplete startup/store recovery fence.
+    link_recovery_pending: std::collections::BTreeSet<String>,
 }
 
 /// SHA-256 of an attempt token, as lowercase hex.

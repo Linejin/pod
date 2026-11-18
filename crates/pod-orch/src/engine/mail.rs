@@ -36,7 +36,12 @@ impl Orch {
         now: Ms,
         append: impl FnOnce(&std::path::Path, &MailLine) -> std::io::Result<()>,
     ) -> Result<(Mail, bool)> {
-        self.ensure_recovered()?;
+        // Startup recovery may have missed IDs or whole runs: only a full
+        // reload can clear it. Runtime journal failures are narrower and a
+        // validated link retry can reconcile them before attempting writes.
+        if self.recovery_incomplete {
+            self.ensure_recovered()?;
+        }
         let destination = crate::model::run_mailbox(run);
         if source_event.is_empty()
             || mail.from != "pod"
@@ -57,6 +62,11 @@ impl Orch {
             ));
         };
         payload.insert("pod_link_event".into(), source_event.into());
+        let pending: Vec<String> = self.link_recovery_pending.iter().cloned().collect();
+        for pending_run in pending {
+            self.reload_link_mail(&pending_run)?;
+        }
+        self.ensure_recovered()?;
         self.reload_link_mail(run)?;
         if let Some(existing) = self.run(run)?.mail.iter().find(|m| {
             m.from == "pod"
@@ -75,7 +85,8 @@ impl Orch {
             Ok(mail) => Ok((mail, true)),
             Err(error) => {
                 // Recover while the caller still holds the engine lock. If
-                // that fails, fence all mutations until a successful reload.
+                // that fails, fence mutations until a link retry recovers all
+                // pending journals (or a full store reload succeeds).
                 self.reload_link_mail(run)?;
                 Err(error)
             }
@@ -94,8 +105,10 @@ impl Orch {
                         format!("run {run}: unreadable journal lines prevent link deduplication")
                     }
                 };
-                self.notes.push(message.clone());
-                self.recovery_incomplete = true;
+                if self.notes.last() != Some(&message) {
+                    self.notes.push(message.clone());
+                }
+                self.link_recovery_pending.insert(run.to_string());
                 return Err(io(std::io::Error::other(message)));
             }
         };
@@ -105,7 +118,12 @@ impl Orch {
                 loaded.truncated_bytes
             ));
         }
-        let st = self.run_mut(run)?;
+        // This is controlled read/repair, not a new mutation. Other pending
+        // journals must keep the ordinary run_mut/next_id write fence closed.
+        let st = self
+            .runs
+            .get_mut(run)
+            .expect("run validated before reading");
         st.mail.clear();
         st.read.clear();
         for line in loaded.lines {
@@ -119,6 +137,7 @@ impl Orch {
                 }
             }
         }
+        self.link_recovery_pending.remove(run);
         Ok(())
     }
 

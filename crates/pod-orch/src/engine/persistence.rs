@@ -164,6 +164,7 @@ impl Orch {
             limits,
             notes,
             recovery_incomplete,
+            link_recovery_pending: Default::default(),
         }
     }
 
@@ -207,6 +208,11 @@ impl Orch {
         if self.recovery_incomplete {
             return Err(io(std::io::Error::other(
                 "orchestration recovery is incomplete; resolve the reported read errors and reload before writing",
+            )));
+        }
+        if !self.link_recovery_pending.is_empty() {
+            return Err(io(std::io::Error::other(
+                "link journal recovery is pending; retry the link notification after storage is available",
             )));
         }
         Ok(())

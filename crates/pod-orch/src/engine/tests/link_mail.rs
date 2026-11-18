@@ -2,6 +2,154 @@
 use super::*;
 use std::io::Write;
 
+#[cfg(windows)]
+#[test]
+fn link_transient_preflight_lock_retries_without_restart() {
+    use std::os::windows::fs::OpenOptionsExt;
+    let mut t = setup("link-preflight-retry");
+    t.o.create_run("run", None, None, 1).unwrap();
+    let old =
+        t.o.send(
+            Some("r1"),
+            NewMail::new("human", "run:r1", MailType::Status, "already read"),
+            |_| false,
+            2,
+        )
+        .unwrap();
+    t.o.ack("run:r1", &[old.id], 3).unwrap();
+    let path = store::mail_jsonl(&t.dir, "r1");
+    let held = std::fs::OpenOptions::new()
+        .read(true)
+        .share_mode(0)
+        .open(&path)
+        .unwrap();
+    assert_eq!(
+        t.o.send_link_once("r1", "review:d1", link("r1"), 4)
+            .unwrap_err()
+            .kind,
+        ErrorKind::Io
+    );
+    assert_eq!(
+        t.o.create_run("blocked", None, None, 4).unwrap_err().kind,
+        ErrorKind::Io
+    );
+    drop(held);
+    let (mail, created) =
+        t.o.send_link_once("r1", "review:d1", link("r1"), 5)
+            .unwrap();
+    assert!(created);
+    assert_eq!(t.o.unread("run:r1"), vec![mail.clone()]);
+    assert_eq!(
+        t.o.send_link_once("r1", "review:d1", link("r1"), 6)
+            .unwrap(),
+        (mail, false)
+    );
+    assert_eq!(t.o.mail_of("r1").unwrap().len(), 2);
+    t.o = Orch::load(&t.dir, Limits::default(), 7);
+    assert_eq!(t.o.unread("run:r1").len(), 1);
+    assert!(
+        !t.o.send_link_once("r1", "review:d1", link("r1"), 8)
+            .unwrap()
+            .1
+    );
+}
+
+#[cfg(windows)]
+#[test]
+fn link_transient_ambiguous_tail_retries_without_restart() {
+    use std::os::windows::fs::OpenOptionsExt;
+    for complete in [false, true] {
+        let mut t = setup("link-tail-retry");
+        t.o.create_run("run", None, None, 1).unwrap();
+        let mut held = None;
+        assert_eq!(
+            t.o.send_link_once_with("r1", "review:d1", link("r1"), 2, |path, line| {
+                if complete {
+                    store::append_mail(path, line)?;
+                } else {
+                    let bytes = serde_json::to_vec(line).unwrap();
+                    std::fs::write(path, &bytes[..bytes.len() / 2])?;
+                }
+                held = Some(
+                    std::fs::OpenOptions::new()
+                        .read(true)
+                        .share_mode(0)
+                        .open(path)?,
+                );
+                Err(std::io::Error::other(
+                    "ambiguous write with transient repair failure",
+                ))
+            })
+            .unwrap_err()
+            .kind,
+            ErrorKind::Io
+        );
+        assert_eq!(
+            t.o.send_link_once("r1", "review:d1", link("r1"), 3)
+                .unwrap_err()
+                .kind,
+            ErrorKind::Io
+        );
+        drop(held);
+        assert_eq!(
+            t.o.create_run("still fenced", None, None, 4)
+                .unwrap_err()
+                .kind,
+            ErrorKind::Io
+        );
+        let (_, created) =
+            t.o.send_link_once("r1", "review:d1", link("r1"), 5)
+                .unwrap();
+        assert_eq!(created, !complete);
+        assert_eq!(t.o.mail_of("r1").unwrap().len(), 1);
+        let loaded = store::load_mail(&store::mail_jsonl(&t.dir, "r1")).unwrap();
+        assert_eq!(
+            (
+                loaded.lines.len(),
+                loaded.skipped_lines,
+                loaded.truncated_bytes
+            ),
+            (1, 0, 0)
+        );
+        assert_eq!(t.o.create_run("recovered", None, None, 6).unwrap().id, "r2");
+    }
+}
+
+#[cfg(windows)]
+#[test]
+fn link_retry_never_clears_startup_recovery_fence() {
+    use std::os::windows::fs::OpenOptionsExt;
+    let mut t = setup("link-startup-fence");
+    t.o.create_run("run", None, None, 1).unwrap();
+    let index = store::index_json(&t.dir);
+    let before = std::fs::read(&index).unwrap();
+    let held = std::fs::OpenOptions::new()
+        .read(true)
+        .share_mode(0)
+        .open(&index)
+        .unwrap();
+    t.o = Orch::load(&t.dir, Limits::default(), 2);
+    drop(held);
+    assert_eq!(
+        t.o.send_link_once("r1", "review:d1", link("r1"), 3)
+            .unwrap_err()
+            .kind,
+        ErrorKind::Io
+    );
+    assert_eq!(
+        t.o.create_run("unsafe", None, None, 3).unwrap_err().kind,
+        ErrorKind::Io
+    );
+    assert_eq!(std::fs::read(&index).unwrap(), before);
+    assert!(!store::mail_jsonl(&t.dir, "r1").exists());
+    t.o = Orch::load(&t.dir, Limits::default(), 4);
+    assert!(
+        t.o.send_link_once("r1", "review:d1", link("r1"), 5)
+            .unwrap()
+            .1
+    );
+}
+
 fn link(run: &str) -> NewMail {
     NewMail::pod(
         "pod",
@@ -189,6 +337,12 @@ fn link_unresolved_tail_repair_fences_appends_without_erasing_evidence() {
         })
         .unwrap_err();
     assert_eq!(error.kind, ErrorKind::Io);
+    assert_eq!(
+        t.o.send_link_once("r1", "review:d1", link("r1"), 3)
+            .unwrap_err()
+            .kind,
+        ErrorKind::Io
+    );
     drop(held);
     let path = store::mail_jsonl(&t.dir, "r1");
     let bytes = std::fs::read(&path).unwrap();
@@ -202,12 +356,6 @@ fn link_unresolved_tail_repair_fences_appends_without_erasing_evidence() {
         )
         .unwrap_err()
         .kind,
-        ErrorKind::Io
-    );
-    assert_eq!(
-        t.o.send_link_once("r1", "review:d1", link("r1"), 3)
-            .unwrap_err()
-            .kind,
         ErrorKind::Io
     );
     assert_eq!(std::fs::read(&path).unwrap(), bytes);
