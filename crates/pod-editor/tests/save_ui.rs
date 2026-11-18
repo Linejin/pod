@@ -93,6 +93,24 @@ impl Harness {
             });
         });
     }
+
+    fn input_accessibility(&mut self) -> (bool, bool) {
+        self.cx.update(|w, cx| {
+            w.refresh();
+            let _ = w.draw(cx);
+        });
+        self.with(|e, w, cx| {
+            e.active_editor().unwrap().update(cx, |state, cx| {
+                let input = state.render(w, cx).into_element();
+                let mut node = gpui::accesskit::Node::new(gpui::Role::Unknown);
+                input.write_a11y_info(&mut node);
+                (
+                    node.is_read_only(),
+                    node.supports_action(gpui::AccessibleAction::SetValue),
+                )
+            })
+        })
+    }
 }
 
 impl Drop for Harness {
@@ -472,6 +490,7 @@ fn rendered_large_and_undecodable_buffers_reject_native_input() {
             w.refresh();
             let _ = w.draw(cx);
         });
+        assert_eq!(h.input_accessibility(), (true, false));
         h.cx.simulate_input("must not enter read-only buffer");
         h.cx.run_until_parked();
         let unchanged = h.with(|e, _, cx| {
@@ -489,6 +508,7 @@ fn rendered_large_and_undecodable_buffers_reject_native_input() {
             w.refresh();
             let _ = w.draw(cx);
         });
+        assert_eq!(h.input_accessibility(), (false, true));
         h.cx.simulate_keystrokes("ctrl-end");
         h.cx.simulate_input(" edited");
         h.cx.run_until_parked();
@@ -498,5 +518,30 @@ fn rendered_large_and_undecodable_buffers_reject_native_input() {
             std::fs::read_to_string(&file).unwrap(),
             "small valid UTF-8 edited"
         );
+
+        // Reuse the same live entity: editable -> protected -> editable.
+        let state = h.read(|e| e.active_editor().unwrap());
+        h.type_text("unsaved before external protection");
+        std::fs::write(&file, &bytes).unwrap();
+        h.with(|e, w, cx| e.save_active(w, cx));
+        assert!(h.read(|e| e.tab_states())[0].disk_changed);
+        h.with(|e, w, cx| e.answer_disk_prompt(true, w, cx));
+        assert_eq!(h.read(|e| e.active_editor().unwrap()), state);
+        assert_eq!(h.input_accessibility(), (true, false));
+        assert!(!h.read(|e| e.tab_states())[0].dirty);
+        assert_eq!(std::fs::read(&file).unwrap(), bytes);
+        std::fs::write(&file, "editable again").unwrap();
+        h.with(|e, w, cx| e.reopen_with_encoding(0, pod_editor::text::utf8(), w, cx));
+        assert_eq!(h.input_accessibility(), (false, true));
+    }
+}
+
+#[core::prelude::v1::test]
+fn toolkit_readonly_attribute_updates_existing_node() {
+    let mut node = gpui::accesskit::Node::new(gpui::Role::TextInput);
+    for read_only in [false, true, false] {
+        let input = div().id("readonly-projection").aria_readonly(read_only);
+        input.write_a11y_info(&mut node);
+        assert_eq!(node.is_read_only(), read_only);
     }
 }

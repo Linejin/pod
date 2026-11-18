@@ -1,5 +1,5 @@
 // Pod patch: modified from gpui-component 0.9.0 by the Pod project (fold chevron
-// names). Change notice per Apache-2.0 4(b); see POD-PATCHES.md.
+// names and read-only accessibility regression). Change notice per Apache-2.0 4(b); see POD-PATCHES.md.
 use std::rc::Rc;
 
 use gpui::prelude::FluentBuilder as _;
@@ -1060,7 +1060,7 @@ mod tests {
         use gpui::{AccessibleAction, AppContext as _, Element as _, IntoElement as _, Render};
         use std::cell::RefCell;
 
-        type EmittedState = Option<(Option<String>, bool)>;
+        type EmittedState = Option<(Option<String>, bool, bool)>;
 
         struct InputA11yProbe {
             state: Entity<InputState>,
@@ -1091,6 +1091,7 @@ mod tests {
                             *emitted.borrow_mut() = Some((
                                 node.value().map(ToOwned::to_owned),
                                 node.supports_action(AccessibleAction::SetValue),
+                                node.is_read_only(),
                             ));
                         });
                     })
@@ -1112,7 +1113,7 @@ mod tests {
         // Normal builds leave the value lazy without an accessibility client;
         // test-support reads that same production value path eagerly.
         let expected_value = cfg!(feature = "test-support").then(|| "initial".to_owned());
-        assert_eq!(*captured.borrow(), Some((expected_value.clone(), true)));
+        assert_eq!(*captured.borrow(), Some((expected_value.clone(), true, false)));
 
         let state = probe.read_with(cx, |probe, _| probe.state.clone());
         for disabled in [false, true] {
@@ -1122,7 +1123,10 @@ mod tests {
                 cx.notify();
             });
             cx.update(|window, cx| window.draw(cx).clear(cx));
-            assert_eq!(*captured.borrow(), Some((expected_value.clone(), false)));
+            assert_eq!(
+                *captured.borrow(),
+                Some((expected_value.clone(), false, !disabled))
+            );
         }
         probe.update(cx, |probe, cx| {
             probe.disabled = false;
@@ -1134,7 +1138,7 @@ mod tests {
             window.draw(cx).clear(cx);
         });
         assert_eq!(state.read_with(cx, |state, _| state.value()), "initial");
-        assert_eq!(*captured.borrow(), Some((None, true)));
+        assert_eq!(*captured.borrow(), Some((None, true, false)));
     }
 
     #[gpui::test]

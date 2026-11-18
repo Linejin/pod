@@ -25,6 +25,9 @@ dialog surface reports its painted bounds through a paint-free absolute
 `canvas`, so Pod's native-QA tests can check dialog placement under
 `cargo test --release` (GPUI's `debug_selector` bounds need `debug_assertions`).
 Unset (the app), the dialog renders exactly as before.
+The input accessibility regression now checks AccessKit's read-only flag
+alongside SetValue availability through editable/protected/editable states.
+The production flag is supplied by the companion gpui-base/gpui-pre patches.
 Modified files (each starts with a `Pod patch:` change notice, Apache-2.0
 4(b); `tools/check-vendor-notices.ps1` checks this list):
 
