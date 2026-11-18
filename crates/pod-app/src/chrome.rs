@@ -160,6 +160,9 @@ impl Workspace {
                 .child(
                     div()
                         .qa_id(|| "title-actions".into())
+                        // Interactive controls must hide the enclosing native
+                        // caption hitbox, or Windows turns clicks into drags.
+                        .occlude()
                         .flex()
                         .flex_shrink(1.)
                         .min_w_0()
