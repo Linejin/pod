@@ -449,3 +449,54 @@ fn b08_initially_large_file_becomes_editable_after_reload() {
         "fn writable_again() {}\n"
     );
 }
+
+/// Rendering the input must not reset the workspace's read-only policy.
+#[core::prelude::v1::test]
+fn rendered_large_and_undecodable_buffers_reject_native_input() {
+    for bytes in [vec![b'x'; 3 * 1024 * 1024], vec![0xff, 0xfe, b'x']] {
+        let (_dir, root) = worktree();
+        let file = root.join("protected.txt");
+        std::fs::write(&file, &bytes).unwrap();
+        let mut h = Harness::new(&root);
+        h.with(|e, w, cx| e.open_file(&file, w, cx)).unwrap();
+        let before = h.cx.update(|_, cx| {
+            h.ed.read(cx)
+                .active_editor()
+                .unwrap()
+                .read(cx)
+                .value()
+                .to_string()
+        });
+        h.cx.update(|w, cx| {
+            w.activate_window();
+            w.refresh();
+            let _ = w.draw(cx);
+        });
+        h.cx.simulate_input("must not enter read-only buffer");
+        h.cx.run_until_parked();
+        let unchanged = h.with(|e, _, cx| {
+            e.active_editor().unwrap().read(cx).value() == before
+        });
+        assert!(unchanged, "render must preserve read-only input behavior");
+        assert!(!h.read(|e| e.tab_states())[0].dirty);
+        h.with(|e, w, cx| e.save_active(w, cx));
+        assert_eq!(std::fs::read(&file).unwrap(), bytes);
+
+        // The same rendered entity becomes editable again after a safe reload.
+        std::fs::write(&file, "small valid UTF-8").unwrap();
+        h.with(|e, w, cx| e.reopen_with_encoding(0, pod_editor::text::utf8(), w, cx));
+        h.cx.update(|w, cx| {
+            w.refresh();
+            let _ = w.draw(cx);
+        });
+        h.cx.simulate_keystrokes("ctrl-end");
+        h.cx.simulate_input(" edited");
+        h.cx.run_until_parked();
+        assert!(h.read(|e| e.tab_states())[0].dirty);
+        h.with(|e, w, cx| e.save_active(w, cx));
+        assert_eq!(
+            std::fs::read_to_string(&file).unwrap(),
+            "small valid UTF-8 edited"
+        );
+    }
+}

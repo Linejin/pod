@@ -828,6 +828,7 @@ impl Render for EditorWorkspace {
                 .bg(tc(t.bg_surface))
                 .child(
                     Editor::new(&b.state)
+                        .readonly(b.large || b.undecodable)
                         .aria_label(txt::editor_label(&b.rel))
                         .bordered(false)
                         .h_full(),
