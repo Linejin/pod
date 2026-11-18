@@ -8,7 +8,7 @@
 
 - Windows 11 Home, OS build 10.0.26200, x86_64-pc-windows-msvc.
 - rustc 1.100.0 (0ef1bc386), cargo 1.100.0 (3acc79c0c). 이번 실행에서는 Rust 버전 조회가 성공했다.
-- 최초 여유 메모리 약 13.6 GiB. 세 영역의 분석은 병렬로 수행하되 빌드·시험은 공통 named mutex로 직렬화하고 cargo jobs=2를 사용한다.
+- 최초 여유 메모리 약 13.6 GiB. 기본 빌드·시험은 공통 named mutex와 cargo jobs=2로 직렬화한다. 긴 UI 최초 빌드가 core API 검증을 막아 09:22에 여유 메모리 10.89 GiB·CPU 6%를 확인한 뒤, core worker의 짧은 의존 검사만 jobs=1의 별도 core-dependency 잠금에 허용했다. 해당 경로는 여유 8 GiB 미만·CPU 80% 초과 또는 jobs=1 미설정 시 시작하지 않는다. 다른 worker와 광범위한 빌드는 기본 잠금을 유지한다.
 - 각 worker는 같은 기준 commit에서 별도 branch/worktree를 사용하고 자체 target을 쓴다. 사용자 daemon·작업·agent 설정을 시험 fixture로 사용하지 않는다.
 - 원격 push·PR·릴리스·main/master 변경은 하지 않는다. 실제 외부 쓰기·설치는 별도 지정된 시험 환경이 있을 때만 실행 범위에 포함한다.
 - 로그와 command별 JSON은 통합 worktree의 target/feature-validation/20261118-085848와 worker 보고 디렉터리에 보존한다. 실행 레코드에는 실제 증거 경로·exit code·소스 commit을 남긴다.
@@ -35,6 +35,8 @@
 정책 검사 5개는 v2로 재실행하여 실제 종료 코드 0을 확인했다. 서명 검사는 원래 로그에도 ConPTY 미준비 오류가 있었으므로 최초 실패를 유지한다. tools/fetch-conpty.ps1의 고정 버전·SHA-256 검증을 통과한 뒤 서명 검사를 다시 실행해 통과했다. 모든 결과가 같아질 때까지 반복한 것이 아니라 도구 결함과 명시적인 누락 선행 조건을 해결한 재검증이다.
 
 제품 검증 중간 결과: core worker가 B20 청크별 턴 누락과 B10 index/read_dir 오류·기존 Run 디렉터리 ID 보호 실패를 재현하여 수정 중이다. 앱 worker의 실제 Windows input desktop은 접근 가능하지만 rust-analyzer는 설치된 구성요소가 없는 rustup proxy여서 해당 실제 도구 case는 BLOCKED다.
+
+실행기 v3는 실제 종료 코드 수집을 유지하면서 위 자원 제한 core-dependency 실행 경로를 추가했다. 정상 자원의 jobs=1 실행과 jobs=2 거부를 별도로 확인한다. 기존 v2 실행 결과의 종료 코드 근거는 유효하다.
 
 ## 병렬 검증과 수정 배치
 

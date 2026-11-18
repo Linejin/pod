@@ -34,5 +34,13 @@ foreach ($case in @(@{name='pass'; code=0}, @{name='fail'; code=7}, @{name='chan
   if ((Get-Content -LiteralPath $record.stderr_evidence -Raw -Encoding UTF8) -notmatch 'stderr independently preserved') { throw 'Stderr missing' }
   if ($case.name -eq 'changed' -and $record.source_fingerprint_before -eq $record.source_fingerprint_after) { throw 'Changed source was not detected' }
 }
-Write-Host ('PASS: exit 0/7, Unicode/quoting, independent streams, changed-source guard; evidence: ' + $OutputRoot)
+$savedJobs = [Environment]::GetEnvironmentVariable('CARGO_BUILD_JOBS', 'Process')
+try {
+  $env:CARGO_BUILD_JOBS = '2'
+  & $executor -Name invalid-core-lane -File powershell.exe -Arguments @('-NoProfile','-Command','exit 0') -WorkingDirectory $fixture -OutputRoot $OutputRoot -Serialize -SerializationGroup core-dependency
+  $recordFile = Get-ChildItem -LiteralPath $OutputRoot -Filter 'invalid-core-lane-*.json' | Sort-Object LastWriteTime -Descending | Select-Object -First 1
+  $record = Get-Content -LiteralPath $recordFile.FullName -Raw -Encoding UTF8 | ConvertFrom-Json
+  if ($record.check_status -ne 'BLOCKED' -or $null -ne $record.exit_code -or $record.error -notmatch 'CARGO_BUILD_JOBS=1') { throw 'Unsafe core lane was not blocked before child start' }
+} finally { [Environment]::SetEnvironmentVariable('CARGO_BUILD_JOBS', $savedJobs, 'Process') }
+Write-Host ('PASS: exit 0/7, Unicode/quoting, streams, changed-source and core-resource guard; evidence: ' + $OutputRoot)
 exit 0

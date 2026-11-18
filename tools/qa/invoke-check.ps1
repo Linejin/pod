@@ -5,6 +5,7 @@ param(
   [string]$WorkingDirectory = (Get-Location).Path,
   [Parameter(Mandatory=$true)][string]$OutputRoot,
   [switch]$Serialize,
+  [ValidateSet('main','core-dependency')][string]$SerializationGroup = 'main',
   [int]$LockTimeoutMinutes = 30
 )
 $ErrorActionPreference = 'Stop'
@@ -29,6 +30,7 @@ $outFile = $null
 $errFile = $null
 $stdoutPath = $logPath + '.stdout'
 $stderrPath = $logPath + '.stderr'
+$resources = $null
 
 function Quote-NativeArgument([string]$Value) {
   $builder = New-Object System.Text.StringBuilder
@@ -61,8 +63,17 @@ function Source-Fingerprint {
   } finally { $hasher.Dispose() }
 }
 try {
+  if ($SerializationGroup -eq 'core-dependency') {
+    if (-not $Serialize -or $env:CARGO_BUILD_JOBS -ne '1') { throw 'Core dependency lane requires -Serialize and CARGO_BUILD_JOBS=1' }
+    $os = Get-CimInstance Win32_OperatingSystem
+    $cpu = Get-CimInstance Win32_Processor | Measure-Object -Property LoadPercentage -Average
+    $resources = [pscustomobject]@{ free_gib=($os.FreePhysicalMemory / 1MB); cpu_percent=$cpu.Average }
+    if ($resources.free_gib -lt 8 -or $resources.cpu_percent -gt 80) { throw 'Core dependency lane blocked by resource floor (8 GiB free, CPU <=80%)' }
+  }
   if ($Serialize) {
-    $mutex = New-Object System.Threading.Mutex($false, 'Local\PodFeatureValidation20261118')
+    $mutexName = 'Local\PodFeatureValidation20261118'
+    if ($SerializationGroup -eq 'core-dependency') { $mutexName += '-CoreDependency' }
+    $mutex = New-Object System.Threading.Mutex($false, $mutexName)
     $deadline = [DateTime]::UtcNow.AddMinutes($LockTimeoutMinutes)
     while (-not $acquired) {
       try { $acquired = $mutex.WaitOne(10000) }
@@ -118,7 +129,7 @@ try {
   if ($acquired) { $mutex.ReleaseMutex() }
   if ($mutex) { $mutex.Dispose() }
   $result = [ordered]@{
-    executor_version = 2
+    executor_version = 3
     executor_sha256 = (Get-FileHash -LiteralPath $PSCommandPath -Algorithm SHA256).Hash.ToLowerInvariant()
     check_name = $Name
     source_commit = $sourceCommit
@@ -138,6 +149,8 @@ try {
     stdout_evidence = $stdoutPath
     stderr_evidence = $stderrPath
     serialized = [bool]$Serialize
+    serialization_group = $SerializationGroup
+    resource_snapshot = $resources
   }
   $result | ConvertTo-Json -Depth 8 | Set-Content -Encoding utf8 $resultPath
   [pscustomobject]$result | Select-Object check_name,check_status,exit_code,source_commit,evidence | ConvertTo-Json -Compress
