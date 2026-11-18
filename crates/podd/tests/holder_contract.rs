@@ -10,6 +10,8 @@
 //!   to a reconnecting daemon, and control frames (resize, kill) that land
 //!   while the output budget holds the child back.
 
+#[path = "../build_support.rs"]
+mod build_support;
 mod common;
 
 use std::path::{Path, PathBuf};
@@ -365,6 +367,20 @@ async fn holder_lifecycle_over_its_pipe() {
         "{}",
         hello.conpty
     );
+    // A fetched bundle must actually ship beside the holder, including with
+    // Cargo's package/hash/out build-directory layout. An explicit provider
+    // override remains supported.
+    if std::env::var_os("POD_CONPTY").is_none()
+        && Path::new(env!("CARGO_MANIFEST_DIR"))
+            .join("../../vendor/conpty/conpty.dll")
+            .is_file()
+    {
+        assert!(
+            hello.conpty.starts_with("bundled:"),
+            "fetched bundle was not available to the holder: {}",
+            hello.conpty
+        );
+    }
     assert_eq!((hello.parent_terminal, hello.parent_task), (None, None));
 
     // Protocol 3: input is acknowledged once written, counted per connection.

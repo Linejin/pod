@@ -3,7 +3,10 @@
 //! `conpty.dll` + `x64\OpenConsole.exe` in its own directory. Without it the
 //! holder falls back to the inbox ConPTY.
 
-use std::path::{Path, PathBuf};
+use std::path::PathBuf;
+
+mod build_support;
+use build_support::{copy_tree, profile_dir};
 
 #[path = "../../assets/windows/resources.rs"]
 mod resources;
@@ -23,34 +26,14 @@ fn main() {
         );
         return;
     }
-    // OUT_DIR = <target>/<profile>/build/podd-<hash>/out
+    // Cargo supports both build/podd-<hash>/out and
+    // build/podd/<hash>/out. Locate the profile by the build directory,
+    // rather than assuming a fixed number of ancestors.
     let out = PathBuf::from(std::env::var("OUT_DIR").unwrap());
-    let Some(profile_dir) = out.ancestors().nth(3) else {
+    let Some(profile_dir) = profile_dir(&out) else {
         return;
     };
     for dir in [profile_dir.to_path_buf(), profile_dir.join("deps")] {
-        copy_tree(&vendor, &dir);
-    }
-}
-
-fn copy_tree(from: &Path, to: &Path) {
-    let Ok(entries) = std::fs::read_dir(from) else {
-        return;
-    };
-    let _ = std::fs::create_dir_all(to);
-    for e in entries.flatten() {
-        let p = e.path();
-        let name = e.file_name();
-        if p.is_dir() {
-            copy_tree(&p, &to.join(&name));
-        } else if p.extension().is_some_and(|x| x == "dll" || x == "exe") {
-            let dst = to.join(&name);
-            let same = std::fs::metadata(&dst).ok().map(|m| m.len())
-                == std::fs::metadata(&p).ok().map(|m| m.len());
-            if !same {
-                // A running holder may lock the file; that copy is then already current.
-                let _ = std::fs::copy(&p, &dst);
-            }
-        }
+        copy_tree(&vendor, &dir).expect("cannot copy bundled ConPTY");
     }
 }
