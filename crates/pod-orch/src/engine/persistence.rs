@@ -13,14 +13,49 @@ impl Orch {
     /// Load everything under `root` (`<state>\orch\runs`).
     pub fn load(root: &Path, limits: Limits, now: Ms) -> Orch {
         let mut notes = Vec::new();
+        let mut recovery_incomplete = false;
         let mut index: Index =
-            store::read_json(&store::index_json(root), now, &mut notes).unwrap_or_default();
+            match store::read_json_checked(&store::index_json(root), now, &mut notes) {
+                Ok(value) => value.unwrap_or_default(),
+                Err(e) => {
+                    notes.push(format!(
+                        "cannot read {}: {e}",
+                        store::index_json(root).display()
+                    ));
+                    recovery_incomplete = true;
+                    Index::default()
+                }
+            };
         let mut runs = BTreeMap::new();
-        if let Ok(entries) = std::fs::read_dir(root) {
-            for e in entries.flatten() {
+        let mut replayed = Vec::new();
+        let entries = match std::fs::read_dir(root) {
+            Ok(entries) => Some(entries),
+            Err(e) if e.kind() == std::io::ErrorKind::NotFound => None,
+            Err(e) => {
+                notes.push(format!("cannot enumerate {}: {e}", root.display()));
+                recovery_incomplete = true;
+                None
+            }
+        };
+        if let Some(entries) = entries {
+            for entry in entries {
+                let e = match entry {
+                    Ok(e) => e,
+                    Err(e) => {
+                        notes.push(format!("cannot enumerate entry in {}: {e}", root.display()));
+                        recovery_incomplete = true;
+                        continue;
+                    }
+                };
                 let path = e.path();
-                if !path.is_dir() {
-                    continue;
+                match std::fs::metadata(&path) {
+                    Ok(kind) if kind.is_dir() => {}
+                    Ok(_) => continue,
+                    Err(e) => {
+                        notes.push(format!("cannot inspect {}: {e}", path.display()));
+                        recovery_incomplete = true;
+                        continue;
+                    }
                 }
                 let Some(name) = path
                     .file_name()
@@ -29,15 +64,29 @@ impl Orch {
                 else {
                     continue;
                 };
-                let Some(rec) =
-                    store::read_json::<RunRecord>(&store::run_json(root, &name), now, &mut notes)
-                else {
-                    continue;
+                // A directory reserves its run ID even without a snapshot.
+                if let Some(n) = name.strip_prefix('r').and_then(|s| s.parse::<u64>().ok()) {
+                    let counter = index.counters.entry("r".into()).or_default();
+                    *counter = (*counter).max(n);
+                }
+                let rec = match store::read_json_checked::<RunRecord>(
+                    &store::run_json(root, &name),
+                    now,
+                    &mut notes,
+                ) {
+                    Ok(Some(rec)) => rec,
+                    Ok(None) => continue,
+                    Err(e) => {
+                        notes.push(format!("run {name}: cannot read snapshot: {e}"));
+                        recovery_incomplete = true;
+                        continue;
+                    }
                 };
                 let load = match store::load_mail(&store::mail_jsonl(root, &name)) {
                     Ok(l) => l,
                     Err(e) => {
                         notes.push(format!("run {name}: cannot read mail: {e}"));
+                        recovery_incomplete = true;
                         Default::default()
                     }
                 };
@@ -75,11 +124,20 @@ impl Orch {
                         "run {name}: applied the recorded done of {}",
                         closed.join(", ")
                     ));
-                    if let Err(e) = store::write_json(&store::run_json(root, &name), &st.rec) {
-                        notes.push(format!("run {name}: cannot save the replayed done: {e}"));
-                    }
+                    replayed.push(name);
                 }
                 runs.insert(st.rec.run.id.clone(), st);
+            }
+        }
+        // Do not publish replayed snapshots until the entire store was read.
+        // The mail journal remains authoritative if a replay save fails.
+        if !recovery_incomplete {
+            for name in replayed {
+                if let Some(st) = runs.get(&name)
+                    && let Err(e) = store::write_json(&store::run_json(root, &name), &st.rec)
+                {
+                    notes.push(format!("run {name}: cannot save the replayed done: {e}"));
+                }
             }
         }
         // Never hand out an id that exists, whatever the index says.
@@ -105,14 +163,17 @@ impl Orch {
             runs,
             limits,
             notes,
+            recovery_incomplete,
         }
     }
 
     pub(super) fn save_index(&self) -> Result<()> {
+        self.ensure_recovered()?;
         store::write_json(&store::index_json(&self.root), &self.index).map_err(io)
     }
 
     pub(super) fn next_id(&mut self, prefix: &str) -> Result<String> {
+        self.ensure_recovered()?;
         let mut index = self.index.clone();
         let c = index.counters.entry(prefix.to_string()).or_insert(0);
         *c += 1;
@@ -134,10 +195,20 @@ impl Orch {
     }
 
     pub(super) fn save_run(&self, run: &str) -> Result<()> {
+        self.ensure_recovered()?;
         let st = self
             .runs
             .get(run)
             .ok_or_else(|| not_found(ErrorKind::RunNotFound, "run", run))?;
         store::write_json(&store::run_json(&self.root, run), &st.rec).map_err(io)
+    }
+
+    pub(super) fn ensure_recovered(&self) -> Result<()> {
+        if self.recovery_incomplete {
+            return Err(io(std::io::Error::other(
+                "orchestration recovery is incomplete; resolve the reported read errors and reload before writing",
+            )));
+        }
+        Ok(())
     }
 }

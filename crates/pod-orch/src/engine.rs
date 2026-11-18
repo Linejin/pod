@@ -268,6 +268,9 @@ pub struct Orch {
     pub limits: Limits,
     /// Problems found while loading (corrupt files, torn mail lines).
     pub notes: Vec<String>,
+    /// Failed reads can hide IDs and journal entries; only a fresh load may
+    /// clear this fence. Diagnostics alone must not permit partial writes.
+    recovery_incomplete: bool,
 }
 
 /// SHA-256 of an attempt token, as lowercase hex.
@@ -303,6 +306,7 @@ impl Orch {
     }
 
     fn run_mut(&mut self, id: &str) -> Result<&mut RunState> {
+        self.ensure_recovered()?;
         self.runs
             .get_mut(id)
             .ok_or_else(|| not_found(ErrorKind::RunNotFound, "run", id))

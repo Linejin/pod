@@ -37,19 +37,38 @@ pub fn read_json<T: DeserializeOwned>(
     now_ms: u64,
     notes: &mut Vec<String>,
 ) -> Option<T> {
-    let bytes = std::fs::read(path).ok()?;
+    match read_json_checked(path, now_ms, notes) {
+        Ok(value) => value,
+        Err(e) => {
+            notes.push(format!("cannot read {}: {e}", path.display()));
+            None
+        }
+    }
+}
+
+/// Recovery must distinguish absent snapshots from inaccessible state.
+pub(crate) fn read_json_checked<T: DeserializeOwned>(
+    path: &Path,
+    now_ms: u64,
+    notes: &mut Vec<String>,
+) -> std::io::Result<Option<T>> {
+    let bytes = match std::fs::read(path) {
+        Ok(bytes) => bytes,
+        Err(e) if e.kind() == std::io::ErrorKind::NotFound => return Ok(None),
+        Err(e) => return Err(e),
+    };
     match serde_json::from_slice(&bytes) {
-        Ok(v) => Some(v),
+        Ok(v) => Ok(Some(v)),
         Err(e) => {
             let stem = path.file_stem().and_then(|s| s.to_str()).unwrap_or("file");
             let aside = path.with_file_name(format!("{stem}.corrupt-{now_ms}.json"));
-            let _ = std::fs::rename(path, &aside);
+            std::fs::rename(path, &aside)?;
             notes.push(format!(
                 "{} is corrupt ({e}); moved to {}",
                 path.display(),
                 aside.display()
             ));
-            None
+            Ok(None)
         }
     }
 }

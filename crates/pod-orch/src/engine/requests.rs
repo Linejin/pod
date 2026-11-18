@@ -9,6 +9,7 @@ use crate::model::Ms;
 impl Orch {
     /// The stored result of an earlier call with this request id.
     pub fn request(&self, id: &str, method: &str) -> Result<Option<Value>> {
+        self.ensure_recovered()?;
         match self.index.requests.iter().find(|r| r.id == id) {
             Some(r) if r.method == method => Ok(Some(r.result.clone())),
             Some(r) => Err(OrchError::new(
@@ -21,6 +22,7 @@ impl Orch {
 
     /// Remember a result for a request id.
     pub fn remember(&mut self, id: &str, method: &str, result: Value, now: Ms) -> Result<()> {
+        self.ensure_recovered()?;
         self.index.requests.retain(|r| r.id != id);
         self.index.requests.push(RequestEntry {
             id: id.to_string(),

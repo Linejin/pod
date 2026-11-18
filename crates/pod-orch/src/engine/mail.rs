@@ -218,6 +218,7 @@ impl Orch {
 
     /// Mark mail read for `mailbox` and clear its notification.
     pub fn ack(&mut self, mailbox: &str, ids: &[String], now: Ms) -> Result<()> {
+        self.ensure_recovered()?;
         // Group by run (receipts live with the run's mail).
         let mut by_run: BTreeMap<String, Vec<String>> = BTreeMap::new();
         for id in ids {
