@@ -241,7 +241,24 @@ fn terminal_survives_daemon_restart() {
 fn attach_snapshot_then_live_bytes_without_gaps_and_resize() {
     let daemon = Daemon::start("attach");
     let mut c = daemon.client();
-    powershell(&mut c, "att");
+    // The default prompt contains the fixture path. At exactly the resized
+    // width, PowerShell/PSReadLine can redraw part of that prompt on the
+    // preceding output row. Keep this transport test's prompt independent of
+    // the temporary path; the boundary's raw writes are replayed below.
+    c.call::<TerminalRun>(&RunParams {
+        argv: vec![
+            "powershell".into(),
+            "-NoLogo".into(),
+            "-NoProfile".into(),
+            "-NoExit".into(),
+            "-Command".into(),
+            "function prompt { 'PS> ' }".into(),
+        ],
+        cwd: cwd(),
+        name: Some("att".into()),
+        ..Default::default()
+    })
+    .expect("run powershell with a fixed prompt");
     send(&mut c, "att", "1..40 | % { \"pre $_\" }");
     wait_output(&mut c, "att", "pre 40");
 
@@ -292,16 +309,25 @@ fn attach_snapshot_then_live_bytes_without_gaps_and_resize() {
     let mut expect = res.seq;
     let mut resized = None;
     let mut chunks = 0;
+    let diagnostic_path = std::env::var_os("POD_ATTACH_DIAGNOSTICS");
+    let mut events = Vec::new();
     let deadline = Instant::now() + Duration::from_secs(10);
     loop {
         match rx.recv_timeout(Duration::from_millis(700)) {
             Ok(AttachEvent::Output { seq, data }) => {
+                if diagnostic_path.is_some() {
+                    events.push(serde_json::json!({"seq": seq, "data": data}));
+                }
                 assert_eq!(seq, expect, "gap or duplicate in the attach stream");
                 expect += data.len() as u64;
                 local.feed(&data);
                 chunks += 1;
             }
             Ok(AttachEvent::Resized { seq, cols, rows }) => {
+                if diagnostic_path.is_some() {
+                    events.push(serde_json::json!({"seq": seq, "cols": cols, "rows": rows,
+                        "history_before_resize": local.read_lines(ReadMode::History).0}));
+                }
                 assert_eq!(seq, expect, "resize not in stream order");
                 local.resize(cols, rows);
                 resized = Some((cols, rows));
@@ -322,13 +348,21 @@ fn attach_snapshot_then_live_bytes_without_gaps_and_resize() {
     }
     assert_eq!(resized, Some((90, 25)));
     let history = local.read_lines(ReadMode::History).0;
+    if let Some(path) = diagnostic_path {
+        let diagnostic = serde_json::json!({
+            "initial_cols": res.terminal.cols, "initial_rows": res.terminal.rows,
+            "initial_seq": res.seq, "snapshot": snapshot, "events": events,
+            "local_history": history, "local_screen": local.read_lines(ReadMode::Screen).0,
+            "daemon_history": read(&mut c, "att", ReadMode::History),
+            "daemon_screen": read(&mut c, "att", ReadMode::Screen),
+        });
+        std::fs::write(path, serde_json::to_vec_pretty(&diagnostic).unwrap()).unwrap();
+    }
     let live: Vec<&String> = history.iter().filter(|l| l.starts_with("live ")).collect();
     assert_eq!(live.len(), 300, "every live line exactly once");
-    assert!(
-        live.iter()
-            .enumerate()
-            .all(|(i, l)| **l == format!("live {}", i + 1))
-    );
+    for (i, line) in live.iter().enumerate() {
+        assert_eq!(**line, format!("live {}", i + 1), "live line at index {i}");
+    }
     // The client's own VT ends up with the same screen as the daemon's.
     assert_eq!(
         local.read_lines(ReadMode::Screen).0,
@@ -425,6 +459,64 @@ fn second_daemon_on_same_pipe_is_refused() {
     assert!(String::from_utf8_lossy(&out.stderr).contains("lock held"));
     let st = daemon.client().call::<ServerStatus>(&Empty {}).unwrap();
     assert_eq!(st.pipe, daemon.pipe);
+}
+
+/// Replay the resize boundary that made the default-prompt attach fixture
+/// path-dependent. These cursor writes came from PowerShell/PSReadLine, not
+/// from missing/reordered attach bytes. Both a default 90-cell path prompt
+/// and an explicit 90-cell prompt produced them with bundled ConPTY.
+#[test]
+fn attach_fixture_long_prompt_redraw_overwrites_previous_output() {
+    let replies = std::sync::Arc::new(std::sync::Mutex::new(Vec::new()));
+    let captured = replies.clone();
+    let mut vt = Vt::new(
+        120,
+        30,
+        Some(std::sync::Arc::new(move |bytes| {
+            captured.lock().unwrap().extend_from_slice(bytes);
+        })),
+    );
+    let expected: Vec<String> = (1..=300).map(|i| format!("live {i}")).collect();
+    for line in &expected {
+        vt.feed(format!("{line}\r\n").as_bytes());
+    }
+    vt.feed(format!("{}> ", "p".repeat(88)).as_bytes());
+    assert_eq!(vt.read_lines(ReadMode::Screen).0[28], "live 300");
+
+    vt.resize(90, 25);
+    assert_eq!(vt.read_lines(ReadMode::Screen).0[23], "live 300");
+    let live = |vt: &Vt| {
+        vt.read_lines(ReadMode::History)
+            .0
+            .into_iter()
+            .filter(|line| line.starts_with("live "))
+            .collect::<Vec<_>>()
+    };
+    assert_eq!(live(&vt), expected, "resize alone preserves every line");
+
+    // The resized grid answers DSR at row 25, column 90 (pending wrap),
+    // so this capture did not answer the query with the old dimensions.
+    vt.feed(b"\x1b[6n");
+    assert_eq!(*replies.lock().unwrap(), b"\x1b[25;90R");
+    // Exact captured prefix after that query: redraw the first typed letter,
+    // then move to row 24, column 89 to redraw the prompt's final two cells.
+    vt.feed(
+        concat!(
+            "\x1b[25;90H\x1b[?25l\x1b[25;1H\x1b[93me\x1b[39;49m\x1b[0m",
+            "\x1b[25;2H\x1b[?25h\x1b[?25l\x1b[25;1H\x1b[24;89H\x1b[91m",
+        )
+        .as_bytes(),
+    );
+    assert_eq!(
+        live(&vt),
+        expected,
+        "cursor moves have not changed live output"
+    );
+    vt.feed(b">");
+    let overwritten = live(&vt);
+    assert_eq!(overwritten.len(), 300);
+    assert_eq!(overwritten[..299], expected[..299]);
+    assert_eq!(overwritten[299], format!("live 300{}>", " ".repeat(80)));
 }
 
 #[test]
