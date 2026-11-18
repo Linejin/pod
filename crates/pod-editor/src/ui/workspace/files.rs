@@ -339,7 +339,7 @@ impl EditorWorkspace {
             return;
         };
         let b = &mut self.buffers[i];
-        if loaded.text == b.saved {
+        if loaded.text == b.saved && loaded.large == b.large && loaded.lossless != b.undecodable {
             // Our own save, a touch, or only the line endings changed: the
             // disk bytes become the base for the next save.
             b.disk = DiskState::Same;
@@ -377,6 +377,8 @@ impl EditorWorkspace {
         cx: &mut Context<Self>,
     ) {
         let b = &mut self.buffers[i];
+        let policy_changed = b.large != loaded.large;
+        b.large = loaded.large;
         b.format = loaded.format;
         b.stamp = Some(loaded.stamp);
         b.undecodable = !loaded.lossless;
@@ -388,16 +390,46 @@ impl EditorWorkspace {
         b.dirty = false;
         let state = b.state.clone();
         let path = b.path.clone();
+        let large = b.large;
+        let language = b.language;
+        // A queued edit sync belongs to the text being replaced, not this reload.
+        b._sync = Task::ready(());
+        b.snippet = None;
+        if large {
+            b.lsp_open = false;
+        }
         let text_v = loaded.text.clone();
         state.update(cx, |s, cx| {
             let pos = s.cursor_position();
+            if policy_changed {
+                s.set_highlighter(
+                    if large {
+                        "plaintext"
+                    } else {
+                        language.map_or("plaintext", |l| l.highlight)
+                    },
+                    cx,
+                );
+            }
             s.set_readonly(false, cx);
             s.set_value(text_v, window, cx);
             s.set_cursor_position(pos, window, cx);
             s.set_readonly(read_only, cx);
         });
-        self.lsp
-            .update(cx, |s, _| s.change_document(&path, loaded.text));
+        if policy_changed {
+            self.bind_buffer_lsp(&state, &path, !large && language.is_some(), cx);
+            super::set_editor_diagnostics(&state, Vec::new(), cx);
+        }
+        if large {
+            self.lsp.update(cx, |s, _| s.close_document(&path));
+        } else {
+            // Restored background tabs remain lazy, just as on initial open.
+            if policy_changed && self.tabs.active() == Some(i) {
+                self.ensure_lsp(i, cx);
+            }
+            self.lsp
+                .update(cx, |s, _| s.change_document(&path, loaded.text));
+        }
         if was_dirty {
             cx.emit(EditorEvent::DirtyChanged { path, dirty: false });
         }
@@ -411,14 +443,22 @@ impl EditorWorkspace {
         cx: &mut Context<Self>,
     ) {
         let Some(i) = self.tabs.active() else { return };
-        let blocked = std::mem::take(&mut self.buffers[i].save_blocked);
         let path = self.buffers[i].path.clone();
-        match std::mem::replace(&mut self.buffers[i].disk, DiskState::Same) {
-            DiskState::Changed(_) if reload => {
-                if let Ok(l) = text::load_as(&path, self.buffers[i].format.encoding) {
-                    self.reload_buffer(i, l, window, cx);
-                }
+        // Reading can fail (sharing lock, deletion, permissions). Keep the
+        // conflict explanation and unsaved buffer until the read succeeds.
+        if reload && matches!(self.buffers[i].disk, DiskState::Changed(_)) {
+            match text::load_as(&path, self.buffers[i].format.encoding) {
+                Ok(loaded) => self.reload_buffer(i, loaded, window, cx),
+                Err(e) => self.flash(
+                    format!("디스크에서 다시 불러오지 못했습니다: {e}"),
+                    true,
+                    cx,
+                ),
             }
+            return;
+        }
+        let blocked = std::mem::take(&mut self.buffers[i].save_blocked);
+        match std::mem::replace(&mut self.buffers[i].disk, DiskState::Same) {
             DiskState::Changed(disk_text) => {
                 // Keep mine: the disk version becomes the comparison base so
                 // the buffer stays dirty and saving overwrites it (an

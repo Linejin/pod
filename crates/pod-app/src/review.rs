@@ -155,7 +155,7 @@ struct Draft {
     end_line: u32,
     input: Entity<TextareaState>,
     /// A `review.comments.add` for this draft is in flight: a second Enter
-    /// does not send it again. The draft closes when it succeeds.
+    /// does not send it again. Success closes only the submitted text.
     saving: bool,
     /// Why the last save failed; the text stays so Enter can retry.
     error: Option<String>,
@@ -204,6 +204,8 @@ pub struct ReviewPanel {
     checked: HashSet<String>,
     show_resolved: bool,
     draft: Option<Draft>,
+    /// Unsaved inputs at other locations, retained while navigating this panel.
+    parked_drafts: Vec<Draft>,
     hovered: Option<DiffLinePosition>,
     instructions: Entity<TextareaState>,
     deliveries: Vec<DeliveryInfo>,
@@ -275,6 +277,7 @@ impl ReviewPanel {
             checked: HashSet::new(),
             show_resolved: false,
             draft: None,
+            parked_drafts: Vec::new(),
             hovered: None,
             instructions,
             deliveries: Vec::new(),

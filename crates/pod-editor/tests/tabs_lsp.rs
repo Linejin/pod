@@ -206,6 +206,33 @@ fn user_config_dir() -> PathBuf {
 }
 
 #[core::prelude::v1::test]
+fn b08_reload_closes_large_document_and_reopens_after_shrink() {
+    let (_dir, root, log) = worktree();
+    let file = root.join("src/a.rs");
+    let mut h = Harness::new(&root);
+    h.with(|e, w, cx| e.open_file(&file, w, cx)).unwrap();
+    h.wait("initial document", || logged(&log, &[("a.rs", (1, 0))]));
+    std::fs::write(&file, format!("//{}\n", "x".repeat(1021)).repeat(3072)).unwrap();
+    h.with(|e, w, cx| e.reopen_with_encoding(0, pod_editor::text::utf8(), w, cx));
+    assert!(h.with(|e, _, _| e.tab_states()[0].read_only));
+    h.wait("large document closed", || {
+        logged(&log, &[("a.rs", (1, 1))])
+    });
+    h.with(|e, _, cx| {
+        assert!(e.lsp().read(cx).doc(e.active_path().unwrap()).is_none());
+    });
+    std::fs::write(&file, "fn smaller() {}\n").unwrap();
+    h.with(|e, w, cx| e.reopen_with_encoding(0, pod_editor::text::utf8(), w, cx));
+    assert!(!h.with(|e, _, _| e.tab_states()[0].read_only));
+    h.wait("small document reopened", || {
+        logged(&log, &[("a.rs", (2, 1))])
+    });
+    h.type_text("fn edited() {}\n");
+    h.with(|e, w, cx| e.save_active(w, cx));
+    assert_eq!(std::fs::read_to_string(&file).unwrap(), "fn edited() {}\n");
+}
+
+#[core::prelude::v1::test]
 fn tabs_open_and_close_server_documents_exactly_once() {
     let (_dir, root, log) = worktree();
     let mut h = Harness::new(&root);

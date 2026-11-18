@@ -194,6 +194,126 @@ const OPEN_READS: [&str; 3] = [
     "review.deliveries {\"task\":\"sample/로그인-수정\"}",
 ];
 
+fn open_draft_at(h: &mut Harness, r: &Entity<ReviewPanel>, path: &str, line: usize) {
+    h.cx.update(|w, cx| {
+        r.update(cx, |r, cx| {
+            r.open_draft(
+                path.into(),
+                gpui_kit::component::diff::DiffSide::Modified,
+                line,
+                line,
+                w,
+                cx,
+            );
+        })
+    });
+}
+
+fn draft_text(h: &mut Harness, r: &Entity<ReviewPanel>) -> Option<String> {
+    h.cx.update(|_, cx| {
+        r.read(cx)
+            .draft
+            .as_ref()
+            .map(|d| d.input.read(cx).value().to_string())
+    })
+}
+
+fn set_draft_text(h: &mut Harness, r: &Entity<ReviewPanel>, text: &str) {
+    h.cx.update(|w, cx| {
+        r.update(cx, |r, cx| {
+            r.draft
+                .as_ref()
+                .unwrap()
+                .input
+                .update(cx, |i, cx| i.set_value(text.to_owned(), w, cx));
+        })
+    });
+}
+
+#[test]
+fn b06_draft_survives_navigation_between_lines_and_files() {
+    let mut h = harness("b06-drafts", Rc::new(RefCell::new(Reviews::default())));
+    let r = review(&mut h);
+    for (path, line, text) in [
+        ("a.rs", 1, "first"),
+        ("a.rs", 2, "second"),
+        ("b.rs", 1, "third"),
+    ] {
+        open_draft_at(&mut h, &r, path, line);
+        set_draft_text(&mut h, &r, text);
+    }
+    for (path, line, text) in [
+        ("a.rs", 1, "first"),
+        ("a.rs", 2, "second"),
+        ("b.rs", 1, "third"),
+    ] {
+        open_draft_at(&mut h, &r, path, line);
+        assert_eq!(draft_text(&mut h, &r).as_deref(), Some(text));
+        open_draft_at(&mut h, &r, path, line);
+        assert_eq!(
+            draft_text(&mut h, &r).as_deref(),
+            Some(text),
+            "same location must preserve input too"
+        );
+    }
+}
+
+#[test]
+fn b07_delayed_save_preserves_new_input_and_allows_retry() {
+    let state = Rc::new(RefCell::new(Reviews::default()));
+    let mut h = harness("b07-save", state.clone());
+    let r = review(&mut h);
+    open_draft_at(&mut h, &r, "a.rs", 1);
+    set_draft_text(&mut h, &r, "submitted");
+    // Do not serve the backend until after the edit: the RPC is in flight.
+    h.cx.update(|w, cx| {
+        r.update(cx, |r, cx| {
+            r.save_draft(w, cx);
+            r.save_draft(w, cx); // repeated Enter must not duplicate the request
+            r.draft
+                .as_ref()
+                .unwrap()
+                .input
+                .update(cx, |i, cx| i.set_value("submitted + newer", w, cx));
+        })
+    });
+    h.settle();
+    assert_eq!(state.borrow().comments.len(), 1);
+    assert_eq!(state.borrow().comments[0].body, "submitted");
+    assert_eq!(draft_text(&mut h, &r).as_deref(), Some("submitted + newer"));
+    state.borrow_mut().add_error = Some("fixture persistence failure".into());
+    h.cx.update(|w, cx| r.update(cx, |r, cx| r.save_draft(w, cx)));
+    h.settle();
+    assert_eq!(draft_text(&mut h, &r).as_deref(), Some("submitted + newer"));
+    assert!(h.cx.update(|_, cx| r.read(cx).draft.as_ref().unwrap().error.is_some()));
+    state.borrow_mut().add_error = None;
+    h.cx.update(|w, cx| r.update(cx, |r, cx| r.save_draft(w, cx)));
+    h.settle();
+    assert_eq!(state.borrow().comments.len(), 2);
+    assert_eq!(draft_text(&mut h, &r), None);
+}
+
+#[test]
+fn b07_save_completion_after_navigation_keeps_the_other_draft() {
+    let state = Rc::new(RefCell::new(Reviews::default()));
+    let mut h = harness("b07-navigation", state.clone());
+    let r = review(&mut h);
+    open_draft_at(&mut h, &r, "a.rs", 1);
+    set_draft_text(&mut h, &r, "save A");
+    h.cx.update(|w, cx| r.update(cx, |r, cx| r.save_draft(w, cx)));
+    open_draft_at(&mut h, &r, "b.rs", 2);
+    set_draft_text(&mut h, &r, "keep B");
+    h.settle();
+    assert_eq!(draft_text(&mut h, &r).as_deref(), Some("keep B"));
+    open_draft_at(&mut h, &r, "a.rs", 1);
+    assert_eq!(
+        draft_text(&mut h, &r).as_deref(),
+        Some(""),
+        "saved A must not reappear as unsaved"
+    );
+    assert_eq!(state.borrow().comments.len(), 1);
+}
+
 /// J: opening, F5, Ctrl+Shift+C → Enter and Ctrl+Shift+Enter send what they
 /// sent before, once each and in this order; the keys move files and toggle
 /// the comment column.

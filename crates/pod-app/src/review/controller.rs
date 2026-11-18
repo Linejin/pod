@@ -383,6 +383,25 @@ impl ReviewPanel {
         debug(format_args!("open_draft {path}:{line}-{end_line} {side:?}"));
         let (line, end_line) = (line.min(end_line) as u32, line.max(end_line) as u32);
         let side = side_of(side);
+        let same_location = |d: &Draft| {
+            d.path == path && d.side == side && d.line == line && d.end_line == end_line
+        };
+        if let Some(d) = self.draft.as_ref().filter(|d| same_location(d)) {
+            d.input.update(cx, |i, cx| i.focus(window, cx));
+            return;
+        }
+        if let Some(d) = self.draft.take()
+            && (d.saving || !d.input.read(cx).value().is_empty())
+        {
+            self.parked_drafts.push(d);
+        }
+        if let Some(i) = self.parked_drafts.iter().position(same_location) {
+            let d = self.parked_drafts.remove(i);
+            d.input.update(cx, |i, cx| i.focus(window, cx));
+            self.draft = Some(d);
+            cx.notify();
+            return;
+        }
         let input = cx.new(|cx| {
             TextareaState::new(window, cx)
                 .auto_grow(1, 6)
@@ -495,7 +514,8 @@ impl ReviewPanel {
         if d.saving {
             return;
         }
-        let body = d.input.read(cx).value().trim().to_string();
+        let submitted = d.input.read(cx).value();
+        let body = submitted.trim().to_string();
         cx.notify();
         if body.is_empty() {
             self.draft = None;
@@ -520,18 +540,32 @@ impl ReviewPanel {
         cx.spawn(async move |this, cx| {
             let r = rx.await;
             let _ = this.update(cx, |p, cx| {
-                // The draft this save belongs to, unless another one replaced it.
-                let draft = p.draft.as_mut().filter(|d| d.input == input);
                 match r {
                     Ok(added) => {
-                        if draft.is_some() {
+                        // Navigation can park this input, and typing can change
+                        // it while the request is in flight. Clear only the
+                        // exact input and text that this request submitted.
+                        for d in p.draft.iter_mut().chain(p.parked_drafts.iter_mut()) {
+                            if d.input == input {
+                                d.saving = false;
+                            }
+                        }
+                        let saved =
+                            |d: &Draft| d.input == input && d.input.read(cx).value() == submitted;
+                        p.parked_drafts.retain(|d| !saved(d));
+                        if p.draft.as_ref().is_some_and(saved) {
                             p.draft = None;
                         }
                         p.comments.extend(added.comments);
                         cx.notify();
                     }
                     Err(e) => {
-                        if let Some(d) = draft {
+                        if let Some(d) = p
+                            .draft
+                            .iter_mut()
+                            .chain(p.parked_drafts.iter_mut())
+                            .find(|d| d.input == input)
+                        {
                             (d.saving, d.error) = (false, Some(e.message.clone()));
                         }
                         p.toast(

@@ -348,3 +348,104 @@ fn directory_rename_saves_background_and_active_buffers() {
     );
     assert!(!old_dir.exists());
 }
+
+#[core::prelude::v1::test]
+fn b08_reload_rechecks_large_file_editing_and_highlighting() {
+    let (_dir, root) = worktree();
+    let file = root.join("size.rs");
+    let line = format!("//{}\n", "x".repeat(1021));
+    let small = line.repeat(1024); // 1 MiB
+    let large = line.repeat(3072); // 3 MiB
+    std::fs::write(&file, &small).unwrap();
+    let mut h = Harness::new(&root);
+    h.with(|e, w, cx| e.open_file(&file, w, cx)).unwrap();
+    for (contents, read_only, language) in [(&large, true, "plaintext"), (&small, false, "rust")] {
+        std::fs::write(&file, contents).unwrap();
+        // Encoding reopen uses the same reload path as watcher/explicit reload.
+        h.with(|e, w, cx| e.reopen_with_encoding(0, pod_editor::text::utf8(), w, cx));
+        assert_eq!(h.read(|e| e.tab_states())[0].read_only, read_only);
+        h.with(|e, _, cx| {
+            let editor = e.active_editor().unwrap();
+            assert_eq!(editor.read(cx).value().to_string(), *contents);
+            assert_eq!(editor.read(cx).language_name().as_ref(), language);
+            assert_eq!(
+                editor.read(cx).lsp().completion_provider.is_some(),
+                !read_only
+            );
+        });
+    }
+    h.type_text("fn edited_after_shrink() {}\n");
+    h.with(|e, w, cx| e.save_active(w, cx));
+    assert_eq!(
+        std::fs::read_to_string(file).unwrap(),
+        "fn edited_after_shrink() {}\n"
+    );
+}
+
+#[cfg(windows)]
+#[core::prelude::v1::test]
+fn b09_failed_reload_keeps_conflict_buffer_and_retry() {
+    use std::os::windows::fs::OpenOptionsExt;
+    let (_dir, root) = worktree();
+    let file = root.join("conflict.txt");
+    std::fs::write(&file, "original").unwrap();
+    let mut h = Harness::new(&root);
+    h.with(|e, w, cx| e.open_file(&file, w, cx)).unwrap();
+    h.type_text("my unsaved work");
+    std::fs::write(&file, "external version").unwrap();
+    h.with(|e, w, cx| e.save_active(w, cx));
+    assert!(h.read(|e| e.tab_states())[0].disk_changed);
+    let lock = std::fs::OpenOptions::new()
+        .read(true)
+        .share_mode(0)
+        .open(&file)
+        .unwrap();
+    h.with(|e, w, cx| e.answer_disk_prompt(true, w, cx));
+    let tab = &h.read(|e| e.tab_states())[0];
+    assert!(
+        tab.disk_changed && tab.dirty,
+        "failed read must preserve conflict: {tab:?}"
+    );
+    h.with(|e, _, cx| {
+        assert_eq!(
+            e.active_editor().unwrap().read(cx).value().to_string(),
+            "my unsaved work"
+        )
+    });
+    h.with(|e, w, cx| e.show_disk_diff(w, cx));
+    assert!(
+        h.read(|e| e.disk_diff())
+            .unwrap()
+            .contains(&('-', "external version".into()))
+    );
+    drop(lock);
+    h.with(|e, w, cx| e.answer_disk_prompt(true, w, cx));
+    let tab = &h.read(|e| e.tab_states())[0];
+    assert!(!tab.disk_changed && !tab.dirty);
+    h.with(|e, _, cx| {
+        assert_eq!(
+            e.active_editor().unwrap().read(cx).value().to_string(),
+            "external version"
+        )
+    });
+}
+
+#[core::prelude::v1::test]
+fn b08_initially_large_file_becomes_editable_after_reload() {
+    let (_dir, root) = worktree();
+    let file = root.join("shrinking.rs");
+    let line = format!("//{}\n", "x".repeat(1021));
+    std::fs::write(&file, line.repeat(3072)).unwrap();
+    let mut h = Harness::new(&root);
+    h.with(|e, w, cx| e.open_file(&file, w, cx)).unwrap();
+    assert!(h.read(|e| e.tab_states())[0].read_only);
+    std::fs::write(&file, line.repeat(1024)).unwrap();
+    h.with(|e, w, cx| e.reopen_with_encoding(0, pod_editor::text::utf8(), w, cx));
+    assert!(!h.read(|e| e.tab_states())[0].read_only);
+    h.type_text("fn writable_again() {}\n");
+    h.with(|e, w, cx| e.save_active(w, cx));
+    assert_eq!(
+        std::fs::read_to_string(file).unwrap(),
+        "fn writable_again() {}\n"
+    );
+}
