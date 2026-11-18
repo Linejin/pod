@@ -11,6 +11,117 @@ use crate::model::{
 use crate::store;
 
 impl Orch {
+    /// Idempotently journal a Pod link notification for one durable source
+    /// event and destination run. Returns `(mail, newly_appended)`.
+    ///
+    /// The caller must retain/retry its source event until success. An append
+    /// error may have written a whole line: reconcile the journal before any
+    /// retry (and repair a partial tail before another message can append).
+    /// The marker lives in the existing payload; wire types stay unchanged.
+    pub fn send_link_once(
+        &mut self,
+        run: &str,
+        source_event: &str,
+        mail: NewMail,
+        now: Ms,
+    ) -> Result<(Mail, bool)> {
+        self.send_link_once_with(run, source_event, mail, now, store::append_mail)
+    }
+
+    pub(super) fn send_link_once_with(
+        &mut self,
+        run: &str,
+        source_event: &str,
+        mut mail: NewMail,
+        now: Ms,
+        append: impl FnOnce(&std::path::Path, &MailLine) -> std::io::Result<()>,
+    ) -> Result<(Mail, bool)> {
+        self.ensure_recovered()?;
+        let destination = crate::model::run_mailbox(run);
+        if source_event.is_empty()
+            || mail.from != "pod"
+            || mail.to != destination
+            || mail.kind != MailType::Status
+            || mail.text.is_none()
+        {
+            return Err(OrchError::new(
+                ErrorKind::InvalidParams,
+                "link mail requires a source event and Pod-authored status addressed to its run",
+            ));
+        }
+        let payload = mail.payload.get_or_insert_with(|| serde_json::json!({}));
+        let Some(payload) = payload.as_object_mut() else {
+            return Err(OrchError::new(
+                ErrorKind::InvalidParams,
+                "link mail payload must be an object",
+            ));
+        };
+        payload.insert("pod_link_event".into(), source_event.into());
+        self.reload_link_mail(run)?;
+        if let Some(existing) = self.run(run)?.mail.iter().find(|m| {
+            m.from == "pod"
+                && m.to == destination
+                && m.kind == MailType::Status
+                && m.text.is_some()
+                && m.payload
+                    .as_ref()
+                    .and_then(|p| p.get("pod_link_event"))
+                    .and_then(|v| v.as_str())
+                    == Some(source_event)
+        }) {
+            return Ok((existing.clone(), false));
+        }
+        match self.send_with_append(Some(run), mail, |_| false, now, append) {
+            Ok(mail) => Ok((mail, true)),
+            Err(error) => {
+                // Recover while the caller still holds the engine lock. If
+                // that fails, fence all mutations until a successful reload.
+                self.reload_link_mail(run)?;
+                Err(error)
+            }
+        }
+    }
+
+    fn reload_link_mail(&mut self, run: &str) -> Result<()> {
+        self.run(run)?;
+        let loaded = store::load_mail(&store::mail_jsonl(&self.root, run));
+        let loaded = match loaded {
+            Ok(loaded) if loaded.skipped_lines == 0 => loaded,
+            result => {
+                let message = match result {
+                    Err(e) => format!("run {run}: cannot recover link mail: {e}"),
+                    Ok(_) => {
+                        format!("run {run}: unreadable journal lines prevent link deduplication")
+                    }
+                };
+                self.notes.push(message.clone());
+                self.recovery_incomplete = true;
+                return Err(io(std::io::Error::other(message)));
+            }
+        };
+        if loaded.truncated_bytes > 0 {
+            self.notes.push(format!(
+                "run {run}: repaired {} torn link mail bytes",
+                loaded.truncated_bytes
+            ));
+        }
+        let st = self.run_mut(run)?;
+        st.mail.clear();
+        st.read.clear();
+        for line in loaded.lines {
+            match line {
+                MailLine::Mail { mail } => st.mail.push(*mail),
+                MailLine::Read { mailbox, ids, ms } => {
+                    let read = st.read.entry(mailbox).or_default();
+                    for id in ids {
+                        read.entry(id).or_insert(ms);
+                    }
+                }
+            }
+        }
+        Ok(())
+    }
+
     /// Mailboxes a message to `to` reaches. Groups need the sender's run
     /// and expand to its live workers (`idle` decides `@idle`).
     fn recipients(
@@ -73,6 +184,17 @@ impl Orch {
         idle: impl Fn(&Attempt) -> bool,
         now: Ms,
     ) -> Result<Mail> {
+        self.send_with_append(ctx_run, m, idle, now, store::append_mail)
+    }
+
+    fn send_with_append(
+        &mut self,
+        ctx_run: Option<&str>,
+        m: NewMail,
+        idle: impl Fn(&Attempt) -> bool,
+        now: Ms,
+        append: impl FnOnce(&std::path::Path, &MailLine) -> std::io::Result<()>,
+    ) -> Result<Mail> {
         let (run, recipients) = self.recipients(ctx_run, &m.to, m.kind, &idle)?;
         if m.subject.trim().is_empty() {
             return Err(OrchError::new(
@@ -130,7 +252,7 @@ impl Orch {
             body_text: m.body_text,
             read_ms: None,
         };
-        store::append_mail(
+        append(
             &store::mail_jsonl(&self.root, &run),
             &MailLine::Mail {
                 mail: Box::new(mail.clone()),

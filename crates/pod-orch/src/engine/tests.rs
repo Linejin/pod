@@ -6,6 +6,7 @@ use crate::store;
 use crate::text;
 
 mod attempt_persistence;
+mod link_mail;
 mod recovery_reads;
 
 fn temp(tag: &str) -> PathBuf {
