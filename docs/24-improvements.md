@@ -42,12 +42,12 @@ Pod의 우선 개선 과제는 편집 내용 보존, 워커 정리와 상태 저
 | B03 | P1 · 구현·결합 검증 완료 | 수정 전 자동 release 선정 이후 keep·사람 입력이 들어오면 보존 요청 후에도 터미널이 종료될 수 있었다. | engine 잠금 아래 현재 상태와 기한을 다시 검사하고 release claim을 설치한다. claim 전 keep·입력은 보존하며 이후 keep은 거부한다. 결정적 경합·claim 해제와 B05 결합 검증 통과. | M |
 | B04 | P1 · 구현·결합 검증 완료 | 수정 전 출력 archive 쓰기 실패를 로그만 남기고 강제 rm을 계속하여 터미널 출력 보관본이 유실될 수 있었다. | 자동 보관 실패 시 자원을 유지하고 오류·재시도를 제공한다. 제거 전·후 저장 실패와 재시작 복구도 검증했다. 명시적 수동 release의 기존 강제 정리 동작은 유지한다. | M |
 | B05 | P1 · 구현·회귀 검증 완료 | 수정 전 mark_ready·end_attempt·set_worker 등이 메모리를 먼저 바꾸어, 저장 실패 후 재시도가 누락될 수 있었다. | Run 복제본을 저장한 뒤 메모리에 반영한다. ID 예약·queue admission도 실패 시 새 실행을 잃지 않도록 수정했다. 실패 주입 회귀 검사 10개와 기존 검사를 워커에서 통과했으며 통합 브랜치에 반영했다. 범위와 제한은 [실행 기록](25-improvement-execution.md)에 있다. | M |
-| B06 | P2 · 코드 확인 | 다른 줄·파일의 리뷰 의견을 시작하면 기존 미저장 초안을 확인 없이 교체한다. | 위치별 초안 보존 또는 전환 확인을 제공한다. 의견 A 작성→의견 B 시작→A 복귀 시 원문을 보존한다. | S–M |
-| B07 | P2 · 코드 확인 | 리뷰 저장 중 계속 입력할 수 있지만 성공 응답은 전송 당시 내용과 이후 입력을 구별하지 않고 초안을 제거한다. | 전송 revision과 현재 revision을 비교하거나 저장 중 편집을 명시적으로 잠근다. 지연 응답 후 추가 입력 보존과 실패·재시도를 확인한다. | S |
-| B08 | P2 · 코드 확인 | 외부 변경 reload가 Loaded.large를 반영하지 않아 커진 파일은 계속 편집되고 작아진 파일은 읽기 전용으로 남을 수 있다. | 크기·강조·LSP 정책을 함께 재평가한다. 1 MiB→3 MiB→1 MiB 변경에서 실제 편집 상태와 LSP 연결이 양방향으로 일치한다. | M |
-| B09 | P2 · 코드 확인 | 디스크 reload 전에 충돌 상태를 지우므로 읽기 실패 시 설명과 충돌 배너가 사라진다. | 읽기 성공 후에만 충돌 상태를 해제한다. 잠금·삭제·읽기 실패에서 기존 버퍼와 배너를 유지하고 재시도 오류를 표시한다. | S |
-| B10 | P2 · 코드 확인 | 상태 파일 read/read_dir 실패를 부재처럼 처리해 일부 run이 정상적으로 없는 것처럼 보일 수 있다. | NotFound와 다른 I/O 오류를 구분하고 복구 중 쓰기를 제한한다. index·run·root 및 동시 읽기 실패에서도 오류를 표시하고 기존 ID·데이터를 보존한다. | M |
-| B11 | P2 · 코드 확인 | 연계 review/check 이벤트의 Lagged를 무시하고, 메일 저장 전에 dedup 키를 확정한다. 전달 실패 후 알림이 영구 누락될 수 있다. | 영속 outbox 또는 원본 기록 재조정과 재시도를 도입한다. overflow·중간 수신자 저장 실패·재시작 후 대상별 정확히 한 번 전달을 확인한다. | M |
+| B06 | P2 · 수정·자동 검증 완료 | 수정 전 다른 줄·파일 의견을 시작하면 기존 미저장 초안을 교체했다. | 위치별 초안을 보존하고 돌아왔을 때 같은 입력을 복원한다. 신규 회귀와 전체 GUI 4개 package 검사 통과, 실제 native 검사는 진행 중이다. | S–M |
+| B07 | P2 · 수정·자동 검증 완료 | 수정 전 지연 저장 성공 응답이 전송 후 추가 입력까지 제거했다. | 같은 input entity와 전송한 원문이 일치할 때만 초안을 닫는다. 위치 전환·지연 응답·실패·재시도 회귀 통과. | S |
+| B08 | P2 · 수정·자동 검증 완료 | 수정 전 reload가 크기 정책을 반영하지 않아 편집 가능 여부와 LSP가 이전 상태로 남았다. | large·강조·provider·LSP 열기/닫기와 예약 sync를 재평가한다. 증가·축소·처음부터 큰 파일 및 B01 인접 회귀를 통과했다. | M |
+| B09 | P2 · 수정·자동 검증 완료 | 수정 전 reload 실패 시 충돌 상태·배너가 사라졌다. | 읽기 성공 후에만 충돌을 해제한다. 실제 Windows 공유 잠금으로 실패·원문 유지·재시도를 검사했다. | S |
+| B10 | P2 · core 수정·집중 검증 완료 | 수정 전 read/read_dir 실패를 부재처럼 처리하여 복구되지 않은 상태에서 쓰거나 기존 ID를 재사용할 수 있었다. | 실제 읽기 오류를 진단하고 불완전 복구에는 쓰기 fence를 적용한다. 기존 Run 디렉터리 ID를 예약한다. 신규 회귀 5개 포함 core 150개 통과, daemon 결합 검증은 진행 중이다. | M |
+| B11 | P2 · core 수정, daemon 작업 중 | 연계 review/check 이벤트의 Lagged와 메일 저장 전 dedup 때문에 알림이 영구 누락될 수 있다. | core의 event·수신 Run별 idempotent journal API와 모호한 append 복구를 구현·집중 검증했다. daemon durable source 재조정과 overflow·수신 실패·restart·기존 payload 호환 회귀를 진행한다. | M |
 
 관련 코드:
 
@@ -71,11 +71,14 @@ Pod의 우선 개선 과제는 편집 내용 보존, 워커 정리와 상태 저
 | B17 | P3 · 구성 확인 | 최소 Rust 1.99, CI stable, 패키징 1.100.0의 역할을 명시하고 재현 가능한 버전 기준을 공유한다. | 최소·권장·배포 버전과 artifact의 정확한 toolchain을 기록하고 선택한 MSRV를 실제 검사한다. | S–M |
 | B18 | P2 · 성능 가설 | 많은 탭 복원과 외부 일괄 변경 중 동기 파일 I/O의 UI 지연을 측정한다. 측정 후 활성 탭 우선 복원·지연 로딩·백그라운드 처리를 선택한다. | 1·20·100개 탭과 일괄 변경의 p95 입력 지연·최대 프레임 시간을 기록하고 합의한 기준을 충족한다. | M |
 | B19 | P2 · 접근성 검증 제안 | 편집기의 저장 재시도·덮어쓰기·reload·LSP 신뢰 버튼을 공용 semantic control로 통일한다. | Tab·Enter·Space·UIA Invoke·실제 낭독에서 이름·포커스·실행 결과가 일치한다. | M |
-| B20 | P2 · 진단 재현 확인, 미수정 | OSC working→idle 보고가 같은 PTY 청크에 합쳐지면 최종 상태만 재계산하여 turn을 누락한다. 동일 보고를 나눈 입력은 turn=1, 묶은 입력은 turn=0이었다. Turn을 사용하는 감독 처리에 영향을 줄 수 있다. | 같은 바이트 순서를 다양한 청크 경계로 입력해도 최종 상태·완료 턴 수가 일치하도록 수정한다. 여러 턴·부분 OSC·프로그램 교체와 hook 우선순위도 보호한다. 과거 통합 시험 시간 초과의 직접 원인이라는 단정은 하지 않는다. | M |
+| B20 | P2 · 수정·집중 검증 완료 | 수정 전 같은 청크 안의 OSC working→idle 보고에서 완료 턴이 누락됐다. | 보고를 순서대로 재계산하여 청크 경계와 무관하게 턴을 센다. 신규 회귀 4개 포함 core 150개 통과. daemon 결합 검증은 진행하며 과거 시간 초과의 직접 원인으로 단정하지 않는다. | M |
+| B21 | P2 · 수정·holder 검증 완료 | 현재 Cargo OUT_DIR 배치에서 bundle이 holder 옆 대신 build 폴더에 복사되어 inbox provider를 사용했다. 같은 길이의 다른 DLL과 잠긴 오래된 파일도 감지하지 못했다. | 두 출력 레이아웃을 처리하고 실제 바이트를 비교해 원자적으로 교체한다. 잠긴 오래된 파일은 보존하고 오류를 명시한다. 전체 holder 계약 7개 통과, 전체 결합 검증은 진행 중이다. | S–M |
 
 관련 자료: [보안 신고](../SECURITY.md), [CI](../.github/workflows/ci.yml), [설치 시험](../tools/installer/test-install.ps1), [실제 LSP 시험](../crates/pod-editor/tests/lsp_lifecycle.rs), [시각 QA의 검증 범위](../tools/visual/README.md), [세션 복원](../crates/pod-editor/src/ui/workspace/session.rs), [편집기 배너](../crates/pod-editor/src/ui/workspace/render_panels.rs).
 
-B20은 1차 결합 검증 조사 중 추가한 과제다. [청크 입력](../crates/pod-status/src/engine/input.rs#L78), [상태·턴 재계산](../crates/pod-status/src/engine.rs#L314), [턴 기반 감독](../crates/podd/src/server/orch_runs/supervisor.rs#L291)을 대조하고 실제 pod_status를 사용하는 진단 시험으로 차이를 확인했다. 이번 B01–B05 수정에 포함하지 않았다.
+B20은 1차 결합 검증에서 발견했고, [청크 입력](../crates/pod-status/src/engine/input.rs#L78), [상태·턴 재계산](../crates/pod-status/src/engine.rs#L314), [턴 기반 감독](../crates/podd/src/server/orch_runs/supervisor.rs#L291)을 대조했다. 1차 B01–B05에서는 미수정이었으며, [2026-11-18 기능 검증](27-feature-validation-results.md)에서 재현·수정·집중 회귀를 완료했다.
+
+B21 근거는 [번들 build helper](../crates/podd/build_support.rs)와 [실제 holder 계약 시험](../crates/podd/tests/holder_contract.rs)이다. 개발 빌드 배치의 결함이며, vendor에서 별도로 복사하는 설치 stage가 같은 결함을 가진다고 단정하지 않는다.
 
 설정 버튼 무응답 제보는 **별도 재현 과제**다. 설치본에서 Ctrl+, 및 접근성 명령으로 설정이 열리는 것까지 확인했으며, 실제 마우스 hit-test와 제목 표시줄 경로의 원인은 미확정이다. B13에서 마우스와 단축키를 비교하는 재현을 추가한다.
 
