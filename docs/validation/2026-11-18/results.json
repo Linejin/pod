@@ -1121,5 +1121,246 @@
                                                     "serialized":  false
                                                 }
                                             ]
-                           }
+                           },
+    "verified_coordinator_checks":  [
+                                        {
+                                            "executor_version":  2,
+                                            "executor_sha256":  "11012e47e74a53e17d3433778fbec10774b4e07886929f445e155a5811f2ce28",
+                                            "check_name":  "check-boundaries",
+                                            "source_commit":  "4e1664ca36b5e3a392e09303a5effaa1d4bac56b",
+                                            "branch":  "improvements/stability-foundation",
+                                            "dirty_files":  [
+
+                                                            ],
+                                            "source_fingerprint_before":  "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+                                            "source_fingerprint_after":  "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+                                            "working_directory":  "C:\\Users\\Sejin\\orca\\workspaces\\pod\\pod-improvements",
+                                            "file":  "powershell.exe",
+                                            "arguments":  [
+                                                              "-NoProfile",
+                                                              "-File",
+                                                              "tools/check-boundaries.ps1"
+                                                          ],
+                                            "started_at":  "2026-11-18T00:10:53.9921090Z",
+                                            "finished_at":  "2026-11-18T00:10:55.3325393Z",
+                                            "exit_code":  0,
+                                            "check_status":  "PASS",
+                                            "error":  null,
+                                            "evidence":  "C:\\Users\\Sejin\\orca\\workspaces\\pod\\pod-improvements\\target\\feature-validation\\20261118-085848\\coordinator-v2\\check-boundaries-20261118-091053-992.log",
+                                            "stdout_evidence":  "C:\\Users\\Sejin\\orca\\workspaces\\pod\\pod-improvements\\target\\feature-validation\\20261118-085848\\coordinator-v2\\check-boundaries-20261118-091053-992.log.stdout",
+                                            "stderr_evidence":  "C:\\Users\\Sejin\\orca\\workspaces\\pod\\pod-improvements\\target\\feature-validation\\20261118-085848\\coordinator-v2\\check-boundaries-20261118-091053-992.log.stderr",
+                                            "serialized":  false
+                                        },
+                                        {
+                                            "executor_version":  2,
+                                            "executor_sha256":  "11012e47e74a53e17d3433778fbec10774b4e07886929f445e155a5811f2ce28",
+                                            "check_name":  "check-docs",
+                                            "source_commit":  "4e1664ca36b5e3a392e09303a5effaa1d4bac56b",
+                                            "branch":  "improvements/stability-foundation",
+                                            "dirty_files":  [
+
+                                                            ],
+                                            "source_fingerprint_before":  "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+                                            "source_fingerprint_after":  "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+                                            "working_directory":  "C:\\Users\\Sejin\\orca\\workspaces\\pod\\pod-improvements",
+                                            "file":  "powershell.exe",
+                                            "arguments":  [
+                                                              "-NoProfile",
+                                                              "-File",
+                                                              "tools/check-docs.ps1"
+                                                          ],
+                                            "started_at":  "2026-11-18T00:10:52.7181474Z",
+                                            "finished_at":  "2026-11-18T00:10:53.9762165Z",
+                                            "exit_code":  0,
+                                            "check_status":  "PASS",
+                                            "error":  null,
+                                            "evidence":  "C:\\Users\\Sejin\\orca\\workspaces\\pod\\pod-improvements\\target\\feature-validation\\20261118-085848\\coordinator-v2\\check-docs-20261118-091052-718.log",
+                                            "stdout_evidence":  "C:\\Users\\Sejin\\orca\\workspaces\\pod\\pod-improvements\\target\\feature-validation\\20261118-085848\\coordinator-v2\\check-docs-20261118-091052-718.log.stdout",
+                                            "stderr_evidence":  "C:\\Users\\Sejin\\orca\\workspaces\\pod\\pod-improvements\\target\\feature-validation\\20261118-085848\\coordinator-v2\\check-docs-20261118-091052-718.log.stderr",
+                                            "serialized":  false
+                                        },
+                                        {
+                                            "executor_version":  2,
+                                            "executor_sha256":  "11012e47e74a53e17d3433778fbec10774b4e07886929f445e155a5811f2ce28",
+                                            "check_name":  "check-vendor-notices",
+                                            "source_commit":  "4e1664ca36b5e3a392e09303a5effaa1d4bac56b",
+                                            "branch":  "improvements/stability-foundation",
+                                            "dirty_files":  [
+
+                                                            ],
+                                            "source_fingerprint_before":  "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+                                            "source_fingerprint_after":  "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+                                            "working_directory":  "C:\\Users\\Sejin\\orca\\workspaces\\pod\\pod-improvements",
+                                            "file":  "powershell.exe",
+                                            "arguments":  [
+                                                              "-NoProfile",
+                                                              "-File",
+                                                              "tools/check-vendor-notices.ps1"
+                                                          ],
+                                            "started_at":  "2026-11-18T00:10:55.3465402Z",
+                                            "finished_at":  "2026-11-18T00:10:56.3560809Z",
+                                            "exit_code":  0,
+                                            "check_status":  "PASS",
+                                            "error":  null,
+                                            "evidence":  "C:\\Users\\Sejin\\orca\\workspaces\\pod\\pod-improvements\\target\\feature-validation\\20261118-085848\\coordinator-v2\\check-vendor-notices-20261118-091055-346.log",
+                                            "stdout_evidence":  "C:\\Users\\Sejin\\orca\\workspaces\\pod\\pod-improvements\\target\\feature-validation\\20261118-085848\\coordinator-v2\\check-vendor-notices-20261118-091055-346.log.stdout",
+                                            "stderr_evidence":  "C:\\Users\\Sejin\\orca\\workspaces\\pod\\pod-improvements\\target\\feature-validation\\20261118-085848\\coordinator-v2\\check-vendor-notices-20261118-091055-346.log.stderr",
+                                            "serialized":  false
+                                        },
+                                        {
+                                            "executor_version":  2,
+                                            "executor_sha256":  "11012e47e74a53e17d3433778fbec10774b4e07886929f445e155a5811f2ce28",
+                                            "check_name":  "check-workspace",
+                                            "source_commit":  "4e1664ca36b5e3a392e09303a5effaa1d4bac56b",
+                                            "branch":  "improvements/stability-foundation",
+                                            "dirty_files":  [
+
+                                                            ],
+                                            "source_fingerprint_before":  "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+                                            "source_fingerprint_after":  "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+                                            "working_directory":  "C:\\Users\\Sejin\\orca\\workspaces\\pod\\pod-improvements",
+                                            "file":  "powershell.exe",
+                                            "arguments":  [
+                                                              "-NoProfile",
+                                                              "-File",
+                                                              "tools/check-workspace.ps1"
+                                                          ],
+                                            "started_at":  "2026-11-18T00:10:51.4016273Z",
+                                            "finished_at":  "2026-11-18T00:10:52.6451493Z",
+                                            "exit_code":  0,
+                                            "check_status":  "PASS",
+                                            "error":  null,
+                                            "evidence":  "C:\\Users\\Sejin\\orca\\workspaces\\pod\\pod-improvements\\target\\feature-validation\\20261118-085848\\coordinator-v2\\check-workspace-20261118-091051-402.log",
+                                            "stdout_evidence":  "C:\\Users\\Sejin\\orca\\workspaces\\pod\\pod-improvements\\target\\feature-validation\\20261118-085848\\coordinator-v2\\check-workspace-20261118-091051-402.log.stdout",
+                                            "stderr_evidence":  "C:\\Users\\Sejin\\orca\\workspaces\\pod\\pod-improvements\\target\\feature-validation\\20261118-085848\\coordinator-v2\\check-workspace-20261118-091051-402.log.stderr",
+                                            "serialized":  false
+                                        },
+                                        {
+                                            "executor_version":  2,
+                                            "executor_sha256":  "11012e47e74a53e17d3433778fbec10774b4e07886929f445e155a5811f2ce28",
+                                            "check_name":  "fetch-conpty",
+                                            "source_commit":  "4e1664ca36b5e3a392e09303a5effaa1d4bac56b",
+                                            "branch":  "improvements/stability-foundation",
+                                            "dirty_files":  [
+
+                                                            ],
+                                            "source_fingerprint_before":  "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+                                            "source_fingerprint_after":  "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+                                            "working_directory":  "C:\\Users\\Sejin\\orca\\workspaces\\pod\\pod-improvements",
+                                            "file":  "powershell.exe",
+                                            "arguments":  [
+                                                              "-NoProfile",
+                                                              "-File",
+                                                              "tools/fetch-conpty.ps1"
+                                                          ],
+                                            "started_at":  "2026-11-18T00:12:24.3585298Z",
+                                            "finished_at":  "2026-11-18T00:12:27.1841050Z",
+                                            "exit_code":  0,
+                                            "check_status":  "PASS",
+                                            "error":  null,
+                                            "evidence":  "C:\\Users\\Sejin\\orca\\workspaces\\pod\\pod-improvements\\target\\feature-validation\\20261118-085848\\coordinator-v2\\fetch-conpty-20261118-091224-359.log",
+                                            "stdout_evidence":  "C:\\Users\\Sejin\\orca\\workspaces\\pod\\pod-improvements\\target\\feature-validation\\20261118-085848\\coordinator-v2\\fetch-conpty-20261118-091224-359.log.stdout",
+                                            "stderr_evidence":  "C:\\Users\\Sejin\\orca\\workspaces\\pod\\pod-improvements\\target\\feature-validation\\20261118-085848\\coordinator-v2\\fetch-conpty-20261118-091224-359.log.stderr",
+                                            "serialized":  false
+                                        },
+                                        {
+                                            "executor_version":  2,
+                                            "executor_sha256":  "11012e47e74a53e17d3433778fbec10774b4e07886929f445e155a5811f2ce28",
+                                            "check_name":  "signing",
+                                            "source_commit":  "4e1664ca36b5e3a392e09303a5effaa1d4bac56b",
+                                            "branch":  "improvements/stability-foundation",
+                                            "dirty_files":  [
+
+                                                            ],
+                                            "source_fingerprint_before":  "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+                                            "source_fingerprint_after":  "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+                                            "working_directory":  "C:\\Users\\Sejin\\orca\\workspaces\\pod\\pod-improvements",
+                                            "file":  "powershell.exe",
+                                            "arguments":  [
+                                                              "-NoProfile",
+                                                              "-File",
+                                                              "tools/installer/test-signing.ps1"
+                                                          ],
+                                            "started_at":  "2026-11-18T00:11:16.1953439Z",
+                                            "finished_at":  "2026-11-18T00:11:17.6674608Z",
+                                            "exit_code":  1,
+                                            "check_status":  "FAIL",
+                                            "error":  null,
+                                            "evidence":  "C:\\Users\\Sejin\\orca\\workspaces\\pod\\pod-improvements\\target\\feature-validation\\20261118-085848\\coordinator-v2\\signing-20261118-091116-195.log",
+                                            "stdout_evidence":  "C:\\Users\\Sejin\\orca\\workspaces\\pod\\pod-improvements\\target\\feature-validation\\20261118-085848\\coordinator-v2\\signing-20261118-091116-195.log.stdout",
+                                            "stderr_evidence":  "C:\\Users\\Sejin\\orca\\workspaces\\pod\\pod-improvements\\target\\feature-validation\\20261118-085848\\coordinator-v2\\signing-20261118-091116-195.log.stderr",
+                                            "serialized":  false
+                                        },
+                                        {
+                                            "executor_version":  2,
+                                            "executor_sha256":  "11012e47e74a53e17d3433778fbec10774b4e07886929f445e155a5811f2ce28",
+                                            "check_name":  "signing-after-conpty",
+                                            "source_commit":  "4e1664ca36b5e3a392e09303a5effaa1d4bac56b",
+                                            "branch":  "improvements/stability-foundation",
+                                            "dirty_files":  [
+
+                                                            ],
+                                            "source_fingerprint_before":  "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+                                            "source_fingerprint_after":  "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+                                            "working_directory":  "C:\\Users\\Sejin\\orca\\workspaces\\pod\\pod-improvements",
+                                            "file":  "powershell.exe",
+                                            "arguments":  [
+                                                              "-NoProfile",
+                                                              "-File",
+                                                              "tools/installer/test-signing.ps1"
+                                                          ],
+                                            "started_at":  "2026-11-18T00:12:27.2661048Z",
+                                            "finished_at":  "2026-11-18T00:12:30.6290070Z",
+                                            "exit_code":  0,
+                                            "check_status":  "PASS",
+                                            "error":  null,
+                                            "evidence":  "C:\\Users\\Sejin\\orca\\workspaces\\pod\\pod-improvements\\target\\feature-validation\\20261118-085848\\coordinator-v2\\signing-after-conpty-20261118-091227-266.log",
+                                            "stdout_evidence":  "C:\\Users\\Sejin\\orca\\workspaces\\pod\\pod-improvements\\target\\feature-validation\\20261118-085848\\coordinator-v2\\signing-after-conpty-20261118-091227-266.log.stdout",
+                                            "stderr_evidence":  "C:\\Users\\Sejin\\orca\\workspaces\\pod\\pod-improvements\\target\\feature-validation\\20261118-085848\\coordinator-v2\\signing-after-conpty-20261118-091227-266.log.stderr",
+                                            "serialized":  false
+                                        },
+                                        {
+                                            "executor_version":  2,
+                                            "executor_sha256":  "11012e47e74a53e17d3433778fbec10774b4e07886929f445e155a5811f2ce28",
+                                            "check_name":  "test-publish-public",
+                                            "source_commit":  "4e1664ca36b5e3a392e09303a5effaa1d4bac56b",
+                                            "branch":  "improvements/stability-foundation",
+                                            "dirty_files":  [
+
+                                                            ],
+                                            "source_fingerprint_before":  "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+                                            "source_fingerprint_after":  "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+                                            "working_directory":  "C:\\Users\\Sejin\\orca\\workspaces\\pod\\pod-improvements",
+                                            "file":  "powershell.exe",
+                                            "arguments":  [
+                                                              "-NoProfile",
+                                                              "-File",
+                                                              "tools/test-publish-public.ps1"
+                                                          ],
+                                            "started_at":  "2026-11-18T00:10:56.3720910Z",
+                                            "finished_at":  "2026-11-18T00:11:16.1792075Z",
+                                            "exit_code":  0,
+                                            "check_status":  "PASS",
+                                            "error":  null,
+                                            "evidence":  "C:\\Users\\Sejin\\orca\\workspaces\\pod\\pod-improvements\\target\\feature-validation\\20261118-085848\\coordinator-v2\\test-publish-public-20261118-091056-372.log",
+                                            "stdout_evidence":  "C:\\Users\\Sejin\\orca\\workspaces\\pod\\pod-improvements\\target\\feature-validation\\20261118-085848\\coordinator-v2\\test-publish-public-20261118-091056-372.log.stdout",
+                                            "stderr_evidence":  "C:\\Users\\Sejin\\orca\\workspaces\\pod\\pod-improvements\\target\\feature-validation\\20261118-085848\\coordinator-v2\\test-publish-public-20261118-091056-372.log.stderr",
+                                            "serialized":  false
+                                        }
+                                    ],
+    "execution_correction":  {
+                                 "old_executor":  "v1 exit codes are unreliable; preserve logs and invalidate PASS claims",
+                                 "current_executor_version":  2,
+                                 "current_executor_path":  "tools/qa/invoke-check.ps1",
+                                 "selftest":  "tools/qa/test-check.ps1",
+                                 "historical_records_preserved":  true,
+                                 "format_revalidation":  "NOT_RUN",
+                                 "signing_initial":  "FAIL missing pinned ConPTY",
+                                 "signing_after_setup":  "PASS with actual exit 0",
+                                 "core_failures":  [
+                                                       "B20 reproduced",
+                                                       "B10 three read/recovery probes failed"
+                                                   ],
+                                 "real_rust_analyzer":  "BLOCKED missing toolchain component"
+                             }
 }

@@ -23,8 +23,18 @@
 | check-boundaries | PASS |
 | check-vendor-notices | PASS |
 | test-publish-public | PASS |
-| 전체 포맷 검사 | PASS: cargo fmt --all -- --check |
-| 서명 경로 검증 스크립트 | PASS: tools/installer/test-signing.ps1. 실제 서명된 배포본 증명과 별개 |
+| 전체 포맷 검사 | v1 로그 보존. 실제 종료 코드 수집 결함으로 v2에서 재검증 예정 |
+| 서명 경로 검증 스크립트 | 최초 FAIL: 번들 ConPTY 미준비. 고정 SHA-256 패키지 준비 후 v2 실행 PASS. 실제 Pod 서명 증명과 별개 |
+
+### 실행 기록 도구 수정
+
+초기 임시 executor가 자식 명령 실패에도 exit code 0과 PASS를 남기는 문제가 있었다. 실제 core 시험 로그와 기록이 불일치하여 발견했고, exit 7 자식 프로세스로 오판을 재현했다. 기존 v1 기록은 삭제하지 않으며 PASS 판정의 근거로 사용하지 않는다. 앞서 안내한 사전 검사 7개 통과도 이 수정 결과로 정정한다.
+
+[공통 실행기](../tools/qa/invoke-check.ps1)는 Process.ExitCode를 직접 읽고 raw stdout/stderr, 인자 배열, 실행기 hash, 실행 전후 소스 fingerprint를 기록하도록 수정했다. 실행 중 소스가 바뀌면 BLOCKED로 남긴다. [자체 회귀 검사](../tools/qa/test-check.ps1)에서 exit 0/PASS, exit 7/FAIL, 한글·공백·따옴표·끝 역슬래시 인자, 두 출력 스트림, 실행 중 소스 변경 감지를 통과했다.
+
+정책 검사 5개는 v2로 재실행하여 실제 종료 코드 0을 확인했다. 서명 검사는 원래 로그에도 ConPTY 미준비 오류가 있었으므로 최초 실패를 유지한다. tools/fetch-conpty.ps1의 고정 버전·SHA-256 검증을 통과한 뒤 서명 검사를 다시 실행해 통과했다. 모든 결과가 같아질 때까지 반복한 것이 아니라 도구 결함과 명시적인 누락 선행 조건을 해결한 재검증이다.
+
+제품 검증 중간 결과: core worker가 B20 청크별 턴 누락과 B10 index/read_dir 오류·기존 Run 디렉터리 ID 보호 실패를 재현하여 수정 중이다. 앱 worker의 실제 Windows input desktop은 접근 가능하지만 rust-analyzer는 설치된 구성요소가 없는 rustup proxy여서 해당 실제 도구 case는 BLOCKED다.
 
 ## 병렬 검증과 수정 배치
 
@@ -43,3 +53,7 @@ Run은 run_b2d83d8d7f6a이며, 세 worker 모두 d9a230d6541a02ac638b0d269dd7225
 | daemon-cli | Linejin/pod-qa-daemon-20261118 · C:/Users/Sejin/orca/workspaces/pod/pod-qa-daemon-20261118 | task_6448805f10b5 / ctx_0ba5bb1420e4 |
 
 완료 보고의 소스·명령·로그·회귀 범위를 검토한 뒤 commit과 기능 case 결과를 여기에 갱신한다. 모든 worker가 끝나면 결합 소스 검증과 남은 BLOCKED/NOT_RUN 범위를 확인한다.
+
+### B11 의존 계약 조정
+
+데몬 worker는 완료된 check/review의 durable 재조정과 수신 Run별 재시도를 맡는다. core worker는 send_link_once로 Pod 출처·Status 종류·대상 Run·source event에 묶인 idempotent mail을 제공한다. 기존 send는 partial/complete append 후 오류에서 메모리에 반영되지 않을 수 있으므로, journal 재읽기·복구 또는 후속 쓰기 fence 없이는 단순 mail_of 중복 검사만으로 보장하지 않는다. 구현과 결합 회귀는 진행 중이다.

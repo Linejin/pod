@@ -210,6 +210,8 @@ A는 상태·저장·프로토콜·입력 바이트 자동 검사, U는 GPUI와 
 
 아래는 검증 루프가 사용할 실행 프로필이다. 기존 스크립트와 cargo 명령이며, 새 루프 구현체가 이미 있다는 뜻은 아니다. 정확한 실행 대상은 각 기능 행과 실제 assertion에 연결한다.
 
+공통 명령 실행은 [invoke-check.ps1](../tools/qa/invoke-check.ps1)로 실제 프로세스 종료 코드·원본 출력·소스 fingerprint를 수집한다. 실행기 자체의 [회귀 검사](../tools/qa/test-check.ps1)를 먼저 통과시킨다. 기능별 실행·수정 결과는 [실행 기록](27-feature-validation-results.md)에서 추적한다.
+
 ### 정책과 빌드
 
 저장소 루트에서 실행하며 빌드는 해당 worktree의 target만 사용한다. Rust·Git·필수 Windows 빌드 도구와 번들 ConPTY 준비 여부를 먼저 기록한다. 설치 자료와 프로젝트의 기존 도구 버전 기준을 따른다.
