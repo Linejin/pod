@@ -15,6 +15,9 @@ const STORE_VERSION: u32 = 1;
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct DeliveryRecord {
     pub info: DeliveryInfo,
+    /// The notification source was saved in `link_outbox` with this result.
+    #[serde(default)]
+    pub link_recorded: bool,
     /// Status turn counter when the prompt was typed in; the next queued
     /// delivery to the same terminal waits for a later turn.
     #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -108,6 +111,29 @@ pub struct GroupRecord {
     /// The last (or running) background `group.check` (v6).
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub check_job: Option<CheckJob>,
+    /// Last completed job captured in the notification outbox.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub linked_check: Option<String>,
+}
+
+/// A compact source result, retained only until every destination has durable
+/// mail. It contains no review prompt, terminal input or worker credential.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct LinkRecord {
+    pub key: String,
+    pub tasks: Vec<String>,
+    pub at_ms: u64,
+    pub text: MsgText,
+    pub payload: serde_json::Value,
+    /// Frozen before sending; `None` means destination discovery is pending.
+    pub recipients: Option<Vec<LinkRecipient>>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct LinkRecipient {
+    pub run: String,
+    pub attempt: String,
+    pub item: String,
 }
 
 #[derive(Debug, Default, Serialize, Deserialize)]
@@ -128,6 +154,8 @@ pub struct Store {
     /// Gate decisions (who, when, operation id), newest last, bounded.
     #[serde(default)]
     pub gate_ops: Vec<GateOpRecord>,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub link_outbox: Vec<LinkRecord>,
 }
 
 impl Store {
@@ -161,6 +189,7 @@ impl Store {
     }
 
     pub fn save(&mut self, state_dir: &Path) -> Result<(), RpcError> {
+        self.collect_links();
         self.version = STORE_VERSION;
         let path = Self::path(state_dir);
         let write = || -> std::io::Result<()> {
@@ -175,6 +204,57 @@ impl Store {
                 format!("cannot save {}: {e}", path.display()),
             )
         })
+    }
+
+    /// Capture notification sources in the same atomic save as the result.
+    /// Legacy stores are reconciled once; completed jobs remain here even if
+    /// another check replaces the group's single `check_job` slot.
+    pub fn collect_links(&mut self) {
+        use pod_orch::text as tx;
+        use serde_json::json;
+        for record in &mut self.deliveries {
+            let d = &record.info;
+            if record.link_recorded || d.state != DeliveryState::Delivered {
+                continue;
+            }
+            self.link_outbox.push(LinkRecord {
+                key: format!("review:{}", d.id),
+                tasks: vec![d.task.clone()],
+                at_ms: d.delivered_ms.unwrap_or(d.created_ms),
+                text: MsgText::new(tx::REVIEW_DELIVERED)
+                    .with("task", &d.task)
+                    .with("delivery", &d.id)
+                    .with("comments", d.comment_ids.len()),
+                payload: json!({"review": d.id, "task": d.task, "comments": d.comment_ids}),
+                recipients: None,
+            });
+            record.link_recorded = true;
+        }
+        for group in &mut self.groups {
+            let Some(job) = &group.check_job else {
+                continue;
+            };
+            if job.state == CheckJobState::Running || group.linked_check.as_ref() == Some(&job.id) {
+                continue;
+            }
+            let state = serde_json::to_value(job.state).expect("check state is serializable");
+            let state = state.as_str().expect("check state is a string");
+            let mut text = MsgText::new(tx::GROUP_CHECKED)
+                .with("group", &group.id)
+                .with("state", state);
+            if let Some(all) = job.all_passed {
+                text = text.with("all_passed", all);
+            }
+            self.link_outbox.push(LinkRecord {
+                key: format!("check:{}:{}", group.id, job.id),
+                tasks: job.tasks.clone(),
+                at_ms: job.finished_ms.unwrap_or(job.started_ms),
+                text,
+                payload: json!({"group": group.id, "job": job.id, "state": state, "all_passed": job.all_passed}),
+                recipients: None,
+            });
+            group.linked_check = Some(job.id.clone());
+        }
     }
 
     /// Next id with this prefix: `c1`, `c2`...

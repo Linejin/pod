@@ -48,7 +48,7 @@ impl Daemon {
         Ok(mail)
     }
 
-    fn announce_mail(&self, mail: &Mail) {
+    pub(super) fn announce_mail(&self, mail: &Mail) {
         status::publish_orch_mail(mail);
         status::publish_orch_changed(&mail.run, None, None);
         self.runs.mail.notify_waiters();

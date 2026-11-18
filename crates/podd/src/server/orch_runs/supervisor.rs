@@ -5,7 +5,6 @@
 //! finished ones, settles waits, admits from the resource queue and types
 //! wake-ups. Review deliveries and group checks are mailed to coordinators.
 
-use std::collections::BTreeMap;
 use std::sync::Arc;
 use std::time::Duration;
 
@@ -29,7 +28,8 @@ pub(in crate::server) fn start(daemon: &Arc<Daemon>) {
             daemon.orch_supervise().await;
             tokio::select! {
                 ev = rx.recv() => match ev {
-                    Ok(ev) => daemon.orch_link(ev),
+                    Ok(_) => {},
+                    // Broadcast is only a wake hint; durable sources are reconciled next pass.
                     Err(broadcast::error::RecvError::Lagged(_)) => {}
                     Err(broadcast::error::RecvError::Closed) => {
                         tokio::time::sleep(Duration::from_millis(TICK_MS)).await;
@@ -43,72 +43,6 @@ pub(in crate::server) fn start(daemon: &Arc<Daemon>) {
 }
 
 impl Daemon {
-    /// Links to the older orchestration features (docs/19 §9, §16.2): review
-    /// comments delivered to a worker's task, and a group check over worker
-    /// tasks, are mailed (`status`) to the run's coordinator so it sees them
-    /// in `pod orch check`. Each delivery / check job is mailed once.
-    fn orch_link(&self, ev: status::HubEvent) {
-        use pod_orch::text as tx;
-        let (key, tasks, text, payload) = match ev {
-            status::HubEvent::Delivery(e) if e.delivery.state == DeliveryState::Delivered => {
-                let dl = e.delivery;
-                let text = MsgText::new(tx::REVIEW_DELIVERED)
-                    .with("task", &dl.task)
-                    .with("delivery", &dl.id)
-                    .with("comments", dl.comment_ids.len());
-                let payload = json!({"review": dl.id, "task": dl.task, "comments": dl.comment_ids});
-                (format!("review:{}", dl.id), vec![dl.task], text, payload)
-            }
-            status::HubEvent::GroupCheck(e)
-                if e.member.is_none() && e.job.state != CheckJobState::Running =>
-            {
-                let state = serde_json::to_value(e.job.state)
-                    .ok()
-                    .and_then(|v| v.as_str().map(str::to_string))
-                    .unwrap_or_default();
-                let mut text = MsgText::new(tx::GROUP_CHECKED)
-                    .with("group", &e.group)
-                    .with("state", &state);
-                if let Some(all) = e.job.all_passed {
-                    text = text.with("all_passed", all);
-                }
-                let payload = json!({"group": e.group, "job": e.job.id, "state": state, "all_passed": e.job.all_passed});
-                (
-                    format!("check:{}:{}", e.group, e.job.id),
-                    e.job.tasks,
-                    text,
-                    payload,
-                )
-            }
-            _ => return,
-        };
-        let workers: Vec<Attempt> = {
-            let o = self.orch();
-            let mut by_run: BTreeMap<String, Attempt> = BTreeMap::new();
-            // The newest attempt of each run that worked in one of these tasks.
-            for a in o
-                .attempts()
-                .filter(|a| a.task.as_ref().is_some_and(|t| tasks.contains(t)))
-            {
-                by_run.insert(a.run.clone(), a.clone());
-            }
-            by_run.into_values().collect()
-        };
-        if workers.is_empty() || !self.runs.linked.lock().unwrap().insert(key) {
-            return;
-        }
-        let mut o = self.orch();
-        for a in workers {
-            let t = text.clone().with("attempt", &a.id).with("item", &a.item);
-            let mut p = payload.clone();
-            p["attempt"] = json!(a.id);
-            let m = NewMail::pod("pod", run_mailbox(&a.run), MailType::Status, t).payload(p);
-            if let Err(e) = self.post(&mut o, None, m) {
-                log(&format!("orch: link mail for {}: {}", a.id, e.message));
-            }
-        }
-    }
-
     /// Open attempts whose terminal did not survive (host restart) are lost;
     /// their coordinators get an escalation.
     fn orch_reconcile_after_start(&self) {
@@ -252,6 +186,7 @@ impl Daemon {
     }
 
     async fn orch_supervise(self: &Arc<Self>) {
+        self.orch_reconcile_links();
         let now = crate::now_ms();
         let attempts: Vec<Attempt> = self.orch().attempts().cloned().collect();
         let stopping = self.runs.stopping.lock().unwrap().clone();

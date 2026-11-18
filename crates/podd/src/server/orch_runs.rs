@@ -28,6 +28,7 @@
 mod gates;
 mod identity;
 mod launch;
+mod links;
 mod mail;
 mod records;
 mod rpc;
@@ -130,9 +131,6 @@ pub struct OrchRuns {
     pub limits: std::sync::Mutex<LimitsState>,
     /// Measures CPU, memory and disk for the resource gate (injectable).
     pub meter: Box<dyn Meter>,
-    /// Review deliveries and group checks already mailed to coordinators
-    /// (docs/19 §16.2; hub events can repeat).
-    linked: std::sync::Mutex<std::collections::HashSet<String>>,
     /// orch-02: when a typed wake-up was first left unconfirmed, by mailbox
     /// (memory only, like the engine's count).
     pub unconfirmed: Unconfirmed,
@@ -177,7 +175,6 @@ impl OrchRuns {
             wake: tokio::sync::Notify::new(),
             stopping: std::sync::Mutex::new(Default::default()),
             releases: std::sync::Mutex::new(Default::default()),
-            linked: std::sync::Mutex::new(Default::default()),
             unconfirmed: Unconfirmed::default(),
             passes: Passes::default(),
             rebind: std::sync::Mutex::new(Default::default()),

@@ -271,6 +271,7 @@ impl Daemon {
                 })
                 .collect(),
             check_job: None,
+            linked_check: None,
         };
         {
             let mut st = self.orch.lock().unwrap();

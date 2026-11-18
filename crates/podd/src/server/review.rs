@@ -784,6 +784,7 @@ impl Daemon {
                 set_comment_states(&mut st, &ids, CommentState::Queued, &info.id);
             }
             st.deliveries.push(DeliveryRecord {
+                link_recorded: false,
                 info: info.clone(),
                 turn_at_delivery: go.then_some(status.turn),
                 submit: go.then(submit_pending),
@@ -1033,6 +1034,7 @@ mod tests {
     fn store_delivered_at(ms: u64, turn: u64) -> Store {
         let mut st = Store::default();
         st.deliveries.push(DeliveryRecord {
+            link_recorded: false,
             info: DeliveryInfo {
                 id: "d1".into(),
                 task: "app/x".into(),

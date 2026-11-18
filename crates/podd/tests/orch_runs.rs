@@ -1124,6 +1124,77 @@ impl Env {
 
 // ───────────────────────────── S5 ─────────────────────────────
 
+/// B11: recording a successful check is independent of mailing its result.
+/// A denied mailbox append must remain retryable, including after restart.
+#[test]
+fn linked_check_mail_retries_after_save_failure_and_restart() {
+    use std::os::windows::fs::OpenOptionsExt;
+
+    let mut e = Env::new("orch-link-retry", &[]);
+    let g = e
+        .c()
+        .call::<GroupCreate>(&GroupCreateParams {
+            repo: "demo".into(),
+            name: "link".into(),
+            prompt: "compare".into(),
+            agents: vec![AgentSpec::Kind(AgentKind::Shell)],
+            ..Default::default()
+        })
+        .unwrap();
+    let w = e.start_worker("Check this member", &g.members[0].task);
+    let mail_path = pod_orch::store::mail_jsonl(
+        &podd::server::orch_runs::runs_dir(&e.d.as_ref().unwrap().state_dir),
+        &w.attempt.run,
+    );
+    let denied = std::fs::OpenOptions::new()
+        .create(true)
+        .append(true)
+        .share_mode(0)
+        .open(&mail_path)
+        .unwrap();
+    let r = e
+        .c()
+        .call::<GroupCheck>(&GroupCheckParams {
+            group: g.id.clone(),
+            check: Some(vec!["cmd".into(), "/c".into(), "exit 0".into()]),
+            wait: true,
+            ..Default::default()
+        })
+        .unwrap();
+    assert!(
+        r.all_passed,
+        "the original check must remain successful: {r:?}"
+    );
+    let is_link = |m: &Mail| {
+        m.text
+            .as_ref()
+            .is_some_and(|t| t.kind == msg_text::GROUP_CHECKED)
+    };
+    // A supervisor pass has observed the completed check while the file is locked.
+    passes(&mut e.c());
+    assert_eq!(
+        e.peek(&w.attempt.run).iter().filter(|m| is_link(m)).count(),
+        0
+    );
+    drop(denied);
+    until_true("retry linked check mail after append recovers", 10, || {
+        e.peek(&w.attempt.run).iter().filter(|m| is_link(m)).count() == 1
+    });
+    e.restart_with(|| {});
+    let messages = e
+        .c()
+        .call::<OrchMailList>(&OrchMailListParams {
+            run: w.attempt.run.clone(),
+        })
+        .unwrap()
+        .messages;
+    assert_eq!(
+        messages.iter().filter(|m| is_link(m)).count(),
+        1,
+        "restart must not duplicate the saved notification"
+    );
+}
+
 /// Wake-ups respect drafts and `blocked`, arrive once, escalations for a
 /// turn without `done` and for a stalled worker, auto-release (archive,
 /// process tree gone, worktree kept), a person typing keeps a worker,
