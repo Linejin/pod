@@ -26,10 +26,16 @@ native 검증은 `24c4396` 기준으로 제품 코드가 같은 `2405f2f` 빌드
 |---|---|---|
 | GRAPH01 | 통합 `b76298e`의 Windows 앱에서 17개 시나리오, 검증 항목 53개 통과. 작업대와 고밀도 + 세부 열의 좁은 행에서 버튼과 노드를 선택했다. 저장소 전환 후 즉시 정상 종료해도 같은 패널·저장소가 복원되고 터미널과 미저장 확인이 유지됐다. | 집중 레일 조작, 다른 배율과 종료·복구 조합은 해당 검증 범위 밖이다. |
 | A2A01 | 통합 `afb7f9d`에서 코어 42개와 CLI 8개 통과. 워커가 공식 a2a-python SDK 1.3.1의 loopback HTTP와 테스트 CA를 사용한 TLS에서 27단계와 wire 검증 11개를 통과했다. | 외부 서비스·공인 CA 상호운용은 미검증이다. [지원하는 표준 범위](a2a-client.md#what-is-supported) |
-| A2A02 | 워커 `639f294`의 A2A 섹션 검사 21개와 공식 SDK 루프백 UI 시나리오 통과. 통합 검증 브랜치의 app 코드는 `1346a88`, `4e65e19`에 반영했다. | 실제 Windows 창의 입력·표시 검증이 남아 있다. [외부 피어 사용법](09-pod-app.md#외부-a2a-피어-project_a2ars-2026-11-24) |
-| USAGE01 | 워커 `7613ba4`에서 앱 자동 검사와 Git Bash·Windows PowerShell 5.1의 Claude 수집 명령 5개를 확인했다. 워커 `85b5370`에서 로그인된 Codex의 읽기 전용 한도 조회도 성공했다. | 통합 Windows UI 검증은 진행 중이다. 실제 Claude Code의 한도 보고는 미실행이다. [연결 방법과 fixture 범위](usage/ai-usage-monitor.md) |
+| A2A02 | 워커 `639f294`의 A2A 섹션 검사 21개와 공식 SDK 루프백 UI 시나리오 통과. 결합 소스에서도 SDK 연동을 재실행했다. | 실제 Windows 창의 입력·표시 검증이 남아 있다. [외부 피어 사용법](09-pod-app.md#외부-a2a-피어-project_a2ars-2026-11-24) |
+| USAGE01 | 통합 `3f961aa`의 실제 Windows 앱에서 작업 영역 1,440×760 및 822×760, 96 DPI로 7개 레이아웃과 3개 테마의 상태 표시줄·세부 정보와 격리된 Claude 수집기·캐시 흐름을 검사했다. 검증 항목 80개 통과. | 해당 UI 검증은 격리된 보고값을 사용했다. 실제 Claude Code의 한도 보고와 같은 앱에서의 실시간 Codex 조회는 미실행이다. [사용량 상세 검증](#2026-11-24-사용량-모니터-windows-검증) |
 
 원본 보고서는 로컬 `coordination-validation/reports/2026-11-24/`의 `project-agent-graph-native-fixed/report.md`, `a2a-standard-client/report.txt`, `a2a-integration/`, `ai-usage-monitor/`에 있다.
+
+## 2026-11-24 사용량 모니터 Windows 검증
+
+- `3f961aa`에서 `cargo test --locked -p pod-app usage:: -- --test-threads=1`은 24개 통과, 3개 기본 제외였다. `cargo test --locked -p pod-hook --test statusline -- --test-threads=1`은 7개 통과했다.
+- 실제 앱에서 좁은 상태 표시줄의 남은 비율·초기화 시간, 키보드로 연 세부 정보와 접근성 이름, 다음 보고 반영, 오래된 값, 초기화 예정 시각 경과, 프로필 분리, 사용량 소진 표시를 확인했다. 로그와 화면은 로컬 `coordination-validation/reports/2026-11-24/ai-usage-monitor-native/REPORT.md`에 있다.
+- 별도 워커 `7613ba4`에서는 Git Bash·Windows PowerShell 5.1의 Claude 수집 명령 5개를 확인했다. `85b5370`에서는 로그인된 Codex의 읽기 전용 한도 조회가 성공했다. [연결 방법과 fixture 범위](usage/ai-usage-monitor.md)
 
 ## 2026-11-24 편집기 브라우저 검증
 
@@ -38,6 +44,14 @@ native 검증은 `24c4396` 기준으로 제품 코드가 같은 `2405f2f` 빌드
 - Windows x64 빌드 후 실제 앱의 명령 팔레트에서 브라우저 탭을 열었다. WebView2 Runtime `157.0.4341.60`에서 로컬 HTTP 페이지 두 개의 콘텐츠, 뒤로·앞으로 이동과 새로고침 요청을 확인했다. 일반 창의 폭을 1,233px에서 1,433px로 늘리면 웹뷰 폭도 837px에서 1,037px로 늘어났다. 명령 팔레트가 열릴 때 웹뷰가 숨고 닫히면 같은 페이지가 다시 보였다.
 - `cargo test --locked -p pod-app -j 4 -- --test-threads=4`에서 481개 통과, 5개 기본 제외였다. 새 테스트는 HTTP·HTTPS 주소 판정, 125% 좌표, 접근성 탭 이름, 크기 변경, 동일 탭 재사용, 다른 탭 및 대화상자에서 웹뷰 표면 숨김과 복원을 확인한다.
 - 설치된 WebView2로 실행하는 기본 제외 테스트 `webview2_navigates_loopback_pages_and_reloads`를 별도로 세 번 연속 통과했다. 실제 창의 배율 변경 조합과 런타임 미설치 환경은 남은 검증 범위다.
+
+## 2026-11-24 결합 검증
+
+`improvements/combined-validation`의 제품 코드 `395882f`를 대상으로 했다. 이 브랜치의 앱은 편집기 브라우저, 외부 A2A 피어, AI 사용량 항목을 함께 포함한다.
+
+- `cargo test --locked -p pod-app -j 3 -- --test-threads=4`에서 502개 통과, 5개 기본 제외였다. `cargo clippy --locked -p pod-app --all-targets -- -D warnings`와 문서·워크스페이스·크레이트 경계·vendor 고지 검사도 통과했다.
+- 로컬 공식 a2a-python SDK 1.3.1을 연결해 프로젝트 그래프의 선택·검토·전송, 작업 상태 확인, 이어 보내기와 직접 답장 표시를 헤드리스 UI로 재검증했다. wire 기록에서 `SendMessage` 6회, `GetTask` 5회와 `A2A-Version: 1.0`을 확인했다.
+- Windows 개발 빌드(`pod-app`, `podd`, `pod-cli`, `pod-hook`)와 설치된 WebView2를 사용한 루프백 탐색·새로고침 시험도 통과했다.
 
 ## 최종 기능 커버리지
 

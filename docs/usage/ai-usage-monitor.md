@@ -149,6 +149,8 @@ Gemini, Aider 등 Pod가 알아보는 다른 에이전트는 문서화된 기계
 
 ## 확인 방법
 
+Windows 통합 소스 `3f961aa`에서 실제 앱의 7개 레이아웃과 3개 테마, 좁은 창에서의 카운트다운, 격리된 수집기·캐시 흐름을 시험했다. 시험에 쓴 보고값과 실제 계정 연동 여부는 [Windows 검증 결과](../27-feature-validation-results.md#2026-11-24-사용량-모니터-windows-검증)를 참고한다.
+
 ```powershell
 cargo test -p pod-status usage
 cargo test -p pod-hook --test statusline

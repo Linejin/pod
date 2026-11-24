@@ -18,13 +18,13 @@
 | 설치 패키지 의존성 및 로컬 터미널·worktree 회귀 | `0b4c81a`, `0d59615` | 배포 정책 재검사와 로컬 daemon 집중 검사. 새 설치 패키지는 미생성. |
 | 프로젝트 에이전트 그래프 | `9d0ada5`, `b76298e` | 좁은 저장소 행, 노드 선택, 저장소 전환 직후 종료·복원 결함을 수정하고 Windows 앱에서 재검증. |
 | A2A 1.0 JSON-RPC 클라이언트와 CLI | `82833d7`, `afb7f9d` | 통합 코어·CLI 검사와 별도 워커의 표준 SDK 상호운용 시험. |
-| AI 사용 한도 모니터, 좁은 창 카운트다운, Claude 설정 복사 | `a68f371`~`3f961aa` | 워커의 자동·셸 fixture 검사와 로그인된 Codex 읽기 확인. 통합 Windows UI 검증 진행 중. |
+| AI 사용 한도 모니터, 좁은 창 카운트다운, Claude 설정 복사 | `a68f371`~`3f961aa` | 워커의 자동·셸 fixture 검사와 로그인된 Codex 읽기 확인. 통합 Windows 앱의 표시·접근성·캐시 흐름 검증 80개 통과. |
 
 소스별 결과와 남은 범위는 [기능 검증 결과](27-feature-validation-results.md)에, 반복 절차는 [기능 검증 계획](26-feature-validation.md#후속-기능-검증-계획)에 기록한다.
 
 ### 통합 검증 브랜치
 
-`improvements/combined-validation`에는 편집기 브라우저(`f4b66c9`), A2A 그래프 UI(`1346a88`, `4e65e19`), 문서 정합성 감사와 CI 검사(`687f639`, `d14af9e`)를 함께 반영했다. 사용량 모니터 Windows 검증은 기존 worktree의 `3f961aa`에서 별도로 진행한다.
+`improvements/combined-validation`에는 편집기 브라우저(`f4b66c9`), A2A 그래프 UI(`1346a88`, `4e65e19`), 문서 정합성 감사와 CI 검사(`687f639`, `d14af9e`)를 함께 반영했다. 사용량 모니터의 실제 Windows 검증은 기존 worktree의 `3f961aa`에서 마쳤다. [결합 검증 결과](27-feature-validation-results.md#2026-11-24-결합-검증)
 
 ## 1차 작업 배치
 
