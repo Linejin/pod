@@ -4,14 +4,16 @@
 //! Pod never asks Claude for anything: a running Claude Code session passes
 //! its status-line JSON to its `statusLine` command after each update. When
 //! the user connects `pod-hook statusline` there (the details' "설정 복사"
-//! gives the exact value), pod-hook keeps only the `rate_limits` numbers in
-//! Pod's cache (`pod_status::usage`), and this module reads that cache.
+//! gives the exact value for each shell Claude Code uses on Windows: Git
+//! Bash, or PowerShell without it), pod-hook keeps only the `rate_limits`
+//! numbers in Pod's cache (`pod_status::usage`), and this module reads that
+//! cache.
 //!
 //! - Read-only: Pod never edits Claude's settings. It reads the user
 //!   `settings.json` (bounded) only to see whether `statusLine.command`
 //!   already runs Pod's collector, and, when another command is set, to
 //!   compose with it (`pod-hook statusline --passthrough | <command>`)
-//!   instead of replacing it.
+//!   instead of replacing it, where the shell can express that.
 //! - Disconnect: when the collector is gone from the settings and no sample
 //!   arrived recently, the old numbers are hidden, not shown as current.
 
@@ -115,24 +117,71 @@ pub fn hook_exe(local_app_data: Option<&Path>, app_dir: Option<&Path>) -> Option
         .or_else(|| beside.filter(|p| p.is_file()))
 }
 
-/// The path as Claude Code's shell needs it: forward slashes (Git Bash eats
-/// backslashes), quoted only when it has spaces.
+/// The path as Git Bash needs it: forward slashes (Git Bash eats
+/// backslashes), double-quoted when it has anything but plain path characters
+/// (spaces, parentheses…).
 fn shell_path(p: &Path) -> String {
     let s = p.to_string_lossy().replace('\\', "/");
-    if s.contains(' ') {
-        format!("\"{s}\"")
-    } else {
-        s
-    }
+    let plain = s
+        .chars()
+        .all(|c| c.is_alphanumeric() || matches!(c, '/' | '.' | '_' | '-' | ':' | '~'));
+    if plain { s } else { format!("\"{s}\"") }
 }
 
-/// The `statusLine.command` value that connects Pod, keeping `existing`.
+/// Which shell Claude Code runs `statusLine.command` in on Windows: Git Bash
+/// when it is installed, PowerShell otherwise
+/// (<https://code.claude.com/docs/en/statusline#windows-configuration>).
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum Shell {
+    GitBash,
+    PowerShell,
+}
+
+/// The Git Bash `statusLine.command` value that connects Pod, keeping
+/// `existing` (`pod-hook statusline --passthrough | <existing>`).
 pub fn setup_command(exe: &Path, existing: Option<&str>) -> String {
     let exe = shell_path(exe);
     match existing.map(str::trim).filter(|c| !c.is_empty()) {
         Some(c) if is_pod_collector(c) => c.to_string(),
         Some(c) => format!("{exe} statusline --passthrough | {c}"),
         None => format!("{exe} statusline"),
+    }
+}
+
+/// The PowerShell `statusLine.command` value. `pod-hook.exe` is a
+/// GUI-subsystem program, so it runs through `cmd` (which always waits and
+/// hands it the standard handles); `--%` passes cmd's own quoting
+/// (`""C:\…\pod-hook.exe" statusline"`, any path) verbatim up to a `|`.
+/// With an existing command, pod-hook passes the input on in ASCII
+/// (`--ascii`) because Windows PowerShell re-encodes piped text as ASCII.
+/// `None`: the path or the existing command cannot be written in this form
+/// (an expression such as `$input | …`, several lines, a `%` in the path).
+pub fn setup_command_powershell(exe: &Path, existing: Option<&str>) -> Option<String> {
+    let exe = exe.to_string_lossy().replace('/', "\\");
+    if exe.contains(['%', '"']) {
+        return None;
+    }
+    let hook = |args: &str| format!("cmd --% /d /s /c \"\"{exe}\" statusline{args}\"");
+    match existing.map(str::trim).filter(|c| !c.is_empty()) {
+        Some(c) if is_pod_collector(c) => Some(c.to_string()),
+        Some(c) => {
+            powershell_pipe_target(c).map(|t| format!("{} | {t}", hook(" --passthrough --ascii")))
+        }
+        None => Some(hook("")),
+    }
+}
+
+/// `command` as the right side of a PowerShell pipeline: a command name or
+/// path as is, a quoted path behind the call operator `&`; `None` for what
+/// only works first in a pipeline (an expression) or spans lines.
+fn powershell_pipe_target(command: &str) -> Option<String> {
+    if command.contains(['\n', '\r']) {
+        return None;
+    }
+    match command.chars().next()? {
+        '"' | '\'' => Some(format!("& {command}")),
+        '$' | '(' | '@' | '{' | '[' => None,
+        _ => Some(command.to_string()),
     }
 }
 
@@ -144,13 +193,37 @@ pub fn setup_json(command: &str) -> String {
     serde_json::to_string_pretty(&v).unwrap_or_default()
 }
 
+/// The snippets "설정 복사" offers, one per shell Claude Code may use.
+#[derive(Clone, Debug, PartialEq)]
+pub struct Setup {
+    pub git_bash: String,
+    /// `None`: the existing status line cannot be kept in PowerShell form.
+    pub powershell: Option<String>,
+}
+
+impl Setup {
+    pub fn new(exe: &Path, existing: Option<&str>) -> Self {
+        Self {
+            git_bash: setup_json(&setup_command(exe, existing)),
+            powershell: setup_command_powershell(exe, existing).map(|c| setup_json(&c)),
+        }
+    }
+
+    pub fn get(&self, shell: Shell) -> Option<&str> {
+        match shell {
+            Shell::GitBash => Some(&self.git_bash),
+            Shell::PowerShell => self.powershell.as_deref(),
+        }
+    }
+}
+
 /// What one read of the Claude side found.
 #[derive(Clone, Debug, PartialEq)]
 pub struct ClaudeRead {
     pub records: Vec<ClaudeUsageRecord>,
     pub collector: Collector,
-    /// The snippet "설정 복사" copies (`None`: no `pod-hook.exe` found).
-    pub setup: Option<String>,
+    /// The snippets "설정 복사" copies (`None`: no `pod-hook.exe` found).
+    pub setup: Option<Setup>,
 }
 
 fn window(kind: WindowKind, s: &LimitSample) -> QuotaWindow {
@@ -237,7 +310,7 @@ impl super::ClaudeProbe for RealClaude {
             Collector::Other(c) => Some(c.as_str()),
             _ => None,
         };
-        let setup = exe.map(|e| setup_json(&setup_command(&e, existing)));
+        let setup = exe.map(|e| Setup::new(&e, existing));
         ClaudeRead {
             records,
             collector,

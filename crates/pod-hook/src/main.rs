@@ -3,7 +3,7 @@
 //! ```text
 //! pod-hook claude|codex <Event>     # invoked by the agent; hook JSON on stdin
 //! pod-hook install --dry-run [...]  # print the hooks config Pod would install
-//! pod-hook statusline [--passthrough] # Claude Code statusLine: keep the usage limits
+//! pod-hook statusline [--passthrough [--ascii]] # Claude Code statusLine: keep the usage limits
 //! ```
 //!
 //! Hook mode contract: ALWAYS prints `{}` and exits 0, never blocks the agent

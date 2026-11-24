@@ -464,7 +464,7 @@ impl UsageMonitor {
         out
     }
 
-    pub fn claude_setup(&self) -> Option<String> {
+    pub fn claude_setup(&self) -> Option<claude::Setup> {
         self.claude.read.as_ref().and_then(|r| r.setup.clone())
     }
 
@@ -482,7 +482,7 @@ impl UsageMonitor {
 
 /// Sample answers for tests and the `usage-demo` fixture scene.
 pub(crate) mod samples {
-    use super::claude::{ClaudeRead, Collector};
+    use super::claude::{ClaudeRead, Collector, Setup};
     use super::codex::CodexRead;
     use super::model::{Bucket, QuotaWindow, ServiceId, Snapshot, SourceKind, WindowKind};
     use pod_status::usage::{
@@ -546,7 +546,10 @@ pub(crate) mod samples {
         ClaudeRead {
             records: vec![claude_record(now_ms, 8.0, 35.0)],
             collector: Collector::Pod,
-            setup: Some("{\"statusLine\": {}}".into()),
+            setup: Some(Setup::new(
+                std::path::Path::new(r"C:\Users\u\AppData\Local\Pod\bin\pod-hook.exe"),
+                None,
+            )),
         }
     }
 }

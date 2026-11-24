@@ -135,6 +135,34 @@ fn passthrough_keeps_the_input_for_an_existing_status_line() {
     let _ = std::fs::remove_dir_all(&d);
 }
 
+/// PowerShell setup: the same JSON in ASCII (Windows PowerShell would turn
+/// non-ASCII text piped to the next command into `?`), still a sample.
+#[test]
+fn ascii_passthrough_escapes_non_ascii_text_only() {
+    let d = dir("ascii");
+    let mut v: serde_json::Value = serde_json::from_slice(&sample(30.0)).unwrap();
+    v["cwd"] = "C:/작업/저장소".into();
+    let input = serde_json::to_vec(&v).unwrap();
+    let (out, code, _) = run(&d, None, &["--passthrough", "--ascii"], &input);
+    assert_eq!(code, 0);
+    assert!(out.is_ascii(), "{}", String::from_utf8_lossy(&out));
+    assert_eq!(
+        serde_json::from_slice::<serde_json::Value>(&out).unwrap(),
+        v
+    );
+    assert_eq!(
+        pod_status_record(&d, "default")["five_hour"]["used_percentage"],
+        30.0
+    );
+    // `--ascii` alone is a usage error: nothing read, nothing written.
+    let d2 = dir("ascii-alone");
+    let (out, code, _) = run(&d2, None, &["--ascii"], &input);
+    assert_eq!((out.is_empty(), code), (true, 2));
+    assert!(files(&d2).is_empty());
+    let _ = std::fs::remove_dir_all(&d);
+    let _ = std::fs::remove_dir_all(&d2);
+}
+
 #[test]
 fn separate_claude_profiles_never_overwrite_each_other() {
     let d = dir("profiles");

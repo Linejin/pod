@@ -5,8 +5,10 @@
 //!   the minute-by-minute countdown is never announced.
 //! - Width ([`EntryPlan`]): each service with its labelled window and
 //!   countdown (wide), percentage and countdown (medium), or the single most
-//!   constrained window, named by its service mark (compact, 800 px).
-//!   Segments have fixed minimum widths so the countdown never shifts the bar.
+//!   constrained window, named by its service mark, with a short countdown
+//!   (`76% · 2h13m`, compact, 800 px). Medium/wide segments have fixed
+//!   minimum widths and the compact one a fixed width, so neither the
+//!   countdown nor a reset shifts the bar.
 //! - Details: per service its windows (5 h, weekly, extra model buckets),
 //!   status, last sync, source and plan; refresh, Claude setup copy and
 //!   "기록 지우기"; detected services without a quota source.
@@ -18,6 +20,7 @@ use gpui_kit::prelude::FluentBuilder;
 use gpui_kit::*;
 
 use super::UsageMonitor;
+use super::claude::Shell;
 use super::copy;
 use super::model::{self, ServiceView, Tone, WindowView};
 use crate::qa_marks::QaId;
@@ -29,7 +32,7 @@ pub enum EntryPlan {
     Full,
     /// `[mark] 76% · 2시간 13분` per service.
     Medium,
-    /// `[mark] 76%`: the most constrained window only.
+    /// `[mark] 76% · 2h13m`: the most constrained window only.
     Compact,
 }
 
@@ -49,10 +52,17 @@ impl EntryPlan {
         match self {
             Self::Full => 132.,
             Self::Medium => 96.,
-            Self::Compact => 44.,
+            Self::Compact => COMPACT_WIDTH,
         }
     }
 }
+
+/// The compact segment's width (mark, gap and text): wider than the longest
+/// text it paints in the UI font (12 px mark + gap 4 px + `100% · 29d23h`
+/// 67 px or `초기화 시각 지남` 76 px in Malgun Gothic), so a minute tick, a reset or a state change
+/// never re-lays out the bar. It is a minimum: with a much wider user font
+/// the segment grows rather than clipping the text.
+pub const COMPACT_WIDTH: f32 = 112.;
 
 fn medium_text(v: &ServiceView) -> String {
     match v.representative.map(|i| &v.windows[i]) {
@@ -61,6 +71,16 @@ fn medium_text(v: &ServiceView) -> String {
             None => format!("{}%", w.remaining.round()),
         },
         None => v.status.clone(),
+    }
+}
+
+/// The entry's accessible name: everything it paints, in full. The compact
+/// entry first names the one window it shows (service, window, remaining,
+/// time to reset), then every service.
+pub fn entry_name(agg: &model::Aggregate, plan: EntryPlan) -> String {
+    match (&agg.lead, plan) {
+        (Some(lead), EntryPlan::Compact) => copy::entry_name_compact(lead, &agg.sentence),
+        _ => copy::entry_name(&agg.sentence),
     }
 }
 
@@ -101,7 +121,7 @@ impl Render for UsageMonitor {
         let plan = EntryPlan::for_width(f32::from(window.viewport_size().width));
         let tk = crate::theme::tokens();
         let agg = model::aggregate(&views);
-        let name = copy::entry_name(&agg.sentence);
+        let name = entry_name(&agg, plan);
         let segments = entry_segments(&views, plan);
         let min = plan.segment_min();
         let row =
@@ -123,9 +143,11 @@ impl Render for UsageMonitor {
                                 .child(pod_ui::agent_mark(service.mark(), 12., &tk))
                                 .child(
                                     div()
+                                        .flex_shrink_0()
                                         .text_color(rgb(tone.color(&tk)))
                                         .whitespace_nowrap()
-                                        .child(text),
+                                        .child(text)
+                                        .qa_id(move || format!("status-usage-text-{i}")),
                                 )
                                 .qa_id(move || format!("status-usage-segment-{i}"))
                         }),
@@ -287,15 +309,25 @@ fn service_card(
                     .child(copy::HINT_CLAUDE_OTHER_STATUSLINE),
             )
         })
-        .when(setup.is_some() || can_forget, |d| {
-            let setup_btn = setup.clone().map(|json| {
-                let ws = cx
-                    .try_global::<crate::workspace::AppGlobals>()
-                    .map(|g| g.workspace.clone());
-                Button::new(SharedString::from(format!("usage-copy-setup-{i}")))
-                    .label(copy::COPY_SETUP)
+        .when_some(setup.clone(), |d, setup| {
+            // One copy per shell Claude Code may run the command in.
+            let ws = cx
+                .try_global::<crate::workspace::AppGlobals>()
+                .map(|g| g.workspace.clone());
+            let copy_btn = |shell: Shell, json: String| {
+                let ws = ws.clone();
+                let (id, label, tip) = match shell {
+                    Shell::GitBash => ("git-bash", copy::COPY_SETUP_GIT_BASH, copy::SETUP_GIT_BASH),
+                    Shell::PowerShell => (
+                        "powershell",
+                        copy::COPY_SETUP_POWERSHELL,
+                        copy::SETUP_POWERSHELL,
+                    ),
+                };
+                let button = Button::new(SharedString::from(format!("usage-copy-setup-{id}-{i}")))
+                    .label(label)
                     .icon(pod_ui::kit_icon(pod_ui::Icon::Copy))
-                    .tooltip(copy::SETUP_COMMAND)
+                    .tooltip(tip)
                     .xsmall()
                     .ghost()
                     .on_click(move |_, _, cx| {
@@ -304,14 +336,45 @@ fn service_card(
                             ws.update(cx, |w, cx| {
                                 w.raise_toast(
                                     crate::workspace::ToastKind::Info,
-                                    copy::COPIED_SETUP,
+                                    copy::copied_setup(shell),
                                     copy::COPIED_SETUP_BODY,
                                     cx,
                                 )
                             });
                         }
-                    })
-            });
+                    });
+                div()
+                    .qa_id(move || format!("usage-copy-setup-{id}"))
+                    .child(button)
+            };
+            let git_bash = copy_btn(Shell::GitBash, setup.git_bash.clone());
+            let powershell = setup
+                .powershell
+                .clone()
+                .map(|json| copy_btn(Shell::PowerShell, json));
+            d.child(
+                div()
+                    .text_color(rgb(tk.text_muted))
+                    .child(copy::HINT_CLAUDE_SHELL),
+            )
+            .when(powershell.is_none(), |d| {
+                d.child(
+                    div()
+                        .text_color(rgb(tk.text_muted))
+                        .child(copy::HINT_CLAUDE_POWERSHELL_MANUAL),
+                )
+            })
+            .child(
+                div()
+                    .qa_id(move || format!("usage-setup-{i}"))
+                    .flex()
+                    .flex_wrap()
+                    .gap_1()
+                    .child(git_bash)
+                    .children(powershell),
+            )
+        })
+        .when(can_forget, |d| {
             let forget_btn = can_forget.then(|| {
                 let me = me.clone();
                 Button::new(SharedString::from(format!("usage-forget-{i}")))
@@ -320,13 +383,7 @@ fn service_card(
                     .ghost()
                     .on_click(move |_, _, cx| me.update(cx, |m, cx| m.forget_claude(cx)))
             });
-            d.child(
-                div()
-                    .flex()
-                    .gap_1()
-                    .children(setup_btn)
-                    .children(forget_btn),
-            )
+            d.child(div().flex().gap_1().children(forget_btn))
         })
 }
 

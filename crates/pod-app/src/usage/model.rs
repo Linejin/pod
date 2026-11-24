@@ -8,7 +8,8 @@
 //!   it passes the window is "reset time passed, waiting for a new report",
 //!   never "reset";
 //! - unlike quotas (5 h, weekly, per-model buckets, services) are never summed;
-//!   the compact aggregate is the single most constrained window, named.
+//!   the compact aggregate is the single most constrained window, named by
+//!   its service mark, with its own time to reset.
 
 use super::copy;
 
@@ -214,8 +215,11 @@ pub struct WindowView {
     pub value: String,
     /// `2시간 13분 후 초기화 예정`, `초기화 시각 지남 · 새 보고 대기`, `초기화 시각 미보고`.
     pub reset: String,
-    /// Compact countdown: `2시간 13분`, `지남`.
+    /// Countdown: `2시간 13분`, `지남`.
     pub countdown: Option<String>,
+    /// Short fixed-format countdown for the compact entry: `2h13m`, `3d4h`,
+    /// `45m`, `<1m`, `지남` (`None`: no reset time reported).
+    pub short: Option<String>,
     pub state: WindowState,
     pub tone: Tone,
     pub kind: WindowKind,
@@ -351,13 +355,41 @@ impl ServiceView {
         }
     }
 
-    /// The narrow text: `76%` or a short status.
+    /// The narrow text: remaining and time to reset of the most constrained
+    /// window (`76% · 2h13m`, `소진 · 3d4h`, `76% · 미보고` when no reset time
+    /// was reported), or the status.
     pub fn narrow(&self) -> String {
         match self.representative.map(|i| &self.windows[i]) {
-            Some(w) if w.state == WindowState::Exhausted => copy::EXHAUSTED_SHORT.into(),
-            Some(w) => format!("{}%", w.remaining.round()),
+            Some(w) => {
+                let left = if w.state == WindowState::Exhausted {
+                    copy::EXHAUSTED_SHORT.to_string()
+                } else {
+                    format!("{}%", w.remaining.round())
+                };
+                let when = w.short.as_deref().unwrap_or(copy::RESET_UNKNOWN_SHORT);
+                format!("{left} · {when}")
+            }
             None => self.status.clone(),
         }
+    }
+
+    /// What the compact entry says aloud about this service's most
+    /// constrained window: service (and profile), window, value and reset.
+    pub fn lead(&self) -> String {
+        let mut s = self.service.name().to_string();
+        if let Some(p) = &self.profile {
+            s.push_str(&format!(" {} {p}", copy::PROFILE));
+        }
+        match self.representative.map(|i| &self.windows[i]) {
+            Some(w) => s.push_str(&format!(" {} {}, {}", w.label, w.value, w.reset)),
+            None => s.push_str(&format!(" {}", self.status)),
+        }
+        s
+    }
+
+    /// Every window passed its reported reset time (numbers exist, none live).
+    pub fn all_elapsed(&self) -> bool {
+        !self.windows.is_empty() && self.representative.is_none()
     }
 
     /// Accessible sentence: service, status, representative window.
@@ -437,16 +469,21 @@ fn window_view(
         _ if matches!(w.kind, WindowKind::Spend(_)) => copy::spend_used_pct(w.used_percent.round()),
         _ => copy::left_pct(pct),
     };
-    let (reset, countdown) = match w.resets_at {
+    let (reset, countdown, short) = match w.resets_at {
         Some(_) if elapsed => (
             copy::RESET_ELAPSED.to_string(),
+            Some(copy::ELAPSED_SHORT.into()),
             Some(copy::ELAPSED_SHORT.into()),
         ),
         Some(r) => {
             let c = countdown(now_s, r);
-            (copy::resets_in(&c), Some(c))
+            (
+                copy::resets_in(&c),
+                Some(c),
+                Some(short_countdown(now_s, r)),
+            )
         }
-        None => (copy::RESET_UNKNOWN.to_string(), None),
+        None => (copy::RESET_UNKNOWN.to_string(), None, None),
     };
     let tone = match state {
         WindowState::Normal => Tone::Normal,
@@ -460,6 +497,7 @@ fn window_view(
         value,
         reset,
         countdown,
+        short,
         state,
         tone,
         kind: w.kind.clone(),
@@ -511,6 +549,28 @@ pub fn countdown(now_s: i64, resets_at: i64) -> String {
     }
 }
 
+/// The compact entry's countdown, rounded up like [`countdown`]: `3d4h`,
+/// `2h13m` (minutes always two digits, so the text keeps its length within
+/// an hour band), `45m`, `<1m`, `지남`.
+pub fn short_countdown(now_s: i64, resets_at: i64) -> String {
+    let left = resets_at - now_s;
+    if left <= 0 {
+        return copy::ELAPSED_SHORT.into();
+    }
+    if left < 60 {
+        return "<1m".into();
+    }
+    let mins = (left + 59) / 60;
+    let (d, h, m) = (mins / 1440, (mins % 1440) / 60, mins % 60);
+    if d > 0 {
+        format!("{d}d{h}h")
+    } else if h > 0 {
+        format!("{h}h{m:02}m")
+    } else {
+        format!("{m}m")
+    }
+}
+
 /// `방금`, `3분`, `2시간`, `1일`.
 fn ago_label(ms: u64) -> String {
     let s = ms / 1000;
@@ -547,15 +607,22 @@ pub fn next_repaint_ms(now_ms: u64) -> u64 {
 /// What the status bar shows for all services.
 #[derive(Clone, Debug, PartialEq)]
 pub struct Aggregate {
-    /// The service with the most constrained window that has numbers.
+    /// The service with the most constrained window that has numbers (or,
+    /// when none is live, whose windows all passed their reset time).
     pub service: Option<ServiceId>,
+    /// Painted: `76% · 2h13m`, `초기화 시각 지남`, `한도 없음`.
     pub text: String,
     pub tone: Tone,
+    /// Spoken first: what `text` stands for, in full (`None`: nothing shown).
+    pub lead: Option<String>,
+    /// Every service, spoken after `lead`.
     pub sentence: String,
 }
 
 /// The compact aggregate: the single most constrained live window across
-/// services (never a sum), or a status when no service has numbers.
+/// services (never a sum) with its time to reset; when no window is live,
+/// "reset time passed" for a service whose windows all passed it (never
+/// "reset"), else a status.
 pub fn aggregate(views: &[ServiceView]) -> Aggregate {
     let best = views.iter().filter(|v| v.has_numbers()).min_by(|a, b| {
         let ra = a.windows[a.representative.unwrap_or(0)].remaining;
@@ -567,17 +634,28 @@ pub fn aggregate(views: &[ServiceView]) -> Aggregate {
         .map(ServiceView::sentence)
         .collect::<Vec<_>>()
         .join(". ");
-    match best {
-        Some(v) => Aggregate {
+    if let Some(v) = best {
+        return Aggregate {
             service: Some(v.service),
             text: v.narrow(),
             tone: v.entry_tone(),
+            lead: Some(v.lead()),
+            sentence,
+        };
+    }
+    match views.iter().find(|v| v.all_elapsed()) {
+        Some(v) => Aggregate {
+            service: Some(v.service),
+            text: copy::RESET_ELAPSED_COMPACT.into(),
+            tone: Tone::Muted,
+            lead: Some(v.lead()),
             sentence,
         },
         None => Aggregate {
             service: None,
             text: copy::NO_DATA_SHORT.into(),
             tone: Tone::Muted,
+            lead: None,
             sentence,
         },
     }
