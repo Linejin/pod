@@ -5122,6 +5122,25 @@ dependencies = [
 ]
 
 [[package]]
+name = "pod-a2a"
+version = "0.1.0"
+dependencies = [
+ "base64 0.22.1",
+ "bytes",
+ "http",
+ "http-body-util",
+ "hyper",
+ "hyper-util",
+ "rustls",
+ "rustls-native-certs",
+ "serde",
+ "serde_json",
+ "tokio",
+ "tokio-rustls",
+ "uuid",
+]
+
+[[package]]
 name = "pod-app"
 version = "0.1.0"
 dependencies = [
@@ -5157,6 +5176,7 @@ dependencies = [
  "base64 0.22.1",
  "clap",
  "embed-resource",
+ "pod-a2a",
  "pod-client",
  "pod-orch",
  "pod-remote",

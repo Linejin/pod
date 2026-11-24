@@ -24,6 +24,8 @@ pod-status = { path = "../pod-status" }
 pod-remote = { path = "../pod-remote" }
 # Agent text as data and the trust policy (O1): no new third-party deps.
 pod-orch = { path = "../pod-orch" }
+# Standard A2A 1.0 client for `pod a2a` (docs/a2a-client.md).
+pod-a2a = { path = "../pod-a2a" }
 anyhow = "1"
 base64 = "0.22"
 clap = { version = "4", features = ["derive"] }

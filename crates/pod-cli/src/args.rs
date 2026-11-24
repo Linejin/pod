@@ -6,7 +6,7 @@ use std::path::PathBuf;
 
 use clap::{Parser, Subcommand};
 
-use crate::{guide, machine, mobile, orch, orch_run, pr, session, sessions, status};
+use crate::{a2a, guide, machine, mobile, orch, orch_run, pr, session, sessions, status};
 
 #[derive(Parser)]
 #[command(
@@ -229,6 +229,13 @@ pub(crate) enum Cmd {
     Guide {
         #[command(subcommand)]
         cmd: Option<guide::GuideCmd>,
+    },
+    /// Standard Agent2Agent (A2A 1.0, JSON-RPC) client for one explicitly
+    /// named peer agent: card, send, task show|list|cancel
+    /// (docs/a2a-client.md). Runs on this PC; never uses podd or orch mail.
+    A2a {
+        #[command(subcommand)]
+        cmd: a2a::A2aCmd,
     },
 }
 

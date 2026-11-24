@@ -88,6 +88,7 @@ fn remote_unsupported(cmd: &Cmd) -> Option<&'static str> {
         Cmd::RemoteStdio => Some("remote-stdio는 원격 쪽에서 ssh가 실행하는 명령입니다"),
         Cmd::Hooks { .. } => Some("hooks는 이 PC의 에이전트 설정만 다룹니다"),
         Cmd::Machine { .. } => Some("machine은 이 PC의 프로필만 다룹니다"),
+        Cmd::A2a { .. } => Some("a2a는 이 PC에서 지정한 피어 에이전트와 직접 통신합니다"),
         Cmd::Server {
             cmd: ServerCmd::Stop { .. },
         } => Some("원격 데몬 중지는 지원하지 않습니다"),

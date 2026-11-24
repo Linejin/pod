@@ -3,7 +3,8 @@
 //!
 //! Exit codes: 0 ok, 1 wait timed out / condition not met (also `server stop`
 //! when podd has not exited in time), 2 error, 3 daemon not running
-//! (`server status|stop` only).
+//! (`server status|stop` only), 4 `a2a send|task cancel` outcome unknown
+//! (the peer may have acted on it; not retried).
 //!
 //! Layout (docs/20-refactor/daemon.md §2): `args` holds the clap
 //! definitions, `context` the pipe, `--machine`, `--json` and the
@@ -11,6 +12,7 @@
 //! terminal, repo, task and server commands; the other modules are the
 //! specialised commands. `main` parses, routes and exits.
 
+mod a2a;
 mod args;
 mod attach;
 mod commands;
@@ -76,6 +78,8 @@ fn real_main(cli: Cli) -> anyhow::Result<ExitCode> {
     match cmd {
         // Guides describe this binary; they never need a daemon.
         Cmd::Guide { cmd } => guide::run(cmd),
+        // A2A talks to the named peer over HTTPS; it never needs a daemon.
+        Cmd::A2a { cmd } => a2a::run(cmd, json),
         Cmd::RemoteStdio => Ok(remote_stdio::run(pipe)),
         Cmd::Machine { cmd } => machine::run(cmd, json),
         Cmd::Hooks { cmd } => status::hooks(cmd, json),

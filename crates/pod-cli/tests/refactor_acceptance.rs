@@ -493,10 +493,13 @@ fn terminal_flow_matches_the_baseline() {
 // `person`) and `server status` (protocol 21, `endpoint: full`).
 // Protocol v22 (rm-r5, docs/17 R5): `guide`, `server schema` (fs.* and
 // review.diff/blob, the hello file limits) and `server status` (22).
+// `pod a2a` (docs/a2a-client.md) added one command: the `pod --help` page
+// (one line more) and the seven `help [a2a ...]` pages, re-recorded and
+// reviewed; no other line changed.
 
 const HELP_GOLDEN: &str = r##"
 version -> exit 0 stdout "pod <VERSION>\n" stderr ""
-help [] -> exit 0 stdout 83ab65e2168bba92 (40 lines) stderr cbf29ce484222325
+help [] -> exit 0 stdout 6b6b2c795c53c744 (41 lines) stderr cbf29ce484222325
 help [run] -> exit 0 stdout 61186194de40fbe4 (19 lines) stderr cbf29ce484222325
 help [ls] -> exit 0 stdout a27ea58240460f5b (10 lines) stderr cbf29ce484222325
 help [keep] -> exit 0 stdout bfefc92556f540c6 (13 lines) stderr cbf29ce484222325
@@ -617,6 +620,13 @@ help [machine test] -> exit 0 stdout b036010d9a8e4ee7 (12 lines) stderr cbf29ce4
 help [guide] -> exit 0 stdout 62db4f75842bdc90 (14 lines) stderr cbf29ce484222325
 help [guide orchestration] -> exit 0 stdout a2fcba0bcb8181d2 (10 lines) stderr cbf29ce484222325
 help [guide install] -> exit 0 stdout 907ba8bb94101b30 (27 lines) stderr cbf29ce484222325
+help [a2a] -> exit 0 stdout 01a4338da200050d (15 lines) stderr cbf29ce484222325
+help [a2a card] -> exit 0 stdout 7a7593dadf4a083f (14 lines) stderr cbf29ce484222325
+help [a2a send] -> exit 0 stdout 618e461693c49a7d (25 lines) stderr cbf29ce484222325
+help [a2a task] -> exit 0 stdout 209a51d5700fce44 (15 lines) stderr cbf29ce484222325
+help [a2a task show] -> exit 0 stdout 83ae3f0bd182043d (20 lines) stderr cbf29ce484222325
+help [a2a task list] -> exit 0 stdout e810c45119614709 (22 lines) stderr cbf29ce484222325
+help [a2a task cancel] -> exit 0 stdout ddf3753e029c5f64 (19 lines) stderr cbf29ce484222325
 guide -> exit 0 stdout c52b43dc98440dd9 (8 lines) stderr ""
 --pipe <RUN> server schema -> exit 0 stdout 76c1047ba82fe46d (38094 lines) stderr ""
 "##;
