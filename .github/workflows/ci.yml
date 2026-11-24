@@ -1,8 +1,5 @@
 # Pod CI (quality-01). Windows is the only supported platform.
 #
-# Not active yet: pushing this file needs a GitHub token with the `workflow`
-# scope, which the current one lacks (see CONTRIBUTING.md "CI").
-#
 # Plain cargo commands build the workspace default-members = every shipped
 # crate; the UI/diff spikes are left out on purpose (Cargo.toml, quality-14).
 name: ci

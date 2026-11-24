@@ -16,10 +16,16 @@ Execution and integration records belong in `docs/25-improvement-execution.md`.
 - Add focused regression coverage for data loss, persistence, or concurrency
   fixes. Run relevant existing checks. Report the exact commands and outcomes;
   blocked or unexecuted tests are not passing tests.
+- Apply the documentation policy in `CONTRIBUTING.md` to each product change.
+  In the completion report, list the docs updated and the verification evidence,
+  or give a specific reason the change has no documentation impact.
+  Run `powershell -NoProfile -File tools/check-docs.ps1` after documentation edits.
 - Windows Smart App Control may block Rust tools with error 4551. Do not disable
   security settings or silently substitute another test environment. Report the
   limitation and perform the static checks that remain available.
 - Preserve command trust, worker authorization, and existing public protocol
   compatibility. Do not add dependencies without a demonstrated need.
 - Workers leave central roadmap and execution documents to the coordinator and
-  return commit hashes, changed files, validation evidence, and remaining risks.
+  return commit hashes, changed files, affected document paths, validation
+  evidence, and remaining risks. The coordinator updates the affected central
+  docs at integration.

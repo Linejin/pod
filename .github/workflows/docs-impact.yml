@@ -1,0 +1,28 @@
+name: Documentation impact
+
+on:
+  pull_request:
+    types: [opened, reopened, synchronize, edited]
+
+permissions:
+  contents: read
+
+jobs:
+  docs-impact:
+    runs-on: windows-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Test documentation policy checks
+        shell: powershell
+        run: |
+          .\tools\check-docs.ps1 -SelfTest
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          .\tools\check-doc-impact.ps1 -SelfTest
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - name: Check documentation impact
+        shell: powershell
+        run: .\tools\check-doc-impact.ps1
