@@ -39,11 +39,13 @@ mod tests;
 pub use commands::WorkspaceAction;
 pub use dock::{
     AppGlobals, RestoreCtx, RestoredPanel, build_editor_panel, build_gates_panel,
-    build_group_panel, build_panel, build_review_panel, build_tree_panel,
+    build_graph_panel, build_group_panel, build_panel, build_review_panel, build_tree_panel,
 };
 pub(crate) use notifications::Toast;
 pub use notifications::ToastKind;
 pub use sidebar::Sidebar;
+#[cfg(test)]
+pub(crate) use sidebar::row_action_height as sidebar_row_action_height;
 // Named by the QA modules (`ui_review_qa`, `native_qa`) at their old path.
 #[cfg(test)]
 pub(crate) use status_bar::StatusPlan;

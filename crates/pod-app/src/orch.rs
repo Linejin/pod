@@ -57,6 +57,8 @@ pub struct OrchState {
     pub groups: Vec<WeakEntity<GroupPanel>>,
     pub gates_panel: Option<WeakEntity<GatesPanel>>,
     pub tree_panel: Option<WeakEntity<AgentTreePanel>>,
+    /// The project agent graph (one panel, follows the chosen repository).
+    pub graph_panel: Option<WeakEntity<crate::project_graph::ProjectGraphPanel>>,
 }
 
 impl OrchState {
@@ -68,6 +70,10 @@ impl OrchState {
                 .is_some_and(|w| w.upgrade().is_some())
             || self
                 .tree_panel
+                .as_ref()
+                .is_some_and(|w| w.upgrade().is_some())
+            || self
+                .graph_panel
                 .as_ref()
                 .is_some_and(|w| w.upgrade().is_some())
     }
@@ -399,6 +405,9 @@ impl Workspace {
             p.update(cx, |p, cx| p.data_changed(&self.tasks, cx));
         }
         if let Some(p) = self.orch.tree_panel.as_ref().and_then(|w| w.upgrade()) {
+            p.update(cx, |_, cx| cx.notify());
+        }
+        if let Some(p) = self.orch.graph_panel.as_ref().and_then(|w| w.upgrade()) {
             p.update(cx, |_, cx| cx.notify());
         }
     }

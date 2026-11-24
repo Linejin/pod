@@ -46,6 +46,7 @@ mod panel;
 mod pr_panel;
 #[cfg(test)]
 mod pr_qa;
+mod project_graph;
 mod qa_marks;
 mod review;
 mod sessions_ui;
@@ -217,6 +218,11 @@ fn install(cx: &mut App) {
     register_panel(cx, tree::TREE_PANEL_NAME, workspace::build_tree_panel);
     register_panel(
         cx,
+        project_graph::PROJECT_GRAPH_PANEL_NAME,
+        workspace::build_graph_panel,
+    );
+    register_panel(
+        cx,
         editor_panel::EDITOR_PANEL_NAME,
         workspace::build_editor_panel,
     );
@@ -294,13 +300,15 @@ fn main() {
             eprintln!("pod-app: {notice}");
             ws.update(cx, |w, cx| w.raise_toast(workspace::ToastKind::Warning, strings::SETTINGS_DAMAGED, notice, cx));
         }
-        // Unsaved editor files: ask before the window closes. On quit, save
-        // the layout (editor tabs/cursors) and stop language servers.
+        // Unsaved editor files: ask before the window closes; a close that
+        // goes ahead saves the layout then (the workspace goes with the
+        // window). On quit, save the layout (editor tabs/cursors) and stop
+        // language servers.
         let close_ws = ws.downgrade();
         let _ = window_handle.update(cx, move |_, window, cx| {
             #[cfg(windows)]
             app_icon::install(window);
-            window.on_window_should_close(cx, move |window, cx| close_ws.update(cx, |w, cx| w.confirm_quit(window, cx)).unwrap_or(true));
+            window.on_window_should_close(cx, move |window, cx| close_ws.update(cx, |w, cx| w.close_requested(window, cx)).unwrap_or(true));
         });
         let quit_ws = ws.downgrade();
         cx.on_app_quit(move |cx| {

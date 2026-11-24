@@ -6,6 +6,20 @@ use gpui_kit::*;
 use super::{ArrangeGrid, NewTerminal, OpenFilesPanel, OpenReview, QuickOpenFiles, Workspace};
 
 impl Workspace {
+    /// The window's close button (or `WM_CLOSE`): ask about unsaved files, and
+    /// when the window may close, write the layout now. Closing the last
+    /// window releases this workspace with it, before GPUI runs its quit
+    /// handlers, so [`Self::on_quit`] cannot be relied on for this path; a save
+    /// still waiting in [`Self::schedule_save`]'s debounce would be lost.
+    pub(crate) fn close_requested(&mut self, window: &mut Window, cx: &mut Context<Self>) -> bool {
+        let close = self.confirm_quit(window, cx);
+        if close && self.restored {
+            self.save_task = None;
+            self.save_now(cx);
+        }
+        close
+    }
+
     /// App quit: persist the layout (editor cursors included) and stop every
     /// language server (Job Objects kill the trees even if this is cut short).
     pub(crate) fn on_quit(&mut self, cx: &mut Context<Self>) -> Task<()> {

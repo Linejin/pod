@@ -282,6 +282,7 @@ impl Sidebar {
     }
     fn activate(&mut self, item: &SidebarItem, window: &mut Window, cx: &mut Context<Self>) {
         self.selected = Some(item.key());
+        self.follow(item, cx);
         match item {
             SidebarItem::Terminal(id) => {
                 let _ = self
@@ -298,6 +299,24 @@ impl Sidebar {
                 cx.set_global(settings);
                 cx.notify();
             }
+        }
+    }
+}
+
+/// Height of an action button inside a tree row of `row` px: the density's
+/// `hit` area, but never taller than the row that clips it (dense rows are
+/// 22 px against 28, comfortable rows 34 px against 36).
+pub(crate) fn row_action_height(hit: f32, row: f32) -> f32 {
+    hit.min(row)
+}
+
+impl Sidebar {
+    /// An open project agent graph follows the repository row selected here.
+    fn follow(&self, item: &SidebarItem, cx: &mut Context<Self>) {
+        if let SidebarItem::Repo(name, _, _) = item {
+            let _ = self
+                .ws
+                .update(cx, |w, cx| w.follow_project_selection(name, cx));
         }
     }
 }
@@ -585,6 +604,29 @@ impl Render for Sidebar {
                                         .text_color(rgb(tk.text_muted))
                                         .child(crate::tr!(TASKS; ; count)),
                                 )
+                                // Project agent graph (docs/09 §8.1): a tab stop of its
+                                // own; its click must not fold the row.
+                                .child({
+                                    let (ws, repo) = (sidebar.ws.clone(), name.clone());
+                                    let qa = name.clone();
+                                    pod_ui::IconButton::new(
+                                        SharedString::from(format!("graph-action-{name}")),
+                                        pod_ui::Icon::GitMerge,
+                                        crate::project_graph::copy::action_label(name),
+                                    )
+                                    .tooltip(crate::project_graph::copy::action_tip(name))
+                                    .render(mode, move |window, cx| {
+                                        cx.stop_propagation();
+                                        let _ = ws.update(cx, |w, cx| {
+                                            w.open_project_graph(&repo, window, cx)
+                                        });
+                                    })
+                                    // Inside the row: the row clips (overflow hidden), so a
+                                    // taller button would advertise rows it cannot be clicked in.
+                                    .h(px(row_action_height(pod_ui::hit_area(), height)))
+                                    .flex_shrink_0()
+                                    .qa_id(move || format!("graph-action:{qa}"))
+                                })
                                 .into_any_element(),
                             SidebarItem::Task(id) => {
                                 let w = ws.read(cx);
@@ -701,8 +743,10 @@ impl Render for Sidebar {
                                     .into_any_element()
                             }
                         };
+                        let mark = key.clone();
                         div()
                             .id(SharedString::from(key.clone()))
+                            .qa_id(move || format!("sidebar-row:{mark}"))
                             .when(!matches!(item, SidebarItem::Terminal(_)), |d| {
                                 let name = match &item {
                                     SidebarItem::Repo(_, label, _) => label.clone(),
@@ -803,6 +847,7 @@ impl Render for Sidebar {
                     TreeStep::Select(i) => {
                         if let Some(row) = items.get(i) {
                             s.selected = Some(row.key());
+                            s.follow(row, cx);
                             // Nearest: a row below the edge scrolls into view at the bottom
                             // instead of jumping to the top on every ↓ (the list stays put).
                             s.scroll.scroll_to_item(i, ScrollStrategy::Nearest);

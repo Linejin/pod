@@ -21,6 +21,7 @@ use crate::groups::GROUP_PANEL_NAME;
 use crate::panel::PANEL_NAME;
 #[cfg(test)]
 use crate::panel::TerminalPanel;
+use crate::project_graph::PROJECT_GRAPH_PANEL_NAME;
 use crate::review::REVIEW_PANEL_NAME;
 use crate::tree::TREE_PANEL_NAME;
 
@@ -149,6 +150,8 @@ fn keep_leaf(state: &PanelState, alive: &Alive) -> bool {
         GATES_PANEL_NAME => alive.orch,
         EDITOR_PANEL_NAME => has(&alive.worktrees, "task"),
         TREE_PANEL_NAME | "PodSettings" | "PodInspector" => true,
+        // Kept with its repository name; the panel shows "not registered" if it is gone.
+        PROJECT_GRAPH_PANEL_NAME => leaf_field(state, "repo").is_some_and(|r| !r.trim().is_empty()),
         _ => false,
     }
 }

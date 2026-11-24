@@ -51,6 +51,7 @@ pub enum RestoredPanel {
     Group(WeakEntity<crate::groups::GroupPanel>),
     Gates(WeakEntity<crate::gates::GatesPanel>),
     Tree(WeakEntity<crate::tree::AgentTreePanel>),
+    Graph(WeakEntity<crate::project_graph::ProjectGraphPanel>),
     Settings(WeakEntity<crate::chrome::ChromePanel>),
     Inspector(WeakEntity<crate::chrome::ChromePanel>),
     Editor(WeakEntity<EditorPanel>),
@@ -175,6 +176,26 @@ pub fn build_tree_panel(
     panel_handle(panel)
 }
 
+/// `PanelRegistry` builder for the persisted project agent graph (`{"repo": name}`).
+pub fn build_graph_panel(
+    ctx: PanelBuildContext,
+    window: &mut Window,
+    cx: &mut App,
+) -> Arc<dyn gpui_kit::component::dock::BasePanelView> {
+    let repo = layout::leaf_field(ctx.state(), "repo")
+        .unwrap_or_default()
+        .to_string();
+    let g = cx.global::<AppGlobals>();
+    let (ws, restore) = (g.workspace.clone(), g.restore.clone());
+    let panel = cx.new(|cx| crate::project_graph::ProjectGraphPanel::new(ws, repo, cx));
+    panel.update(cx, |p, cx| p.forward_focus(window, cx));
+    restore
+        .borrow_mut()
+        .built
+        .push(RestoredPanel::Graph(panel.downgrade()));
+    panel_handle(panel)
+}
+
 /// `PanelRegistry` builder for persisted terminal panels.
 pub fn build_panel(
     ctx: PanelBuildContext,
@@ -291,6 +312,7 @@ impl Workspace {
                 RestoredPanel::Group(g) => self.orch.groups.push(g),
                 RestoredPanel::Gates(g) => self.orch.gates_panel = Some(g),
                 RestoredPanel::Tree(t) => self.orch.tree_panel = Some(t),
+                RestoredPanel::Graph(g) => self.orch.graph_panel = Some(g),
                 RestoredPanel::Settings(p) => self.settings_panel = Some(p),
                 RestoredPanel::Inspector(p) => self.inspector_panel = Some(p),
                 RestoredPanel::Editor(e) => {

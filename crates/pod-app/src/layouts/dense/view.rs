@@ -984,10 +984,15 @@ pub(super) fn body(
                     island
                         .wrap(div())
                         .id("dense-center")
+                        .qa_id(|| "dense-center".into())
                         .flex()
                         .flex_col()
                         .flex_1()
                         .min_w_0()
+                        // A dock wider than this column (a saved right dock at a
+                        // small window) is clipped here, as rounded islands already
+                        // are, not drawn under the details column.
+                        .overflow_hidden()
                         .when_some(warning, |d, w| d.child(warning_banner(w)))
                         .when_some(hook_banner, |d, b| d.child(b))
                         .child(
