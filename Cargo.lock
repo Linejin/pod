@@ -5154,6 +5154,7 @@ dependencies = [
  "pod-editor",
  "pod-forge",
  "pod-orch",
+ "pod-process",
  "pod-remote",
  "pod-status",
  "pod-terminal-view",

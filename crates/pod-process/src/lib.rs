@@ -6,6 +6,8 @@
 //!   guarded git, group scripts and repo config commands, the editor's LSP
 //!   probe). Consumers name it `pod_process::bounded`; the old
 //!   `pod_forge::bounded` re-export is gone (rf2-bounds).
+//!   [`bounded::LineSession`] is its interactive form (the usage monitor's
+//!   `codex app-server` reads).
 //! - [`git`] clears the `GIT_*` variables that would point git at another
 //!   repository, the one environment rule podd and pod-forge share.
 
@@ -34,6 +36,13 @@ pub mod bounded {
     //!   [`Keep::Tail`] keeps the last N bytes, [`Keep::Cap`] stops the run with
     //!   [`End::TooLarge`] once more than N bytes arrive. Nothing reads into an
     //!   unbounded buffer.
+    //! - **Line sessions.** [`LineSession`] keeps a child under the same tree
+    //!   rules but talks to it in lines (a JSON-RPC server on stdio): every
+    //!   receive has a deadline, lines and total output are capped, and
+    //!   dropping it kills the tree.
+
+    mod lines;
+    pub use lines::{LineLimits, LineSession, RecvError};
 
     use std::io::{Read, Write};
     use std::process::{Child, Command, Stdio};

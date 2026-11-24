@@ -3,6 +3,7 @@
 //! ```text
 //! pod-hook claude|codex <Event>     # invoked by the agent; hook JSON on stdin
 //! pod-hook install --dry-run [...]  # print the hooks config Pod would install
+//! pod-hook statusline [--passthrough] # Claude Code statusLine: keep the usage limits
 //! ```
 //!
 //! Hook mode contract: ALWAYS prints `{}` and exits 0, never blocks the agent
@@ -15,15 +16,22 @@
 //! standard handles. No child processes, no windows. `install` / `--help`
 //! attach to the parent console when stdout is not redirected.
 //!
+//! Status-line mode (`statusline`) is not a hook: it answers with a status
+//! line (or the input unchanged) instead of `{}`, and stores only Claude
+//! Code's documented usage-limit numbers for Pod's usage monitor
+//! (`statusline.rs`). Same rules otherwise: bounded, no window, no child.
+//!
 //! Layout: `main` dispatches on the first argument and owns the `{}` answer
 //! and the hard exit; `relay` is hook mode, `install` the dry-run planner,
-//! `console` the parent-console attach for the CLI paths.
+//! `statusline` the usage collector, `console` the parent-console attach for
+//! the CLI paths.
 
 #![cfg_attr(windows, windows_subsystem = "windows")]
 
 mod console;
 mod install;
 mod relay;
+mod statusline;
 
 use std::io::Write;
 use std::time::Instant;
@@ -54,6 +62,13 @@ fn main() {
         return;
     }
     let start = Instant::now();
+    if args.first().map(String::as_str) == Some("statusline") {
+        let code = std::panic::catch_unwind(|| statusline::run(&args[1..], start)).unwrap_or(0);
+        if code != 0 {
+            std::process::exit(code);
+        }
+        exit_now();
+    }
     // Print first: the agent gets its answer no matter what happens next.
     {
         let mut out = std::io::stdout().lock();

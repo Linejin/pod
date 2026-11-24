@@ -77,6 +77,8 @@ pub struct StartOptions {
     /// Remote machines: profiles and transport (`None`: the build's default,
     /// the system one in the app, an empty isolated one in tests).
     pub machines: Option<crate::machines_ui::MachinesBackend>,
+    /// AI usage limits in the status bar (`None`: no monitor, e.g. tests).
+    pub usage: Option<crate::usage::UsageBackend>,
 }
 
 pub struct Workspace {
@@ -227,6 +229,11 @@ impl Workspace {
                 w.machine_confirm_requested(window, cx);
             }
         }));
+
+        // AI usage monitor: one per app, read in the background.
+        if let Some(b) = options.usage.clone() {
+            crate::usage::ensure_started(b, cx);
+        }
 
         // Agent hooks: checked in the background, never installed without a click.
         if let Some(h) = options.hook_cli.clone() {

@@ -21,6 +21,7 @@ pub mod hook;
 pub mod install;
 pub mod osc;
 pub mod types;
+pub mod usage;
 
 pub use engine::{
     OutputResult, Snapshot, StatusConfig, SubRecord, TerminalStatus, Transition,

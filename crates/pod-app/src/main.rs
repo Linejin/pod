@@ -58,6 +58,7 @@ mod theme;
 mod tree;
 #[cfg(test)]
 mod ui_review_qa;
+mod usage;
 mod vm;
 mod workspace;
 
@@ -291,7 +292,10 @@ fn main() {
         };
         // Fixture runs get fixed machines and never read the real profiles.
         let machines = args.fixture.then(|| machines_ui::MachinesBackend::fixture(args.fixture_scene.as_deref()));
-        let start = StartOptions { open_all: args.open_all, sound: !args.no_sound, review: args.review.clone(), settings: args.settings, hook_cli: hook_cli.map(hooks_prompt::HookCliHandle), machines };
+        // AI usage limits: the installed CLIs and Pod's cache. Fixture runs never start a
+        // process; only the `usage-*` scenes show the entry (other baselines stay as they are).
+        let usage = if args.fixture { args.fixture_scene.as_deref().filter(|s| s.starts_with("usage-")).map(|s| usage::UsageBackend::fixture(Some(s))) } else { Some(usage::UsageBackend::system()) };
+        let start = StartOptions { open_all: args.open_all, sound: !args.no_sound, review: args.review.clone(), settings: args.settings, hook_cli: hook_cli.map(hooks_prompt::HookCliHandle), machines, usage };
         let (stats_on, duration) = (args.stats || args.duration.is_some(), args.duration);
         let (window_handle, ws) = gpui_kit::open_window(options, cx, move |window, cx| cx.new(|cx| Workspace::new(source, events, start, window, cx)))
             .expect("failed to open window");

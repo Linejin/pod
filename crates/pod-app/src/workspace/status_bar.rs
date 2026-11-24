@@ -60,7 +60,7 @@ impl Workspace {
         };
         let conn_tip: SharedString = text.conn_tip().into();
         // Left: connection and counts. It may clip (items drop by `plan` first); the right
-        // group (상태 · 알림) never shrinks, so it stays reachable at the 800 px minimum.
+        // group (사용 한도 · 상태 · 알림) never shrinks, so it stays reachable at the 800 px minimum.
         let left = div()
             .id("status-summary")
             .qa_id(|| "status-summary".into())
@@ -224,6 +224,9 @@ impl Workspace {
                     .border_color(rgb(tk.border_subtle))
             })
             .child(left)
+            // AI usage limits: on the right with 상태 · 알림, so it never clips;
+            // it narrows to one aggregate entry before they would (usage/view.rs).
+            .children(crate::usage::monitor(cx))
             .child(
                 div()
                     .qa_id(|| "status-inspect".into())
