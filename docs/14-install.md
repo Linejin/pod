@@ -6,6 +6,8 @@ Pod를 매일 쓸 수 있게 **사용자별(관리자 권한 없음)** 설치 �
 
 [편집기 브라우저](13-editor-and-lsp.md#편집기-브라우저)는 Windows에 설치된 Microsoft Edge WebView2 Runtime을 사용한다. 런타임은 설치 패키지에 포함하지 않는다.
 
+개선 브랜치의 2026-11-24 배포 정책 검사는 `chrono` 유지보수 중단 권고로 실패했다. 해당 검증에서 새 설치 EXE와 포터블 ZIP 생성, 설치·업그레이드·제거 재시험은 미실행이다. [검사 결과와 대상 커밋](27-feature-validation-results.md#2026-11-24-추가-검증)
+
 ---
 
 ## 1. 결정: Inno Setup 6
@@ -29,7 +31,7 @@ powershell -NoProfile -File tools/installer/build.ps1 -Release -SigningConfig C:
 
 필요한 것: Rust stable(msvc), `cargo-deny`, Inno Setup 6(없으면 스크립트가 설치 명령을 알려 줌, 또는 `ISCC` 환경 변수). 단계:
 
-1. **버전**: 루트 `Cargo.toml`의 `[workspace.package] version`(지금 `0.1.0`). 크레이트도 `version.workspace = true`로 이 값을 쓴다(`pod --version`, `podd --version`, `server.status`의 version = 0.1.0). 예외: `pod-app`(0.1.0, 같은 값)과 `pod-terminal-view`(0.0.1)는 다른 작업이 고치는 중이라 그대로 두었다(둘 다 버전을 출력하지 않음, 다음에 맞출 것). 릴리스 때 이 값만 올린다. **빌드 이름표**: `-Release`가 없으면 `<버전>-dev.<git sha 8자>`(작업 트리가 바뀌어 있으면 `-dirty`)라 개발 빌드마다 설치 파일 이름과 "앱 및 기능"의 버전이 다르다. 파일 버전 리소스는 숫자 `<버전>` 그대로(`/DFileVersion`). `-PrintVersion`은 이름표만 출력.
+1. **버전**은 루트 `Cargo.toml`의 `[workspace.package] version`(현재 `0.1.0`)에서 정한다. 배포 실행 파일을 만드는 크레이트와 `pod-terminal-view`는 `version.workspace = true`로 이 값을 쓴다. `pod --version`, `podd --version`, `server.status`에도 반영되며, 릴리스할 때 루트 버전을 올린다. **빌드 이름표**는 개발 빌드에서 `<버전>-dev.<git sha 8자>`이고 추적 파일을 수정했으면 `-dirty`가 붙는다. 설치 파일 이름과 "앱 및 기능"에는 이 이름표를, 파일 버전 리소스(`/DFileVersion`)에는 숫자 버전을 쓴다. `-PrintVersion`은 이름표만 출력한다.
 2. **번들 ConPTY**: `vendor/conpty`가 없으면 `tools/fetch-conpty.ps1`(고정 버전·SHA-256).
 3. **`cargo deny check`** (`-SkipDeny`로 생략). 
 4. **`cargo build --release --locked -p pod-app -p podd -p pod-cli -p pod-hook`**. 각 cargo 실행 전 `tools/cpu-gate.ps1 -MaxPct 70 -MaxCargo 1`(공유 PC, `-NoCpuGate`로 생략).

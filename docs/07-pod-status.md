@@ -3,6 +3,8 @@
 작성: 2026-11-08 · 브랜치 `SJin-Choi/pod-status` · 크레이트 `crates/pod-status`(라이브러리), `crates/pod-hook`(바이너리)
 선행 문서: [04 상태 감지 리서치](04-status-detection-research.md) §1.2–§1.4, §3, §4 · [01 §4.2(2), §8](01-plan.md)
 
+계정 한도를 보는 **AI 사용 한도** 항목은 Codex의 읽기 전용 조회와 Claude Code의 별도 `pod-hook statusline` 모드를 사용한다. Claude Code에서 이 모드를 연결하는 절차는 [AI 사용 한도 모니터](usage/ai-usage-monitor.md)에 있다.
+
 이 문서는 podd가 호출할 API, 상태 머신, 어댑터, 그리고 아직 검증하지 못한 항목을 정리한다. 구현은 docs/04에 적힌 동작을 보고 새로 작성했다(클린룸). 다른 제품의 코드는 복사하지 않았다. 라이선스는 Apache-2.0이고, 의존성은 `serde`, `serde_json`, `base64`(이상 MIT/Apache)와 테스트 전용 `tempfile`, `windows-sys`(MIT/Apache)뿐이다.
 
 ---

@@ -27,17 +27,19 @@ exactly one member set in each `oneof`.
 ## Commands
 
 ```text
-pod a2a card        --peer URL | --card-url URL  [--endpoint URL]
-pod a2a send        --peer URL (--text TEXT | --body-file PATH|-)
+pod a2a card        PEER
+pod a2a send        PEER (--text TEXT | --body-file PATH|-)
                     [--message-id ID] [--task-id ID] [--context-id ID]
                     [--reference-task-id ID]... [--return-immediately]
                     [--history-length N] [--accept-output MEDIA_TYPE]...
-pod a2a task show   --peer URL TASK_ID [--history-length N]
-pod a2a task list   --peer URL [--context-id ID] [--status STATE]
-                    [--page-size N] [--page-token TOKEN] [--include-artifacts]
-pod a2a task cancel --peer URL TASK_ID
+pod a2a task show   PEER TASK_ID [--history-length N]
+pod a2a task list   PEER [--context-id ID] [--status STATE]
+                    [--page-size N] [--page-token TOKEN]
+                    [--history-length N] [--include-artifacts]
+pod a2a task cancel PEER TASK_ID
 ```
 
+Replace `PEER` with exactly one of `--peer URL` and `--card-url URL`.
 Every command except `card` also takes `--token-file PATH` or
 `--token-env NAME`. All commands take `--endpoint URL`,
 `--allow-http-loopback` and `--timeout S`. Add the global `--json` flag for
@@ -110,9 +112,11 @@ pod a2a task cancel --peer https://agent.example.com 9f0c…
 | 2 | An error with a known outcome: a refused URL, a card problem, a JSON-RPC error such as `TaskNotFoundError (-32001)` or `VersionNotSupportedError (-32009)`, HTTP 401/403 (`auth-required`), a redirect, or a connection that failed before anything was sent. |
 | 4 | **Outcome unknown** (`send` and `task cancel` only). The request may have reached the peer and taken effect, but no valid answer came back: a timeout, a dropped connection, an oversized or invalid reply, or HTTP 5xx. |
 
-Pod **never repeats a request on its own**. After exit 4, it prints the
-`messageId`. Check with `pod a2a task list`, or resend on purpose with the
-same `--message-id`, so the peer can spot the duplicate (spec §3.3.1).
+Pod makes a single attempt. After exit 4 from `send`, check the peer's
+tasks with `pod a2a task list`. If you choose to resend the same message,
+use the printed `messageId` as `--message-id` so the peer can spot the
+duplicate (spec §3.3.1). After exit 4 from `task cancel`, check the task
+with `pod a2a task show` and its task ID.
 
 With `--json`, errors print `{"error": {"code", "message", "outcomeUnknown",
 "messageId"?, "rpc"?}}`. The `rpc` object holds the JSON-RPC `code`, the A2A
@@ -157,8 +161,7 @@ pod a2a send --peer http://127.0.0.1:8000 --allow-http-loopback --text "hello"
 
 ## For code: the `pod-a2a` crate
 
-The CLI is a thin adapter over `crates/pod-a2a`, which the project graph UI
-can use too:
+The CLI uses the client library in `crates/pod-a2a`.
 
 ```rust
 let cfg = pod_a2a::ClientConfig::default();

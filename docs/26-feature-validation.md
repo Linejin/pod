@@ -2,7 +2,7 @@
 
 작성일: 2026-11-18 · 대상: Windows 10/11 x64 · 기준 브랜치: improvements/stability-foundation · 제품 코드 기준: ad8f572
 
-Pod의 기능을 91개 검증 단위로 나누고, 각 기능을 반복해서 검사할 방법을 정한다. 검증·수정 루프는 아래 기능 ID를 유지하면서 실패 재현, 최소 수정, 해당 기능과 영향받는 기능의 재검증을 이어간다. 이번 변경은 기능 목록과 검증 계획을 작성한 것이며, 표의 검사를 새로 실행한 결과가 아니다.
+11월 18일 기준 기능 91개의 반복 검증 절차와 기준을 정한다. 이후 통합한 그래프·A2A·사용량 모니터는 [후속 기능 검증 계획](#후속-기능-검증-계획)에 있다. 검증·수정 루프는 기능 ID를 유지하며 실패 재현, 최소 수정, 영향받는 기능의 재검증을 이어간다. 실행 범위와 판정은 [기능 검증 결과](27-feature-validation-results.md)에서 확인한다.
 
 ## 1 기존 문서와 이 목록의 역할
 
@@ -12,7 +12,7 @@ Pod의 기능을 91개 검증 단위로 나누고, 각 기능을 반복해서 �
 | [실제 Codex E2E](12-e2e-verification.md) | 특정 과거 commit과 환경에서 실행한 시나리오·실패·재검증 | 같은 시나리오를 새 제품 버전에서 반복할 때의 입력과 판정 |
 | [데몬 검증](20-refactor/daemon-validation.md), [라이브러리 검증](20-refactor/libs-validation.md) | 리팩터링 계약과 과거 검증 기록 | UI·실제 도구·설치까지 연결한 제품 기능 범위 |
 | [시각 QA](../tools/visual/README.md), [네이티브 QA 범위](../crates/pod-app/qa/native/README.md) | 이미지·접근성 트리와 GPUI 시험의 실행 방법·한계 | 실제 마우스·IME·Narrator와의 구분 |
-| [개선 과제](24-improvements.md), [1차 실행 기록](25-improvement-execution.md) | B01–B20 결함·품질 과제, F01–F15 제안, B01–B05 구현·검증 | 기존 기능 ID와 알려진 문제의 연결 |
+| [개선 과제](24-improvements.md), [작업 실행 기록](25-improvement-execution.md) | 결함·품질 과제, F01–F15 제안, 구현·통합·검증 | 기존 기능 ID와 알려진 문제의 연결 |
 
 기능 설명과 검증 자료는 이미 있지만, 이 기준 브랜치의 전체 기능을 동일한 ID와 판정 방식으로 묶은 목록은 별도로 필요하다. 이 문서는 제품 코드, CLI 명령 정의, RPC 경로, 기존 시험을 기준으로 그 목록을 제공한다. 다른 브랜치나 최신 원격 main에만 있는 기능은 이 버전의 구현으로 계산하지 않는다.
 
@@ -78,7 +78,7 @@ A는 상태·저장·프로토콜·입력 바이트 자동 검사, U는 GPUI와 
 | TASK03 | agent 선택·인자·브리프 전달 | Shell·Claude·Codex·argv fixture로 시작한다. cwd·환경·부모·프롬프트가 일치하고 브리프 파일 전달과 위험한 cmd shim 인자 거절이 유지된다. 실제 CLI 각각에서도 작은 작업 1회를 확인한다. | sessions S1, [agent 시작](../crates/podd/src/server/agent_launch.rs), A+U+R |
 | TASK04 | 저장소 설정·개인 override·신뢰 | .pod/config.toml의 setup/탭/archive와 개인 override를 읽는다. 미승인 명령은 실행하지 않고 승인 hash 변경 시 다시 차단하며 다른 설정을 덮지 않는다. | sessions S2, [repo_config](../crates/podd/src/server/repo_config.rs), A. 프로젝트 설정 편집 UI는 F02 제안 |
 | TASK05 | setup·기본 탭·순차 시작 | setup 성공·실패·대기 모드, 여러 기본 탭과 agent 시작 순서를 검사한다. 실패를 숨기지 않고 지정 cwd·이름·환경으로 한 번씩 실행한다. | sessions S2, A+U |
-| TASK06 | sparse checkout | 지정 패턴으로 새 worktree를 만들고 허용·제외 파일과 실패 복구를 검사한다. 기존 저장소의 sparse 설정과 다른 Task는 바뀌지 않는다. | sessions S8, A |
+| TASK06 | sparse checkout | 지정 패턴으로 새 worktree를 만들고 허용·제외 파일과 실패 복구를 검사한다. 기존 저장소의 sparse 설정과 다른 Task는 바뀌지 않는다. | sessions S8, A. 새 브랜치의 명령 실패·정리·재시도는 [11월 24일 추가 검증](27-feature-validation-results.md#2026-11-24-추가-검증)에서 확인. |
 | TASK07 | Task 목록·git 사실·touch | committed/uncommitted/untracked 변경과 commit·외부 저장 후 목록·diff를 확인한다. ahead/behind/dirty·최신 commit과 변경 이벤트가 실제 git 상태와 일치한다. | tasks, [파일 이벤트](../crates/podd/tests/files.rs), A+U |
 | TASK08 | 보관·보관 해제·agent 재개 | archive 명령 성공·실패·dirty/unpushed 보호→보관→재개를 검사한다. worktree·브랜치·세션은 남고 기록한 cwd·agent session으로 재개한다. | sessions S3, [task_archive](../crates/podd/src/server/task_archive.rs), A+R |
 | TASK09 | 정리 등급과 안전한 삭제 | protected/review/ready 분류, dirty·unpushed·미등록 디렉터리·명시적 force를 검사한다. 기본 삭제는 위험 대상을 거부하고 터미널·worktree·브랜치 선택을 정확히 처리한다. | sessions S3, tasks, A+U |
@@ -92,12 +92,12 @@ A는 상태·저장·프로토콜·입력 바이트 자동 검사, U는 GPUI와 
 | TERM01 | 프로세스 실행·목록·부모 트리 | fixture 부모가 자식을 실행하고 정상/오류 종료한다. cwd·env·task/parent 연결과 종료 코드가 CLI·앱 트리에서 일치한다. | [orchestration](../crates/podd/tests/orchestration.rs), [lifecycle](../crates/podd/tests/lifecycle.rs), A+U |
 | TERM02 | 텍스트·키 전송·실제 제출 | 한글·공백·줄바꿈·bracketed paste, Enter/Tab/Esc/Ctrl+C를 보낸다. echo를 처리 완료로 오인하지 않고 agent 입력을 한 번 제출하며 미확인 상태를 표시한다. | [submit](../crates/podd/tests/submit.rs), [input_budget](../crates/podd/tests/input_budget.rs), [reply_budget](../crates/podd/tests/reply_budget.rs), A+R |
 | TERM03 | 화면·scrollback·출력 대기 | 화면/이력 읽기와 문자열·종료·상태 대기를 검사한다. 보낸 입력의 echo를 새 결과로 세지 않고 timeout·exit code를 구분한다. | [daemon](../crates/podd/tests/daemon.rs), [status](../crates/podd/tests/status.rs), A+U |
-| TERM04 | attach·detach·다중 뷰 | 같은 터미널에 두 뷰를 붙여 입력·출력을 교환하고 한 뷰만 닫는다. 출력 순서와 입력이 유지되고 detach가 프로세스를 종료하지 않는다. | [detach](../crates/podd/tests/detach.rs), [stream_order](../crates/podd/tests/stream_order.rs), A+U |
+| TERM04 | attach·detach·다중 뷰 | 같은 터미널에 두 뷰를 붙여 입력·출력을 교환하고 한 뷰만 닫는다. 출력 순서와 입력이 유지되고 detach가 프로세스를 종료하지 않는다. | [detach](../crates/podd/tests/detach.rs), [stream_order](../crates/podd/tests/stream_order.rs), A+U. 두 daemon 클라이언트의 출력 순서·분리·입력은 [추가 검증](27-feature-validation-results.md#2026-11-24-추가-검증)에서 확인. |
 | TERM05 | resize·렌더링·마우스 보고 | 줄바꿈·대체 화면·마우스 모드·최근 resize 우선순위를 검사한다. 드래그 선택과 앱 마우스 보고가 충돌하지 않고 크기 변경 후 셀·커서가 일치한다. | [terminal-view 시험](../crates/pod-terminal-view/src/view/tests.rs), [mouse](../crates/pod-terminal-view/src/mouse.rs), A+U |
 | TERM06 | 선택·복사·붙여넣기·링크 이동 | 다중 행 선택·복사/붙여넣기와 URL·파일:줄 링크를 검사한다. 선택한 텍스트가 정확하고 파일 링크는 올바른 위치로 이동한다. URL 열기는 지정 fixture URL로 확인한다. | [selection](../crates/pod-terminal-view/src/selection.rs), [links](../crates/pod-terminal-view/src/links.rs), [앱 링크](../crates/pod-app/src/term_links.rs), A+U |
 | TERM07 | 한글 IME·넓은 글자·폰트 | 실제 Microsoft IME로 조합→수정→확정/취소, 한글·가나·한자·이모지를 입력한다. 조합 중 바이트·명령을 보내지 않고 후보창·커서·선택 폭과 확정 바이트가 맞는다. | [ime](../crates/pod-terminal-view/src/view/ime.rs), native_qa, [CJK 도구](../tools/visual/cjk-compare.ps1), A+U. Unicode SendInput만으로 IME 통과 불가 |
 | TERM08 | kill·rm·종료 터미널 보존 | 자식 프로세스가 있는 터미널을 종료·보존·unkeep·삭제한다. 종료된 대상만 기본 rm하고 keep된 터미널은 retention에서 제외되며 전체 시험 프로세스 트리가 정리된다. | [retention](../crates/podd/tests/retention.rs), [stop_race](../crates/podd/tests/stop_race.rs), A+U |
-| TERM09 | 앱·daemon 재시작과 holder 재발견 | 출력 중 앱 종료·daemon stop/crash·재시작을 각각 수행한다. 앱/daemon 수명과 프로세스 수명을 구분하고 원래 holder/PID·출력·입력 연결을 복구한다. | [rediscover](../crates/podd/tests/rediscover.rs), [holder_contract](../crates/podd/tests/holder_contract.rs), [unreachable](../crates/podd/tests/unreachable.rs), A+U |
+| TERM09 | 앱·daemon 재시작과 holder 재발견 | 출력 중 앱 종료·daemon stop/crash·재시작을 각각 수행한다. 앱/daemon 수명과 프로세스 수명을 구분하고 원래 holder/PID·출력·입력 연결을 복구한다. | [rediscover](../crates/podd/tests/rediscover.rs), [holder_contract](../crates/podd/tests/holder_contract.rs), [unreachable](../crates/podd/tests/unreachable.rs), A+U. 격리 daemon의 정상·강제 종료와 재연결은 [추가 검증](27-feature-validation-results.md#2026-11-24-추가-검증)에서 확인. |
 | STATE01 | 훅·OSC·휴리스틱 상태와 출처 | working/permission/question/idle/done/error/exit를 출처별로 주입한다. 우선순위·신뢰도·완료 확인 ack·stale 처리와 앱 표시가 일치한다. | [pod-status](../crates/pod-status/src/engine.rs), status, A+U |
 | STATE02 | 훅 설치·상태·제거와 격리 | 임시 agent 설정에서 설치→재설치→status→제거한다. 다른 훅과 설정·백업을 보존하고 정확한 설치 계획 승인과 Pod 밖 no-op을 확인한다. | [CLI hooks](../crates/pod-cli/tests/hooks.rs), [pod-hook CLI](../crates/pod-hook/tests/cli.rs), A+R |
 | STATE03 | 실제 agent 승인·질문·취소 상태 | Claude/Codex 각각 짧은 작업에서 권한 요청·승인·거절·질문·취소·완료를 관측한다. 승인 후 실행 중을 blocked로 고정하지 않고 toast와 상태 출처가 실제 행동과 맞는다. | orchestration의 permission 회귀, [실제 E2E](12-e2e-verification.md), U+R |
@@ -111,7 +111,7 @@ A는 상태·저장·프로토콜·입력 바이트 자동 검사, U는 GPUI와 
 |---|---|---|---|
 | UI01 | 저장소·Task·터미널 사이드바와 필터 | 빈 상태·부모/자식·완료·오류·한글 검색·선택을 검사한다. 선택한 리소스와 실제 열린 패널·상태가 맞고 stale 항목을 정상 처리한다. | [workspace 시험](../crates/pod-app/src/workspace/tests.rs), native_qa, A+U |
 | UI02 | 패널 열기·분할·복제·이름·닫기 | 터미널·편집기·리뷰·그룹·Gate·Agents·Run 패널을 조합한다. 패널 닫기는 실행을 유지하고 별도 kill만 프로세스를 끝내며 포커스를 회복한다. | workspace 시험, native_qa, A+U |
-| UI03 | 레이아웃 저장·복원 | 탭·도크·비터미널 패널·편집기 위치를 바꾼 뒤 앱을 재시작한다. 원래 리소스를 중복 생성하지 않고 패널·커서·활성 선택을 복원한다. 미저장 본문 복구는 F08 제안이다. | [layout](../crates/pod-app/src/layout.rs), [restore-panels](../tools/visual/restore-panels.ps1), A+U |
+| UI03 | 레이아웃 저장·복원 | 탭·도크·비터미널 패널·편집기 위치를 바꾼 뒤 앱을 재시작한다. 원래 리소스를 중복 생성하지 않고 패널·커서·활성 선택을 복원한다. 미저장 본문 복구는 F08 제안이다. | [layout](../crates/pod-app/src/layout.rs), [restore-panels](../tools/visual/restore-panels.ps1), A+U. 정상 종료 후 4개 패널·탭·커서 복원을 [추가 검증](27-feature-validation-results.md#2026-11-24-추가-검증)에서 확인. |
 | UI04 | 7종 레이아웃과 테마 | workbench/focus-rail/queue/kanban/block-terminal/review/dense-details를 순환하며 같은 작업·응답·선택을 조작한다. 사용자 스타일·시스템 테마·실시간 reload와 잘못된 스타일도 검사한다. 모달·키·상태·저장값이 유실되지 않는다. | [layouts](../crates/pod-app/src/layouts), [설정](../crates/pod-app/src/chrome/settings.rs), capture -Layout, A+U |
 | UI05 | 설정 버튼·설정 저장 | 실제 마우스, Ctrl+,와 UIA Invoke로 설정을 각각 연다. 같은 화면·값이 열리고 font/테마/표시·동작 설정은 재시작 후 유지된다. 버튼 무응답 제보는 이 세 경로로 재현한다. | [chrome 시험](../crates/pod-app/src/chrome/tests.rs), [native 클릭 회귀](../crates/pod-app/qa/native/settings-mouse.ps1), U. 96 DPI 진입 경로와 font/display/behavior 재시작 저장 PASS; 전체 DPI·후보값·save-error matrix는 미실행. [결과](27-feature-validation-results.md#최종-기능-커버리지) |
 | UI06 | 팔레트·단축키·모달·포커스 | 시작 직후·패널 닫기 후·모달 안에서 명령·Tab/Shift+Tab/Enter/Esc를 검사한다. 활성 문맥에만 실행되고 Esc는 열기 전 위치로 돌아가며 IME 확정이 이중 실행되지 않는다. | native_qa, [chrome commands](../crates/pod-app/src/chrome/commands.rs), A+U |
@@ -130,7 +130,7 @@ A는 상태·저장·프로토콜·입력 바이트 자동 검사, U는 GPUI와 
 | EDIT04 | 코드 편집·강조·찾기·치환·undo | 지원 언어와 일반 텍스트에서 입력·선택·한글·Ctrl+F/H·undo/redo를 검사한다. 바뀐 본문·위치·강조가 일치하고 파일 내 치환이 다른 파일에 적용되지 않는다. | [buffers](../crates/pod-editor/src/ui/workspace/buffers.rs), native_qa, U |
 | EDIT05 | 저장·전체 저장·인코딩·줄 끝 | UTF-8/BOM/CRLF·혼합 줄 끝과 지원 재해석 인코딩을 편집·저장한다. 기대 바이트를 비교하고 표현 불가 문자·읽기 전용·이진·대형 파일을 정책대로 거부한다. | [save_ui](../crates/pod-editor/tests/save_ui.rs), [text](../crates/pod-editor/src/text.rs), A+U. 실제 save-all byte, 인코딩, UIA 읽기 전용·대형/디코딩 불가 보호 확인. 전체 기능 procedure는 NOT_RUN. [결과](27-feature-validation-results.md#최종-기능-커버리지) |
 | EDIT06 | 외부 변경·충돌·저장 실패 | clean/dirty 각각에 agent 수정·삭제·권한/공유 잠금·reload 실패를 주입한다. 자동 reload/경고/차이/덮어쓰기 선택이 정확하고 실패 시 원문·충돌 상태를 보존한다. 크기 경계를 왕복 검사한다. | save_ui, [files](../crates/pod-editor/src/ui/workspace/files.rs), A+U. 충돌·reload·diff/overwrite·UIA 보호 범위 native PASS; 권한/ACL 및 full provider matrix 미완료. 전체 기능 procedure는 NOT_RUN. [결과](27-feature-validation-results.md#최종-기능-커버리지) |
-| EDIT07 | rename 이후 dirty·저장·LSP | 열린 clean/dirty·배경 파일과 부모 폴더를 rename한 뒤 편집→전체 저장→닫기를 검사한다. 새 경로 dirty·경고·저장과 LSP URI가 유지되고 옛 이름 재사용도 안전하다. | save_ui, [tabs_lsp](../crates/pod-editor/tests/tabs_lsp.rs), A+U. dirty file/parent rename·background save-all·old-name reuse·close native PASS; actual rust-analyzer new-URI procedure와 전체 permutation NOT_RUN. [결과](27-feature-validation-results.md#최종-기능-커버리지) |
+| EDIT07 | rename 이후 dirty·저장·LSP | 열린 clean/dirty·배경 파일과 부모 폴더를 rename한 뒤 편집→전체 저장→닫기를 검사한다. 새 경로 dirty·경고·저장과 LSP URI가 유지되고 옛 이름 재사용도 안전하다. | save_ui, [tabs_lsp](../crates/pod-editor/tests/tabs_lsp.rs), A+U. 실제 rust-analyzer에서 이전 URI 닫기, 새 URI 열기·자동 완성·저장 확인. 여러 파일·대소문자·동시 변경 조합은 미실행. [추가 검증](27-feature-validation-results.md#2026-11-24-추가-검증) |
 | EDIT08 | 탭·커서 복원과 LSP 지연 시작 | 여러 탭으로 재시작하고 비활성 탭을 차례로 연다. 파일·탭 순서·커서를 복원하고 보여 주기 전 배경 탭은 불필요한 서버를 시작하지 않는다. | tabs_lsp, [session](../crates/pod-editor/src/ui/workspace/session.rs), A+U |
 | LSP01 | 서버 설정·저장소 신뢰 | 사용자·저장소 설정의 command/args/probe를 바꾼다. 미승인 저장소 설정은 실행하지 않고 hash 변경 재승인, enable/ignore·없는 서버 안내를 검사한다. | pod-editor --lib, [registry](../crates/pod-editor/src/lsp/registry.rs), U+R |
 | LSP02 | 서버 시작·재시작·종료·상한 | initialize→crash→backoff→재시작 한도, 작업 전환 LRU, 앱 종료를 검사한다. pending 요청은 실패를 알리고 서버 자식이 남지 않으며 다시 사용하면 재개한다. | [lsp_lifecycle](../crates/pod-editor/tests/lsp_lifecycle.rs), A+U+R |
@@ -205,6 +205,16 @@ A는 상태·저장·프로토콜·입력 바이트 자동 검사, U는 GPUI와 
 | REMOTE05 | 원격 파일 읽기·저장·diff API | traversal·symlink/reparse·큰 파일·stale token·응답 유실·저장 중 crash를 검사한다. 허용 Task 경계와 CAS·복구 계약을 지킨다. 이 기준에서는 에디터/diff seam과 앱의 실제 원격 편집 완성을 구분한다. | [files](../crates/podd/tests/files.rs), [remote_files](../crates/pod-cli/tests/remote_files.rs), A. junction/hardlink 및 loopback API 5 checks PASS. native symlink 생성은 Win32 1314로 막혀 boundary assertions BLOCKED; 앱의 실제 원격 편집 별도. [결과](27-feature-validation-results.md#최종-기능-커버리지) |
 | MOBILE01 | M1 기기·Task 권한·철회·감사 API | 로컬 debug stub에서 기본 off·기기 등록·task별 status/approve/output/message·세션 만료·rate limit·철회를 검사한다. 기본 거부·즉시 철회·비밀 없는 감사와 허용 메서드 경계를 지킨다. | [mobile](../crates/podd/tests/mobile.rs), A. 실제 listener·QR·휴대전화 연결 아님 |
 | MOBILE02 | M1 Gate 결정·짧은 메시지·delivery API | 만료/선택지/중복 Gate, blocked/working agent 메시지, 길이·제어 문자·권한 철회를 검사한다. 승인 범위 안에서만 처리하고 키 입력·범용 RPC·임의 명령으로 바꾸지 않는다. | mobile, [mobile API](../crates/podd/src/server/mobile/api.rs), A. 실제 휴대전화 UI·전송은 미구현 단계 |
+
+### 후속 기능 검증 계획
+
+| ID | 기능 | 절차와 통과 기준 |
+|---|---|---|
+| GRAPH01 | 프로젝트 에이전트 그래프 | 저장소 두 개에 Task·자식 에이전트·셸을 구성한다. 저장소 행에서 마우스와 키보드로 열고, 해당 프로젝트의 에이전트 상태와 명시적 부모 관계를 확인한다. 좁은 창과 고대비에서 버튼과 선택 노드가 보이고 기존 터미널이 열려야 한다. 다른 저장소로 전환한 직후 정상 종료한 뒤 선택과 패널이 복원되는지 확인한다. U+A. |
+| A2A01 | 표준 A2A CLI | 허가된 로컬 테스트 피어에서 카드·전송·조회·목록·취소와 이어지는 입력을 실행한다. JSON-RPC의 `A2A-Version: 1.0`과 표준 필드, 오류 및 종료 코드를 확인한다. HTTP loopback은 명시 옵션을 켠 경우에만 허용하고, TLS fixture에서 토큰의 대상과 실패 후 재전송 여부를 검사한다. A+R. |
+| USAGE01 | AI 사용 한도 | 고정된 한도와 초기화 시각 fixture로 일곱 레이아웃의 상태 표시줄과 세부 정보, 800px·확대 배율·고대비·키보드를 검사한다. 초기화 경계·오래된 값·실패·계정 전환에서 표시와 보관 규칙을 확인한다. 별도로 로그인된 Codex의 읽기 전용 조회와 Claude Code 수집기의 Git Bash·PowerShell 입력 전달을 검증한다. 실제 Claude Code 보고는 fixture와 별도로 기록한다. A+U+R. |
+
+자동 검사 진입점은 GRAPH01의 `cargo test --locked -p pod-app project_graph`, A2A01의 `cargo test --locked -p pod-a2a`와 `cargo test --locked -p pod-cli a2a`, USAGE01의 [수집기·앱 검증 명령](usage/ai-usage-monitor.md#확인-방법)이다. 실행 범위는 [11월 24일 후속 기능 결과](27-feature-validation-results.md#2026-11-24-후속-기능-검증)에 기록한다.
 
 ## 4 자동 검사의 실행 진입점
 

@@ -13,10 +13,12 @@ Pod는 Claude Code·Codex 같은 터미널 에이전트를 작업(git worktree)�
 - **작업 = worktree + 터미널 트리** — 작업을 만들면 브랜치 `pod/<이름>`의 worktree와 에이전트 터미널이 생긴다. 에이전트는 `pod run/send/wait`으로 하위 에이전트를 띄우고 기다릴 수 있다.
 - **리뷰** — 작업 diff, 라인·범위 코멘트, 코멘트를 에이전트 터미널로 전달(작업 중이면 끝날 때까지 대기).
 - **오케스트레이션** — 같은 프롬프트를 여러 에이전트에 나눠 맡기고 비교·선택(그룹), 사람 승인 지점(Gate), 부모-자식 에이전트 트리.
+- **프로젝트 에이전트 그래프** — 사이드바의 저장소 행에서 에이전트 상태와 작업의 부모·자식 관계를 보고, 노드를 선택해 터미널로 이동한다. [그래프 사용법](docs/09-pod-app.md#프로젝트-에이전트-그래프-project_graphrs-2026-11-24)
+- **AI 사용 한도** — 하단 상태 표시줄에서 Codex와 설정을 연결한 Claude Code의 남은 사용량과 초기화까지 남은 시간을 본다. [지원 범위와 Claude Code 연결](docs/usage/ai-usage-monitor.md)
 - **편집기** — 파일 트리, 빠른 열기(Ctrl+P), 탭 편집기, LSP(진단·완성·정의 이동·참조·이름 바꾸기).
 - **편집기 브라우저** — 명령 팔레트(Ctrl+K)에서 **웹 브라우저 열기**를 실행해 로컬 개발 서버나 웹페이지를 편집기 도크에서 본다. [사용법](docs/13-editor-and-lsp.md#편집기-브라우저)
 - **명령 팔레트(Ctrl+K)**, 다크·라이트·고대비 테마, 키보드만으로 조작, 접근성 이름.
-- **`pod` CLI** — 앱 없이도 터미널·작업·리뷰·게이트를 다룰 수 있다.
+- **`pod` CLI** — 앱 없이도 터미널·작업·리뷰·게이트를 다룰 수 있다. `pod a2a`로 A2A 1.0 JSON-RPC를 지원하는 외부 에이전트의 카드를 확인하고 메시지 전송, 작업 조회·취소를 할 수 있다. [A2A CLI 사용법](docs/a2a-client.md)
 
 ## 스크린샷
 
@@ -70,7 +72,9 @@ Pod는 Claude Code·Codex 같은 터미널 에이전트를 작업(git worktree)�
 | [24 개선 과제와 기능 로드맵](docs/24-improvements.md) | 안정성·품질 개선, 기능 제안 15개, 우선순위·선행 조건·완료 기준 |
 | [25 개선 작업 실행 기록](docs/25-improvement-execution.md) | 독립 통합 브랜치, 워커별 소유 범위, 검증·통합 기록 |
 | [26 기능 목록과 검증 계획](docs/26-feature-validation.md) | 현재 기능별 검증 절차·통과 기준, 자동 시험·실제 UI·외부 연동, 검증·수정 루프 입력 |
-| [27 기능 검증과 수정 실행 결과](docs/27-feature-validation-results.md) | 91개 기능의 실제 검사·실패 수정·재검증과 미실행 범위 |
+| [27 기능 검증과 수정 실행 결과](docs/27-feature-validation-results.md) | 91개 기능의 11월 18일 검증 결과, 11월 24일 추가 검증과 후속 기능별 범위 |
+| [A2A 클라이언트](docs/a2a-client.md) | `pod a2a` 명령, 지원하는 표준 범위와 외부 에이전트 연결 |
+| [AI 사용 한도 모니터](docs/usage/ai-usage-monitor.md) | 상태 표시줄, Codex 한도, Claude Code 연결과 데이터 보관 |
 
 기여 방법은 [CONTRIBUTING.md](CONTRIBUTING.md), 보안 문제 보고는 [SECURITY.md](SECURITY.md).
 

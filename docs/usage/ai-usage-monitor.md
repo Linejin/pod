@@ -49,7 +49,7 @@
 - 한 번 읽기 = 짧게 실행되는 `codex app-server` 하나: `initialize` → `initialized` → `account/read {refreshToken:false}` → `account/rateLimits/read {excludeResetCreditDetails:true}`. 로그인 없음·API 키·기타 인증이면 한도 읽기를 건너뛰고, `account/read` 자체가 실패하면(실측: "workspace routing discovery failed") 한도 읽기를 계속한다. 스레드·턴(모델 요청), 로그인/로그아웃, 초기화 크레딧 사용, 이메일 발송 메서드는 부르지 않는다.
 - 실행 파일: `POD_CODEX`(절대 경로 `.exe`만) → PATH의 절대 경로 폴더 순서대로 `codex.exe`, 또는 npm shim(`codex.cmd`)이 실행할 플랫폼 바이너리(`node_modules\@openai\codex\…\vendor\<target>\bin\codex.exe`). `.cmd`/`.ps1`·셸·node는 실행하지 않는다.
 - 프로세스: 창 없이, kill-on-close Job Object 안에서, 작업 폴더는 Pod 소유의 빈 폴더(`%LOCALAPPDATA%\Pod\usage\codex-cwd`)라 저장소의 `.codex` 설정이 적용되지 않는다. 전체 25초 기한, 줄 256KiB·전체 4MiB 상한, 끝나면 프로세스 트리를 종료한다.
-- 보관: 메모리에만, 비율·창 길이·초기화 시각·한도 이름·요금제·도달 여부만. 토큰, 이메일, 계정/사용자 ID 원문, 크레딧 잔액은 읽거나 저장하지 않는다(계정 전환 판별용 해시만 메모리에).
+- 보관은 메모리에 한정한다. 비율·창 길이·초기화 시각·한도 이름·요금제·도달 여부와 계정 전환을 판별하기 위한 `accountId` 해시를 보관한다.
 - 주기: 5분마다, 오류 시 10→20→40→60분 백오프. 새로고침은 즉시(10초 간격 제한), 한 번에 하나만 실행된다.
 - 계정 전환·로그아웃: 다른 계정이 보이거나 로그아웃·API 키 로그인으로 바뀌면 이전 값을 즉시 버린다. 같은 계정의 읽기 실패만 이전 값을 "읽기 실패 · 이전 값"으로 남긴다.
 - API 키 로그인은 "지원 안 됨"으로 정직하게 표시한다.
@@ -139,7 +139,7 @@ statusLine이 없을 때:
 
 - `pod-hook statusline [--passthrough [--ascii]]`: 창 없는 기존 `pod-hook.exe`의 별도 모드. 표준 입력을 700ms·1MiB 안에서 읽고, 기록하지 않으며, 자식 프로세스·네트워크 없이 끝난다. 읽을 수 없는 입력은 아무것도 쓰지 않는다.
 - 저장: `%LOCALAPPDATA%\Pod\usage\claude-<프로필>.json` (`POD_USAGE_DIR`로 바꿀 수 있음). 프로필은 `default` 또는 `CLAUDE_CONFIG_DIR`의 해시(`cfg-<16진수>`)라 서로 다른 Claude 설정은 섞이지 않고 세부 정보에 프로필별로 따로 나온다.
-- 내용: 비율, 초기화 시각, 지출 한도 기간(`daily`/`weekly`/`monthly`), 마지막 보고 시각, 프로필 폴더 이름뿐. 세션 ID, 프롬프트, cwd, 대화 기록 경로, 모델, 비용·달러 금액은 저장하지 않는다.
+- 내용은 비율, 초기화 시각, 지출 한도 기간(`daily`/`weekly`/`monthly`), 마지막 보고 시각, 프로필 식별자(`default` 또는 설정 경로의 해시)다.
 - 임시 파일 + rename으로 원자적으로 쓰고, 앱은 크기(16KiB)·개수(8)·파일 이름을 검사해 읽는다.
 - Claude Code는 초기화 시각이 지난 창을 입력에서 뺀다. 수집기는 그런 창의 이전 값을 남겨 앱이 "초기화 시각 지남 · 새 보고 대기"로 보여 준다.
 

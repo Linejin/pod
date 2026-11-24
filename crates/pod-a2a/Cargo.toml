@@ -7,7 +7,7 @@ license.workspace = true
 publish = false
 description = "Agent2Agent (A2A) 1.0 client: Agent Card discovery, JSON-RPC 2.0 binding, bounded HTTPS transport"
 
-# Client only (docs/a2a.md): no listener, no server, no streaming. The wire
+# Client only (docs/a2a-client.md): no listener, no server, no streaming. The wire
 # model mirrors the release-tagged spec/a2a.proto of A2A v1.0.1 in canonical
 # ProtoJSON; the transport is one bounded HTTP/1.1 exchange per call over
 # rustls with the OS trust store. Every crate below was already in Cargo.lock

@@ -1,8 +1,8 @@
 # 기능 검증과 수정 실행 결과
 
-실행: 2026-11-18-01 · 상태: 범위 제한을 기록하고 완료 · 최종 통합 커밋: `2405f2f58f3cbedb29b35c4a421b9f02c7a550ab` · branch: `improvements/stability-foundation`
+브랜치 `improvements/stability-foundation` · 최초 감사 `2026-11-18-01`의 통합 소스 `2405f2f58f3cbedb29b35c4a421b9f02c7a550ab` · 최근 기록 2026-11-24
 
-[기능 목록과 검증 계획](26-feature-validation.md)의 91개 기능을 기준으로 자동 검사, 실제 UI, 도구 및 패키징 경로를 검증했다. 재현된 결함은 전용 worker branch에서 수정하고 통합 branch에서 확인했다. 현재 기능별 판정은 [기계 판독 결과 레코드](validation/2026-11-18/results.json)에 저장했다.
+[기능 목록과 검증 계획](26-feature-validation.md)의 91개 기능을 기준으로 자동 검사, 실제 UI, 도구 및 패키징 경로를 검증했다. 재현된 결함은 전용 worker branch에서 수정하고 통합 branch에서 확인했다. 당시 기능별 판정과 범위 제한은 [11월 18일 기록](validation/2026-11-18/results.json)에 보존한다.
 
 ## 2026-11-24 추가 검증
 
@@ -18,7 +18,17 @@
 
 native 검증은 `24c4396` 기준으로 제품 코드가 같은 `2405f2f` 빌드를 사용했다. 로컬 daemon worker의 관련 테스트 20개가 통과했다. 새 회귀 테스트 3개를 반영하고 임시 폴더와 파이프 이름을 병렬 실행에 맞게 고친 뒤, 통합 `0d59615`에서 `cargo test --locked -p podd --test local_validation -- --nocapture`가 기본 병렬 설정으로 통과했다. 재실행한 3개는 worker의 20개에 다시 합산하지 않는다.
 
-`0b4c81a`에서 `url`을 2.5.9로, 필요한 `form_urlencoded`를 1.2.3으로 업데이트했다. worker의 잠금파일 확인과 앱·편집기 컴파일 검사가 통과했다. 통합본에서 배포 정책을 다시 검사하니 `RUSTSEC-2026-0592`가 사라졌고 `chrono 0.4.45`의 `RUSTSEC-2026-0543`만 남았다. 새 설치 EXE와 포터블 ZIP은 생성하지 않았다.
+`0b4c81a`에서 `url`을 2.5.9로, 필요한 `form_urlencoded`를 1.2.3으로 업데이트했다. worker의 잠금파일 확인과 앱·편집기 컴파일 검사가 통과했다. 통합 `0d59615`의 배포 정책 재검사에서 `RUSTSEC-2026-0592`가 사라졌다. `chrono 0.4.45`의 `RUSTSEC-2026-0543`으로 검사 종료 코드는 1이었다. 새 설치 EXE와 포터블 ZIP은 생성하지 않았다.
+
+## 2026-11-24 후속 기능 검증
+
+| ID | 확인한 소스와 결과 | 남은 범위 |
+|---|---|---|
+| GRAPH01 | 통합 `b76298e`의 Windows 앱에서 17개 시나리오, 검증 항목 53개 통과. 작업대와 고밀도 + 세부 열의 좁은 행에서 버튼과 노드를 선택했다. 저장소 전환 후 즉시 정상 종료해도 같은 패널·저장소가 복원되고 터미널과 미저장 확인이 유지됐다. | 집중 레일 조작, 다른 배율과 종료·복구 조합은 해당 검증 범위 밖이다. |
+| A2A01 | 통합 `afb7f9d`에서 코어 42개와 CLI 8개 통과. 워커가 공식 a2a-python SDK 1.3.1의 loopback HTTP와 테스트 CA를 사용한 TLS에서 27단계와 wire 검증 11개를 통과했다. | 외부 서비스·공인 CA 상호운용과 앱의 A2A UI는 미검증이다. [지원하는 표준 범위](a2a-client.md#what-is-supported) |
+| USAGE01 | 워커 `7613ba4`에서 앱 자동 검사와 Git Bash·Windows PowerShell 5.1의 Claude 수집 명령 5개를 확인했다. 워커 `85b5370`에서 로그인된 Codex의 읽기 전용 한도 조회도 성공했다. | 통합 Windows UI 검증은 진행 중이다. 실제 Claude Code의 한도 보고는 미실행이다. [연결 방법과 fixture 범위](usage/ai-usage-monitor.md) |
+
+원본 보고서는 로컬 `coordination-validation/reports/2026-11-24/`의 `project-agent-graph-native-fixed/report.md`, `a2a-standard-client/report.txt`, `a2a-integration/`, `ai-usage-monitor/`에 있다.
 
 ## 2026-11-24 편집기 브라우저 검증
 
@@ -30,7 +40,7 @@ native 검증은 `24c4396` 기준으로 제품 코드가 같은 `2405f2f` 빌드
 
 ## 최종 기능 커버리지
 
-엄격한 기능 절차 기준으로 **14 PASS · 21 BLOCKED · 56 NOT_RUN · 0 미해결 FAIL**이다. 자동·native의 일부 assertion이 통과해도 남은 기능 절차를 대신하지 않으며, EDIT05와 EDIT06은 이번에 확인한 읽기 전용 하위 사례가 통과했지만 전체 기능 상태는 NOT_RUN로 둔다.
+11월 18일 감사의 엄격한 기능 절차 기준으로 **14 PASS · 21 BLOCKED · 56 NOT_RUN · 0 미해결 FAIL**이다. EDIT05와 EDIT06은 읽기 전용 하위 사례가 통과했고, 전체 기능 판정은 NOT_RUN이다.
 
 | 판정 | 기능 ID | 설명 |
 |---|---|---|
@@ -41,6 +51,8 @@ native 검증은 `24c4396` 기준으로 제품 코드가 같은 `2405f2f` 빌드
 커버리지 감사는 947개 고유 시나리오와 1,248개 기능 연결을 정리했고, 근거가 약한 worker 연결 288개는 제외했다. 전체 목록·누락 절차·상태 근거는 ledger를 기준으로 한다. `MOBILE01/02` PASS는 문서에 적힌 로컬 M1 API 범위이며 phone/QR/listener UI를 구현하거나 검증했다는 뜻이 아니다.
 
 ## 통합·자동 검사 최종 상태
+
+이 절은 11월 18일 감사의 실행 환경과 범위를 기록한다. 이후 실행 결과는 위의 날짜별 절을 참고한다.
 
 기존 전체 자동 profile의 합성 결과는 **1,451 PASS · 0 FAIL · 4 ignored · 1 filtered**다. 이 수치는 `02177f7`에서 다시 실행한 25개와 바뀌지 않은 `779456e` 단계에서 이월한 1,426개를 합친 것이며, 단일 명령으로 최종 `2405f2f`에서 1,451개를 실행한 결과가 아니다. 초기 attach 검사의 마지막 줄 실패는 짧고 고정된 prompt와 결정적 raw replay를 추가한 tests-only 수정으로 해결했다. 과거 실패 로그는 남겨 두었다.
 
@@ -54,16 +66,16 @@ native 검증은 `24c4396` 기준으로 제품 코드가 같은 `2405f2f` 빌드
 
 패키지 gate는 최종 `2405f2f`에서 다시 실행했고 `cargo-deny`가 exit 1을 반환했다. `chrono 0.4.45`의 `RUSTSEC-2026-0543` unmaintained advisory가 원인이며 bans/licenses/sources 검사는 통과했다. 승인된 예외나 정책 완화는 하지 않았다. release compile, 새 EXE/ZIP, extraction 및 launch smoke는 실행되지 않았다. REMOTE05의 native file/directory symlink 생성은 Win32 1314 `ERROR_PRIVILEGE_NOT_HELD`로 막혔다. 필요한 권한·Developer Mode 변경 없이 남은 symlink boundary assertions는 BLOCKED다. 이 범위 제한은 해결된 제품 오류와 분리해 기록한다.
 
-모든 결과·case 이력·missing matrix·명령과 증거 경로는 ledger와 `C:/Users/Sejin/orca/workspaces/pod/coordination-validation/reports/` 아래 보고서에 보존한다. 원래 프로젝트의 main commit `e3b4db818afd62b7ad9eff3fd8ae06166d15f51b`은 변경하지 않았고, merge/push/PR/release도 하지 않았다. 아래 세부 실행 기록은 당시 시점의 상태를 보존한 이력이다. 최신 상태 판정은 이 요약과 ledger를 기준으로 한다.
+모든 결과·case 이력·missing matrix·명령과 증거 경로는 ledger와 `C:/Users/Sejin/orca/workspaces/pod/coordination-validation/reports/` 아래 보고서에 보존한다. 당시 원래 프로젝트의 main commit은 `e3b4db818afd62b7ad9eff3fd8ae06166d15f51b`이었다. 아래 세부 실행 기록은 11월 18일 실행 이력이다.
 
 ## 최종 native 데이터·접근성 결과
 
-| 기능 | 최신 결과 | 범위 및 남은 부분 |
+| 기능 | 11월 18일 최종 결과 | 범위 및 남은 부분 |
 |---|---|---|
 | UI05 | 설정 창 세 경로와 font/display/behavior 값의 재시작 보존 PASS | 96 DPI fixture 범위. 모든 후보 값, 고 DPI, Narrator, 저장 실패 주입은 미실행 |
 | EDIT05 | save-all byte/인코딩 사례와 마지막 3 MiB·undecodable 읽기 전용 UIA 시나리오 PASS | 최종 UIA 수정 포함 source `2405f2f`. 전체 feature procedure의 모든 저장·거부 matrix를 전부 실행한 것은 아니므로 overall `NOT_RUN` |
 | EDIT06 | external conflict/reload/diff·overwrite와 read-only 재로드 UIA 사례 PASS | 실제 권한/ACL 거부 및 고급 provider/LSP 경계 조합이 남아 overall `NOT_RUN` |
-| EDIT07 | dirty file/parent rename, background save-all, 옛 경로 재사용, saved tab close PASS | actual rust-analyzer URI 재요청과 모든 clean/background permutation은 NOT_RUN |
+| EDIT07 | dirty file/parent rename, background save-all, 옛 경로 재사용, saved tab close PASS | 당시 실제 rust-analyzer URI 변경은 미실행이었다. 11월 24일 [추가 검증](#2026-11-24-추가-검증)에서 새 URI 열기·자동 완성·저장을 확인했다. |
 | REVIEW03 | UIA 초안 A/B 이동과 actual isolated daemon 응답 지연 중 새 입력 보존 PASS | agent 전송은 하지 않음. restart draft recovery는 별도 범위 |
 | REMOTE05 | junction/hardlink 경로 검사 1건과 loopback remote-files 4건 PASS | native file/directory symlink 생성이 Win32 1314로 거부되어 핵심 경계 검증 BLOCKED |
 
