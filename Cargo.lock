@@ -5149,6 +5149,7 @@ dependencies = [
  "futures",
  "gpui-kit",
  "gpui-pre",
+ "pod-a2a",
  "pod-client",
  "pod-diff",
  "pod-editor",

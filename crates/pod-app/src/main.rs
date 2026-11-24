@@ -48,6 +48,7 @@ mod panel;
 mod pr_panel;
 #[cfg(test)]
 mod pr_qa;
+mod project_a2a;
 mod project_graph;
 mod qa_marks;
 mod review;

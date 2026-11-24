@@ -59,6 +59,8 @@ pub struct OrchState {
     pub tree_panel: Option<WeakEntity<AgentTreePanel>>,
     /// The project agent graph (one panel, follows the chosen repository).
     pub graph_panel: Option<WeakEntity<crate::project_graph::ProjectGraphPanel>>,
+    /// The graph's external A2A peer section (session state of every project).
+    pub a2a: Option<Entity<crate::project_a2a::A2aSection>>,
 }
 
 impl OrchState {

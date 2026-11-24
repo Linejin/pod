@@ -148,6 +148,10 @@ pub struct ProjectGraphPanel {
     /// Bring the selected node back into view on the next render (the visible
     /// width, and with it the card width, changed).
     reveal_pending: bool,
+    /// The external A2A peer section, while shown ([`crate::project_a2a`]).
+    pub(crate) a2a: Option<Entity<crate::project_a2a::A2aSection>>,
+    /// The header's A2A toggle (a tab stop before the graph).
+    pub(crate) a2a_toggle: FocusHandle,
 }
 
 impl ProjectGraphPanel {
@@ -163,6 +167,8 @@ impl ProjectGraphPanel {
             scroll: ScrollHandle::new(),
             viewport: Rc::default(),
             reveal_pending: false,
+            a2a: None,
+            a2a_toggle: cx.focus_handle().tab_stop(true),
         }
     }
 
@@ -192,9 +198,29 @@ impl ProjectGraphPanel {
             self.notice = None;
             self.scroll.set_offset(point(px(0.), px(0.)));
             cx.emit(PanelEvent::LayoutChanged);
+            self.show_a2a_viewer(cx);
         }
         cx.notify();
         changed
+    }
+
+    /// Shows or hides the external A2A peer section of this project.
+    pub(crate) fn toggle_a2a(&mut self, cx: &mut Context<Self>) {
+        if let Some(s) = self.a2a.take() {
+            s.update(cx, |s, cx| s.set_viewer(None, cx));
+        } else if let Some(ws) = self.workspace.upgrade() {
+            self.a2a = Some(ws.update(cx, |w, cx| w.a2a_section(cx)));
+            self.show_a2a_viewer(cx);
+        }
+        cx.notify();
+    }
+
+    fn show_a2a_viewer(&mut self, cx: &mut Context<Self>) {
+        if let Some(s) = self.a2a.clone() {
+            let me = cx.entity().downgrade();
+            let repo = self.repo.clone();
+            s.update(cx, |s, cx| s.set_viewer(Some((me, repo)), cx));
+        }
     }
 
     /// Open (or focus) the node's terminal; a node podd no longer lists only
@@ -287,6 +313,9 @@ impl Panel for ProjectGraphPanel {
     }
 
     fn on_removed(&mut self, _window: &mut Window, cx: &mut Context<Self>) {
+        if let Some(s) = self.a2a.take() {
+            s.update(cx, |s, cx| s.set_viewer(None, cx));
+        }
         if let Some(ws) = self.workspace.upgrade() {
             cx.defer(move |cx| ws.update(cx, |w, cx| w.orch_panel_removed(cx)));
         }
@@ -505,7 +534,12 @@ impl Render for ProjectGraphPanel {
                             .text_xs()
                             .text_color(tc(t.text_muted))
                             .child(copy::summary(g.tasks, g.nodes.len(), g.edges.len())),
-                    ),
+                    )
+                    .child(crate::project_a2a::toggle(
+                        self.a2a.is_some(),
+                        &self.a2a_toggle,
+                        me.clone(),
+                    )),
             )
             .child(
                 div()
@@ -853,7 +887,8 @@ impl Render for ProjectGraphPanel {
             .child(header)
             .children(banners)
             .child(body)
-            .when(!g.nodes.is_empty(), |d| d.child(connections));
+            .when(!g.nodes.is_empty(), |d| d.child(connections))
+            .when_some(self.a2a.clone(), |d, s| d.child(s));
         let (viewport, measure_me) = (self.viewport.clone(), me.clone());
         div()
             .id("project-graph-panel")

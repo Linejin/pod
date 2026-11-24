@@ -393,6 +393,27 @@ cargo deny check        → advisories ok, bans ok, licenses ok, sources ok
 - 노드 클릭 또는 그래프에 포커스를 두고 ↑(부모)/↓(첫 자식)/←→(같은 층)/Home/End로 고른 뒤 Enter/Space: 그 터미널 패널을 열거나 이미 열린 패널로 포커스. 큰 그래프는 가로·세로로 스크롤된다.
 - 빈 저장소는 "이 프로젝트에 에이전트가 없습니다", 등록되지 않았거나 사라진 저장소는 "등록된 저장소가 아닙니다", podd 연결 중/끊김은 각각 다른 띠(끊김이면 마지막 그래프를 그대로 두고 상태에 "연결 끊김"을 붙임). 새 폴링·RPC 없이 트리와 같은 소스 이벤트(`orch_data_changed`)로 다시 그린다.
 
+#### 외부 A2A 피어 (`project_a2a.rs`, 2026-11-24)
+
+그래프 머리의 **외부 A2A 피어** 버튼(Tab·Enter/Space, 눌림 상태가 보임)이 그래프 아래에 표준 Agent2Agent 1.0 피어 구역을 펼친다. `pod a2a`와 같은 클라이언트(`crates/pod-a2a`, [a2a-client.md](a2a-client.md))를 쓰며, Pod 오케스트레이션(orch 메일, 그래프의 터미널 관계)과는 따로 동작한다.
+
+- 피어는 앱 설정 폴더(`%APPDATA%\pod\pod-app`, 또는 `POD_APP_CONFIG_DIR`)의 `a2a-peers.json`에 **저장소 이름별로** 적는다. 저장소 안의 파일은 읽지 않는다. 그 프로젝트의 피어만 보이고, `repo_path`를 적으면 그 경로로 등록된 저장소에서만 쓴다. 모르는 필드는 거부한다.
+
+  ```json
+  {"version": 1, "projects": {"sample": {"repo_path": "C:/src/sample", "peers": [
+    {"id": "reviewer", "label": "Review agent", "peer": "https://agent.example.com"},
+    {"id": "local", "card_url": "http://127.0.0.1:8000/.well-known/agent-card.json",
+     "allow_http_loopback": true, "bearer_token_env": "LOCAL_AGENT_TOKEN"}]}}}
+  ```
+
+  피어마다 `peer`(기준 URL) 또는 `card_url` 하나, 선택으로 `label`, `endpoint`(카드가 다른 origin에 광고한 인터페이스), `allow_http_loopback`, `bearer_token_env` 또는 `bearer_token_file`. URL 규칙은 `pod a2a`와 같다.
+- 피어는 직접 골라야 한다(미리 골라 두지 않음). 고르면 Agent Card를 가져와 이름·전송 주소·기능·인증·기술을 보여 준다. 기술을 고르면 그 입력 형식이 text/plain을 받는지 확인하고 출력 형식을 `acceptedOutputModes`로 보낸다(A2A 1.0 요청에는 기술 필드가 없다).
+- **검토** → 보낼 내용(프로젝트, 피어, 카드·전송 주소, 기술, 받을 형식, 메시지 ID, 이어 보낼 작업·컨텍스트, Bearer 토큰 사용 여부, 글 전체)을 그대로 보여 준 뒤 **보내기**로 한 번 `SendMessage`(`returnImmediately`)한다. 보내기 직전 카드를 다시 확인해 검토 뒤 전송 주소나 인증이 바뀌었으면 보내지 않는다. 프로젝트 파일·터미널 출력·Pod 작업 정보는 넣지 않는다. 토큰은 카드가 HTTP Bearer를 선언할 때만 그 주소로 보낸다.
+- 알려진 실패(연결 전 실패, 401/403, JSON-RPC 오류 등)는 "보내지 않았습니다"와 원문 오류를 보이고 초안을 남긴다. 결과를 알 수 없으면(시간 초과, 보낸 뒤 끊김, 5xx 등) 메시지 ID와 함께 그렇게 말하고 다시 보내지 않는다. 사용자가 **같은 메시지 ID로 다시 검토**를 골라 다시 검토한 뒤에만 같은 ID·같은 글로 보낸다.
+- 원격 작업은 그래프 선이 아니라 점선 카드로 따로 나열한다: 작업·컨텍스트 ID, 보낸 메시지 ID, "원격 A2A 상태 …"(Pod 에이전트 상태와 다른 표시), 상태 메시지와 결과물(글, data는 JSON, url은 글자로만·열지 않음, raw는 크기만). `input-required`면 **이 작업에 답하기**로 같은 작업·컨텍스트에 이어 보내고, 직접 Message 답장은 따로 보이며 **이 대화 이어서**로 같은 컨텍스트에 보낸다. `auth-required`는 Pod 밖에서 인증하라고 안내만 한다.
+- 새로 고침은 `GetTask`만 쓴다(ListTasks는 다른 프로젝트 작업을 섞을 수 있어 쓰지 않음). 구역이 그 프로젝트로 열려 있는 동안만, 진행 중(submitted/working) 작업을 2·3·5·8·13·21·30초 간격으로 최대 20번 확인하고, 끝난 상태·GetTask 미지원이면 멈춘다. 구역을 닫거나 그래프 패널을 닫으면 확인도 멈추고, 다시 열면 한 번 바로 확인한다. 실패하면 마지막 결과를 두고 오류를 옆에 적는다.
+- 초안·원격 작업 목록은 앱 세션 동안 프로젝트별로 메모리에만 있다(디스크에 쓰지 않음). 다른 저장소로 바꾸면 그 프로젝트 것만 보인다.
+
 ### 8.2 구조
 
 ```

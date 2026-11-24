@@ -35,6 +35,10 @@ pod-forge = { path = "../pod-forge" }
 pod-remote = { path = "../pod-remote" }
 # Usage monitor: `codex app-server` reads in a bounded, kill-on-close process tree.
 pod-process = { path = "../pod-process" }
+# Standard Agent2Agent 1.0 client (docs/a2a-client.md): the project graph's
+# explicit A2A peer section. Workspace crate; its third-party crates are
+# already in the lock through the GPUI stack.
+pod-a2a = { path = "../pod-a2a" }
 anyhow = "1"
 futures = "0.3"
 serde = { version = "1", features = ["derive"] }
