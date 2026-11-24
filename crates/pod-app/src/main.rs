@@ -26,6 +26,8 @@ mod agent_marks_qa;
 mod app_icon;
 mod attach;
 mod auto_open;
+#[cfg(windows)]
+mod browser_panel;
 mod chrome;
 mod editor_panel;
 mod fixture_scenes;

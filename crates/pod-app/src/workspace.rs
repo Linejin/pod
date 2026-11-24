@@ -121,6 +121,8 @@ pub struct Workspace {
     pub(crate) reviews: Vec<WeakEntity<ReviewPanel>>,
     /// Open file/editor panels (one per task worktree).
     editors: Vec<WeakEntity<EditorPanel>>,
+    #[cfg(windows)]
+    pub(crate) browser_panel: Option<WeakEntity<crate::browser_panel::BrowserPanel>>,
     /// Task of the editor used last (quick open target, status bar).
     last_editor: Option<String>,
     /// The user confirmed closing with unsaved files.
@@ -272,6 +274,8 @@ impl Workspace {
             inspector_panel: None,
             reviews: Vec::new(),
             editors: Vec::new(),
+            #[cfg(windows)]
+            browser_panel: None,
             last_editor: None,
             quit_confirmed: false,
             link_choices: Vec::new(),

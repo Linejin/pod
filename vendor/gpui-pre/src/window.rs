@@ -1,3 +1,5 @@
+// Pod patch: expose the visible viewport of a hitbox for a native child view.
+// Change notice per Apache-2.0 section 4(b).
 #[cfg(feature = "profiler")]
 use crate::DebugFrameOverlayMode;
 #[cfg(any(feature = "inspector", debug_assertions))]
@@ -844,6 +846,26 @@ pub struct Hitbox {
 }
 
 impl Hitbox {
+    /// Clipped bounds in the completed frame, if present and unobstructed.
+    /// Native child windows cannot composite a GPUI overlay over themselves,
+    /// so hide them when any later mouse-blocking region overlaps them.
+    pub fn native_child_bounds(&self, window: &Window) -> Option<Bounds<Pixels>> {
+        let mut hitboxes = window.rendered_frame.hitboxes.iter();
+        let hitbox = hitboxes.find(|hitbox| hitbox.id == self.id)?;
+        let bounds = hitbox.bounds.intersect(&hitbox.content_mask.bounds);
+        if bounds.is_empty()
+            || hitboxes.any(|front| {
+                let covered = front.bounds.intersect(&front.content_mask.bounds);
+                front.behavior != HitboxBehavior::Normal
+                    && !covered.is_empty()
+                    && bounds.intersects(&covered)
+            })
+        {
+            return None;
+        }
+        Some(bounds)
+    }
+
     /// Checks if the hitbox is currently hovered. Returns `false` during keyboard input modality
     /// so that keyboard navigation suppresses hover highlights. Except when handling
     /// `ScrollEvent`, this is typically what you want when determining whether to handle mouse

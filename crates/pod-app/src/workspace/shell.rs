@@ -72,6 +72,8 @@ impl Render for Workspace {
             .flex_col()
             .bg(rgb(crate::theme::tokens().bg_canvas))
             .text_color(rgb(crate::theme::tokens().text_primary));
+        #[cfg(windows)]
+        let root = root.children(self.browser_sync());
         // The chrome's keys: the palette, then each static command's key.
         crate::chrome::key_actions(root, cx)
             .child(self.title_bar(cx))

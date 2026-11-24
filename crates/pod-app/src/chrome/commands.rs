@@ -102,6 +102,14 @@ pub(super) const COMMANDS: &[CommandSpec] = &[
         shortcut: None,
         run: |w, window, cx| w.quick_open_files(false, window, cx),
     },
+    #[cfg(windows)]
+    CommandSpec {
+        id: "open-browser",
+        label: "웹 브라우저 열기",
+        detail: "편집기 도크에서 웹페이지 보기",
+        shortcut: None,
+        run: |w, window, cx| w.open_browser(window, cx),
+    },
     CommandSpec {
         id: "save-all",
         label: crate::strings::SAVE_ALL_FILES,

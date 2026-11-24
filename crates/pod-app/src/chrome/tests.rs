@@ -62,9 +62,8 @@ fn documented_shortcuts_match_in_app_help() {
     }
 }
 
-/// The static palette commands, in palette order, with the text they had
-/// before the command table (A-P1): ids are saved in recents and named by
-/// fixture scenes, so they never change.
+/// Static palette commands in order. IDs are saved in recents and named by
+/// fixture scenes, so existing IDs remain stable when new commands are added.
 #[test]
 fn static_palette_ids_and_text_are_fixed() {
     let ids: Vec<_> = COMMANDS.iter().map(|c| c.id).collect();
@@ -75,6 +74,8 @@ fn static_palette_ids_and_text_are_fixed() {
             "new-task",
             "quick-open",
             "files",
+            #[cfg(windows)]
+            "open-browser",
             "save-all",
             "open-repo",
             "terminal",
@@ -99,6 +100,11 @@ fn static_palette_ids_and_text_are_fixed() {
         let c = COMMANDS.iter().find(|c| c.id == id).unwrap();
         (c.label, c.detail)
     };
+    #[cfg(windows)]
+    assert_eq!(
+        text("open-browser"),
+        ("웹 브라우저 열기", "편집기 도크에서 웹페이지 보기")
+    );
     assert_eq!(
         text("shortcuts"),
         ("키보드 단축키 도움말", "단축키 · Keyboard shortcuts")

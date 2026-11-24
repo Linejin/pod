@@ -4,6 +4,8 @@
 
 Pod를 매일 쓸 수 있게 **사용자별(관리자 권한 없음)** 설치 프로그램을 만든다. 결과물은 `dist\Pod-Setup-<버전>-x64.exe`(설치 프로그램)와 `dist\Pod-<버전>-x64-portable.zip`(포터블), `dist\SHA256SUMS.txt`이다. `dist/`는 git이 무시한다.
 
+[편집기 브라우저](13-editor-and-lsp.md#편집기-브라우저)는 Windows에 설치된 Microsoft Edge WebView2 Runtime을 사용한다. 런타임은 설치 패키지에 포함하지 않는다.
+
 ---
 
 ## 1. 결정: Inno Setup 6

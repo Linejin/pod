@@ -269,6 +269,12 @@ cargo test --workspace --exclude pod-spike --exclude diff-spike --locked -- --sk
 
 ## 5 실제 UI와 외부 도구 검사
 
+### 편집기 브라우저 검증
+
+`BROWSER01` (A+U). Windows에서 설치된 WebView2와 격리된 앱 프로필을 사용한다. loopback 테스트 서버에서 제목이 다른 두 페이지를 제공한다. **Ctrl+K → 웹 브라우저 열기**로 탭을 만들고 주소 입력·Enter·링크 이동·뒤로·앞으로·새로고침을 검사한다. 서버 요청과 페이지 내용을 확인한다. 편집기 탭 전환, 창 리사이즈·DPI, 대화상자 열기·닫기, 브라우저 닫기·재실행 시 웹뷰가 현재 도크 영역에 맞고 숨겨진 탭의 웹뷰가 남지 않는지 확인한다. `file:` 같은 비웹 주소의 거부, 서버 오류, WebView2 시작 오류는 각각 따로 기록한다.
+
+자동 검사 진입점은 `cargo test --locked -p pod-app browser_panel`이다. 설치된 WebView2의 별도 루프백 연동 검사는 `cargo test --locked -p pod-app webview2_navigates_loopback_pages_and_reloads -- --ignored`로 실행한다.
+
 ### UI 시각과 native 동작
 
 - [capture](../tools/visual/capture.ps1)와 비교 모드로 같은 DPI·폰트·창 크기의 dark/light·고대비·7개 레이아웃을 검사한다. 모든 차이를 검토한 후에만 baseline을 갱신한다.
