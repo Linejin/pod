@@ -212,9 +212,10 @@ A는 상태·저장·프로토콜·입력 바이트 자동 검사, U는 GPUI와 
 |---|---|---|
 | GRAPH01 | 프로젝트 에이전트 그래프 | 저장소 두 개에 Task·자식 에이전트·셸을 구성한다. 저장소 행에서 마우스와 키보드로 열고, 해당 프로젝트의 에이전트 상태와 명시적 부모 관계를 확인한다. 좁은 창과 고대비에서 버튼과 선택 노드가 보이고 기존 터미널이 열려야 한다. 다른 저장소로 전환한 직후 정상 종료한 뒤 선택과 패널이 복원되는지 확인한다. U+A. |
 | A2A01 | 표준 A2A CLI | 허가된 로컬 테스트 피어에서 카드·전송·조회·목록·취소와 이어지는 입력을 실행한다. JSON-RPC의 `A2A-Version: 1.0`과 표준 필드, 오류 및 종료 코드를 확인한다. HTTP loopback은 명시 옵션을 켠 경우에만 허용하고, TLS fixture에서 토큰의 대상과 실패 후 재전송 여부를 검사한다. A+R. |
+| A2A02 | 프로젝트 그래프의 외부 A2A 피어 | 피어 설정이 다른 저장소 두 개와 격리된 SDK fixture를 준비한다. 피어 선택, 카드·기술 확인, 메시지 검토와 전송, 원격 작업·답장·계속 보내기를 검사한다. 프로젝트 전환과 접기에서 상태·조회 범위가 정확하고, 결과가 불명확한 전송은 명시적 재검토를 거쳐 같은 ID로 재전송되는지 확인한다. A+U+R. |
 | USAGE01 | AI 사용 한도 | 고정된 한도와 초기화 시각 fixture로 일곱 레이아웃의 상태 표시줄과 세부 정보, 800px·확대 배율·고대비·키보드를 검사한다. 초기화 경계·오래된 값·실패·계정 전환에서 표시와 보관 규칙을 확인한다. 별도로 로그인된 Codex의 읽기 전용 조회와 Claude Code 수집기의 Git Bash·PowerShell 입력 전달을 검증한다. 실제 Claude Code 보고는 fixture와 별도로 기록한다. A+U+R. |
 
-자동 검사 진입점은 GRAPH01의 `cargo test --locked -p pod-app project_graph`, A2A01의 `cargo test --locked -p pod-a2a`와 `cargo test --locked -p pod-cli a2a`, USAGE01의 [수집기·앱 검증 명령](usage/ai-usage-monitor.md#확인-방법)이다. 실행 범위는 [11월 24일 후속 기능 결과](27-feature-validation-results.md#2026-11-24-후속-기능-검증)에 기록한다.
+자동 검사 진입점은 GRAPH01의 `cargo test --locked -p pod-app project_graph`, A2A01의 `cargo test --locked -p pod-a2a`와 `cargo test --locked -p pod-cli a2a`, A2A02의 `cargo test --locked -p pod-app project_a2a`, USAGE01의 [수집기·앱 검증 명령](usage/ai-usage-monitor.md#확인-방법)이다. A2A02에서 실제 SDK를 사용할 때는 격리된 fixture의 주소를 `POD_A2A_UI_FIXTURE`로 지정한다. 실행 범위는 [11월 24일 후속 기능 결과](27-feature-validation-results.md#2026-11-24-후속-기능-검증)에 기록한다.
 
 ## 4 자동 검사의 실행 진입점
 

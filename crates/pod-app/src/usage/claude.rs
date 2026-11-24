@@ -209,6 +209,7 @@ impl Setup {
         }
     }
 
+    #[cfg(test)]
     pub fn get(&self, shell: Shell) -> Option<&str> {
         match shell {
             Shell::GitBash => Some(&self.git_bash),

@@ -2,7 +2,7 @@
 # and rescore.md step 3:
 # - pod-test-support is a dev-dependency only: no crate lists it under
 #   [dependencies], [build-dependencies] or a target's (build-)dependencies;
-# - the leaf crates pod-process, pod-storage and pod-test-support depend on no
+# - the leaf crates pod-process, pod-storage, pod-test-support and pod-a2a depend on no
 #   other workspace crate (no reverse edge into a domain crate) and not on
 #   GPUI; process and storage may use pod-test-support for their own tests;
 # - the spikes stay workspace members (`cargo build -p pod-spike` keeps
@@ -30,7 +30,7 @@ param([string]$Root = (Join-Path $PSScriptRoot ".."), [switch]$SelfTest)
 $ErrorActionPreference = "Stop"
 
 $spikes = @("crates/pod-spike", "crates/diff-spike")
-$leaves = @("pod-process", "pod-storage", "pod-test-support")
+$leaves = @("pod-process", "pod-storage", "pod-test-support", "pod-a2a")
 $testSupport = "pod-test-support"
 # Forbidden edges: a package in From must not depend on a package matching To.
 $forbidden = @(
@@ -242,7 +242,7 @@ function Test-Boundaries([string]$root) {
 if ($SelfTest) {
   $tmp = Join-Path ([IO.Path]::GetTempPath()) ("pod-check-boundaries-" + [Guid]::NewGuid().ToString("N"))
   $all = @("crates/pod-spike", "crates/diff-spike", "crates/app", "crates/pod-process", "crates/pod-storage", "crates/pod-test-support",
-           "crates/pod-editor", "crates/podd", "crates/pod-protocol", "crates/pod-client", "crates/pod-app", "crates/pod-cli", "crates/pod-remote")
+           "crates/pod-editor", "crates/podd", "crates/pod-protocol", "crates/pod-client", "crates/pod-app", "crates/pod-cli", "crates/pod-remote", "crates/pod-a2a")
   $shipped = @($all | Where-Object { $spikes -notcontains $_ })
   # A root manifest; the app crates inherit their `podd` alias from it.
   function New-Ws([string[]]$members, [string[]]$defaults, [string]$deps = "") {
@@ -258,6 +258,7 @@ if ($SelfTest) {
     "crates/pod-process" = "[package]`nname = `"pod-process`"`n[target.'cfg(windows)'.dependencies]`nwindows-sys = `"0.61`"`n[dev-dependencies]`npod-test-support = { path = `"../pod-test-support`" }"
     "crates/pod-storage" = "[package]`nname = `"pod-storage`"`n[dependencies]`nserde = `"1`" # not pod-process`n[features]`nx = [`"serde/std`"]"
     "crates/pod-test-support" = "[package]`nname = `"pod-test-support`"`n[dev-dependencies]`ntempfile = `"3`""
+    "crates/pod-a2a" = "[package]`nname = `"pod-a2a`"`n[dependencies]`nserde = `"1`""
     "crates/pod-editor" = "[package]`nname = `"pod-editor`"`n[dependencies]`npod-process = { path = `"../pod-process`" }"
     # The daemon itself may use everything the client crates must not.
     "crates/podd" = "[package]`nname = `"podd`"`n[dependencies]`npod-client.path = `"../pod-client`"`ntokio = { version = `"1`", features = [`"rt-multi-thread`", `"net`"], optional = true }`nalacritty_terminal = `"0.25`"`n[features]`nserver = [`"dep:tokio`", `"tokio/process`"]"
@@ -274,6 +275,9 @@ if ($SelfTest) {
   # Each case: changes to the good fixture and the FAIL texts it must produce.
   $cases = @(
     @{ Name = "good"; Ws = $wsGood; Set = @{}; Expect = @() },
+    @{ Name = "A2A client depends on a Pod workspace crate"; Ws = $wsGood
+       Set = @{ "crates/pod-a2a" = "[package]`nname = `"pod-a2a`"`n[dependencies]`npod-client.path = `"../pod-client`"" }
+       Expect = @("crates/pod-a2a [dependencies] pod-client: leaf crate pod-a2a depends on workspace crate pod-client") },
     @{ Name = "test-support as a normal dependency"; Ws = $wsGood
        Set = @{ "crates/app" = "[package]`nname = `"app`"`n[dependencies]`npod-test-support = { path = `"../pod-test-support`" }" }
        Expect = @("crates/app [dependencies] pod-test-support: pod-test-support is a dev-dependency only") },

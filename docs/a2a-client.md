@@ -10,6 +10,9 @@ Standard followed: [A2A specification v1.0.1](https://a2a-protocol.org/v1.0.1/sp
 and its release-tagged `specification/a2a.proto` (tag `v1.0.1`, commit
 `3303592588e388e62e0f69f701af531d2f4e3991`).
 
+The [external peer section in the project graph](09-pod-app.md#외부-a2a-피어-project_a2ars-2026-11-24)
+uses the same client for reviewed sends and task status. This guide covers the CLI.
+
 ## What is supported
 
 | Area | Supported | Not supported |

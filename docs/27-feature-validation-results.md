@@ -25,7 +25,8 @@ native 검증은 `24c4396` 기준으로 제품 코드가 같은 `2405f2f` 빌드
 | ID | 확인한 소스와 결과 | 남은 범위 |
 |---|---|---|
 | GRAPH01 | 통합 `b76298e`의 Windows 앱에서 17개 시나리오, 검증 항목 53개 통과. 작업대와 고밀도 + 세부 열의 좁은 행에서 버튼과 노드를 선택했다. 저장소 전환 후 즉시 정상 종료해도 같은 패널·저장소가 복원되고 터미널과 미저장 확인이 유지됐다. | 집중 레일 조작, 다른 배율과 종료·복구 조합은 해당 검증 범위 밖이다. |
-| A2A01 | 통합 `afb7f9d`에서 코어 42개와 CLI 8개 통과. 워커가 공식 a2a-python SDK 1.3.1의 loopback HTTP와 테스트 CA를 사용한 TLS에서 27단계와 wire 검증 11개를 통과했다. | 외부 서비스·공인 CA 상호운용과 앱의 A2A UI는 미검증이다. [지원하는 표준 범위](a2a-client.md#what-is-supported) |
+| A2A01 | 통합 `afb7f9d`에서 코어 42개와 CLI 8개 통과. 워커가 공식 a2a-python SDK 1.3.1의 loopback HTTP와 테스트 CA를 사용한 TLS에서 27단계와 wire 검증 11개를 통과했다. | 외부 서비스·공인 CA 상호운용은 미검증이다. [지원하는 표준 범위](a2a-client.md#what-is-supported) |
+| A2A02 | 워커 `639f294`의 A2A 섹션 검사 21개와 공식 SDK 루프백 UI 시나리오 통과. 통합 검증 브랜치의 app 코드는 `1346a88`, `4e65e19`에 반영했다. | 실제 Windows 창의 입력·표시 검증이 남아 있다. [외부 피어 사용법](09-pod-app.md#외부-a2a-피어-project_a2ars-2026-11-24) |
 | USAGE01 | 워커 `7613ba4`에서 앱 자동 검사와 Git Bash·Windows PowerShell 5.1의 Claude 수집 명령 5개를 확인했다. 워커 `85b5370`에서 로그인된 Codex의 읽기 전용 한도 조회도 성공했다. | 통합 Windows UI 검증은 진행 중이다. 실제 Claude Code의 한도 보고는 미실행이다. [연결 방법과 fixture 범위](usage/ai-usage-monitor.md) |
 
 원본 보고서는 로컬 `coordination-validation/reports/2026-11-24/`의 `project-agent-graph-native-fixed/report.md`, `a2a-standard-client/report.txt`, `a2a-integration/`, `ai-usage-monitor/`에 있다.
