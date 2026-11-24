@@ -1,0 +1,86 @@
+{
+  "run_date": "2026-11-24",
+  "scope": "Supplemental scoped verification. Feature-level coverage remains as recorded in the full audit, with the listed additional cases.",
+  "branch": "improvements/stability-foundation",
+  "tested_integration_commit": "0d596155b3931b71c83d2c177d4f0bd554844216",
+  "baseline": "24c43964ad7fabaddcb7c0c2855a76e87466292f",
+  "checks": [
+    {
+      "features": [
+        "EDIT07",
+        "UI03"
+      ],
+      "layer": "U",
+      "status": "PASS",
+      "assertion_counts": {
+        "EDIT07": 18,
+        "UI03": 7
+      },
+      "app_build_commit": "2405f2f58f3cbedb29b35c4a421b9f02c7a550ab",
+      "evidence": [
+        "C:/Users/Sejin/orca/workspaces/pod/coordination-validation/reports/2026-11-24/native-editor-layout/report.md",
+        "C:/Users/Sejin/orca/workspaces/pod/coordination-validation/reports/2026-11-24/native-editor-layout/feature-results.json"
+      ]
+    },
+    {
+      "features": [
+        "TASK06",
+        "TERM04",
+        "TERM09"
+      ],
+      "layer": "A",
+      "status": "PASS",
+      "worker_commit": "cc387905682fd9ebe20fd2b8d5e1448fc9b46412",
+      "integration_test_commit": "06f2777",
+      "worker_test_count": 20,
+      "scope": "Local backend/API. Worker report identifies the selected regressions and evidence.",
+      "evidence": [
+        "C:/Users/Sejin/orca/workspaces/pod/coordination-validation/reports/2026-11-24/local-task-terminal/report.md",
+        "C:/Users/Sejin/orca/workspaces/pod/coordination-validation/reports/2026-11-24/local-task-terminal/feature-results.json"
+      ]
+    },
+    {
+      "features": [
+        "TASK06",
+        "TERM04",
+        "TERM09"
+      ],
+      "layer": "A",
+      "status": "PASS",
+      "test_count": 3,
+      "exit_code": 0,
+      "command": "cargo test --locked -p podd --test local_validation -- --nocapture",
+      "evidence": [
+        "C:/Users/Sejin/orca/workspaces/pod/coordination-validation/reports/2026-11-24/integration-followup/integration-local-validation-20261124-123927-249.json",
+        "C:/Users/Sejin/orca/workspaces/pod/coordination-validation/reports/2026-11-24/integration-followup/integration-local-validation-20261124-123927-249.log"
+      ]
+    },
+    {
+      "check": "RUSTSEC-2026-0592 dependency update",
+      "status": "PASS",
+      "worker_commit": "2b45415facbdd47649edffe3b5d96f73b3641fed",
+      "integration_commit": "0b4c81a",
+      "url": "2.5.9",
+      "form_urlencoded": "1.2.3",
+      "evidence": [
+        "C:/Users/Sejin/orca/workspaces/pod/coordination-validation/reports/2026-11-24/url-advisory/report.txt"
+      ]
+    },
+    {
+      "features": [
+        "SYS02",
+        "SYS05"
+      ],
+      "layer": "P",
+      "status": "FAIL",
+      "exit_code": 1,
+      "command": "cargo-deny --log-level error --locked check",
+      "finding": "RUSTSEC-2026-0543 (chrono 0.4.45 unmaintained) remains the only reported error. RUSTSEC-2026-0592 is absent. Bans, licenses and sources passed.",
+      "package_artifacts_generated": false,
+      "evidence": [
+        "C:/Users/Sejin/orca/workspaces/pod/coordination-validation/reports/2026-11-24/integration-followup/integration-deny-locked-20261124-123740-400.json",
+        "C:/Users/Sejin/orca/workspaces/pod/coordination-validation/reports/2026-11-24/integration-followup/integration-deny-locked-20261124-123740-400.log"
+      ]
+    }
+  ]
+}
